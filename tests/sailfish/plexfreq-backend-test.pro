@@ -1,0 +1,10 @@
+TARGET = plexfreq-backend-test
+CONFIG += c++11 testcase
+QT += core gui network qml quick multimedia testlib dbus
+RESOURCES += tests/qt-backend-test.qrc
+SOURCES += qt_backend.cpp backend.cpp mpris.cpp
+HEADERS += backend.h plexfreq_core.h mpris.h
+LIBS += $$PWD/thirdparty/libplexfreq_core.a -lpthread -ldl -lm
+PRE_TARGETDEPS += $$PWD/thirdparty/libplexfreq_core.a
+target.path = /usr/bin
+INSTALLS += target

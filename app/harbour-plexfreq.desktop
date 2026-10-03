@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=PlexFreq
+Icon=harbour-plexfreq
+Exec=harbour-plexfreq
+X-Nemo-Application-Type=silica-qt5
+
+[X-Sailjail]
+Permissions=Internet;Audio
+OrganizationName=org.plexfreq
+ApplicationName=harbour-plexfreq

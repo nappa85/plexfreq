@@ -1,0 +1,95 @@
+# Rust and out-of-tree desktop/SDK builds (keep Cargo.lock).
+/target/
+/build/
+
+# Rust archive copied into the Qt app and mb2 packaging output.
+/app/thirdparty/
+/app/RPMS/
+/app/SRPMS/
+/app/BUILD/
+/app/BUILDROOT/
+/app/OTHER/
+/app/installroot/
+*.rpm
+/plexfreq-*-rootless.tar.gz
+
+# Accidental in-source CMake/qmake builds.
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+*_autogen/
+.qmake.cache
+.qmake.stash
+/Makefile
+/app/Makefile*
+/tests/sailfish/Makefile*
+/plexfreq
+/app/harbour-plexfreq
+/tests/sailfish/plexfreq-backend-test
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.moc
+moc_*.cpp
+moc_predefs.h
+qrc_*.cpp
+ui_*.h
+
+# Local Python tooling environments and caches.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Coverage/profiling output and diagnostics (may contain authenticated URLs).
+/coverage/
+*.profraw
+*.profdata
+*.log
+*.dmp
+/core
+/core.[0-9]*
+
+# Private Plex session state, media/artwork/library caches and atomic-write temps.
+session.json
+session.json.*
+.session-*.tmp
+audio-cache/
+artwork-cache/
+library-cache/
+plexfreq-smoke.*/
+plexfreq-test.*/
+credentials.json
+tokens.json
+
+# Local credentials; deliberately keep placeholder-only example/template files.
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Per-developer IDE configuration, backups and OS metadata.
+*.user
+*.user.*
+CMakeUserPresets.json
+.idea/
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+<RCC><qresource prefix="/tests">
+<file alias="Session.qml">../app/qml/shared/Session.qml</file>
+<file alias="RadioIcon.qml">../app/qml/shared/RadioIcon.qml</file>
+<file alias="HeaderGeometry.qml">HeaderGeometry.qml</file>
+<file alias="RadioIconGeometry.qml">RadioIconGeometry.qml</file>
+</qresource><qresource prefix="/qml">
+<file alias="shared/RadioIcon.qml">../app/qml/shared/RadioIcon.qml</file>
+<file alias="shared/IntrinsicLoader.qml">../app/qml/shared/IntrinsicLoader.qml</file>
+<file alias="desktop/RadioAction.qml">../app/qml/desktop/RadioAction.qml</file>
+<file alias="desktop/DetailHeader.qml">../app/qml/desktop/DetailHeader.qml</file>
+<file alias="desktop/NowPlaying.qml">../app/qml/desktop/NowPlaying.qml</file>
+<file alias="desktop/PlaylistEditor.qml">../app/qml/desktop/PlaylistEditor.qml</file>
+<file alias="desktop/Downloads.qml">../app/qml/desktop/Downloads.qml</file>
+<file alias="pages/NowPlayingPage.qml">../app/qml/pages/NowPlayingPage.qml</file>
+<file alias="pages/PlaylistDialog.qml">../app/qml/pages/PlaylistDialog.qml</file>
+<file alias="pages/DownloadsPage.qml">../app/qml/pages/DownloadsPage.qml</file>
+</qresource></RCC>

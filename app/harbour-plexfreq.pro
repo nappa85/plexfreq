@@ -1,0 +1,13 @@
+TARGET = harbour-plexfreq
+VERSION = 0.1.0
+CONFIG += sailfishapp c++11
+QT += multimedia dbus
+DEFINES += SAILFISH
+SOURCES += src/main.cpp src/backend.cpp src/mpris.cpp
+HEADERS += src/backend.h src/plexfreq_core.h src/mpris.h
+LIBS += $$PWD/thirdparty/libplexfreq_core.a -lpthread -ldl -lm
+PRE_TARGETDEPS += $$PWD/thirdparty/libplexfreq_core.a
+DISTFILES += harbour-plexfreq.desktop rpm/harbour-plexfreq.spec qml/harbour-plexfreq.qml qml/pages/*.qml qml/shared/*.qml
+launchericon.files = icons/harbour-plexfreq.svg
+launchericon.path = /usr/share/icons/hicolor/scalable/apps
+INSTALLS += launchericon

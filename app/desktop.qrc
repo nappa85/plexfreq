@@ -1,0 +1,12 @@
+<RCC><qresource prefix="/">
+<file>qml/desktop/Main.qml</file>
+<file>qml/shared/Session.qml</file>
+<file>qml/shared/RadioIcon.qml</file>
+<file>qml/shared/IntrinsicLoader.qml</file>
+<file>qml/shared/AlphabetRail.qml</file>
+<file>qml/desktop/RadioAction.qml</file>
+<file>qml/desktop/DetailHeader.qml</file>
+<file>qml/desktop/NowPlaying.qml</file>
+<file>qml/desktop/PlaylistEditor.qml</file>
+<file>qml/desktop/Downloads.qml</file>
+</qresource></RCC>

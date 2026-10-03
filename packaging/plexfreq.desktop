@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PlexFreq
+Comment=Plex music player
+Icon=plexfreq
+Exec=plexfreq
+Categories=AudioVideo;Audio;Player;
+Terminal=false
