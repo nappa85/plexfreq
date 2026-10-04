@@ -233,7 +233,7 @@ ApplicationWindow {
         QVERIFY(QMetaObject::invokeMethod(session.get(),"maybeMore",Q_ARG(QVariant,QVariant(0.74)))); QCOMPARE(backend.commandCount,count);
         QVERIFY(QMetaObject::invokeMethod(session.get(),"maybeMore",Q_ARG(QVariant,QVariant(0.75)))); QCOMPARE(backend.arguments.value("start").toInt(),100);
         QVERIFY(QMetaObject::invokeMethod(session.get(),"maybeMore",Q_ARG(QVariant,QVariant(0.9)))); QCOMPARE(backend.commandCount,count+1);
-        emit backend.completed("browse",false,QVariantMap());
+        emit backend.completed("browse",false,QVariantMap{{"_pageStart",100}});
         QVERIFY(QMetaObject::invokeMethod(session.get(),"maybeMore",Q_ARG(QVariant,QVariant(0.9)))); QCOMPARE(backend.commandCount,count+1);
         QVERIFY(QMetaObject::invokeMethod(session.get(),"search",Q_ARG(QVariant,QVariant("Fixture"))));
         QVERIFY(QMetaObject::invokeMethod(session.get(),"search",Q_ARG(QVariant,QVariant("Fixture final"))));

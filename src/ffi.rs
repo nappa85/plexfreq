@@ -9,7 +9,13 @@ use std::{
 };
 
 fn output(value: serde_json::Value) -> *mut c_char {
-    CString::new(value.to_string()).unwrap().into_raw()
+    // serde_json escapes NUL as \u0000, so this only fails on allocator
+    // failure; fall back to a static envelope instead of panicking over FFI.
+    CString::new(value.to_string())
+        .unwrap_or_else(|_| {
+            CString::new(r#"{"ok":false,"error":"Encoding failed"}"#).expect("static")
+        })
+        .into_raw()
 }
 
 /// # Safety

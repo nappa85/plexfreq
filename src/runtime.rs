@@ -29,8 +29,26 @@ pub(crate) struct Shared {
     plans: Arc<Mutex<BTreeMap<u64, Value>>>,
     shown: Arc<AtomicU64>,
     pub(crate) seeks: Arc<Mutex<Vec<i64>>>,
+    checkpoint_overflow: Arc<Mutex<Vec<Value>>>,
 }
 impl Shared {
+    fn checkpoint(&self, snapshot: audio::Snapshot, reset: bool) {
+        // Checkpoints carry listened/scrobble data: never block the GUI thread
+        // on a full request queue, and never silently drop them either.
+        // Fast path is non-blocking; extreme backpressure spills to a bounded
+        // overflow the worker drains every iteration.
+        let value = json!({"op":"_audio_checkpoint","snapshot":snapshot,"reset":reset});
+        if let Err(mpsc::TrySendError::Full(value)) = self.requests.try_send(value) {
+            let mut overflow = crate::mutex_lock(&self.checkpoint_overflow);
+            // Bound overflow: checkpoints are rare (pause/toggle/stop); keep
+            // the latest 16 and drop the oldest rather than growing unbounded
+            // while the worker is stalled on network I/O.
+            if overflow.len() >= 16 {
+                overflow.remove(0);
+            }
+            overflow.push(value);
+        }
+    }
     pub(crate) fn send(&self, request: Value) -> Result<Value> {
         let op = request["op"]
             .as_str()
@@ -39,16 +57,14 @@ impl Shared {
             let handle = self
                 .audio
                 .lock()
-                .unwrap()
+                .unwrap_or_else(|poison| poison.into_inner())
                 .clone()
                 .ok_or(Error::Input("Audio engine is starting"))?;
             match op {
                 "audio_pause" => handle.pause()?,
                 "audio_stop" => {
                     let snapshot = handle.snapshot();
-                    let _ = self.requests.try_send(
-                        json!({"op":"_audio_checkpoint","snapshot":snapshot,"reset":true}),
-                    );
+                    self.checkpoint(snapshot, true);
                     handle.stop()?;
                 }
                 "audio_seek" => handle.seek(
@@ -68,7 +84,10 @@ impl Shared {
                     } else if state.loaded {
                         handle.play()?;
                     } else {
-                        let model = self.model.lock().unwrap();
+                        let model = self
+                            .model
+                            .lock()
+                            .unwrap_or_else(|poison| poison.into_inner());
                         let input = if model["track"].is_object() {
                             json!({"op":"resume"})
                         } else {
@@ -81,9 +100,7 @@ impl Shared {
                 _ => return Err(Error::Input("Unknown audio command")),
             }
             if op == "audio_pause" || op == "audio_toggle" {
-                let _ = self.requests.try_send(
-                    json!({"op":"_audio_checkpoint","snapshot":handle.snapshot(),"reset":false}),
-                );
+                self.checkpoint(handle.snapshot(), false);
             }
             return Ok(
                 json!({"accepted":true,"busy":self.busy(),"loadingMore":self.loading_more(),"resetItems":false}),
@@ -123,13 +140,17 @@ impl Shared {
         )
     }
     pub(crate) fn playback(&self) -> audio::Snapshot {
-        self.audio.lock().unwrap().as_ref().map_or(
-            audio::Snapshot {
-                volume: 0.8,
-                ..Default::default()
-            },
-            |a| a.snapshot(),
-        )
+        self.audio
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .as_ref()
+            .map_or(
+                audio::Snapshot {
+                    volume: 0.8,
+                    ..Default::default()
+                },
+                |a| a.snapshot(),
+            )
     }
     pub(crate) fn busy(&self) -> bool {
         self.foreground.load(Ordering::SeqCst) > 0
@@ -138,7 +159,10 @@ impl Shared {
         self.pages.load(Ordering::SeqCst) > 0
     }
     pub(crate) fn merge(&self, data: &Value) {
-        let mut model = self.model.lock().unwrap();
+        let mut model = self
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         if let Some(fields) = data.as_object() {
             for (key, value) in fields {
                 if !matches!(
@@ -151,12 +175,22 @@ impl Shared {
         }
     }
     pub(crate) fn hint_network(&self, wifi: bool) {
-        if let Some(control) = self.control.lock().unwrap().as_ref() {
+        if let Some(control) = self
+            .control
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .as_ref()
+        {
             control.network(wifi);
         }
     }
     pub(crate) fn hint_policy(&self, wifi_only: bool, paused: bool) {
-        if let Some(control) = self.control.lock().unwrap().as_ref() {
+        if let Some(control) = self
+            .control
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .as_ref()
+        {
             control.policy(wifi_only, paused);
         }
     }
@@ -184,6 +218,7 @@ impl Runtime {
             plans: Arc::new(Mutex::new(BTreeMap::new())),
             shown: Arc::new(AtomicU64::new(0)),
             seeks: Arc::new(Mutex::new(Vec::new())),
+            checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
         };
         let state = shared.clone();
         let worker = thread::Builder::new()
@@ -206,9 +241,27 @@ impl Runtime {
     }
     pub fn poll(&self) -> Value {
         let mut events: Vec<_> = self.events.try_iter().collect();
+        // A reply can finish before navigation but remain unpolled until after
+        // it. Check generations at delivery as well as on the Core worker.
+        for event in &mut events {
+            let input = &event["request"];
+            let op = input["op"].as_str().unwrap_or("");
+            if (is_listing(op) || op == "similar_artists")
+                && input["_view"].as_u64().unwrap_or(0) != self.shared.view.load(Ordering::SeqCst)
+            {
+                event["response"]["data"] = json!({"_discarded":true});
+            }
+        }
         let playback = self.shared.playback();
         if playback.id != 0 && playback.id != self.shared.shown.load(Ordering::SeqCst) {
-            if let Some(plan) = self.shared.plans.lock().unwrap().get(&playback.id).cloned() {
+            if let Some(plan) = self
+                .shared
+                .plans
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner())
+                .get(&playback.id)
+                .cloned()
+            {
                 self.shared.shown.store(playback.id, Ordering::SeqCst);
                 self.shared.merge(&plan);
                 events.push(update(plan));
@@ -273,9 +326,17 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
         .ok_or(Error::Input("Invalid audio source"))?
         .to_string();
     let track = &plan["track"];
+    // Prefer track gain, fall back to album gain so normalized albums without
+    // per-track analysis still play at a consistent level. Search all streams
+    // for track gain first: per-stream fallback would let album gain in an
+    // early stream shadow track gain in a later one.
     let gain = track["Media"][0]["Part"][0]["Stream"]
         .as_array()
-        .and_then(|s| s.iter().find_map(|s| s["gain"].as_f64()))
+        .and_then(|s| {
+            s.iter()
+                .find_map(|s| s["gain"].as_f64())
+                .or_else(|| s.iter().find_map(|s| s["albumGain"].as_f64()))
+        })
         .unwrap_or(0.) as f32;
     Ok(Source {
         id,
@@ -289,7 +350,9 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
 }
 fn visible_plan(plan: &Value) -> Value {
     let mut visible = plan.clone();
-    visible.as_object_mut().unwrap().remove("stream");
+    if let Some(object) = visible.as_object_mut() {
+        object.remove("stream");
+    }
     visible
 }
 fn artwork_delta(shared: &Shared, data: &mut Value) {
@@ -298,14 +361,18 @@ fn artwork_delta(shared: &Shared, data: &mut Value) {
         ("localArtwork", "artwork"),
         ("localAlbumArtwork", "albumArtwork"),
     ] {
-        if let Some(value) = data
-            .as_object_mut()
-            .unwrap()
+        let Some(object) = data.as_object_mut() else {
+            continue;
+        };
+        if let Some(value) = object
             .remove(field)
             .and_then(|v| v.as_str().map(str::to_string))
             .filter(|s| !s.is_empty())
         {
-            let mut model = shared.model.lock().unwrap();
+            let mut model = shared
+                .model
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner());
             if model["track"].is_object() && model["track"][target] != value {
                 model["track"][target] = json!(value);
                 changed = true;
@@ -313,7 +380,11 @@ fn artwork_delta(shared: &Shared, data: &mut Value) {
         }
     }
     if changed {
-        data["track"] = shared.model.lock().unwrap()["track"].clone();
+        data["track"] = shared
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())["track"]
+            .clone();
     }
 }
 fn record(
@@ -348,6 +419,22 @@ fn record(
     })?;
     Ok(())
 }
+fn apply_checkpoint(core: &mut Core, current: u64, input: &Value) {
+    if let Ok(state) = serde_json::from_value::<audio::Snapshot>(input["snapshot"].clone()) {
+        let _ = record(
+            core,
+            state.id,
+            current,
+            if input["reset"] == true {
+                0
+            } else {
+                state.position
+            },
+            state.listened,
+            state.duration,
+        );
+    }
+}
 fn worker(
     directory: PathBuf,
     shared: Shared,
@@ -366,7 +453,10 @@ fn worker(
             return;
         }
     };
-    *shared.audio.lock().unwrap() = Some(engine.handle.clone());
+    *shared
+        .audio
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner()) = Some(engine.handle.clone());
     let mut core = match Core::new(directory) {
         Ok(core) => core,
         Err(error) => {
@@ -375,7 +465,10 @@ fn worker(
         }
     };
     let _ = engine.handle.configure(core.audio_config());
-    *shared.control.lock().unwrap() = Some(core.download_control());
+    *shared
+        .control
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner()) = Some(core.download_control());
     let platform = platform::start(shared.clone(), events.clone());
     let mut current = 0u64;
     let mut serial = 0u64;
@@ -430,7 +523,11 @@ fn worker(
                     );
                     if id == current
                         && message == "Audio decoding or streaming failed"
-                        && shared.model.lock().unwrap()["playbackSource"] != "cache"
+                        && shared
+                            .model
+                            .lock()
+                            .unwrap_or_else(|poison| poison.into_inner())["playbackSource"]
+                            != "cache"
                     {
                         if let Ok(mut data) = core.execute(Command::CachedPlayback) {
                             data["resumePosition"] = json!(snapshot.position);
@@ -455,7 +552,11 @@ fn worker(
                     let _=events.send(json!({"request":{"op":"_audio_error"},"response":{"ok":false,"error":message}}));
                 }
                 Event::Seeked(position) => {
-                    shared.seeks.lock().unwrap().push(position as i64 * 1000);
+                    shared
+                        .seeks
+                        .lock()
+                        .unwrap_or_else(|poison| poison.into_inner())
+                        .push(position as i64 * 1000);
                     let _ = events.send(json!({"kind":"seeked","position":position}));
                 }
             }
@@ -465,28 +566,22 @@ fn worker(
             Err(mpsc::RecvTimeoutError::Timeout) => None,
             Err(_) => break,
         };
+        // Drain non-blocking checkpoint overflow first so pause/stop scrobble
+        // data isn't lost when the request queue was momentarily full.
+        // The GUI thread never blocks; the worker applies them in order.
+        let overflow = crate::mutex_lock(&shared.checkpoint_overflow)
+            .drain(..)
+            .collect::<Vec<_>>();
+        for checkpoint in overflow {
+            apply_checkpoint(&mut core, current, &checkpoint);
+        }
         if let Some(input) = input {
             let op = input["op"].as_str().unwrap_or("");
             if op == "_shutdown" {
                 break;
             }
             if op == "_audio_checkpoint" {
-                if let Ok(state) =
-                    serde_json::from_value::<audio::Snapshot>(input["snapshot"].clone())
-                {
-                    let _ = record(
-                        &mut core,
-                        state.id,
-                        current,
-                        if input["reset"] == true {
-                            0
-                        } else {
-                            state.position
-                        },
-                        state.listened,
-                        state.duration,
-                    );
-                }
+                apply_checkpoint(&mut core, current, &input);
                 continue;
             }
             let transport = matches!(
@@ -541,7 +636,11 @@ fn worker(
                             let _ = engine.handle.stop();
                             current = 0;
                             prepared = None;
-                            shared.plans.lock().unwrap().clear();
+                            shared
+                                .plans
+                                .lock()
+                                .unwrap_or_else(|poison| poison.into_inner())
+                                .clear();
                             shared.shown.store(0, Ordering::SeqCst);
                             data["track"] = Value::Null;
                             data["items"] = json!([]);
@@ -606,6 +705,11 @@ fn worker(
             };
             // Correlate failures as well as successes; the presentation must be
             // able to leave its loading state without accepting a stale reply.
+            if (is_listing(op) || op == "similar_artists")
+                && input["_view"].as_u64().unwrap_or(0) != shared.view.load(Ordering::SeqCst)
+            {
+                response["data"] = json!({"_discarded":true});
+            }
             if matches!(op, "lyrics" | "similar_artists") && response["data"]["_discarded"] != true
             {
                 if !response["data"].is_object() {
@@ -617,7 +721,13 @@ fn worker(
                     "similarKey"
                 }] = input["key"].clone();
             }
+            if is_listing(op) && !response["data"].is_object() {
+                response["data"] = json!({});
+            }
             if response["data"].is_object() {
+                if input["_page"] == true {
+                    response["data"]["_pageStart"] = input["start"].clone();
+                }
                 response["data"]["_listAction"] = json!(if is_listing(op) {
                     if is_page(op, &input) && response["data"]["replaceItems"] != true {
                         "append"
@@ -667,7 +777,12 @@ fn worker(
             cache_tick = Instant::now();
         }
         if history_tick.elapsed() >= Duration::from_secs(30) {
-            if shared.model.lock().unwrap()["networkOnline"] == true {
+            if shared
+                .model
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner())["networkOnline"]
+                == true
+            {
                 if let Ok(data) = core.execute(Command::SyncHistory) {
                     let _ = events.send(update(data));
                 }
@@ -687,8 +802,14 @@ fn worker(
     let _ = engine.handle.stop();
     shared.stop.store(true, Ordering::SeqCst);
     drop(platform);
-    *shared.control.lock().unwrap() = None;
-    *shared.audio.lock().unwrap() = None;
+    *shared
+        .control
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner()) = None;
+    *shared
+        .audio
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner()) = None;
 }
 fn start_plan(
     data: &Value,
@@ -705,12 +826,14 @@ fn start_plan(
     *serial += 1;
     *current = *serial;
     let input = source(*current, data)?;
-    shared.plans.lock().unwrap().clear();
-    shared
-        .plans
-        .lock()
-        .unwrap()
-        .insert(*current, visible_plan(data));
+    {
+        let mut plans = shared
+            .plans
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        plans.clear();
+        plans.insert(*current, visible_plan(data));
+    }
     shared.shown.store(*current, Ordering::SeqCst);
     engine.handle.load(input, paused)
 }
@@ -729,10 +852,82 @@ fn prepare(
             shared
                 .plans
                 .lock()
-                .unwrap()
+                .unwrap_or_else(|poison| poison.into_inner())
                 .insert(*serial, visible_plan(&next.plan));
             let _ = engine.handle.prepare(Some(source));
             *prepared = Some((*serial, next));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn navigation_discards_replies_that_finished_before_the_next_poll() {
+        let (requests, _receiver) = mpsc::sync_channel(8);
+        let (events, output) = mpsc::channel();
+        let runtime = Runtime {
+            shared: Shared {
+                requests,
+                audio: Arc::new(Mutex::new(None)),
+                model: Arc::new(Mutex::new(json!({}))),
+                control: Arc::new(Mutex::new(None)),
+                stop: Arc::new(AtomicBool::new(false)),
+                foreground: Arc::new(AtomicUsize::new(0)),
+                pages: Arc::new(AtomicUsize::new(0)),
+                view: Arc::new(AtomicU64::new(1)),
+                plans: Arc::new(Mutex::new(BTreeMap::new())),
+                shown: Arc::new(AtomicU64::new(0)),
+                seeks: Arc::new(Mutex::new(Vec::new())),
+                checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
+            },
+            events: output,
+            worker: None,
+        };
+        events.send(json!({"request":{"op":"browse","_view":1},"response":{"ok":true,"data":{"items":[{"ratingKey":"old"}]}}})).unwrap();
+        events.send(json!({"request":{"op":"similar_artists","_view":1},"response":{"ok":false,"error":"old error"}})).unwrap();
+        runtime
+            .submit(json!({"op":"detail","key":"2","start":0}))
+            .unwrap();
+        events.send(json!({"request":{"op":"detail","_view":2},"response":{"ok":true,"data":{"items":[{"ratingKey":"new"}]}}})).unwrap();
+        let result = runtime.poll();
+        assert_eq!(
+            result["events"][0]["response"]["data"],
+            json!({"_discarded":true})
+        );
+        assert_eq!(
+            result["events"][1]["response"]["data"],
+            json!({"_discarded":true})
+        );
+        assert_eq!(
+            result["events"][2]["response"]["data"]["items"][0]["ratingKey"],
+            "new"
+        );
+    }
+
+    // Production review (unfixed): track gain must win over album gain
+    // globally, not just within the first stream that happens to have a value.
+    // Current `find_map(|s| gain.or(albumGain))` picks albumGain from stream 0
+    // and never looks at track gain in stream 1.
+    #[test]
+    fn track_gain_preferred_over_album_gain_across_streams() {
+        let plan = json!({
+            "stream": "file:///tmp/fixture.mp3",
+            "resumePosition": 0,
+            "resumeListened": 0,
+            "track": {
+                "duration": 1000,
+                "parentRatingKey": "1",
+                "Media": [{"Part": [{"Stream": [{"albumGain": 10.0}, {"gain": 1.0}]}]}]
+            }
+        });
+        let source = source(7, &plan).unwrap();
+        assert_eq!(
+            source.gain, 1.0,
+            "track gain (1.0) must win over album gain (10.0) from another stream"
+        );
     }
 }

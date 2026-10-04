@@ -173,6 +173,25 @@ The i18n/audio follow-up above was implemented in the next iteration (2026-10-04
   Bluetooth/headset/call routing, installed sandbox validation, adaptive sample-rate
   matching and advanced DSP/transition policy.
 
+### Automated CI/release — implemented
+
+- Branch pushes/PRs: Rust, Qt integration/smoke, all-QML syntax, 39-locale freshness
+  and actual-SDK GNU aarch64 compilation.
+- Tags/manual: gated SDK RPM/rootless/device fixture artifacts; only tags publish.
+- Pinned clean-runner Linguist bootstrap and committed release-version preflight.
+- Remaining validation: first GitHub run after committing/pushing these workflows.
+  Initial shuffled-history review failure was observed; final working-tree Rust
+  recheck passes all 65 tests, retaining the complete gate.
+
+### Production review fixes — implemented 2026-10-04
+
+- Queue append cap, cache schedule 1000-track consistency, discovery skipping
+  malformed servers, artwork reschedule-after-cancel, non-blocking audio
+  checkpoints, poison-safe plans locking, primary-route wifi, EntryModel
+  identity separators, version-guard packaging, bounded cache index writes,
+  shared mutex helper, corrected output-timing comments, resilient release
+  tooling with bootstrap locking.
+
 ### First everyday-use regressions
 
 - Restore native Sailfish media-volume recognition using its x-maemo stream role.
@@ -181,7 +200,22 @@ The i18n/audio follow-up above was implemented in the next iteration (2026-10-04
 Local regressions pass; phone verification results are recorded in validation.md.
 - Numeric-string gain tolerance also restores full track/lyric metadata retrieval;
   current live sample returns 28 decoded lines. All fixes are deployed/tested on the
-  phone; physical key/visual interaction confirmation remains everyday-use validation.
+   phone; physical key/visual interaction confirmation remains everyday-use validation.
+
+### Review follow-ups — 2026-10-04
+
+The six supplied queue/offline/cache/album regressions pass, with extra coverage
+for natural-end occurrence identity, temporary quota accounting, streaming seek
+representations and stale reply delivery. Local checks and Qt5.6 SDK packaging
+pass; details are in validation.md.
+
+Remaining review cleanup: indexed/cached offline-search text, common bounded
+pagination and storage utilities, request-admission/UI busy-race stress coverage,
+queue/playback reply-order stress coverage, complete optional-data guards across
+both shells, translated sentence/plural composition and timer policy, centralized
+SDK/Linguist version configuration, a hash-locked Linguist dependency bootstrap,
+and structured Rust translation-message extraction. Reduced polling is still
+polling; power/latency measurements and broader phone runtime checks remain open.
 - Optional numeric-string gain parsing restored real lyric metadata retrieval;
   current live probe decodes 28 lines. All fixes are phone-tested/deployed; physical
   key/visual interaction confirmation remains part of everyday-use validation.

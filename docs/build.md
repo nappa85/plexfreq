@@ -17,6 +17,28 @@ Qt Linguist tools follow the reference cache path
 normal builds need no sibling repos. `PLEXFREQ_AUDIO_SINK=fake` selects a timed
 silent fixture sink; production uses PulseAudio with media.role=music.
 
+## GitHub Actions
+
+The reference CI/release split is replicated in `.github/workflows`. Branch pushes,
+PRs and manual runs execute five independent `ci.yml` jobs:
+
+- Rust fmt, locked all-feature/all-target Clippy, locked all-feature tests.
+- Qt6 release build/CTest (offscreen, isolated D-Bus, fake audio, local fixtures).
+- Qt5 qmllint syntax for all QML, including Silica without SDK imports.
+- TS/QM/resource freshness and placeholders for 39 locales.
+- GNU aarch64 staticlib with actual SDK GCC/pkg-config, not Ubuntu target libraries.
+
+Clean runners bootstrap pinned Qt Linguist 6.11.2 from PySide6-Essentials using
+`tools/qt_tools.py`; matching reference caches are reused. The versioned cache is
+`$XDG_CACHE_HOME/qt-tools/plexfreq-6.11.2`.
+
+`release.yml` reuses CI before SDK app/device-fixture builds. `v*` tags publish app
+RPM/rootless assets; manual runs only upload artifacts. Tags must equal `v` plus
+the committed version. `tools/release-version.py` checks Cargo/.pro/spec/main.cpp/
+CMake versions without rewriting source/lock files. Rootless filenames use the
+verified version. Build permissions are contents:read; only publication gets write.
+CI does not claim phone audio routing, physical-key or live-account validation.
+
 ## Host checks
 
 `tools/check.sh` runs formatting, Clippy, Rust tests, a release desktop build and

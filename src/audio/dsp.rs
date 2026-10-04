@@ -39,6 +39,9 @@ struct Biquad {
     z: [[f32; 2]; 2],
 }
 impl Biquad {
+    /// Peaking EQ with fixed Q=1 (alpha = sin(w)/2). Q is intentionally not
+    /// exposed: the 10-band UI only controls centre gain. Keep in sync with
+    /// `Processor::new` frequencies.
     fn peak(rate: f32, freq: f32, gain: f32) -> Self {
         let a = 10f32.powf(gain / 40.);
         let w = 2. * std::f32::consts::PI * freq / rate;
@@ -68,6 +71,9 @@ pub struct Processor {
 }
 impl Processor {
     pub fn new(rate: u32, config: &Config) -> Self {
+        // RATE is fixed at 48kHz; clamp degenerate rates instead of dividing
+        // by zero and poisoning every filter with NaNs.
+        let rate = rate.max(8000);
         let frequencies: [f32; 10] = [
             31., 62., 125., 250., 500., 1000., 2000., 4000., 8000., 16000.,
         ];
@@ -96,6 +102,9 @@ impl Processor {
     }
 }
 /// Equal-power mixing preserves the exact overlap frame count and channel order.
+/// Buffers are stereo-interleaved pairs; only the shortest shared prefix is
+/// mixed so a short tail can never panic the audio thread. Callers pass
+/// equal-length blocks in the steady state.
 pub fn crossfade(
     old: &[f32],
     new: &[f32],
@@ -103,7 +112,9 @@ pub fn crossfade(
     start_frame: usize,
     total_frames: usize,
 ) {
-    for (i, sample) in output.iter_mut().enumerate() {
+    let len = old.len().min(new.len()).min(output.len());
+    // Stereo frames: two samples per progress step.
+    for (i, sample) in output.iter_mut().enumerate().take(len) {
         let progress = ((start_frame + i / 2) as f32 / total_frames.max(1) as f32).clamp(0., 1.);
         let angle = progress * std::f32::consts::FRAC_PI_2;
         *sample = old[i] * angle.cos() + new[i] * angle.sin();

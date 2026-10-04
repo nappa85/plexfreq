@@ -1,0 +1,102 @@
+name: Build and publish Sailfish packages
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rpm-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality gates before packaging
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build RPM, rootless bundle and device fixture
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check committed release version
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+        run: python3 tools/release-version.py --tag "$RELEASE_TAG"
+      - name: Free disk space for Sailfish SDK
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell
+          sudo apt-get clean
+          df -h
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/aarch64-unknown-linux-gnu
+          key: ${{ runner.os }}-sailfish-5.2-audio-${{ hashFiles('Cargo.lock', 'tools/audio-sdk.Dockerfile') }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/qt-tools
+          key: ${{ runner.os }}-linguist-6.11.2
+      - name: Build with documented SDK scripts
+        run: |
+          ./tools/build-sailfish.sh
+          ./tools/build-device-tests.sh
+      - name: Check RPM version and architecture
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+          found=0
+          for package in build/sailfish/RPMS/*.rpm; do
+            test -f "$package" || continue
+            found=1
+            test "$(rpm -qp --qf '%{VERSION}' "$package")" = "$EXPECTED_VERSION"
+            test "$(rpm -qp --qf '%{ARCH}' "$package")" = aarch64
+          done
+          test "$found" = 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sailfish-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          path: |
+            build/sailfish/RPMS/*.rpm
+            build/plexfreq-*-aarch64-rootless.tar.gz
+            build/device-tests/plexfreq-backend-test
+            build/device-tests/RPMS/*.rpm
+
+  publish:
+    name: Publish tag release
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sailfish-${{ needs.build.outputs.version }}
+          path: packages
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packages/sailfish/RPMS/*.rpm
+            packages/plexfreq-*-aarch64-rootless.tar.gz
+          fail_on_unmatched_files: true
+          generate_release_notes: true

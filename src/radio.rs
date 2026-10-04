@@ -61,6 +61,11 @@ pub fn station_key(item: &Item, base: &Url) -> Result<Option<String>> {
     let Some(key) = find(&item.stations) else {
         return Ok(None);
     };
+    // An empty key means "no station", not a protocol error: fall back to
+    // sonic radio instead of failing the whole request.
+    if key.is_empty() {
+        return Ok(None);
+    }
     server_path(base, key)?;
     Ok(Some(key.to_owned()))
 }

@@ -9,6 +9,7 @@ import re
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
+from qt_tools import ensure_tools
 
 ROOT = Path(__file__).resolve().parents[1]
 LANGUAGES = "bg bn cs da de el es et fi fr gu hi hu it kn lt lv ml mr nb nl pa pl pt pt_BR ro ru sk sl sv ta te tr tt uk vi zh_CN zh_HK zh_TW".split()
@@ -56,18 +57,18 @@ def reference(language):
     return values
 
 def validate(source,translation):
-    if not translation or translation==source and re.search(r"[A-Za-z]{3}",source) and source not in ["PlexFreq","Plex token","X-Plex-Token","MiB","EPs","Radio","Downloads"]:
-        # Identical legitimate words are allowed by explicit dictionary entries.
-        if not translation:
-            raise ValueError("Empty translation: "+source)
+    # Identical translations are allowed: music terms (Mix, Live, Albums,
+    # Equalizer, Singles, …) are loanwords in many locales. Only empty
+    # translations and placeholder mismatches are errors.
+    if not translation:
+        raise ValueError("Empty translation: "+source)
     if sorted(re.findall(r"%[1-9n]",source))!=sorted(re.findall(r"%[1-9n]",translation)):
         raise ValueError("Placeholder mismatch: "+source)
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--extract",action="store_true");parser.add_argument("--check",action="store_true");args=parser.parse_args()
-    for binary in ["lupdate","lrelease"]:
-        if not (TOOLS/binary).is_file():
-            raise SystemExit("Qt Linguist tools missing; use the reference project's tools/build-qm.sh bootstrap")
+    global TOOLS
+    TOOLS=ensure_tools()
     template=extract();folder=ROOT/"app/translations";master=folder/f"{PREFIX}.ts"
     if args.extract:
         master.write_bytes(xml_bytes(template));sources=sorted({m.findtext("source") for m in template.iter("message")});print(json.dumps(sources,ensure_ascii=False,indent=2));return

@@ -17,44 +17,127 @@ impl Drop for Platform {
     }
 }
 pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
+    let mut threads = Vec::new();
     let network = shared.clone();
-    let net=thread::Builder::new().name("plexfreq-network".into()).spawn(move|| {
-        let connection=Connection::system().ok();let mut previous=None;
-        while !network.stop.load(std::sync::atomic::Ordering::SeqCst) {
-            let facts=connection.as_ref().and_then(|c|facts(c).ok()).unwrap_or((false,false));
-            if previous!=Some(facts){network.hint_network(facts.0);let _=network.send(json!({"op":"network_state","wifi":facts.0,"online":facts.1,"live_hint":true}));previous=Some(facts);}
-            for _ in 0..50 {if network.stop.load(std::sync::atomic::Ordering::SeqCst){break;}thread::sleep(Duration::from_millis(100));}
-        }
-    }).unwrap();
-    let bus = shared.clone();
-    let player=thread::Builder::new().name("plexfreq-mpris".into()).spawn(move|| {
-        let path="/org/mpris/MediaPlayer2";
-        let Ok(builder)=ConnectionBuilder::session() else{return;};
-        let connection=builder.name("org.mpris.MediaPlayer2.plexfreq").and_then(|b|b.serve_at(path,Root{events:events.clone()})).and_then(|b|b.serve_at(path,Player{shared:bus.clone()})).and_then(|b|b.build());
-        let Ok(connection)=connection else{return;};let mut previous=Value::Null;
-        while !bus.stop.load(std::sync::atomic::Ordering::SeqCst) {
-            for position in bus.seeks.lock().unwrap().drain(..){let _=connection.emit_signal(None::<&str>,path,"org.mpris.MediaPlayer2.Player","Seeked",&(position,));}
-            let state=bus.playback();let model=bus.model.lock().unwrap().clone();let changed=json!({"playing":state.playing,"paused":state.paused,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"]});
-            if changed!=previous {
-                let player=Player{shared:bus.clone()};let mut properties=HashMap::new();
-                properties.insert("PlaybackStatus",OwnedValue::try_from(zbus::zvariant::Value::from(player.playback_status())).unwrap());
-                properties.insert("Metadata",OwnedValue::try_from(zbus::zvariant::Value::from(player.metadata())).unwrap());
-                properties.insert("LoopStatus",OwnedValue::try_from(zbus::zvariant::Value::from(player.loop_status())).unwrap());properties.insert("Shuffle",OwnedValue::from(player.shuffle()));properties.insert("Volume",OwnedValue::from(state.volume));
-                properties.insert("CanPlay",OwnedValue::from(player.can_play()));properties.insert("CanPause",OwnedValue::from(player.can_play()));properties.insert("CanSeek",OwnedValue::from(state.seekable));
-                let _=connection.emit_signal(None::<&str>,path,"org.freedesktop.DBus.Properties","PropertiesChanged",&("org.mpris.MediaPlayer2.Player",properties,Vec::<String>::new()));previous=changed;
-            }thread::sleep(Duration::from_millis(100));
-        }
-    }).unwrap();
-    Platform {
-        threads: vec![net, player],
+    if let Ok(net) = thread::Builder::new()
+        .name("plexfreq-network".into())
+        .spawn(move || {
+            let connection = Connection::system().ok();
+            let mut previous = None;
+            while !network.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                let facts = connection
+                    .as_ref()
+                    .and_then(|c| facts(c).ok())
+                    .unwrap_or((false, false));
+                if previous != Some(facts) {
+                    network.hint_network(facts.0);
+                    let _ = network.send(json!({"op":"network_state","wifi":facts.0,"online":facts.1,"live_hint":true}));
+                    previous = Some(facts);
+                }
+                for _ in 0..50 {
+                    if network.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(100));
+                }
+            }
+        })
+    {
+        threads.push(net);
     }
+    let bus = shared.clone();
+    if let Ok(player) = thread::Builder::new()
+        .name("plexfreq-mpris".into())
+        .spawn(move || {
+            let path = "/org/mpris/MediaPlayer2";
+            let Ok(builder) = ConnectionBuilder::session() else {
+                return;
+            };
+            let connection = builder
+                .name("org.mpris.MediaPlayer2.plexfreq")
+                .and_then(|b| b.serve_at(path, Root { events: events.clone() }))
+                .and_then(|b| b.serve_at(path, Player { shared: bus.clone() }))
+                .and_then(|b| b.build());
+            let Ok(connection) = connection else {
+                return;
+            };
+            let mut previous = Value::Null;
+            while !bus.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                for position in bus
+                    .seeks
+                    .lock()
+                    .unwrap_or_else(|poison| poison.into_inner())
+                    .drain(..)
+                {
+                    let _ = connection.emit_signal(
+                        None::<&str>,
+                        path,
+                        "org.mpris.MediaPlayer2.Player",
+                        "Seeked",
+                        &(position,),
+                    );
+                }
+                let state = bus.playback();
+                let model = bus
+                    .model
+                    .lock()
+                    .unwrap_or_else(|poison| poison.into_inner())
+                    .clone();
+                let changed = json!({"playing":state.playing,"paused":state.paused,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"]});
+                if changed != previous {
+                    let player = Player { shared: bus.clone() };
+                    let mut properties = HashMap::new();
+                    if let Ok(v) =
+                        OwnedValue::try_from(zbus::zvariant::Value::from(player.playback_status()))
+                    {
+                        properties.insert("PlaybackStatus", v);
+                    }
+                    if let Ok(v) =
+                        OwnedValue::try_from(zbus::zvariant::Value::from(player.metadata()))
+                    {
+                        properties.insert("Metadata", v);
+                    }
+                    if let Ok(v) =
+                        OwnedValue::try_from(zbus::zvariant::Value::from(player.loop_status()))
+                    {
+                        properties.insert("LoopStatus", v);
+                    }
+                    properties.insert("Shuffle", OwnedValue::from(player.shuffle()));
+                    properties.insert("Volume", OwnedValue::from(state.volume));
+                    properties.insert("CanPlay", OwnedValue::from(player.can_play()));
+                    properties.insert("CanPause", OwnedValue::from(player.can_pause()));
+                    properties.insert("CanSeek", OwnedValue::from(state.seekable));
+                    let _ = connection.emit_signal(
+                        None::<&str>,
+                        path,
+                        "org.freedesktop.DBus.Properties",
+                        "PropertiesChanged",
+                        &(
+                            "org.mpris.MediaPlayer2.Player",
+                            properties,
+                            Vec::<String>::new(),
+                        ),
+                    );
+                    previous = changed;
+                }
+                thread::sleep(Duration::from_millis(100));
+            }
+        })
+    {
+        threads.push(player);
+    }
+    Platform { threads }
 }
 fn facts(connection: &Connection) -> zbus::Result<(bool, bool)> {
     if let Ok(proxy) = Proxy::new(connection, "net.connman", "/", "net.connman.Manager") {
         let services: Result<Vec<(OwnedObjectPath, HashMap<String, OwnedValue>)>, _> =
             proxy.call("GetServices", &());
         if let Ok(services) = services {
-            for (_, properties) in services {
+            // ConnMan returns favourite-first: the first ready/online service
+            // is the default route. wifi_only must reflect that primary route,
+            // not any secondary interface, otherwise downloads could run over
+            // cellular while a dormant wifi service is also listed.
+            for (_, properties) in &services {
                 let state = properties
                     .get("State")
                     .and_then(|v| <&str>::try_from(v).ok())
@@ -126,8 +209,14 @@ impl Player {
         let _ = self.shared.send(value);
     }
     fn track_id(&self) -> OwnedObjectPath {
+        // Playback ids are numeric, so this path is always valid; fall back to
+        // the zero track instead of panicking the DBus thread on corruption.
         OwnedObjectPath::try_from(format!("/org/plexfreq/track/{}", self.shared.playback().id))
-            .unwrap()
+            .or_else(|_| OwnedObjectPath::try_from("/org/plexfreq/track/0"))
+            .expect("static MPRIS track path is valid")
+    }
+    fn owned(value: zbus::zvariant::Value<'_>) -> Option<OwnedValue> {
+        OwnedValue::try_from(value).ok()
     }
 }
 #[zbus::interface(name = "org.mpris.MediaPlayer2.Player")]
@@ -192,7 +281,13 @@ impl Player {
     }
     #[zbus(property)]
     fn loop_status(&self) -> String {
-        match self.shared.model.lock().unwrap()["queue"]["repeat"].as_str() {
+        match self
+            .shared
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())["queue"]["repeat"]
+            .as_str()
+        {
             Some("one") => "Track",
             Some("all") => "Playlist",
             _ => "None",
@@ -211,7 +306,10 @@ impl Player {
     }
     #[zbus(property)]
     fn shuffle(&self) -> bool {
-        self.shared.model.lock().unwrap()["queue"]["shuffled"]
+        self.shared
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())["queue"]["shuffled"]
             .as_bool()
             .unwrap_or(false)
     }
@@ -221,43 +319,42 @@ impl Player {
     }
     #[zbus(property)]
     fn metadata(&self) -> HashMap<String, OwnedValue> {
-        let model = self.shared.model.lock().unwrap();
+        let model = self
+            .shared
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let track = &model["track"];
         let mut data = HashMap::new();
         if !track.is_object() {
             return data;
         }
-        data.insert(
-            "mpris:trackid".into(),
-            OwnedValue::try_from(zbus::zvariant::Value::from(self.track_id())).unwrap(),
-        );
+        if let Some(id) = Self::owned(zbus::zvariant::Value::from(self.track_id())) {
+            data.insert("mpris:trackid".into(), id);
+        }
         data.insert(
             "mpris:length".into(),
             OwnedValue::from(track["duration"].as_i64().unwrap_or(0) * 1000),
         );
         for (property, key) in [("xesam:title", "title"), ("xesam:album", "parentTitle")] {
-            data.insert(
-                property.into(),
-                OwnedValue::try_from(zbus::zvariant::Value::from(
-                    track[key].as_str().unwrap_or("").to_string(),
-                ))
-                .unwrap(),
-            );
+            if let Some(value) = Self::owned(zbus::zvariant::Value::from(
+                track[key].as_str().unwrap_or("").to_string(),
+            )) {
+                data.insert(property.into(), value);
+            }
         }
         let artist = track["originalTitle"]
             .as_str()
             .filter(|s| !s.is_empty())
             .or_else(|| track["grandparentTitle"].as_str())
             .unwrap_or("");
-        data.insert(
-            "xesam:artist".into(),
-            OwnedValue::try_from(zbus::zvariant::Value::from(vec![artist.to_string()])).unwrap(),
-        );
+        if let Some(artists) = Self::owned(zbus::zvariant::Value::from(vec![artist.to_string()])) {
+            data.insert("xesam:artist".into(), artists);
+        }
         if let Some(art) = track["artwork"].as_str().filter(|s| s.starts_with("file:")) {
-            data.insert(
-                "mpris:artUrl".into(),
-                OwnedValue::try_from(zbus::zvariant::Value::from(art.to_string())).unwrap(),
-            );
+            if let Some(url) = Self::owned(zbus::zvariant::Value::from(art.to_string())) {
+                data.insert("mpris:artUrl".into(), url);
+            }
         }
         data
     }
@@ -293,7 +390,10 @@ impl Player {
     }
     #[zbus(property)]
     fn can_play(&self) -> bool {
-        self.shared.model.lock().unwrap()["queue"]["items"]
+        self.shared
+            .model
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())["queue"]["items"]
             .as_array()
             .is_some_and(|a| !a.is_empty())
     }
@@ -307,7 +407,9 @@ impl Player {
     }
     #[zbus(property)]
     fn can_go_next(&self) -> bool {
-        !self.shared.busy() && self.can_play()
+        // Transport must stay available while library browsing loads (busy);
+        // busy tracks foreground list work, not audio capability.
+        self.can_play()
     }
     #[zbus(property)]
     fn can_go_previous(&self) -> bool {

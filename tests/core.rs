@@ -65,7 +65,8 @@ fn queue_repeat_manual_skip_and_end() {
     assert_eq!(q.advance(false).unwrap().rating_key, "3");
     q.repeat = Repeat::Off;
     assert!(q.advance(true).is_none());
-    assert_eq!(q.previous().unwrap().rating_key, "2");
+    // After natural end, previous resumes the last audible track.
+    assert_eq!(q.previous().unwrap().rating_key, "3");
     q.select(3).unwrap();
     q.repeat = Repeat::All;
     assert_eq!(q.advance(true).unwrap().rating_key, "0");

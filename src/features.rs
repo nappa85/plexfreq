@@ -67,13 +67,13 @@ impl Core {
             let page = self.page("/playlists", vec![("playlistType", "audio".into())], start)?;
             let count = page["items"].as_array().map_or(0, Vec::len);
             items.extend(page["items"].as_array().cloned().unwrap_or_default());
-            if count == 0 || page["hasMore"] != true {
-                break;
-            }
-            if items.len() >= 1000 {
+            if items.len() > 1000 {
                 return Err(Error::Input(
                     "Playlist chooser is limited to 1000 playlists",
                 ));
+            }
+            if count == 0 || page["hasMore"] != true {
+                break;
             }
             start = page["next"].as_u64().unwrap_or(0) as usize;
         }
@@ -219,11 +219,14 @@ impl Core {
     pub(crate) fn artist_albums(&self, key: &str) -> Result<Value> {
         let mut page = self.detail(key, 0)?;
         let mut items = page["items"].as_array().cloned().unwrap_or_default();
-        while page["hasMore"] == true {
-            if items.len() >= 1000 {
+        loop {
+            if items.len() > 1000 {
                 return Err(Error::Input(
                     "Grouping is limited to 1000 albums per artist",
                 ));
+            }
+            if page["hasMore"] != true {
+                break;
             }
             page = self.page(
                 &format!("/library/metadata/{}/children", crate::numeric(key)?),
@@ -250,6 +253,9 @@ impl Core {
             let mut items = match seed.kind.as_str() {
                 "album" => self.album_tracks(&seed)?,
                 "artist" => {
+                    // Intentional bounded sampling: up to 200 tracks per artist
+                    // seed (2 pages). Full discographies would make mixes slow
+                    // and unbounded; roadmap documents this sampling policy.
                     let mut all = Vec::new();
                     for start in [0, 100] {
                         let (c, _) = self.container_cached(
@@ -299,12 +305,18 @@ impl Core {
         Ok(result)
     }
     pub(crate) fn download_rows(&self) -> Vec<Value> {
-        let ns = self.cache_namespace();
-        let status = self.cache.status(&ns);
+        self.download_rows_from_status(&self.cache.status(&self.cache_namespace()))
+    }
+    pub(crate) fn download_rows_from_status(&self, status: &Value) -> Vec<Value> {
+        let planned: std::collections::BTreeMap<_, _> = self
+            .manual_cache
+            .iter()
+            .map(|i| (&i.rating_key, i))
+            .collect();
         self.settings.download_groups.iter().map(|(group,keys)| {
-            let items:Vec<_>=self.manual_cache.iter().filter(|i|keys.contains(&i.rating_key)).collect();
+            let items:Vec<_>=keys.iter().filter_map(|key|planned.get(key).copied()).collect();
             let mut ready=0;let mut bytes=0;
-            for item in &items{if let Some((path,_))=self.cache.lookup(&ns,item,false){ready+=1;bytes+=std::fs::metadata(path).map_or(0,|m|m.len());}}
+            for item in &items{if let Some(size)=status["readyBytes"][&item.rating_key].as_u64(){ready+=1;bytes+=size;}}
             let title=self.settings.download_titles.get(group).cloned().or_else(||items.first().map(|i|if group.starts_with("track:"){i.title.clone()}else{i.parent_title.clone()})).filter(|s|!s.is_empty()).unwrap_or_else(||group.split(':').next().unwrap_or("Download").into());
             let error=keys.iter().find_map(|key|status["errors"][key].as_str()).unwrap_or("");
             json!({"group":group,"title":title,"ready":ready,"total":keys.len(),"bytes":bytes,"active":keys.iter().any(|k|Some(k.as_str())==status["activeKey"].as_str()),"error":error})
@@ -321,7 +333,11 @@ impl Core {
                 self.schedule_cache();
             }
             "cancel" | "remove" => {
-                let keys = self.settings.download_groups.remove(group).unwrap();
+                let keys = self
+                    .settings
+                    .download_groups
+                    .remove(group)
+                    .unwrap_or_default();
                 self.settings.download_titles.remove(group);
                 let keep: std::collections::BTreeSet<_> = self
                     .settings

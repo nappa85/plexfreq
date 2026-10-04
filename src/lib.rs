@@ -46,6 +46,60 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Lock a mutex, recovering from poisoning instead of panicking worker threads.
+/// A poisoned mutex means another thread panicked while holding it; the data
+/// itself is still usable, so continue with it rather than crashing audio,
+/// cache or request workers.
+pub(crate) fn mutex_lock<T>(mutex: &std::sync::Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(|poison| poison.into_inner())
+}
+
+/// Shared atomic file write: temp file with 0600, fsync, rename. Used for
+/// cache index, offline snapshots and session state (session adds dir fsync).
+pub(crate) fn atomic_write_bytes(path: &std::path::Path, bytes: &[u8]) -> Result<()> {
+    use std::{
+        fs::{self, OpenOptions},
+        io::Write,
+        os::unix::fs::OpenOptionsExt,
+    };
+    // Append to the full file name instead of replacing the extension:
+    // `with_extension("<uuid>.tmp")` turns `index.json` into `index.<uuid>.tmp`
+    // whose stem is `index`, invisible to hash-stem GC and quota accounting.
+    // `index.json.<uuid>.tmp` always ends with `.tmp` and is reclaimable.
+    let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("tmp");
+    let temp = path.with_file_name(format!("{file_name}.{}.tmp", uuid::Uuid::new_v4()));
+    let result: Result<()> = (|| {
+        let mut file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .mode(0o600)
+            .open(&temp)?;
+        file.write_all(bytes)?;
+        file.sync_all()?;
+        fs::rename(&temp, path)?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(temp);
+    }
+    result
+}
+
+pub(crate) fn atomic_write_json(
+    path: &std::path::Path,
+    value: &impl serde::Serialize,
+) -> Result<()> {
+    atomic_write_bytes(path, &serde_json::to_vec(value)?)
+}
+
+pub(crate) fn numeric(value: &str) -> Result<&str> {
+    if value.is_empty() || !value.bytes().all(|c| c.is_ascii_digit()) {
+        Err(Error::Input("Expected a numeric Plex identifier"))
+    } else {
+        Ok(value)
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Command {
@@ -295,25 +349,24 @@ impl Core {
         let old = self.queue.clone();
         let radio = self.radio.clone();
         let cached = self.cached_playback;
-        let result = self.next(true);
+        let result = self.advance_next(true, false);
+        let queue = std::mem::replace(&mut self.queue, old);
+        let next_radio = std::mem::replace(&mut self.radio, radio);
+        let next_cached = std::mem::replace(&mut self.cached_playback, cached);
         let prepared = match result {
-            Ok(mut plan) if self.queue.track().is_some() => {
-                let queue = self.queue.clone();
+            Ok(mut plan) if queue.track().is_some() => {
                 let q = queue.presentation();
                 plan["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":q.shuffled});
                 Ok(Some(Prepared {
                     queue,
-                    radio: self.radio.clone(),
-                    cached: self.cached_playback,
+                    radio: next_radio,
+                    cached: next_cached,
                     plan,
                 }))
             }
             Ok(_) => Ok(None),
             Err(e) => Err(e),
         };
-        self.queue = old;
-        self.radio = radio;
-        self.cached_playback = cached;
         self.schedule_cache();
         prepared
     }
@@ -333,7 +386,9 @@ impl Core {
         };
         store::save(&self.dir, &self.settings)?;
         let mut plan = prepared.plan;
-        plan.as_object_mut().unwrap().remove("stream");
+        if let Some(object) = plan.as_object_mut() {
+            object.remove("stream");
+        }
         plan["playbackOccurrence"] = json!(self.settings.playback.occurrence);
         plan["playbackGeneration"] = json!(self.playback_generation);
         Ok(plan)
@@ -514,7 +569,7 @@ impl Core {
         Ok(result)
     }
     fn display_item(&self, item: &Item) -> Value {
-        let mut value = serde_json::to_value(item).unwrap();
+        let mut value = serde_json::to_value(item).unwrap_or_else(|_| serde_json::json!({}));
         let thumb = if item.thumb.is_empty() {
             &item.parent_thumb
         } else {
@@ -535,7 +590,9 @@ impl Core {
         };
         value["artwork"] = json!(artwork);
         if item.kind == "track" {
-            value.as_object_mut().unwrap().remove("playlistItemID");
+            if let Some(object) = value.as_object_mut() {
+                object.remove("playlistItemID");
+            }
             value["playlistItemId"] = json!(item.playlist_item_id);
         }
         if item.kind == "playlist" {
@@ -662,8 +719,17 @@ impl Core {
             }
             let mut seen = std::collections::BTreeSet::new();
             children.retain(|i| seen.insert(i.rating_key.clone()));
-            children.sort_by_key(|i| (i.parent_index, i.index, i.title.clone()));
-            let mut value = json!({"items":children.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"start":start,"next":0,"hasMore":false,"offline":true});
+            children.sort_by_cached_key(|i| (i.parent_index, i.index, i.title.clone()));
+            let total = children.len();
+            let page_items: Vec<_> = children
+                .into_iter()
+                .skip(start)
+                .take(100)
+                .map(|i| self.display_item(&i))
+                .collect();
+            let next = start.saturating_add(page_items.len());
+            let has_more = next < total;
+            let mut value = json!({"items":page_items,"start":start,"next":next,"hasMore":has_more,"offline":true});
             if start == 0 {
                 value["detail"] = self.display_item(&item);
             }
@@ -721,6 +787,9 @@ impl Core {
         Ok(json!({"similarKey":id,"similarArtists":artists,"similarAvailable":true}))
     }
     fn playback(&mut self) -> Result<Value> {
+        self.playback_with_cache(true)
+    }
+    fn playback_with_cache(&mut self, schedule: bool) -> Result<Value> {
         let Some(mut track) = self.queue.track().cloned() else {
             return Ok(
                 json!({"queue": self.queue, "radio": self.radio_summary(), "track": null, "stream": ""}),
@@ -732,7 +801,9 @@ impl Core {
                 self.queue.items[index] = cached.clone();
             }
             self.cached_playback = true;
-            self.schedule_cache();
+            if schedule {
+                self.schedule_cache();
+            }
             let stream = url::Url::from_file_path(path)
                 .map_err(|_| Error::Input("Invalid cached audio path"))?
                 .to_string();
@@ -765,7 +836,9 @@ impl Core {
             self.queue.items[index] = track.clone();
         }
         self.cached_playback = false;
-        self.schedule_cache();
+        if schedule {
+            self.schedule_cache();
+        }
         Ok(
             json!({"queue": self.queue, "radio":self.radio_summary(), "track": self.display_item(&track), "stream": stream,"playbackSource":"stream","cache":self.cache_status()}),
         )
@@ -782,7 +855,7 @@ impl Core {
             .map(|i| &i.rating_key)
             .collect::<Vec<_>>());
         value["pinnedGroups"] = json!(self.settings.download_groups.keys().collect::<Vec<_>>());
-        value["jobs"] = json!(self.download_rows());
+        value["jobs"] = json!(self.download_rows_from_status(&value));
         value
     }
     fn schedule_cache(&self) {
@@ -824,14 +897,14 @@ impl Core {
                 return Err(Error::ProtocolAt("album radio tracks"));
             }
             items.extend(c.items);
+            if items.len() > 1000 {
+                return Err(Error::Input("Album exceeds the radio track limit"));
+            }
             if count == 0
                 || c.total_size
                     .map_or(count < 100, |total| items.len() >= total)
             {
                 break;
-            }
-            if items.len() >= 1000 {
-                return Err(Error::Input("Album exceeds the radio track limit"));
             }
         }
         if items.is_empty() {
@@ -1012,52 +1085,53 @@ impl Core {
     fn next(&mut self, automatic: bool) -> Result<Value> {
         let previous_queue = self.queue.clone();
         let previous_radio = self.radio.clone();
-        let result = (|| {
-            if automatic
-                && self.queue.at_end()
-                && self.radio.is_none()
-                && self.settings.autoplay
-                && self.queue.repeat == Repeat::Off
-                && !self.offline_mode
-            {
-                if let Some(seed) = self.queue.track().cloned() {
-                    if let Ok(neighbors) = self.nearest(&seed) {
-                        let known: std::collections::BTreeSet<_> = self
-                            .queue
-                            .items
-                            .iter()
-                            .rev()
-                            .take(200)
-                            .map(|i| i.rating_key.clone())
-                            .collect();
-                        let next: Vec<_> = neighbors
-                            .into_iter()
-                            .filter(|i| !known.contains(&i.rating_key))
-                            .take(20)
-                            .collect();
-                        if !next.is_empty() {
-                            self.queue.append(next)?;
-                        }
-                    }
-                    if self.queue.at_end() && !seed.grandparent_rating_key.is_empty() {
-                        return self.start_radio(seed.grandparent_rating_key, RadioKind::Artist);
-                    }
-                }
-            }
-            if self.radio.is_some() && self.queue.at_end() {
-                self.extend_radio()?;
-            }
-            self.queue.advance(automatic);
-            if self.radio.is_some() {
-                self.queue.trim_history(100);
-            }
-            self.playback()
-        })();
+        let result = self.advance_next(automatic, true);
         if result.is_err() {
             self.queue = previous_queue;
             self.radio = previous_radio;
         }
         result
+    }
+    fn advance_next(&mut self, automatic: bool, schedule: bool) -> Result<Value> {
+        if automatic
+            && self.queue.at_end()
+            && self.radio.is_none()
+            && self.settings.autoplay
+            && self.queue.repeat == Repeat::Off
+            && !self.offline_mode
+        {
+            if let Some(seed) = self.queue.track().cloned() {
+                if let Ok(neighbors) = self.nearest(&seed) {
+                    let known: std::collections::BTreeSet<_> = self
+                        .queue
+                        .items
+                        .iter()
+                        .rev()
+                        .take(200)
+                        .map(|i| i.rating_key.clone())
+                        .collect();
+                    let next: Vec<_> = neighbors
+                        .into_iter()
+                        .filter(|i| !known.contains(&i.rating_key))
+                        .take(20)
+                        .collect();
+                    if !next.is_empty() {
+                        self.queue.append(next)?;
+                    }
+                }
+                if self.queue.at_end() && !seed.grandparent_rating_key.is_empty() {
+                    return self.start_radio(seed.grandparent_rating_key, RadioKind::Artist);
+                }
+            }
+        }
+        if self.radio.is_some() && self.queue.at_end() {
+            self.extend_radio()?;
+        }
+        self.queue.advance(automatic);
+        if self.radio.is_some() {
+            self.queue.trim_history(100);
+        }
+        self.playback_with_cache(schedule)
     }
 
     fn timeline(
@@ -1420,7 +1494,7 @@ impl Core {
                 items.extend(self.cache.items(&self.cache_namespace()));
                 let mut seen = std::collections::BTreeSet::new();
                 items.retain(|i| i.kind == kind && seen.insert(i.rating_key.clone()));
-                items.sort_by_key(|i| i.title.to_lowercase());
+                items.sort_by_cached_key(|i| i.title.to_lowercase());
                 Ok(
                     json!({"items":items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"start":0,"next":0,"hasMore":false,"offline":true}),
                 )
@@ -1558,7 +1632,14 @@ impl Core {
                 if generation.is_none_or(|g| g == self.playback_generation)
                     && self.queue.track().is_some_and(|i| i.rating_key == key)
                 {
-                    self.resume_position = position.min(self.queue.track().unwrap().duration);
+                    let duration = self.queue.track().map(|t| t.duration).unwrap_or(0);
+                    // Duration may still be unknown (0) while metadata resolves:
+                    // don't clamp every save to zero, mirroring audio seek.
+                    self.resume_position = if duration > 0 {
+                        position.min(duration)
+                    } else {
+                        position
+                    };
                 }
                 Ok(json!({}))
             }
@@ -1648,11 +1729,9 @@ impl Core {
                 }
                 if items.is_empty()
                     || items.len() > 1000
-                    || items.iter().any(|i| {
-                        i.kind != "track"
-                            || !i.rating_key.bytes().all(|b| b.is_ascii_digit())
-                            || i.rating_key.is_empty()
-                    })
+                    || items
+                        .iter()
+                        .any(|i| i.kind != "track" || numeric(&i.rating_key).is_err())
                 {
                     return Err(Error::Input("Choose up to 1000 valid tracks to download"));
                 }
@@ -1926,13 +2005,5 @@ impl Core {
                 )
             }
         }
-    }
-}
-
-fn numeric(value: &str) -> Result<&str> {
-    if value.is_empty() || !value.bytes().all(|c| c.is_ascii_digit()) {
-        Err(Error::Input("Expected a numeric Plex identifier"))
-    } else {
-        Ok(value)
     }
 }

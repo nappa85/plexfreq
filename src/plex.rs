@@ -90,17 +90,31 @@ impl Plex {
         // The account endpoint mixes servers and players. Players legitimately
         // have absent/null accessToken, so validate server fields only after
         // selecting the resources which advertise the server capability.
+        // A single malformed server entry must not poison discovery of the
+        // remaining servers; it is skipped. If server entries existed but none
+        // decoded, report a protocol error instead of silently claiming
+        // "no servers".
         let resources: Vec<serde_json::Value> =
             self.request(Method::GET, url, token, &[], "server discovery")?;
-        resources
+        let servers: Vec<serde_json::Value> = resources
             .into_iter()
             .filter(|r| {
                 r.get("provides")
                     .and_then(|p| p.as_str())
-                    .is_some_and(|p| p.split(',').any(|capability| capability == "server"))
+                    .is_some_and(|p| p.split(',').any(|capability| capability.trim() == "server"))
             })
-            .map(|r| serde_json::from_value(r).map_err(|_| Error::ProtocolAt("server discovery")))
-            .collect()
+            .collect();
+        let mut valid = Vec::with_capacity(servers.len());
+        for r in servers.iter() {
+            match serde_json::from_value(r.clone()) {
+                Ok(resource) => valid.push(resource),
+                Err(_) => continue,
+            }
+        }
+        if valid.is_empty() && !servers.is_empty() {
+            return Err(Error::ProtocolAt("server discovery"));
+        }
+        Ok(valid)
     }
     pub fn container(
         &self,

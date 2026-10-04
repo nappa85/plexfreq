@@ -23,7 +23,7 @@ Item {
     function playlistEditor(action,item) {
         editorAction=action;editorTarget=action==="rename" ? item : null
         editorItems=item && item.type!=="playlist" ? [item] : items.filter(function(i){return i.type==="track"})
-        if(action==="create" && editorItems.length===0)editorItems=backend.state.queue.items
+        if(action==="create" && editorItems.length===0)editorItems=(backend.state.queue || {}).items || []
         if(action==="add")backend.command("playlist_choices")
         editPlaylistRequested()
     }
@@ -44,6 +44,7 @@ Item {
     property var detailData: null
     property int failedPageStart: -1
     property int requestedPageStart: -1
+    onRouteChanged: requestedPageStart = -1
     property string indexedSection: ""
     property bool searchPending: false
     property string similarKey: ""
@@ -61,7 +62,7 @@ Item {
     function favorite(item) {if (!backend.busy)backend.command("favorite",{key:item.ratingKey,enabled:!(item.userRating>=10)})}
     function discovery(view) {query="";load("collection",{section:section,view:view,start:0},view==="favorites" ? qsTr("Favorites · 5 stars") : view==="added" ? qsTr("Recently added") : qsTr("Recently played"),true)}
     property var similarArtists: detail && detail.type === "artist" && detail.ratingKey === similarKey ? similarData : []
-    property var items: showQueue ? backend.state.queue.items : backend.state.items
+    property var items: (showQueue ? (backend.state.queue || {}).items : backend.state.items) || []
     property bool canGoBack: history.length > 0
     property var detail: !showQueue && route && (route.op === "detail" || route.op === "artist_albums") ?
         (detailData && detailData.ratingKey === route.args.key ? detailData : route.seed) : null
@@ -205,12 +206,12 @@ Item {
         onCompleted: {
             if (data._discarded) return
             if (op==="library_browse" || op==="artist_albums" || op==="playlist_items" || op === "browse" || op === "search" || op === "collection" || op === "offline_browse" || op === "detail" || op === "children" || op === "playlists" || op === "jump_artist") {
-                if(ok && data.playlist && route && route.op==="playlist_items") {
-                    route={op:route.op,args:route.args,title:data.playlist.title,seed:data.playlist};heading=data.playlist.title
-                }
-                if (requestedPageStart >= 0) {
+                if (requestedPageStart >= 0 && data._pageStart === requestedPageStart) {
                     if (!ok) failedPageStart = requestedPageStart
                     requestedPageStart = -1
+                }
+                if(ok && data.playlist && route && route.op==="playlist_items") {
+                    route={op:route.op,args:route.args,title:data.playlist.title,seed:data.playlist};heading=data.playlist.title
                 }
                 if (ok && data.detail) {
                     detailData = data.detail
@@ -228,11 +229,11 @@ Item {
                 if(playlist && data.playlistChanged===playlist.ratingKey && !data.playlistDeleted)load("playlist_items",{key:playlist.ratingKey,start:0},heading,false,playlist)
                 else if(route && route.op==="playlists" || data.createdPlaylist || data.playlistDeleted)load("playlists",{start:0},qsTr("Playlists"),false)
             }
-            if (op === "lyrics" && data.lyricsKey === trackKey) {lyrics=ok ? data.lyrics : [];lyricsState=ok ? "ready" : "unavailable";return}
+            if (op === "lyrics" && data.lyricsKey === trackKey) {lyrics=ok ? data.lyrics || [] : [];lyricsState=ok ? "ready" : "unavailable";return}
             if (op === "offline_mode" && ok) {query="";browse();return}
             if (op === "similar_artists") {
                 if (ok && detail && detail.type === "artist" && data.similarKey === detail.ratingKey) {
-                    similarKey = data.similarKey; similarData = data.similarArtists; similarState = data.similarAvailable ? "ready" : "unavailable"
+                    similarKey = data.similarKey; similarData = data.similarArtists || []; similarState = data.similarAvailable ? "ready" : "unavailable"
                 } else if (!ok && detail && data.similarKey === detail.ratingKey) similarState = "unavailable"
                 return
             }
@@ -254,7 +255,7 @@ Item {
             } else if ((op === "connect" || op === "select_server" || op === "libraries") && ok) {
                 session.polling = false
                 session.reset()
-                if (data.libraries.length > 0) { session.section = data.libraries[0].key; session.browse() }
+                if (data.libraries && data.libraries.length > 0) { session.section = data.libraries[0].key; session.browse() }
             } else if ((op === "radio" || op === "mix") && ok) { session.showQueue = true }
             else if (op === "logout" && ok) { session.polling = false; session.reset() }
         }

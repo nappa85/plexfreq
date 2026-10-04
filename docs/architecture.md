@@ -2,6 +2,26 @@
 
 ## Current runtime (Rust-owned, 2026-10-04)
 
+Automation uses independent Rust/Qt/QML/i18n/Sailfish-cross jobs in CI; release
+packaging reuses these gates. Qt checks use local/offscreen/fake-sink fixtures,
+distinct from phone routing and live-account validation. Production-review fixes
+(2026-10-04): queue/cache limits enforced in Rust, malformed server entries
+skipped, artwork pending epoch-guarded, audio checkpoints overflow without
+blocking, ConnMan wifi uses the primary route, shared `mutex_lock` helper owns
+poison recovery.
+Review follow-ups (2026-10-04): natural-end queue edits preserve occurrence
+identity; offline detail fallback is paged; replacement-aware snapshot quotas and
+temporary-file reclamation/accounting cover interrupted atomic writes. Streaming
+and cache share Content-Range/validator helpers; full-response seek-prefix skipping
+requires a matching validator. List generations are checked both on execution and
+event delivery, including failures, and page completion carries `_pageStart`.
+Qt polls at 100 ms; download rows reuse one validated cache-status snapshot.
+Hardening (2026-10-04): corrupt queue cursors/orders rejected without worker
+panics, unknown-duration resume/position preserved, track gain preferred
+globally, bad next-track prepare keeps current audio, empty station keys fall
+back to sonic, MPRIS transport independent of list busy state, audio pipeline
+uses fallible construction, shared atomic-write/numeric helpers.
+
 ```
 Qt5.6/Silica or Qt6/Controls QML
  → small QObject/model/translation/window bridge (no QThread or QMediaPlayer)

@@ -895,3 +895,83 @@ replaced in this iteration.
   track change, native transport and PulseAudio MediaState recognition. The volume
   fixture waits until playback starts before reading its asynchronous policy state.
   Bundle deployed/reopened as sole PID 64815 with matching Rust MPRIS owner.
+
+## Reference CI replication — 2026-10-04
+
+- Consulted ElectricEel and sailfish-proton `.github/workflows/ci.yml` and
+  `release.yml`, plus ElectricEel's Qt wheel bootstrap. Both separate branch push/PR
+  gates from v-tag/manual SDK packages; Proton also cross-compiles Rust.
+- PlexFreq CI adds Rust, desktop Qt, all-QML syntax, translation freshness and
+  actual-SDK GNU aarch64 jobs. Release reuses quality gates, verifies committed
+  versions/RPM architecture, uploads artifacts and publishes only on tag events.
+- Translation checks previously required a populated reference cache. Pinned
+  6.11.2 bootstrap works from a clean cache and matches committed TS/QM/resources.
+- Checks: actionlint 1.7.11, Ubuntu 24.04 Qt5 qmllint, clean-cache i18n, desktop
+  CTest 2/2 (10.30s), SDK cross command/app packaging and version preflight pass.
+  Mismatched and shell-looking tags are rejected. GitHub execution remains pending.
+- Full Rust run finds one pre-existing untracked production-review failure:
+  trim_history_bounds_shuffled_radio_growth keeps 150 items, expected <=101.
+  Other review cases pass; the complete CI test gate is retained.
+  Final recheck of the updated working tree passes all 65 Rust tests, including
+  the four production-review cases; no test files were changed by the CI setup.
+
+## Production review fixes — 2026-10-04
+
+- Consulted std `Mutex` poisoning docs (recover via `into_inner`), ConnMan
+  `GetServices` favourite-first ordering, reqwest redirect/header behaviour, and
+  Python `fcntl.flock` for cross-process bootstrap locking.
+- Queue `append` now enforces the 10000-track cap like `replace`/`insert`;
+  cache `schedule` rejects over 1000 tracks to match its message and the
+  `CacheTracks`/`Pin` entry points (was 1021).
+- Plex `resources` skips malformed server entries (trims `provides` caps) and
+  only errors when server entries existed but none decoded; mixed valid+broken
+  discovery returns the valid servers.
+- Artwork `pending` maps file->epoch, `cancel` clears it, and stale worker jobs
+  only remove their own epoch entry, so reschedule-after-cancel is not lost.
+- Audio checkpoints use non-blocking `try_send` with a bounded worker-drained
+  overflow instead of blocking the GUI thread; `plans` locking is single-shot
+  and poison-safe; ConnMan wifi reflects the primary (first ready/online)
+  route so `wifi_only` cannot run over cellular while a dormant wifi service
+  is listed.
+- Checks: `cargo fmt --check`, `cargo clippy --locked --all-targets
+  --all-features -- -D warnings`, full `cargo test --locked --all-features`
+   pass (lib 14, production_review 7, all other suites green).
+
+## Review follow-ups — 2026-10-04
+
+- Inspected the existing working-tree fixes and six `review_followup` reproductions
+  before extending them. All six passed on the first local run; that run also
+  exposed an unused prune wrapper that would fail the warnings-as-errors gate.
+- Consulted RFC 9110 again: https://www.rfc-editor.org/rfc/rfc9110.html,
+  sections 13.1.5, 14.4 and 15.3.7. Streaming now sends If-Range when a strong
+  ETag/Last-Modified is known, shares the cache range/validator helpers, checks
+  ranges/lengths/known representation changes, and only skips a full-response
+  prefix when its validator matches the original. Validator-less 206 responses
+  remain supported with range/size checks; they cannot prove representation identity.
+- Queue edits retain the last audible occurrence after natural end, including
+  moving that occurrence itself and toggling shuffle; removing the final slot
+  also clamps the persisted cursor. Offline detail fallback slices 100-item pages.
+  Snapshot/lyric/artwork overwrites exclude the replaced file from quota accounting
+  and use actual serialized sizes. Audio-cache startup reclaims old/new temporary
+  filenames, and unreclaimed temporary bytes are visible to quota accounting.
+- Album/chooser/grouping caps now check before accepting a final page: exactly
+  1000 is allowed, including an unknown-total album's empty terminal page.
+- Runtime view generations already existed at execution time. The uncovered gap
+  was delivery: completed replies could wait in the event channel across a new
+  navigation. Poll now discards those replies and stale failures too. Page replies
+  carry their requested start; Session resets page admission when routes change.
+- Inspected `src/ffi.rs`: directory/request C strings are consumed synchronously.
+  Inline QByteArray temporaries survive the complete C++ call expression, so the
+  reported dangling pointers are not reproduced here. Named byte arrays make that
+  contract explicit; null returned strings have a defined unavailable envelope.
+- Reduced Qt JSON polling from 40 to 10 Hz, reused one validated cache-status
+  snapshot for download groups, cached offline sort keys, removed checkpoint's
+  successful-send clone, and removed redundant successor queue copies/scheduling
+  on the ordinary preparation path. No measured battery/performance claim.
+- SDK packaging starts from a fresh disposable app copy and explicitly propagates
+  build/ownership-cleanup failures. Actual SDK compilation produced the RPM and
+  rootless bundle with 0 rpmlint errors and the existing no-url-tag warning.
+- Local final gates: fmt/Clippy, 89 Rust tests, CTest 2/2 (13.00s), 39-locale
+  freshness, Bash syntax and whitespace pass. The final combined check timed out
+  during CTest after concurrent SDK/Cargo-lock contention; standalone CTest passed.
+  No phone or live-account experiment was performed.

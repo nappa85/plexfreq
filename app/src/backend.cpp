@@ -12,7 +12,12 @@ QVariant EntryModel::data(const QModelIndex &index,int role) const {
 }
 void EntryModel::replace(const QVariantList &entries) {
     if(entries==m_entries)return;
-    auto identity=[](const QVariant &value){const auto e=value.toMap();return e.value("type").toString()+":"+e.value("ratingKey").toString()+":"+e.value("key").toString();};
+    // Queue occurrences repeat ratingKey with distinct playQueueItemID; regular
+    // playlist rows repeat it with distinct playlistItemId. Identity must
+    // include the occurrence or radio repeats collapse into one row.
+    // Upper/lower casings are legacy variants of the same field: separate them
+    // so "12"+"34" never collides with "123"+"4".
+    auto identity=[](const QVariant &value){const auto e=value.toMap();return e.value("type").toString()+":"+e.value("ratingKey").toString()+":"+e.value("key").toString()+":"+e.value("playQueueItemID").toString()+":"+e.value("playQueueItemId").toString()+":"+e.value("playlistItemID").toString()+":"+e.value("playlistItemId").toString();};
     int prefix=0;while(prefix<m_entries.size() && prefix<entries.size() && identity(m_entries[prefix])==identity(entries[prefix]))++prefix;
     int suffix=0;while(suffix<m_entries.size()-prefix && suffix<entries.size()-prefix && identity(m_entries[m_entries.size()-1-suffix])==identity(entries[entries.size()-1-suffix]))++suffix;
     int remove=m_entries.size()-prefix-suffix;if(remove>0){beginRemoveRows(QModelIndex(),prefix,prefix+remove-1);for(int i=0;i<remove;++i)m_entries.removeAt(prefix);endRemoveRows();}
@@ -20,20 +25,20 @@ void EntryModel::replace(const QVariantList &entries) {
     for(int i=0;i<entries.size();++i)if(m_entries[i]!=entries[i]){m_entries[i]=entries[i];emit dataChanged(index(i),index(i),{Qt::UserRole+1,Qt::UserRole+2});}
 }
 void EntryModel::append(const QVariantList &entries){if(entries.isEmpty())return;const int first=m_entries.size();beginInsertRows(QModelIndex(),first,first+entries.size()-1);m_entries.append(entries);endInsertRows();}
-static QVariantMap decoded(char *text){const auto value=QJsonDocument::fromJson(QByteArray(text)).toVariant().toMap();pf_string_free(text);return value;}
+static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"error","Backend unavailable"}};const auto value=QJsonDocument::fromJson(QByteArray(text)).toVariant().toMap();pf_string_free(text);return value;}
 Backend::Backend(const QString &directory,QObject *parent):QObject(parent) {
     m_state={{"items",QVariantList()},{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"items",QVariantList()},{"repeat","off"},{"shuffled",false}}}};
     m_state.insert("networkOnline",false);m_state.insert("networkWifi",false);
     m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"pinnedKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"error",""}};
-    m_runtime=pf_runtime_new(directory.toUtf8().constData());
-    auto *timer=new QTimer(this);timer->setInterval(25);connect(timer,&QTimer::timeout,this,&Backend::poll);timer->start();
+    const auto directoryBytes=directory.toUtf8();m_runtime=pf_runtime_new(directoryBytes.constData());
+    auto *timer=new QTimer(this);timer->setInterval(100);connect(timer,&QTimer::timeout,this,&Backend::poll);timer->start();
     command("status");
 }
 Backend::~Backend(){pf_runtime_free(m_runtime);}
 void Backend::status(const QVariantMap &value){const bool busy=value.value("busy").toBool(),more=value.value("loadingMore").toBool();if(busy!=m_busy){m_busy=busy;emit busyChanged();}if(more!=m_more){m_more=more;emit loadingMoreChanged();}}
 void Backend::command(const QString &op,const QVariantMap &args) {
-    auto input=args;input.insert("op",op);const auto accepted=decoded(pf_runtime_submit(m_runtime,QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact).constData()));
-    status(accepted);
+    auto input=args;input.insert("op",op);const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);const auto accepted=decoded(pf_runtime_submit(m_runtime,bytes.constData()));
+    if(accepted.value("accepted").toBool())status(accepted);
     if(accepted.value("clearError").toBool() && !m_error.isEmpty()){m_error.clear();emit errorChanged();}
     if(accepted.value("resetItems").toBool()){m_items.replace(QVariantList());m_state.insert("items",QVariantList());emit stateChanged();}
     if(!accepted.value("accepted").toBool()){m_error=translatedError(accepted);emit errorChanged();}

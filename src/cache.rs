@@ -113,7 +113,10 @@ impl DownloadControl {
             let epoch = self.epoch.fetch_add(1, Ordering::SeqCst) + 1;
             let _ = self.cancel.send(epoch);
             self.artwork_epoch.fetch_add(1, Ordering::SeqCst);
-            let mut state = self.state.lock().unwrap();
+            let mut state = self
+                .state
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner());
             state.pending = 0;
             state.downloading = false;
             state.active_key.clear();
@@ -185,22 +188,7 @@ fn usable(root: &Path, entry: &Entry) -> bool {
             .is_ok_and(|m| m.is_file() && !m.file_type().is_symlink() && m.len() == entry.bytes)
 }
 fn atomic_json(path: &Path, value: &impl Serialize) -> Result<()> {
-    let temp = path.with_extension(format!("{}.tmp", uuid::Uuid::new_v4()));
-    let result: Result<()> = (|| {
-        let mut file = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .mode(0o600)
-            .open(&temp)?;
-        file.write_all(&serde_json::to_vec(value)?)?;
-        file.sync_all()?;
-        fs::rename(&temp, path)?;
-        Ok(())
-    })();
-    if result.is_err() {
-        let _ = fs::remove_file(temp);
-    }
-    result
+    crate::atomic_write_json(path, value)
 }
 fn disk_bytes(root: &Path) -> u64 {
     fs::read_dir(root)
@@ -209,11 +197,7 @@ fn disk_bytes(root: &Path) -> u64 {
         .filter_map(|e| e.ok())
         .filter_map(|e| {
             let name = e.file_name().to_string_lossy().into_owned();
-            if name == "index.json"
-                || name == "cache.lock"
-                || name.ends_with(".resume.json")
-                || name.ends_with(".tmp")
-            {
+            if name == "index.json" || name == "cache.lock" || name.ends_with(".resume.json") {
                 return None;
             }
             e.metadata().ok().filter(|m| m.is_file()).map(|m| m.len())
@@ -255,11 +239,20 @@ impl Cache {
             .and_then(|b| serde_json::from_slice(&b).ok())
             .unwrap_or_default();
         manifest.entries.retain(|_, e| usable(&root, e));
-        // A crash between final rename and index commit can leave an unindexed
-        // file. It is not playable without metadata; reclaim only our hash names.
-        for file in fs::read_dir(&root).into_iter().flatten() {
-            let file = file?;
+        // A crash between temp write and rename can leave orphan `*.tmp` files
+        // (old `index.<uuid>.tmp` naming included) plus unindexed hash files.
+        // Unindexed files are not playable without metadata; reclaim our hash
+        // names and any temp leftovers. Be resilient to transient entries
+        // disappearing mid-scan instead of aborting cache open.
+        for file in fs::read_dir(&root).into_iter().flatten().flatten() {
             let name = file.file_name().to_string_lossy().into_owned();
+            if !read_only && name.ends_with(".tmp") {
+                let _ = fs::remove_file(file.path());
+                continue;
+            }
+            let Ok(file_type) = file.file_type() else {
+                continue;
+            };
             let stem = name.split('.').next().unwrap_or("");
             if !read_only
                 && stem.len() == 64
@@ -267,7 +260,7 @@ impl Cache {
                 && !name.ends_with(".part")
                 && !name.ends_with(".resume.json")
                 && !manifest.entries.values().any(|e| e.file == name)
-                && file.file_type()?.is_file()
+                && file_type.is_file()
             {
                 let _ = fs::remove_file(file.path());
             }
@@ -329,10 +322,18 @@ impl Cache {
     }
 
     pub fn config(&self) -> Config {
-        self.state.lock().unwrap().config.clone()
+        self.state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .config
+            .clone()
     }
     pub fn gate(&self) -> Arc<Gate> {
-        self.state.lock().unwrap().gate.clone()
+        self.state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .gate
+            .clone()
     }
     pub fn control(&self, artwork_epoch: Arc<AtomicU64>) -> DownloadControl {
         DownloadControl {
@@ -344,7 +345,10 @@ impl Cache {
         }
     }
     pub fn protect(&self, namespace: &str, items: &[Item]) {
-        self.state.lock().unwrap().permanent = items
+        self.state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .permanent = items
             .iter()
             .map(|i| format!("{namespace}\0{}", i.rating_key))
             .collect();
@@ -352,7 +356,10 @@ impl Cache {
     pub fn configure(&self, config: Config, keep: Option<(&str, &str)>) -> Result<()> {
         config.validate()?;
         self.cancel();
-        let mut state = self.state.lock().unwrap();
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let previous = state.config.clone();
         state.config = config;
         if let Some((namespace, key)) = keep {
@@ -367,7 +374,10 @@ impl Cache {
     pub fn cancel(&self) {
         let epoch = self.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let _ = self.cancel.send(epoch);
-        let mut state = self.state.lock().unwrap();
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         state.pending = 0;
         state.downloading = false;
         state.active_key.clear();
@@ -375,11 +385,16 @@ impl Cache {
     }
     pub fn clear(&self) -> Result<()> {
         self.cancel();
-        let mut state = self.state.lock().unwrap();
-        for file in fs::read_dir(&self.root)? {
-            let file = file?;
-            if file.file_name() != "cache.lock" && file.file_type()?.is_file() {
-                fs::remove_file(file.path())?;
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        for file in fs::read_dir(&self.root)?.flatten() {
+            let Ok(file_type) = file.file_type() else {
+                continue;
+            };
+            if file.file_name() != "cache.lock" && file_type.is_file() {
+                let _ = fs::remove_file(file.path());
             }
         }
         state.manifest.entries.clear();
@@ -391,12 +406,10 @@ impl Cache {
         if !self.config().enabled || !self.gate().allowed() || items.is_empty() {
             return Ok(());
         }
-        if items.len() > 1021
-            || items.iter().any(|i| {
-                i.kind != "track"
-                    || i.rating_key.is_empty()
-                    || !i.rating_key.bytes().all(|b| b.is_ascii_digit())
-            })
+        if items.len() > 1000
+            || items
+                .iter()
+                .any(|i| i.kind != "track" || crate::numeric(&i.rating_key).is_err())
         {
             return Err(Error::Input(
                 "Cache requests require up to 1000 valid music tracks",
@@ -407,7 +420,10 @@ impl Cache {
         let epoch = self.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let _ = self.cancel.send(epoch);
         {
-            let mut state = self.state.lock().unwrap();
+            let mut state = self
+                .state
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner());
             state.pinned = items
                 .iter()
                 .map(|i| format!("{ns}\0{}", i.rating_key))
@@ -429,7 +445,10 @@ impl Cache {
             .map_err(|_| Error::Input("Cache worker unavailable"))
     }
     pub fn lookup(&self, namespace: &str, item: &Item, touch: bool) -> Option<(PathBuf, Item)> {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let found = state
             .manifest
             .entries
@@ -453,7 +472,10 @@ impl Cache {
         Some(result)
     }
     pub fn items(&self, namespace: &str) -> Vec<Item> {
-        let state = self.state.lock().unwrap();
+        let state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let mut entries: Vec<_> = state
             .manifest
             .entries
@@ -469,7 +491,10 @@ impl Cache {
             .collect()
     }
     pub fn remove(&self, namespace: &str, rating_key: &str) -> Result<()> {
-        let mut state = self.state.lock().unwrap();
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         let keys: Vec<_> = state
             .manifest
             .entries
@@ -499,15 +524,20 @@ impl Cache {
             .collect()
     }
     pub fn status(&self, namespace: &str) -> Value {
-        let state = self.state.lock().unwrap();
-        let ready: BTreeSet<_> = state
+        let state = self
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        let ready_bytes: BTreeMap<_, _> = state
             .manifest
             .entries
             .values()
             .filter(|e| e.namespace == namespace && usable(&self.root, e))
-            .map(|e| e.item.rating_key.clone())
+            .map(|e| (e.item.rating_key.clone(), e.bytes))
             .collect();
+        let ready: Vec<_> = ready_bytes.keys().collect();
         json!({"enabled":state.config.enabled,"limitMb":state.config.limit_mb,"ahead":state.config.ahead,"bytes":disk_bytes(&self.root),"tracks":ready.len(),"readyKeys":ready,
+            "readyBytes":ready_bytes,
             "wifiOnly":state.gate.wifi_only.load(Ordering::SeqCst),"paused":state.gate.paused.load(Ordering::SeqCst),"waitingForWifi":state.gate.wifi_only.load(Ordering::SeqCst) && !state.gate.wifi.load(Ordering::SeqCst),
             "downloading":state.downloading,"pending":state.pending,"received":state.received,"total":state.total,"error":state.error,"errors":state.errors,"activeKey":state.active_key})
     }
@@ -530,7 +560,11 @@ async fn worker(
     mut changed: watch::Receiver<u64>,
     client_id: &str,
 ) {
-    let gate = state.lock().unwrap().gate.clone();
+    let gate = state
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner())
+        .gate
+        .clone();
     let client = match reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(5))
         .read_timeout(Duration::from_secs(10))
@@ -557,7 +591,7 @@ async fn worker(
                     break;
                 }
                 {
-                    let mut s = state.lock().unwrap();
+                    let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
                     s.pending = batch.items.len() - position;
                     s.active_key = item.rating_key.clone();
                 }
@@ -568,19 +602,23 @@ async fn worker(
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
                         failed = true;
-                        let mut s = state.lock().unwrap();
+                        let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
                         s.error = error.to_string();
                         s.errors.insert(item.rating_key.clone(), error.to_string());
                     }
                 } else {
-                    state.lock().unwrap().errors.remove(&item.rating_key);
+                    state
+                        .lock()
+                        .unwrap_or_else(|poison| poison.into_inner())
+                        .errors
+                        .remove(&item.rating_key);
                 }
             }
             if epoch.load(Ordering::SeqCst) != batch.epoch {
                 break;
             }
             {
-                let mut s = state.lock().unwrap();
+                let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
                 s.downloading = false;
                 s.pending = 0;
                 s.active_key.clear();
@@ -599,6 +637,7 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
     if extra > limit {
         return Err(Error::Input("Audio file exceeds the cache limit"));
     }
+    let mut evicted = false;
     while disk_bytes(root).saturating_add(extra) > limit {
         let old = state
             .manifest
@@ -649,8 +688,16 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
             let _ = fs::remove_file(partial.path().with_extension("resume.json"));
             fs::remove_file(partial.path())?;
         }
+        evicted = true;
     }
-    save(root, state)
+    // Persist only when eviction changed the manifest. The per-chunk path with
+    // unknown total calls room() for every 64KB; rewriting index.json there
+    // wastes flash and slows downloads with no benefit when nothing was freed.
+    if evicted {
+        save(root, state)
+    } else {
+        Ok(())
+    }
 }
 
 async fn download(
@@ -663,7 +710,7 @@ async fn download(
     client_id: &str,
 ) -> Result<()> {
     {
-        let s = state.lock().unwrap();
+        let s = state.lock().unwrap_or_else(|poison| poison.into_inner());
         if s.manifest.entries.values().any(|e| {
             e.namespace == batch.namespace
                 && e.item.rating_key == item.rating_key
@@ -720,9 +767,16 @@ async fn download(
         .header("X-Plex-Token", &batch.token)
         .header("X-Plex-Client-Identifier", client_id);
     if offset > 0 {
-        request = request
-            .header("Range", format!("bytes={offset}-"))
-            .header("If-Range", old.validator.as_deref().unwrap());
+        // offset>0 implies old.validator.is_some() via the reset above, but
+        // don't panic the worker if that invariant ever breaks: fall back to
+        // a full download instead of resurrecting an unwrap.
+        if let Some(validator) = old.validator.as_deref() {
+            request = request
+                .header("Range", format!("bytes={offset}-"))
+                .header("If-Range", validator);
+        } else {
+            offset = 0;
+        }
     }
     let mut response = request.send().await.map_err(|_| Error::Network)?;
     let status = response.status().as_u16();
@@ -732,7 +786,8 @@ async fn download(
     let headers = response.headers();
     if headers
         .get("Content-Encoding")
-        .is_some_and(|h| h != "identity")
+        .and_then(|h| h.to_str().ok())
+        .is_some_and(|h| !h.eq_ignore_ascii_case("identity"))
     {
         return Err(Error::Input("Cache requires an unencoded audio response"));
     }
@@ -750,12 +805,7 @@ async fn download(
             "Server returned non-audio content for this track",
         ));
     }
-    let validator = headers
-        .get("ETag")
-        .and_then(|h| h.to_str().ok())
-        .filter(|h| !h.starts_with("W/"))
-        .or_else(|| headers.get("Last-Modified").and_then(|h| h.to_str().ok()))
-        .map(str::to_owned);
+    let validator = response_validator(headers);
     let total = if status == 206 {
         let range = headers
             .get("Content-Range")
@@ -788,7 +838,7 @@ async fn download(
     };
     let extension = extension(part, mime);
     let mut file = {
-        let mut s = state.lock().unwrap();
+        let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
         if epoch.load(Ordering::SeqCst) != batch.epoch {
             return Err(Error::Input("Cache request cancelled"));
         }
@@ -832,12 +882,15 @@ async fn download(
             return Err(Error::Input("Audio response exceeds its declared size"));
         }
         if total.is_none() {
-            let mut s = state.lock().unwrap();
+            let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
             room(root, &mut s, bytes.len() as u64, &id)?;
         }
         file.write_all(&bytes)?;
         received += bytes.len() as u64;
-        state.lock().unwrap().received = received;
+        state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .received = received;
     }
     if received == 0 || total.is_some_and(|n| received != n) {
         return Err(Error::Input(
@@ -846,7 +899,7 @@ async fn download(
     }
     file.sync_all()?;
     drop(file);
-    let mut s = state.lock().unwrap();
+    let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
     if epoch.load(Ordering::SeqCst) != batch.epoch {
         return Err(Error::Input("Cache request cancelled"));
     }
@@ -876,7 +929,7 @@ async fn download(
     Ok(())
 }
 
-fn parse_range(value: &str) -> Option<(u64, u64, u64)> {
+pub(crate) fn parse_range(value: &str) -> Option<(u64, u64, u64)> {
     let value = value.strip_prefix("bytes ")?;
     let (span, total) = value.split_once('/')?;
     let (start, end) = span.split_once('-')?;
@@ -884,6 +937,14 @@ fn parse_range(value: &str) -> Option<(u64, u64, u64)> {
     let end = end.parse().ok()?;
     let total = total.parse().ok()?;
     (end >= start && end < total).then_some((start, end, total))
+}
+pub(crate) fn response_validator(headers: &reqwest::header::HeaderMap) -> Option<String> {
+    headers
+        .get("ETag")
+        .and_then(|h| h.to_str().ok())
+        .filter(|h| !h.starts_with("W/"))
+        .or_else(|| headers.get("Last-Modified").and_then(|h| h.to_str().ok()))
+        .map(str::to_owned)
 }
 fn extension(part: &str, mime: &str) -> String {
     let candidate = part
@@ -943,7 +1004,10 @@ mod tests {
             "fixture",
         )
         .unwrap();
-        let mut state = cache.state.lock().unwrap();
+        let mut state = cache
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         for (id, used) in [("1", 1), ("2", 2)] {
             let filename = format!("{}.wav", hash(id));
             let file = OpenOptions::new()
@@ -974,7 +1038,10 @@ mod tests {
         assert!(disk_bytes(dir.path()) + 1024 * 1024 <= 64 * 1024 * 1024);
         drop(state);
         cache.cancel();
-        let mut state = cache.state.lock().unwrap();
+        let mut state = cache
+            .state
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         assert!(room(dir.path(), &mut state, 40 * 1024 * 1024, "new").is_err());
         assert!(state.manifest.entries.contains_key(&hash("2")));
     }

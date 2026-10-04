@@ -556,6 +556,27 @@ Deployment/smoke/ownership results are recorded after the final integration revi
   without autoplay, sole PID 59545. D-Bus reports the same MPRIS owner PID; Raise
   dispatched successfully. Session credentials and downloaded media were retained.
 
+## CI setup validation — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| actionlint 1.7.11 on both workflows | Passed (shellcheck unavailable, shellcheck integration disabled) |
+| Qt5 qmllint in Ubuntu 24.04 container, all app QML | Passed |
+| i18n --check with empty XDG cache | Pinned wheel bootstrap passed, all 39 TS/QM/resources match |
+| Release version preflight | v0.1.0 passes; mismatched/shell-looking tags rejected |
+| Bash syntax / git whitespace | Passed |
+| Desktop build and CTest | Passed 2/2, 10.30s |
+| CI SDK aarch64 command + versioned package script | Passed, app RPM/rootless bundle built |
+| Full locked all-feature Rust run | Existing untracked production_review shuffled-history test fails (150 retained, expected <=101); other cases run before failure pass |
+| Final full Rust recheck after concurrent working-tree updates | Passed: 65 tests, including all 4 production-review cases |
+| GitHub-hosted workflow run / publication | Not performed; requires workflows to be committed/pushed |
+
+CI configuration was inspected against both reference projects. Tests are not
+skipped to hide the production-review failure; packaging waits for CI gates.
+Ubuntu Qt5 syntax check was run in a disposable container; host desktop checks used
+the installed Qt6. GitHub-specific artifact upload/publication is configuration-
+linted, not claimed as a remote execution or device runtime check.
+
 ## Volume / lyrics / seek-thumb regressions — 2026-10-04
 
 | Check | Actual result |
@@ -601,3 +622,63 @@ loading rather than leave it spinning. Probe prints counts/types only, no lyric 
 Physical volume-key presses/visual drag interaction remain user confirmation; the
 phone's actual media policy and QML state progression were exercised programmatically.
 Existing credentials, queue settings and downloaded media were retained at deployment.
+
+## Production review fixes — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| `cargo fmt --all --check` | Passed |
+| `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
+| Full `cargo test --locked --all-features` | Passed: lib 14 (incl. new artwork pending test), production_review 7 (incl. queue-append, cache-limit, discovery-skip), all other suites green |
+| Desktop `./tools/check.sh` (fmt, Clippy, Rust, release build, CTest) | Passed: CTest 2/2, 10.24s; translations match (no new user-facing strings) |
+| `python3 tools/release-version.py --print-version` | Passed, version matches committed sources |
+| `bash -n tools/build-sailfish.sh` / python syntax | Passed; version guard rejects empty/mismatched versions |
+
+No live-account or phone runtime claims; device checks remain separate opt-in.
+
+## Production hardening — 2026-10-04
+
+Second review found 7 failing cases; all fixed without new user-facing strings.
+
+| Check | Actual result |
+| --- | --- |
+| `cargo fmt --all --check` | Passed |
+| `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
+| Full `cargo test --locked --all-features --no-fail-fast` | Passed: lib 15 (incl. gain-preference), production_review 13 (6 old + 6 new hardening + discovery), all other suites green |
+| Desktop `./tools/check.sh` | Passed: CTest 2/2, ~10s |
+| `bash tools/build-qm.sh --check` via desktop build | Passed: 39 locales, 409 messages per catalogue |
+
+Fixes: queue cursor validation + insert/presentation/advance panic guards,
+SavePlayback/audio position preserve unknown duration, global track-gain
+preference, next-track prepare failure keeps current playback, empty station
+key falls back to sonic, MPRIS CanPause/CanGoNext corrections, GStreamer
+unwrap guards, shared atomic-write/numeric helpers, artwork prune reuse,
+documented 200-track mix sampling and shuffle-exit on move, check.sh
+all-features parity, translations validate dead-code removal.
+
+## Review follow-ups — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| Initial `cargo test --locked --all-features --test review_followup` | All 6 supplied reproductions passed with pre-existing working-tree edits; unused prune warning found |
+| Final fmt / locked all-target/all-feature Clippy | Passed, warnings denied |
+| Final locked all-feature Rust tests | 89 passed; review_followup 10/10, library 18/18, existing suites green |
+| Desktop release build / 39-locale freshness | Passed; 409 messages per catalogue |
+| Final `ctest --test-dir build/desktop --output-on-failure` | Passed 2/2, 13.00s |
+| `./tools/build-sailfish.sh` | Passed: aarch64 GNU Rust, Qt5.6, RPM/rootless bundle; rpmlint 0 errors, existing 1 warning |
+| Bash syntax / `git diff --check` | Passed |
+
+An earlier complete `./tools/check.sh` passed. After adding the last two
+regressions, the final invocation passed Rust/build/translation stages but reached
+its 120-second outer timeout during CTest after waiting for the concurrent SDK
+Cargo lock. Only the interrupted CTest stage was rerun, successfully.
+
+Additional regressions cover moving the last audible occurrence after natural end,
+shuffle retaining that occurrence, removing its final slot without corrupting the
+cursor, temporary bytes participating in audio quota, 200-response seek validator
+matching, invalid/changed partial representations, and already-completed stale
+list/failure replies waiting across navigation. The native pagination fixture now
+uses the page-start correlation carried by actual runtime failures.
+
+These are local protocol/state/Qt and SDK build results; no phone deployment or
+hardware-runtime validation was performed in this follow-up.

@@ -15,6 +15,19 @@ use std::{
 pub const RATE: u32 = 48000;
 const CHANNELS: usize = 2;
 const BLOCK: usize = 512;
+/// Maximum crossfade tail: 12s at 48kHz stereo.
+const MAX_TAIL_FRAMES: usize = RATE as usize * 12;
+/// Appsrc queue cap (~0.25s of F32 stereo) and backpressure watermark (~0.2s).
+const OUTPUT_MAX_BYTES: u64 = RATE as u64 * 8 / 4;
+const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * 8 / 5;
+
+fn lock_state(state: &Arc<Mutex<Snapshot>>) -> std::sync::MutexGuard<'_, Snapshot> {
+    crate::mutex_lock(state)
+}
+
+fn lock_capture(capture: &Arc<Mutex<Vec<f32>>>) -> std::sync::MutexGuard<'_, Vec<f32>> {
+    crate::mutex_lock(capture)
+}
 
 #[derive(Clone)]
 pub struct Source {
@@ -119,10 +132,10 @@ impl Handle {
         self.send(Control::Configure(config))
     }
     pub fn snapshot(&self) -> Snapshot {
-        self.state.lock().unwrap().clone()
+        lock_state(&self.state).clone()
     }
     pub fn captured(&self) -> Vec<f32> {
-        self.capture.lock().unwrap().clone()
+        lock_capture(&self.capture).clone()
     }
 }
 pub struct Engine {
@@ -133,13 +146,20 @@ pub struct Engine {
 impl Engine {
     pub fn new(sink: Sink) -> Result<Self> {
         gst::init().map_err(|_| Error::Input("Audio framework initialization failed"))?;
-        for factory in [
+        let mut factories = vec![
             "uridecodebin",
+            "decodebin",
             "audioconvert",
             "audioresample",
             "appsrc",
             "appsink",
-        ] {
+        ];
+        factories.push(match sink {
+            Sink::Pulse => "pulsesink",
+            Sink::Fake => "fakesink",
+            Sink::Capture => "appsink",
+        });
+        for factory in factories {
             if gst::ElementFactory::find(factory).is_none() {
                 return Err(Error::Input("Required audio plugins are unavailable"));
             }
@@ -196,7 +216,11 @@ fn safe_uri(url: &str) -> Result<(String, String)> {
     if !matches!(uri.scheme(), "file" | "http" | "https")
         || !uri.username().is_empty()
         || uri.password().is_some()
+        || uri.fragment().is_some()
     {
+        return Err(Error::Input("Invalid audio source"));
+    }
+    if uri.scheme() == "file" && !matches!(uri.host_str(), None | Some("") | Some("localhost")) {
         return Err(Error::Input("Invalid audio source"));
     }
     let mut token = String::new();
@@ -266,7 +290,9 @@ impl Decoder {
             .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
         gst::Element::link_many([&convert, &resample, sink.upcast_ref()])
             .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-        let target = convert.static_pad("sink").unwrap();
+        let target = convert
+            .static_pad("sink")
+            .ok_or(Error::Input("Audio pipeline creation failed"))?;
         decoder.connect_pad_added(move |_, pad| {
             if target.is_linked() {
                 return;
@@ -302,7 +328,7 @@ impl Decoder {
         if self
             .pipeline
             .bus()
-            .unwrap()
+            .ok_or(Error::Input("Audio decoding or streaming failed"))?
             .pop_filtered(&[gst::MessageType::Error])
             .is_some()
         {
@@ -339,8 +365,10 @@ impl Decoder {
             }
             self.pcm.extend(
                 map.as_slice()
-                    .chunks_exact(4)
-                    .map(|b| f32::from_le_bytes(b.try_into().unwrap())),
+                    .as_chunks::<4>()
+                    .0
+                    .iter()
+                    .map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]])),
             );
         }
         Ok(())
@@ -375,7 +403,7 @@ impl Output {
         let source = app::AppSrc::builder()
             .caps(&caps())
             .format(gst::Format::Time)
-            .max_bytes((RATE as u64 * 8) / 4)
+            .max_bytes(OUTPUT_MAX_BYTES)
             .build();
         let convert = element("audioconvert")?;
         let sink = match mode {
@@ -401,17 +429,17 @@ impl Output {
                     app::AppSinkCallbacks::builder()
                         .new_sample(move |sink| {
                             let sample = sink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-                            let map = sample
-                                .buffer()
-                                .unwrap()
-                                .map_readable()
-                                .map_err(|_| gst::FlowError::Error)?;
-                            let mut pcm = capture.lock().unwrap();
+                            let buffer = sample.buffer().ok_or(gst::FlowError::Error)?;
+                            let map = buffer.map_readable().map_err(|_| gst::FlowError::Error)?;
+                            let mut pcm =
+                                capture.lock().unwrap_or_else(|poison| poison.into_inner());
                             if pcm.len() < RATE as usize * 120 * 2 {
                                 pcm.extend(
                                     map.as_slice()
-                                        .chunks_exact(4)
-                                        .map(|b| f32::from_le_bytes(b.try_into().unwrap())),
+                                        .as_chunks::<4>()
+                                        .0
+                                        .iter()
+                                        .map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]])),
                                 );
                             }
                             Ok(gst::FlowSuccess::Ok)
@@ -444,15 +472,25 @@ impl Output {
         let mut buffer = gst::Buffer::with_size(pcm.len() * 4)
             .map_err(|_| Error::Input("Audio buffer allocation failed"))?;
         {
-            let buffer = buffer.get_mut().unwrap();
+            let buffer = buffer
+                .get_mut()
+                .ok_or(Error::Input("Audio buffer allocation failed"))?;
             buffer.set_pts(gst::ClockTime::from_nseconds(
                 self.frames * 1_000_000_000 / RATE as u64,
             ));
             buffer.set_duration(gst::ClockTime::from_nseconds(
                 frames * 1_000_000_000 / RATE as u64,
             ));
-            let mut map = buffer.map_writable().unwrap();
-            for (bytes, value) in map.as_mut_slice().chunks_exact_mut(4).zip(pcm) {
+            let mut map = buffer
+                .map_writable()
+                .map_err(|_| Error::Input("Audio buffer allocation failed"))?;
+            for (bytes, value) in map
+                .as_mut_slice()
+                .as_chunks_mut::<4>()
+                .0
+                .iter_mut()
+                .zip(pcm)
+            {
                 bytes.copy_from_slice(&value.to_le_bytes());
             }
         }
@@ -542,7 +580,7 @@ impl Actor {
         self.next = None;
         self.output = None;
         self.segments.clear();
-        self.capture.lock().unwrap().clear();
+        lock_capture(&self.capture).clear();
         let decoder = Decoder::new(source.clone())?;
         let output = Output::new(self.mode, self.capture.clone())?;
         self.segments.push_back(Segment {
@@ -562,7 +600,25 @@ impl Actor {
     fn control(&mut self, control: Control) -> Result<bool> {
         match control {
             Control::Load(source, paused) => self.load(source, paused)?,
-            Control::Prepare(source) => self.next = source.map(Decoder::new).transpose()?,
+            Control::Prepare(source) => {
+                if let Some(next) = source {
+                    let id = next.id;
+                    match Decoder::new(next) {
+                        Ok(decoder) => self.next = Some(decoder),
+                        Err(_) => {
+                            // A bad successor must never kill current playback;
+                            // report it like a decode-fill failure and keep playing.
+                            self.next = None;
+                            let _ = self.events.send(Event::Error {
+                                id,
+                                message: "Next track decoding failed",
+                            });
+                        }
+                    }
+                } else {
+                    self.next = None;
+                }
+            }
             Control::Play => self.desired = true,
             Control::Pause => {
                 self.desired = false;
@@ -576,13 +632,19 @@ impl Actor {
                 self.next = None;
                 self.output = None;
                 self.segments.clear();
-                self.state.lock().unwrap().position = 0;
+                lock_state(&self.state).position = 0;
             }
             Control::Seek(position) => {
                 if let Some(segment) = self.segments.front() {
                     let mut source = segment.source.clone();
-                    source.resume = position.min(source.duration);
-                    source.listened = self.state.lock().unwrap().listened;
+                    // Duration may still be unknown (0) while the decoder
+                    // probes the stream: don't clamp every seek to zero.
+                    source.resume = if source.duration > 0 {
+                        position.min(source.duration)
+                    } else {
+                        position
+                    };
+                    source.listened = lock_state(&self.state).listened;
                     self.load(source, !self.desired)?;
                     let _ = self.events.send(Event::Seeked(position));
                 }
@@ -603,15 +665,39 @@ impl Actor {
         self.next = None;
         self.output = None;
         let _ = self.events.send(Event::Error { id, message });
-        let mut state = self.state.lock().unwrap();
+        let mut state = lock_state(&self.state);
         state.playing = false;
         state.paused = false;
         state.buffering = false;
         state.error = message.into();
     }
     fn pump(&mut self) -> Result<()> {
-        let tail =
-            (self.config.crossfade_ms as usize * RATE as usize / 1000).min(RATE as usize * 12);
+        let tail = (self.config.crossfade_ms as usize * RATE as usize / 1000).min(MAX_TAIL_FRAMES);
+        // Effective overlap can never exceed a fully-decoded short successor.
+        // Without this clamp a <tail successor stalls: the normal path
+        // reserves the full tail while the join path waits for more successor
+        // frames that will never arrive.
+        let eff_tail = match (&self.current, &self.next) {
+            (Some(current), Some(next))
+                if !current.source.album.is_empty()
+                    && current.source.album == next.source.album =>
+            {
+                0
+            }
+            (Some(_), Some(next)) if next.eof => tail.min(next.remaining().max(1).min(tail.max(1))),
+            _ => tail,
+        };
+        // When the successor is empty, fall back to a gapless handoff.
+        let eff_tail = match &self.next {
+            Some(next)
+                if next.eof
+                    && next.remaining() == 0
+                    && !matches!(&self.current, Some(c) if c.remaining() == 0) =>
+            {
+                0
+            }
+            _ => eff_tail,
+        };
         if let Some(next) = &mut self.next {
             if next.fill(tail.max(BLOCK * 2)).is_err() {
                 let id = next.source.id;
@@ -632,7 +718,10 @@ impl Actor {
         let Some(output) = &mut self.output else {
             return Ok(());
         };
-        while let Some(message) = output.pipeline.bus().unwrap().pop() {
+        let Some(bus) = output.pipeline.bus() else {
+            return Err(Error::Input("Audio output is unavailable"));
+        };
+        while let Some(message) = bus.pop() {
             match message.view() {
                 gst::MessageView::Error(_) => {
                     return Err(Error::Input("Audio output is unavailable"))
@@ -644,15 +733,20 @@ impl Actor {
         if !self.desired {
             return Ok(());
         };
-        if output.source.current_level_bytes() > RATE as u64 * 8 / 5 {
+        if output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES {
             return Ok(());
         };
         let available = current.remaining();
-        if current.eof && self.next.is_some() && (available == 0 || tail > 0 && available <= tail) {
-            let next = self.next.as_mut().unwrap();
+        if current.eof
+            && self.next.is_some()
+            && (available == 0 || eff_tail > 0 && available <= eff_tail)
+        {
+            let Some(next) = self.next.as_mut() else {
+                return Err(Error::Input("Audio output is unavailable"));
+            };
             let same_album =
                 !current.source.album.is_empty() && current.source.album == next.source.album;
-            if available > 0 && !same_album && tail > 0 && next.remaining() >= available {
+            if available > 0 && !same_album && eff_tail > 0 && next.remaining() >= available {
                 let (total, done) = *self.fade.get_or_insert((available, 0));
                 let frames = BLOCK.min(available);
                 let mut old = current.take(frames);
@@ -676,13 +770,17 @@ impl Actor {
                     output.state(gst::State::Playing)?;
                     return Ok(());
                 }
-            } else if available > 0 && !same_album && tail > 0 && !next.eof {
+            } else if available > 0 && !same_album && eff_tail > 0 && !next.eof {
                 return Ok(());
             }
             if current.remaining() == 0 {
-                let mut next = self.next.take().unwrap();
+                let Some(mut next) = self.next.take() else {
+                    return Err(Error::Input("Audio output is unavailable"));
+                };
                 let overlap = self.fade.take().map_or(0, |(total, _)| total as u64);
-                self.segments.back_mut().unwrap().end = Some(output.frames);
+                if let Some(segment) = self.segments.back_mut() {
+                    segment.end = Some(output.frames);
+                }
                 let source = next.source.clone();
                 next.frames = 0;
                 self.segments.push_back(Segment {
@@ -695,14 +793,16 @@ impl Actor {
                 return Ok(());
             }
         }
-        let current = self.current.as_mut().unwrap();
+        let Some(current) = self.current.as_mut() else {
+            return Ok(());
+        };
         let reserve_fade = current.eof
-            && tail > 0
+            && eff_tail > 0
             && self.next.as_ref().is_some_and(|next| {
                 current.source.album.is_empty() || current.source.album != next.source.album
             });
         let frames = if !current.eof || reserve_fade {
-            current.remaining().saturating_sub(tail).min(BLOCK)
+            current.remaining().saturating_sub(eff_tail).min(BLOCK)
         } else {
             current.remaining().min(BLOCK)
         };
@@ -722,7 +822,9 @@ impl Actor {
         } else if current.eof && current.remaining() == 0 && self.next.is_none() {
             if !self.ended {
                 let _ = output.source.end_of_stream();
-                self.segments.back_mut().unwrap().end = Some(output.frames);
+                if let Some(segment) = self.segments.back_mut() {
+                    segment.end = Some(output.frames);
+                }
                 self.ended = true;
             }
         } else if output.source.current_level_bytes() == 0 {
@@ -732,7 +834,7 @@ impl Actor {
     }
     fn publish(&mut self) {
         let Some(output) = &self.output else {
-            let mut state = self.state.lock().unwrap();
+            let mut state = lock_state(&self.state);
             state.playing = false;
             state.paused = false;
             state.loaded = false;
@@ -745,8 +847,12 @@ impl Actor {
             output.position()
         };
         while self.segments.len() > 1 && position >= self.segments[1].start {
-            let old = self.segments.pop_front().unwrap();
-            let new = self.segments.front_mut().unwrap();
+            let Some(old) = self.segments.pop_front() else {
+                break;
+            };
+            let Some(new) = self.segments.front_mut() else {
+                break;
+            };
             if !new.notified {
                 new.notified = true;
                 let heard = old.source.listened
@@ -778,14 +884,18 @@ impl Actor {
                 position: media,
             });
         }
-        let mut state = self.state.lock().unwrap();
+        let mut state = lock_state(&self.state);
         *state = Snapshot {
             id: segment.source.id,
             playing: self.desired && output.pipeline.current_state() == gst::State::Playing,
             paused: !self.desired,
             buffering: self.desired && output.pipeline.current_state() != gst::State::Playing,
             loaded: true,
-            position: media.min(segment.source.duration),
+            position: if segment.source.duration > 0 {
+                media.min(segment.source.duration)
+            } else {
+                media
+            },
             duration: segment.source.duration,
             listened,
             volume: self.volume as f64,

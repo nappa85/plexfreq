@@ -1,5 +1,18 @@
 # PlexFreq
 
+## Continuous integration
+
+GitHub Actions runs on every branch push and pull request (also manually):
+Rust formatting/Clippy/tests, Qt6 release build and isolated integration/QML smoke,
+Qt5 syntax checks for all desktop/Silica QML, translation freshness for 39 locales,
+and an aarch64 Rust build against the actual Sailfish SDK sysroot.
+
+`v*` tag pushes run those gates before building the Sailfish RPM, rootless bundle
+and device-test fixture; app RPM/bundle assets are attached to the tag release.
+Manual release builds upload artifacts without publishing. Tags must match the
+committed core/application/package versions. See `.github/workflows` and
+`docs/build.md`; phone/live-account tests remain separate opt-in checks.
+
 ## Rust runtime, audio and languages
 
 Playback runs in Rust-owned workers rather than C++ QThread/QMediaPlayer. Rust owns
