@@ -14,6 +14,12 @@ Item {
     property var editorItems:[]
     signal editPlaylistRequested()
     signal openDownloads()
+    signal openAudioSettings()
+    function audioSetting(name,value) {
+        var old=backend.state.audioConfig || ({crossfadeMs:0,normalization:false,eq:[0,0,0,0,0,0,0,0,0,0]})
+        var config={crossfadeMs:old.crossfadeMs || 0,normalization:!!old.normalization,eq:old.eq || [0,0,0,0,0,0,0,0,0,0]}
+        config[name]=value;backend.command("audio_config",{config:config})
+    }
     function playlistEditor(action,item) {
         editorAction=action;editorTarget=action==="rename" ? item : null
         editorItems=item && item.type!=="playlist" ? [item] : items.filter(function(i){return i.type==="track"})

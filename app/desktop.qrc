@@ -9,4 +9,5 @@
 <file>qml/desktop/NowPlaying.qml</file>
 <file>qml/desktop/PlaylistEditor.qml</file>
 <file>qml/desktop/Downloads.qml</file>
+<file>qml/desktop/AudioSettings.qml</file>
 </qresource></RCC>

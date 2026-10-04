@@ -22,7 +22,9 @@ Page {
                 IconButton {icon.source:backend.playing?"image://theme/icon-m-pause":"image://theme/icon-m-play";onClicked:backend.togglePlayback()}
                 IconButton {icon.source:"image://theme/icon-m-next";enabled:!backend.busy;onClicked:backend.command("next")}
             }
-            Slider {width:parent.width;minimumValue:0;maximumValue:Math.max(1,backend.duration);value:backend.position;valueText:music.time(backend.position)+" / "+music.time(backend.duration);onReleased:backend.seek(value)}
+            Slider {id:progress;objectName:"playbackSlider";width:parent.width;minimumValue:0;maximumValue:Math.max(1,backend.duration);value:backend.position;valueText:music.time(backend.position)+" / "+music.time(backend.duration);onReleased:backend.seek(value)
+                Connections {target:backend;onPlaybackChanged:if(!progress.down)progress.value=backend.position}
+            }
             Button {anchors.horizontalCenter:parent.horizontalCenter;text:track.userRating>=10?qsTr("★ Favorite"):qsTr("☆ Add to favorites");enabled:!backend.busy && !!music.trackKey;onClicked:music.favorite(track)}
             SectionHeader {text:qsTr("Lyrics")}
             Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;visible:music.lyrics.length===0;text:music.lyricsState==="loading"?qsTr("Loading lyrics…"):music.lyricsState==="unavailable"?qsTr("Lyrics unavailable while offline or on this server."):qsTr("No lyrics provided by Plex.");wrapMode:Text.Wrap;color:Theme.secondaryColor}

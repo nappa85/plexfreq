@@ -1,4 +1,5 @@
 #include "backend.h"
+#include "i18n.h"
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QStandardPaths>
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
     application->setOrganizationName("org.plexfreq");
     application->setApplicationName("harbour-plexfreq");
     application->setApplicationVersion("0.1.0");
+    installTranslations(application);
     QString directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     // Isolated state for local integration tests; never touches the user's login.
     if (!qgetenv("PLEXFREQ_STATE_DIR").isEmpty()) directory = QString::fromUtf8(qgetenv("PLEXFREQ_STATE_DIR"));

@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<RCC>
+  <qresource prefix="/translations">
+    <file alias="harbour-plexfreq_bg.qm">translations/harbour-plexfreq_bg.qm</file>
+    <file alias="harbour-plexfreq_bn.qm">translations/harbour-plexfreq_bn.qm</file>
+    <file alias="harbour-plexfreq_cs.qm">translations/harbour-plexfreq_cs.qm</file>
+    <file alias="harbour-plexfreq_da.qm">translations/harbour-plexfreq_da.qm</file>
+    <file alias="harbour-plexfreq_de.qm">translations/harbour-plexfreq_de.qm</file>
+    <file alias="harbour-plexfreq_el.qm">translations/harbour-plexfreq_el.qm</file>
+    <file alias="harbour-plexfreq_es.qm">translations/harbour-plexfreq_es.qm</file>
+    <file alias="harbour-plexfreq_et.qm">translations/harbour-plexfreq_et.qm</file>
+    <file alias="harbour-plexfreq_fi.qm">translations/harbour-plexfreq_fi.qm</file>
+    <file alias="harbour-plexfreq_fr.qm">translations/harbour-plexfreq_fr.qm</file>
+    <file alias="harbour-plexfreq_gu.qm">translations/harbour-plexfreq_gu.qm</file>
+    <file alias="harbour-plexfreq_hi.qm">translations/harbour-plexfreq_hi.qm</file>
+    <file alias="harbour-plexfreq_hu.qm">translations/harbour-plexfreq_hu.qm</file>
+    <file alias="harbour-plexfreq_it.qm">translations/harbour-plexfreq_it.qm</file>
+    <file alias="harbour-plexfreq_kn.qm">translations/harbour-plexfreq_kn.qm</file>
+    <file alias="harbour-plexfreq_lt.qm">translations/harbour-plexfreq_lt.qm</file>
+    <file alias="harbour-plexfreq_lv.qm">translations/harbour-plexfreq_lv.qm</file>
+    <file alias="harbour-plexfreq_ml.qm">translations/harbour-plexfreq_ml.qm</file>
+    <file alias="harbour-plexfreq_mr.qm">translations/harbour-plexfreq_mr.qm</file>
+    <file alias="harbour-plexfreq_nb.qm">translations/harbour-plexfreq_nb.qm</file>
+    <file alias="harbour-plexfreq_nl.qm">translations/harbour-plexfreq_nl.qm</file>
+    <file alias="harbour-plexfreq_pa.qm">translations/harbour-plexfreq_pa.qm</file>
+    <file alias="harbour-plexfreq_pl.qm">translations/harbour-plexfreq_pl.qm</file>
+    <file alias="harbour-plexfreq_pt.qm">translations/harbour-plexfreq_pt.qm</file>
+    <file alias="harbour-plexfreq_pt_BR.qm">translations/harbour-plexfreq_pt_BR.qm</file>
+    <file alias="harbour-plexfreq_ro.qm">translations/harbour-plexfreq_ro.qm</file>
+    <file alias="harbour-plexfreq_ru.qm">translations/harbour-plexfreq_ru.qm</file>
+    <file alias="harbour-plexfreq_sk.qm">translations/harbour-plexfreq_sk.qm</file>
+    <file alias="harbour-plexfreq_sl.qm">translations/harbour-plexfreq_sl.qm</file>
+    <file alias="harbour-plexfreq_sv.qm">translations/harbour-plexfreq_sv.qm</file>
+    <file alias="harbour-plexfreq_ta.qm">translations/harbour-plexfreq_ta.qm</file>
+    <file alias="harbour-plexfreq_te.qm">translations/harbour-plexfreq_te.qm</file>
+    <file alias="harbour-plexfreq_tr.qm">translations/harbour-plexfreq_tr.qm</file>
+    <file alias="harbour-plexfreq_tt.qm">translations/harbour-plexfreq_tt.qm</file>
+    <file alias="harbour-plexfreq_uk.qm">translations/harbour-plexfreq_uk.qm</file>
+    <file alias="harbour-plexfreq_vi.qm">translations/harbour-plexfreq_vi.qm</file>
+    <file alias="harbour-plexfreq_zh_CN.qm">translations/harbour-plexfreq_zh_CN.qm</file>
+    <file alias="harbour-plexfreq_zh_HK.qm">translations/harbour-plexfreq_zh_HK.qm</file>
+    <file alias="harbour-plexfreq_zh_TW.qm">translations/harbour-plexfreq_zh_TW.qm</file>
+  </qresource>
+</RCC>

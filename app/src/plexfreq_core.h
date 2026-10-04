@@ -5,7 +5,12 @@
 extern "C" {
 #endif
 typedef struct Core Core;
+typedef struct Runtime Runtime;
 typedef struct DownloadControl DownloadControl;
+Runtime *pf_runtime_new(const char *state_dir);
+char *pf_runtime_submit(Runtime *runtime,const char *request);
+char *pf_runtime_poll(Runtime *runtime);
+void pf_runtime_free(Runtime *runtime);
 Core *pf_new(const char *state_dir);
 // Diagnostic core: preserves cache configuration but never starts media downloads.
 Core *pf_new_inspect(const char *state_dir);

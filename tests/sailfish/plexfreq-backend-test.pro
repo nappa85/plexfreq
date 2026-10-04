@@ -1,9 +1,11 @@
 TARGET = plexfreq-backend-test
 CONFIG += c++11 testcase
-QT += core gui network qml quick multimedia testlib dbus
-RESOURCES += tests/qt-backend-test.qrc
-SOURCES += qt_backend.cpp backend.cpp mpris.cpp
-HEADERS += backend.h plexfreq_core.h mpris.h
+QT += core gui network qml quick testlib dbus
+CONFIG += link_pkgconfig
+PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gio-2.0
+RESOURCES += tests/qt-backend-test.qrc app/translations.qrc
+SOURCES += qt_backend.cpp backend.cpp i18n.cpp
+HEADERS += backend.h plexfreq_core.h i18n.h
 LIBS += $$PWD/thirdparty/libplexfreq_core.a -lpthread -ldl -lm
 PRE_TARGETDEPS += $$PWD/thirdparty/libplexfreq_core.a
 target.path = /usr/bin

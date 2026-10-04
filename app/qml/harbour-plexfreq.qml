@@ -12,6 +12,7 @@ ApplicationWindow {
         onOpenPlayer: pageStack.push(Qt.resolvedUrl("pages/NowPlayingPage.qml"),{music:session})
         onEditPlaylistRequested:pageStack.push(Qt.resolvedUrl("pages/PlaylistDialog.qml"),{music:session})
         onOpenDownloads:pageStack.push(Qt.resolvedUrl("pages/DownloadsPage.qml"),{music:session})
+        onOpenAudioSettings:pageStack.push(Qt.resolvedUrl("pages/AudioSettingsPage.qml"),{music:session})
     }
     initialPage: Component { LibraryPage { music: session } }
     cover: Component {

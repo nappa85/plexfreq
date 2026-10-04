@@ -1,5 +1,49 @@
 # Architecture
 
+## Current runtime (Rust-owned, 2026-10-04)
+
+```
+Qt5.6/Silica or Qt6/Controls QML
+ → small QObject/model/translation/window bridge (no QThread or QMediaPlayer)
+ → Runtime C ABI submit/poll
+ → Rust Core request actor + independent Rust audio actor/HTTP readers
+ → GStreamer installed codecs/appsink → Rust PCM/DSP → appsrc/PulseAudio music sink
+ → Rust zbus MPRIS and read-only network workers
+```
+
+Rust owns worker lifetime and maintenance, request classification/generations,
+queue/radio/successor preparation, media HTTP/header credentials, decoded-frame
+scheduling, transport/position/heard-time, gain/EQ/crossfade, MPRIS and network facts.
+Qt only exposes properties, reconciles presentation models, translates UI/error
+messages and activates the window. Playback URLs/PCM no longer enter Qt audio APIs.
+Artwork still has a Qt Image fallback until its private Rust cache is ready.
+
+The blocking Core HTTP domain cannot stall audio transport/output. Prepared next
+queue snapshots are committed when their PCM becomes audible; the GUI can read
+audio snapshots independently of Core metadata work. One successor is predecoded
+with bounded buffering. PCM output is fixed 48 kHz stereo F32; EQ/gain/sample-clamp
+are Rust math and crossfades use equal-power curves. Output negotiation through
+PulseAudio is not a bit-perfect/sample-rate-matching claim.
+
+Translation catalogues and the build/check dictionary workflow are in
+`app/translations`, `tools/translations.json` and `tools/build-qm.sh`. Full locale,
+base language and English fallback is installed before QML. All 39 reference
+locales are packaged and embedded; context/placeholder coverage is checked.
+
+Earlier sections below record the previous Qt Multimedia baseline and how it was
+extended; `docs/audio-engine-plan.md` describes the replacement and its limits.
+
+Native stream role is selected in Rust from OS identity: Sailfish x-maemo for its
+mainvolume/stream-restore policy; desktop music. The app does not intercept hardware
+keys or alter system policy. Reply correlation includes failures for optional lyric/
+similar-artist requests; QML rejects stale keys and completes current loading states.
+Seek sliders synchronize idle values from playbackChanged after native drag handlers
+remove their initial value binding, retaining QML-only presentation ownership.
+Plex optional gain/albumGain analysis accepts finite JSON numbers/numeric strings;
+unusable gain is omitted instead of invalidating track and lyric metadata.
+Optional Plex gain/albumGain metadata accepts finite numbers and numeric strings;
+missing/unusable analysis must not prevent track/lyric metadata retrieval.
+
 ```
 Silica (Qt5.6) / Controls2 (Qt6) QML
         ↓ shared Session.qml navigation + browser login polling

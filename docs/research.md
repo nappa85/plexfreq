@@ -806,3 +806,92 @@ replaced in this iteration.
   on the roadmap. Audio-engine planning documents Rust-owned orchestration over
   existing GStreamer infrastructure versus a pure-Rust PCM alternative, including
   codec/gapless/output limitations from the consulted sources.
+
+## i18n and Rust audio runtime — 2026-10-04
+
+- User committed the baseline (ae8eafb), then requested actual i18n/audio-engine
+  implementation and a minimal C++ bridge, allowing architecture changes.
+- Host GStreamer is 1.26.11, GLib 2.88.3, PulseAudio 17.0. SDK RPM inspection
+  confirms GStreamer 1.26.11, GLib 2.86.4 and PulseAudio 17.0. Native development
+  packages were absent initially; tools/audio-sdk.Dockerfile installs them only
+  in a derived disposable SDK image. pkg-config queries the actual SDK sysroot.
+- Consulted gstreamer-rs 0.23.7 installation/API docs (minimum 1.14), GStreamer
+  playbin/URI-source, appsrc and pulsesink references:
+  https://docs.rs/gstreamer/0.23.7/gstreamer/
+  https://gstreamer.freedesktop.org/documentation/playback/playbin.html
+  https://gstreamer.freedesktop.org/documentation/app/appsrc.html
+  https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesink.html
+  pulsesink stream-properties supports media.role=music without privileged changes.
+- Rust now owns runtime threads, decoding orchestration/PCM, transport/timing,
+  frame-stamped continuous output, successor preparation, equal-power overlap,
+  ten-band EQ, metadata gain, MPRIS and network facts. The Qt bridge contains only
+  QObject/list model/events, translation and window activation. Qt Multimedia and
+  the C++ QThread/player/MPRIS implementation were removed.
+- A local decoded-PCM regression initially exposed EOS being discarded by a bus
+  error-only pop. Full bus handling fixes it. Exact two-track frame count and
+  crossfade overlap/midpoint are now verified. HTTP tests exposed the host missing
+  a GStreamer HTTP URI plugin; authenticated media transport was moved entirely
+  to Rust appsrc readers instead of depending on that plugin or passing token URLs.
+- Translation workflow follows reference full-locale/base-language/English loading,
+  pre-QML translator install, TS/QM generation and packaged/rootless/resource paths.
+  Generated catalogues cover 39 locales × 409 context messages (299 distinct sources),
+  with placeholder checks and no unfinished entries. Exact shared reference strings
+  are reused; new technical messages use authored vocabulary and compact localized
+  clauses, with expanded Italian prose. Native-speaker wording polish remains useful;
+  catalogue completeness is not a linguistic-review claim. Build/check needs no
+  sibling projects because the expanded translations.json is self-contained.
+- Host checks currently pass: 59 Rust tests, formatting/Clippy, 2 CTest entries
+  (10.31 seconds), all 39 compiled QM load/placeholder tests. SDK Rust/Qt5 package
+  and fixture builds succeed. Initial explicit Sailfish linkage was restored after
+  link_pkgconfig stopped supplying it; no phone packages were installed.
+- Phone codec/output/Qt5 catalogue checks will be recorded after local/SDK results.
+- Final phone Qt5 locale/real-PulseAudio transport/logout checks pass (4 entries);
+  temporary-state Italian rootless smoke exits 0. Native seek signal delivery is
+  asynchronous to snapshot polling; a fixture race was corrected to wait for it.
+  Final CTest 2/2 is 10.08s. Bundle deployed/reopened as sole PID 59545 with matching
+  Rust MPRIS owner. Wider codec/routing/background/sandbox evidence remains pending.
+
+## First Rust runtime regressions — 2026-10-04
+
+- User reported ringtone volume keys during music, lyrics stuck loading and a stale
+  seek thumb on later songs. Failed Rust replies lacked lyricsKey/similarKey;
+  request correlation is now preserved on success and failure. Silica SliderBase
+  assigns value imperatively while dragging/releasing, removing the original QML
+  binding; playbackChanged now updates idle seek sliders on both platform UIs.
+- Read-only phone inspection: `/etc/pulse/mainvolume-listening-time-notifier.conf`
+  has `role-list = x-maemo`; stream-restore has sink-input-by-media-role:x-maemo.
+  `/etc/os-release` identifies Sailfish. Rust selects x-maemo on Sailfish and music
+  on other systems. No service/config/routing settings are changed.
+- Consulted sources (initial guessed src/modules/config paths returned 404):
+  https://github.com/sailfishos/pulseaudio-modules-nemo/blob/master/src/mainvolume/module-meego-mainvolume.c
+  Its notifier watches configured roles and publishes background MediaState for
+  running matching sink inputs. Peer API: /com/meego/mainvolume2,
+  com.Meego.MainVolume2.MediaState, discovered using PulseAudio ServerLookup1.Address.
+  https://github.com/sailfishos/pulseaudio-modules-nemo/blob/master/src/common/include/meego/proplist-nemo.h
+  https://github.com/sailfishos/pulseaudio-policy-enforcement/blob/master/examples/xpolicy.conf
+- Installed Silica Slider.qml/private/SliderBase.qml consulted read-only; down
+  indicates active interaction. Local tests verify a broken value binding follows
+  the next song/progress and stale lyric errors are discarded while current errors
+  leave loading. Rust role-selection and actual failed request key tests pass.
+- Local check: 60 Rust tests, fmt/Clippy, desktop CTest 2/2 (10.30s).
+- Real current-track inspection exposed gain/albumGain parsing: optional analysis
+  metadata can contain numeric strings. Finite optional gain now accepts strings/
+  numbers/null and does not reject track/lyric streams for unusable analysis. New
+  local schema tests pass. Live probe now decodes 28 lyric lines; a transient
+  provider network error passed on retry. Diagnostics printed counts/types only.
+- Final check: 61 Rust tests, fmt/Clippy, CTest 2/2 (10.30s), SDK app/test builds pass.
+  Phone optional-reply/slider/native policy tests pass (6 entries); real lyric probe
+  passes (3 entries). Policy fixture waits for playback startup before observing
+  asynchronous MediaState. Bundle reopened as sole PID 64815, matching MPRIS owner.
+- Live read-only inspection found a second lyric failure: newly introduced gain/
+  albumGain fields rejected numeric-string analysis values, invalidating full track
+  metadata and its lyric streams. Optional finite-gain decoding now accepts numbers,
+  strings and null; unusable analysis values become absent without rejecting music.
+  Local schema regression covers these cases. The live current-track probe changed
+  from malformed metadata to successful decoding of 28 lyric lines (one transient
+  provider network failure was followed by a passing retry).
+- Final check: 61 Rust tests, fmt/Clippy, CTest 2/2 in 10.30s; SDK app/test builds pass.
+  Phone tests pass: correlation/stale lyric replies, damaged-slider binding across
+  track change, native transport and PulseAudio MediaState recognition. The volume
+  fixture waits until playback starts before reading its asynchronous policy state.
+  Bundle deployed/reopened as sole PID 64815 with matching Rust MPRIS owner.

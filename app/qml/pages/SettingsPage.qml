@@ -64,6 +64,7 @@ Page {
             Button { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Connect"); enabled: !backend.busy && address.text.length > 0; onClicked: { backend.command("connect", {url:address.text, token:token.text}); token.text = ""; pageStack.pop() } }
             Button { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Sign out"); enabled: !backend.busy; onClicked: { backend.command("logout"); token.text = "" } }
             SectionHeader { text: qsTr("Offline audio cache") }
+            Button {anchors.horizontalCenter:parent.horizontalCenter;text:qsTr("Audio settings");onClicked:music.openAudioSettings()}
             TextSwitch {text:qsTr("Autoplay related music when queue ends");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}
             TextSwitch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
             Button {anchors.horizontalCenter:parent.horizontalCenter;text:qsTr("Open download manager");onClicked:music.openDownloads()}

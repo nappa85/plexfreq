@@ -5,8 +5,9 @@
   consulted sources and actual check results in these documents.
 - Research documented APIs/other implementations before choosing integration
   approaches. Develop local tests before live Plex or phone experiments.
-- Rust owns Plex HTTP, credentials, models and queue policy. C++ is a thin
-  thread/C-ABI/audio adapter; QML is presentation/navigation.
+- Rust owns Plex/media HTTP, credentials, models/queue policy, worker lifetime,
+  audio/DSP/transport, MPRIS and network facts. C++ is a thin Qt model/C-ABI/
+  translation/window adapter; QML is presentation/navigation.
 - Sailfish target is Qt5.6 + Silica, desktop Qt6 + Controls2. Shared QML must
   remain QtQuick2.6 compatible. Never introduce desktop imports into Silica.
 - Use aarch64-unknown-linux-gnu, not musl, when linking Rust with Sailfish Qt.

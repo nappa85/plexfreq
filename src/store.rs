@@ -22,6 +22,7 @@ pub struct Settings {
     pub wifi_only: bool,
     pub downloads_paused: bool,
     pub autoplay: bool,
+    pub audio: crate::audio::dsp::Config,
     pub history: Vec<crate::history::Play>,
 }
 

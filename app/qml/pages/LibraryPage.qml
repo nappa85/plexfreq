@@ -160,7 +160,9 @@ Page {
                 IconButton { icon.source: "image://theme/icon-m-shuffle"; highlighted: !!backend.state.queue.shuffled; enabled: !backend.busy && !backend.state.radio; onClicked: backend.command("shuffle", {enabled:!backend.state.queue.shuffled}) }
                 IconButton { icon.source: "image://theme/icon-m-repeat"; highlighted: backend.state.queue.repeat !== "off"; enabled: !backend.busy && !backend.state.radio; onClicked: backend.command("repeat", {mode:backend.state.queue.repeat === "off" ? "all" : backend.state.queue.repeat === "all" ? "one" : "off"}) }
             }
-            Slider { width: parent.width; minimumValue: 0; maximumValue: Math.max(1, backend.duration); value: backend.position; valueText: music.time(backend.position) + " / " + music.time(backend.duration); onReleased: backend.seek(value) }
+            Slider { id:progress;objectName:"playbackSlider";width: parent.width; minimumValue: 0; maximumValue: Math.max(1, backend.duration); value: backend.position; valueText: music.time(backend.position) + " / " + music.time(backend.duration); onReleased: backend.seek(value)
+                Connections {target:backend;onPlaybackChanged:if(!progress.down)progress.value=backend.position}
+            }
         }
     }
 }

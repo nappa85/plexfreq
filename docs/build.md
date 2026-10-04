@@ -1,5 +1,22 @@
 # Build and device workflow
 
+The Rust audio runtime needs GStreamer/app development packages and GLib/GIO.
+CMake queries `gstreamer-1.0`, `gstreamer-app-1.0`, `gio-2.0` and checks translations.
+Qt Multimedia is no longer required.
+
+`tools/build-sailfish.sh` derives `plexfreq-audio-sdk:local` using
+`tools/audio-sdk.Dockerfile` when missing, installing development packages inside
+the SDK image only. Rust pkg-config runs `tools/sdk-pkg-config.sh` against its
+actual aarch64 sysroot; C dependencies retain `tools/sdk-cc.sh`. qmake links native
+GStreamer/GIO and installs/embeds QMs. No phone root/packages are needed.
+
+Qt Linguist tools follow the reference cache path
+`${XDG_CACHE_HOME:-$HOME/.cache}/qt-tools/PySide6/{lupdate,lrelease}`.
+`tools/build-qm.sh --check` consumes self-contained `tools/translations.json`.
+`tools/author-translations.py` is the optional initial vocabulary/reference merge;
+normal builds need no sibling repos. `PLEXFREQ_AUDIO_SINK=fake` selects a timed
+silent fixture sink; production uses PulseAudio with media.role=music.
+
 ## Host checks
 
 `tools/check.sh` runs formatting, Clippy, Rust tests, a release desktop build and

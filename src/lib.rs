@@ -1,3 +1,4 @@
+pub mod audio;
 pub mod cache;
 mod features;
 mod ffi;
@@ -8,6 +9,7 @@ pub mod offline;
 pub mod plex;
 pub mod queue;
 pub mod radio;
+pub mod runtime;
 pub mod store;
 
 use model::{Item, Pin, Resource};
@@ -273,7 +275,77 @@ pub struct Core {
     network_online: bool,
 }
 
+pub(crate) struct Prepared {
+    queue: Queue,
+    radio: Option<Radio>,
+    cached: bool,
+    pub plan: Value,
+}
+
 impl Core {
+    pub(crate) fn prepare_next(&mut self) -> Result<Option<Prepared>> {
+        if self.queue.track().is_none()
+            || self.queue.at_end()
+                && self.radio.is_none()
+                && !self.settings.autoplay
+                && self.queue.repeat == Repeat::Off
+        {
+            return Ok(None);
+        }
+        let old = self.queue.clone();
+        let radio = self.radio.clone();
+        let cached = self.cached_playback;
+        let result = self.next(true);
+        let prepared = match result {
+            Ok(mut plan) if self.queue.track().is_some() => {
+                let queue = self.queue.clone();
+                let q = queue.presentation();
+                plan["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":q.shuffled});
+                Ok(Some(Prepared {
+                    queue,
+                    radio: self.radio.clone(),
+                    cached: self.cached_playback,
+                    plan,
+                }))
+            }
+            Ok(_) => Ok(None),
+            Err(e) => Err(e),
+        };
+        self.queue = old;
+        self.radio = radio;
+        self.cached_playback = cached;
+        self.schedule_cache();
+        prepared
+    }
+    pub(crate) fn commit_prepared(&mut self, prepared: Prepared) -> Result<Value> {
+        self.queue = prepared.queue;
+        self.radio = prepared.radio;
+        self.cached_playback = prepared.cached;
+        self.resume_position = 0;
+        self.playback_generation = self.playback_generation.wrapping_add(1);
+        self.settings.playback = store::Playback {
+            queue: self.queue.clone(),
+            radio: self.radio.clone(),
+            position: 0,
+            generation: self.playback_generation,
+            occurrence: uuid::Uuid::new_v4().to_string(),
+            listened: 0,
+        };
+        store::save(&self.dir, &self.settings)?;
+        let mut plan = prepared.plan;
+        plan.as_object_mut().unwrap().remove("stream");
+        plan["playbackOccurrence"] = json!(self.settings.playback.occurrence);
+        plan["playbackGeneration"] = json!(self.playback_generation);
+        Ok(plan)
+    }
+    pub(crate) fn audio_config(&self) -> audio::dsp::Config {
+        self.settings.audio.clone()
+    }
+    pub(crate) fn set_audio_config(&mut self, config: audio::dsp::Config) -> Result<()> {
+        config.validate()?;
+        self.settings.audio = config;
+        store::save(&self.dir, &self.settings)
+    }
     pub fn new(dir: PathBuf) -> Result<Self> {
         Self::with_account_url(dir, url::Url::parse("https://plex.tv/")?)
     }
@@ -1471,7 +1543,7 @@ impl Core {
                 )
             }
             Command::Status => Ok(
-                json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status()}),
+                json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio}),
             ),
             Command::Resume => {
                 let mut value = self.playback()?;

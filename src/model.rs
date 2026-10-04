@@ -75,6 +75,18 @@ where
     Ok(Option::<T>::deserialize(deserializer)?.unwrap_or_default())
 }
 
+// Optional analysis fields vary between PMS versions (numbers or numeric
+// strings). Unusable gain must not invalidate the track or its lyric streams.
+fn optional_gain<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<f64>, D::Error> {
+    let value = serde_json::Value::deserialize(deserializer)?;
+    Ok(value
+        .as_f64()
+        .or_else(|| value.as_str().and_then(|text| text.parse().ok()))
+        .filter(|gain| gain.is_finite()))
+}
+
 #[derive(Clone, Default, Deserialize, Serialize, Debug, PartialEq)]
 #[serde(default)]
 pub struct Media {
@@ -97,6 +109,10 @@ pub struct Stream {
     pub key: String,
     pub stream_type: u32,
     pub format: String,
+    #[serde(deserialize_with = "optional_gain")]
+    pub gain: Option<f64>,
+    #[serde(deserialize_with = "optional_gain")]
+    pub album_gain: Option<f64>,
 }
 
 #[derive(Clone, Default, Deserialize, Serialize)]

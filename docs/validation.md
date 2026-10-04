@@ -516,4 +516,88 @@ listening/scrobble was performed. Live diagnostics print types/counts/facts only
 Remaining interactive checks include normal/sandboxed playlist editing on the
 saved server, real Wi-Fi transitions/storage-pressure handling and longer
 history/autoplay sessions. The audio engine was not replaced. i18n remains a
-recorded follow-up; its matching locale set and reference patterns were inspected.
+  recorded follow-up; its matching locale set and reference patterns were inspected.
+
+## Rust runtime/audio/i18n — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| `./tools/check.sh` | Passed: 59 Rust tests, fmt/Clippy, CTest 2/2 (10.31s) |
+| Captured decoded PCM | Two mono WAVs: exact joined stereo sample count, no inserted/lost frames |
+| Crossfade/DSP PCM | Exact configured overlap, equal-power midpoint/endpoints; gain/NaN/clamp/EQ tests pass |
+| Translation generation/check | 39 locales, 409 context messages/299 distinct sources; no unfinished locale entries, placeholders checked |
+| Qt6 QM loading | All 39 catalogues load; placeholder/HTTP-code and Italian lookup tests pass |
+| SDK Rust/Qt5 app/RPM/rootless/test builds | Passed; explicit Sailfish linkage restored; final app compiler warnings corrected |
+| Phone Qt5 catalogue/facts/passive polling/fake-sink transport | 6 entries passed, 0 failed/skipped |
+| Phone real PulseAudio generated-media transport/history | 3 entries passed, 0 failed/skipped |
+
+Phone fixtures use temporary state and a local protocol/silent-WAV server, not Plex
+mutations or fabricated actual-account listens. The production sink test exercises
+Rust HTTP, decoding, PCM/output, pause/seek/queue, completed-local playback and
+heard-time qualification through PulseAudio. Connected service was non-Wi-Fi.
+
+This does not establish all compressed-codec trims, mixed-rate joins, unlocked
+appearance, power, long sessions, call/Bluetooth routing or installed sandboxing.
+Only one successor is predecoded; late/unavailable data can still buffer. Translation
+coverage and Qt compatibility are tested, not native-speaker review of all wording.
+Deployment/smoke/ownership results are recorded after the final integration review.
+
+### Final deployment
+
+- Final host CTest 2/2 passed in 10.08s; SDK app/fixture builds passed.
+- Restored Rust-side successful server/logout stream teardown and completed-cache
+  fallback after streaming errors. Native fixture now logs out during active playback.
+- Phone initially exposed an asynchronous seek-event assertion race: the audio
+  snapshot can precede Core event delivery. The fixture now waits for the signal;
+  final Qt5 catalogue + real PulseAudio transport/logout run: 4 passed, 0 failures.
+- Rootless main-QML smoke with temporary state and it_IT override exited 0, with
+  known vendor graphics diagnostics and no QML-load failure.
+- Updated bundle deployed to `/home/defaultuser/plexfreq-test.mTmhFP`, restarted
+  without autoplay, sole PID 59545. D-Bus reports the same MPRIS owner PID; Raise
+  dispatched successfully. Session credentials and downloaded media were retained.
+
+## Volume / lyrics / seek-thumb regressions — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| Final `./tools/check.sh` | 61 Rust tests, fmt/Clippy, CTest 2/2 in 10.30s |
+| SDK app/RPM/rootless/test builds | Passed |
+| Phone optional-request failure/stale replies, Silica seek synchronization, native audio | 6 entries passed, 0 failed/skipped |
+| PulseAudio peer media policy during generated playback | MediaState recognizes media after playback starts; no policy writes |
+| Real read-only current lyric/playlist probe | 28 decoded lines; 6 playlist rows/counts/durations; 3 entries passed |
+| Temporary-state rootless main-QML smoke | Exit 0, known vendor diagnostics |
+| Deployment/MPRIS ownership | Sole PID 64815, matching D-Bus owner; Raise dispatched |
+
+Fixed platform role (Sailfish x-maemo/desktop music), failed optional-request keys,
+numeric-string gain parsing and idle slider resynchronization after native dragging.
+First volume assertion ran before native playback/policy startup; final test waits
+for both. Real lyric probe initially failed track parsing, then hit a transient
+network/provider failure; final retry passed after gain tolerance. Error replies
+now finish loading even when a provider is unavailable. Counts/types only, no texts.
+
+Physical volume-key presses and visual touch interaction remain user confirmation;
+actual phone policy recognition and QML value tracking were tested programmatically.
+Credentials, queue settings and downloaded media were retained at deployment.
+
+## Volume / lyrics / seek-thumb regressions — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| Final `./tools/check.sh` | 61 Rust tests, formatting/Clippy; CTest 2/2, 10.30s |
+| SDK app/RPM/rootless/test builds | Passed |
+| Phone lyric correlation/stale failures + Silica slider tracking + native audio | 6 entries passed, 0 failed/skipped |
+| PulseAudio peer policy observation during generated-media playback | MediaState recognized as media after startup (not inactive); no policy writes |
+| Real account read-only current lyric/playlist probe | 28 decoded lyric lines; 6 playlist rows/counts/durations; 3 entries passed |
+| Temporary-state rootless main-QML smoke | Exit 0, known vendor graphics diagnostics |
+| Deployment/MPRIS owner | Sole app PID 64815; matching D-Bus PID; Raise dispatched |
+
+Fixed: platform media role (x-maemo on Sailfish, music elsewhere), optional failed
+reply keys, numeric-string gain parsing, idle slider resynchronization after native
+dragging. A first volume-policy assertion ran before playback was active; the final
+fixture waits for playing and policy updates. A provider network failure during the
+live lyric probe was transient and passed on retry; request errors now finish lyric
+loading rather than leave it spinning. Probe prints counts/types only, no lyric text.
+
+Physical volume-key presses/visual drag interaction remain user confirmation; the
+phone's actual media policy and QML state progression were exercised programmatically.
+Existing credentials, queue settings and downloaded media were retained at deployment.

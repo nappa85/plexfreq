@@ -12,6 +12,67 @@ fn output(value: serde_json::Value) -> *mut c_char {
     CString::new(value.to_string()).unwrap().into_raw()
 }
 
+/// # Safety
+/// `dir` is a valid NUL-terminated UTF-8 string. Runtime is owned by its GUI bridge.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_new(dir: *const c_char) -> *mut crate::runtime::Runtime {
+    if dir.is_null() {
+        return ptr::null_mut();
+    }
+    catch_unwind(|| {
+        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
+        crate::runtime::Runtime::new(PathBuf::from(path))
+            .ok()
+            .map(Box::new)
+            .map(Box::into_raw)
+    })
+    .ok()
+    .flatten()
+    .unwrap_or(ptr::null_mut())
+}
+/// # Safety
+/// `runtime` is live, exclusively used by its bridge; request is valid UTF-8 C text.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_submit(
+    runtime: *mut crate::runtime::Runtime,
+    request: *const c_char,
+) -> *mut c_char {
+    if runtime.is_null() || request.is_null() {
+        return output(json!({"accepted":false,"error":"Backend unavailable"}));
+    }
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        let input = unsafe { CStr::from_ptr(request) }
+            .to_str()
+            .map_err(|_| crate::Error::Input("Invalid UTF-8 request"))?;
+        unsafe { &*runtime }.submit(serde_json::from_str(input)?)
+    }));
+    output(match result {
+        Ok(Ok(value)) => value,
+        Ok(Err(error)) => json!({"accepted":false,"error":error.to_string()}),
+        Err(_) => json!({"accepted":false,"error":"Backend panic"}),
+    })
+}
+/// # Safety
+/// `runtime` is live and exclusively polled by its bridge. Free returned C text.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_poll(runtime: *mut crate::runtime::Runtime) -> *mut c_char {
+    if runtime.is_null() {
+        return output(json!({"events":[],"error":"Backend unavailable"}));
+    }
+    output(
+        catch_unwind(AssertUnwindSafe(|| unsafe { &*runtime }.poll()))
+            .unwrap_or_else(|_| json!({"events":[],"error":"Backend panic"})),
+    )
+}
+/// # Safety
+/// Free one live GUI runtime with no concurrent GUI calls. Rust joins its workers.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_free(runtime: *mut crate::runtime::Runtime) {
+    if !runtime.is_null() {
+        drop(unsafe { Box::from_raw(runtime) });
+    }
+}
+
 /// Create a thread-confined core. Returns null on invalid path or initialization failure.
 /// # Safety
 /// `dir` must be a valid NUL-terminated UTF-8 string for the duration of this call.

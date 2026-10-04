@@ -1,5 +1,26 @@
 # PlexFreq
 
+## Rust runtime, audio and languages
+
+Playback runs in Rust-owned workers rather than C++ QThread/QMediaPlayer. Rust owns
+Plex/media HTTP, queue policy, PCM timing, transport/heard time, ten-band EQ,
+optional Plex loudness gain, prepared-track gapless joins and equal-power crossfade.
+Installed GStreamer codecs/resampling and PulseAudio provide native decoding/output.
+C++ is a Qt model/properties/translation bridge; Rust also owns MPRIS/network facts.
+
+Open **Audio settings** from Connection/settings for crossfade (off by default),
+normalization and EQ. Same-album tracks keep gapless transitions without crossfade.
+Output PCM is fixed 48 kHz stereo; sample-rate matching and wider codec/routing/
+long-session tests remain follow-ups.
+
+39 locale catalogues match ElectricEel/sailfish-proton, with full locale → base
+language → English fallback, packaged/embedded for installed and rootless builds.
+`PLEXFREQ_LANGUAGE=it_IT` overrides the system locale for inspection.
+`./tools/build-qm.sh` compiles the authored dictionary; `--check` verifies catalogue
+coverage/placeholders and deterministic TS/QM/resources. New technical translations
+use compact localized clauses; the Italian UI has expanded prose.
+See `docs/audio-engine-plan.md` and `docs/validation.md` for boundaries/checks.
+
 A native Plex music player for **SailfishOS** and **Linux desktop**, with QML
 interfaces and a Rust application backend. This is the initial usable-player
 implementation of a Plexamp-inspired client.

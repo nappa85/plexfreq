@@ -19,6 +19,9 @@ thiserror = "2"
 sha2 = "0.10"
 tokio = { version = "1", features = ["rt", "time", "sync", "macros"] }
 fs2 = "0.4"
+gstreamer = { version = "0.23", features = ["v1_20"] }
+gstreamer-app = { version = "0.23", features = ["v1_20"] }
+zbus = { version = "4", default-features = false, features = ["async-io", "blocking"] }
 
 [dev-dependencies]
 tempfile = "3"

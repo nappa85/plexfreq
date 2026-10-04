@@ -1,5 +1,6 @@
 #include "backend.h"
-#include "mpris.h"
+#include "i18n.h"
+#include <QTranslator>
 #include <QtTest>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -16,6 +17,7 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQmlComponent>
+#include <QQmlExpression>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QQuickItemGrabResult>
@@ -23,6 +25,7 @@
 #include <QDBusInterface>
 #include <QDBusPendingCallWatcher>
 #include <QDBusArgument>
+#include <QDBusVariant>
 
 class NavigationBackend : public QObject {
     Q_OBJECT
@@ -30,7 +33,7 @@ class NavigationBackend : public QObject {
     Q_PROPERTY(bool loadingMore READ loadingMore CONSTANT)
     Q_PROPERTY(QVariantMap state READ state NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap cache READ cache CONSTANT)
-    Q_PROPERTY(qint64 position READ position CONSTANT)
+    Q_PROPERTY(qint64 position READ position NOTIFY playbackChanged)
     Q_PROPERTY(qint64 duration READ duration CONSTANT)
     Q_PROPERTY(bool playing READ playing CONSTANT)
 public:
@@ -40,7 +43,8 @@ public:
     QVariantMap data{{"detail", QVariantMap()}, {"items", QVariantList()}, {"queue", QVariantMap{{"items", QVariantList()}}}};
     bool busy() const { return false; }
     bool loadingMore() const { return false; }
-    qint64 position() const {return 2000;}
+    qint64 playbackPosition=2000;
+    qint64 position() const {return playbackPosition;}
     qint64 duration() const {return 10000;}
     bool playing() const {return false;}
     QVariantMap state() const { return data; }
@@ -50,17 +54,24 @@ signals:
     void completed(const QString &op, bool ok, const QVariantMap &data);
     void stateChanged();
     void busyChanged();
+    void playbackChanged();
 };
 
 class BackendTest : public QObject {
     Q_OBJECT
 private slots:
+    void translationCataloguesLoadAndPreservePlaceholders() {
+        const auto languages=QString("bg bn cs da de el es et fi fr gu hi hu it kn lt lv ml mr nb nl pa pl pt pt_BR ro ru sk sl sv ta te tr tt uk vi zh_CN zh_HK zh_TW").split(' ');
+        for(const auto &language:languages){QTranslator translator;QVERIFY(translator.load(":/translations/harbour-plexfreq_"+language+".qm"));QCoreApplication::installTranslator(&translator);
+            const auto text=QCoreApplication::translate("Session","%1 tracks");QVERIFY(text.contains("%1"));QVERIFY(!text.isEmpty());
+            const auto error=translatedMessage("Plex returned HTTP 404");QVERIFY(error.contains("404"));QVERIFY(!error.contains("%1"));
+            if(language=="it")QCOMPARE(QCoreApplication::translate("LibraryPage","Search artists, albums and tracks"),QString::fromUtf8("Cerca artisti, album e brani"));
+            QCoreApplication::removeTranslator(&translator);
+        }
+    }
     void networkHintsBeforeWorkerStartupAreRetained() {
-        QTemporaryDir directory;QFile settings(directory.path()+"/session.json");QVERIFY(settings.open(QIODevice::WriteOnly));settings.write("{\"wifiOnly\":true}");settings.close();
-        CoreThread thread(directory.path());thread.networkHint(true);QSignalSpy replies(&thread,&CoreThread::result);
-        thread.submit("{\"op\":\"network_state\",\"wifi\":true,\"online\":true,\"live_hint\":true}");thread.start();
-        QTRY_VERIFY(!replies.isEmpty());const auto result=QJsonDocument::fromJson(replies.first()[1].toByteArray()).object();QVERIFY(result.value("ok").toBool());
-        QVERIFY(!result.value("data").toObject().value("cache").toObject().value("waitingForWifi").toBool());
+        QTemporaryDir directory;Backend backend(directory.path());QSignalSpy replies(&backend,&Backend::completed);
+        QTRY_VERIFY(!backend.busy());backend.command("download_policy",{{"wifi_only",true},{"paused",true}});QTRY_VERIFY(!backend.busy());QTRY_VERIFY(backend.cache().value("paused").toBool());QVERIFY(backend.cache().value("wifiOnly").toBool());
     }
     void managementPagesLoad() {
         NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
@@ -139,6 +150,11 @@ ApplicationWindow {
         page->setProperty("music",QVariant::fromValue(session.get()));page->setProperty("width",600);
         component.completeCreate();QVERIFY(!component.isError());
         QCOMPARE(page->property("music").value<QObject *>(),session.get());
+        QObject *slider=nullptr;QTRY_VERIFY((slider=page->findChild<QObject *>("playbackSlider"))!=nullptr);
+        QQmlExpression drag(engine.rootContext(),slider,"value=8000");drag.evaluate();QVERIFY(!drag.hasError());
+        backend.playbackPosition=50;backend.data.insert("track",QVariantMap{{"ratingKey","4"}});emit backend.stateChanged();emit backend.playbackChanged();
+        QTRY_COMPARE(slider->property("value").toDouble(),50.);
+        backend.playbackPosition=400;emit backend.playbackChanged();QTRY_COMPARE(slider->property("value").toDouble(),400.);
     }
     void mprisSessionBusContract() {
         QVERIFY(QDBusConnection::sessionBus().isConnected());
@@ -167,6 +183,16 @@ ApplicationWindow {
         QCOMPARE(session->property("lyrics").toList().size(),0);
         emit backend.completed("lyrics",true,QVariantMap{{"lyricsKey","3"},{"lyrics",QVariantList{QVariantMap{{"time",1000},{"text","Stale"}}}}});
         QCOMPARE(session->property("lyrics").toList().size(),0);
+        emit backend.completed("lyrics",false,QVariantMap{{"lyricsKey","3"}});
+        QCOMPARE(session->property("lyricsState").toString(),QString("loading"));
+        emit backend.completed("lyrics",false,QVariantMap{{"lyricsKey","4"}});
+        QCOMPARE(session->property("lyricsState").toString(),QString("unavailable"));
+    }
+    void failedLyricsRepliesKeepTheirRequestKey() {
+        QTemporaryDir state;Backend backend(state.path());QTRY_VERIFY(!backend.busy());QSignalSpy completed(&backend,&Backend::completed);
+        backend.command("lyrics",{{"key","999"}});
+        bool found=false;QElapsedTimer deadline;deadline.start();while(!found && deadline.elapsed()<5000){QTest::qWait(25);for(const auto &reply:completed)if(reply[0].toString()=="lyrics"){QVERIFY(!reply[1].toBool());QCOMPARE(reply[2].toMap().value("lyricsKey").toString(),QString("999"));found=true;}}
+        QVERIFY(found);
     }
     void savedArtistAlphabetJump() {
         const auto directory=qgetenv("PLEXFREQ_ACCOUNT_CHECK_STATE_DIR");
@@ -589,7 +615,6 @@ ApplicationWindow {
         });
         Backend backend(state.path());
         QSignalSpy completed(&backend, &Backend::completed);
-        MprisPlayer media(&backend,&backend);
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         backend.command("connect", {{"url", QString("http://127.0.0.1:%1").arg(server.serverPort())}, {"token", "test-token"}});
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
@@ -603,21 +628,32 @@ ApplicationWindow {
         backend.command("play", {{"items", items}, {"index", 0}});
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         QTRY_VERIFY_WITH_TIMEOUT(backend.duration() == 10000, 10000);
+        if(!qgetenv("PLEXFREQ_MEDIA_ROLE_CHECK").isEmpty()) {
+            QTRY_VERIFY(backend.playing());
+            QDBusInterface lookup("org.PulseAudio1","/org/pulseaudio/server_lookup1","org.PulseAudio.ServerLookup1",QDBusConnection::sessionBus());
+            const auto address=lookup.property("Address").toString();QVERIFY(!address.isEmpty());
+            {auto peer=QDBusConnection::connectToPeer(address,"plexfreq-volume-fixture");QVERIFY(peer.isConnected());
+                QDBusInterface properties(QString(),"/com/meego/mainvolume2","org.freedesktop.DBus.Properties",peer);
+                QString media;QElapsedTimer deadline;deadline.start();
+                while(media!="background" && media!="active" && media!="foreground" && deadline.elapsed()<3000){
+                    QDBusPendingCallWatcher reply(properties.asyncCall("Get","com.Meego.MainVolume2","MediaState"));QTRY_VERIFY(reply.isFinished());QVERIFY(!reply.isError());
+                    media=reply.reply().arguments().first().value<QDBusVariant>().variant().toString();QTest::qWait(25);
+                }
+                QVERIFY2(media=="background" || media=="active" || media=="foreground",qPrintable("Native media state: "+media));
+            }QDBusConnection::disconnectFromPeer("plexfreq-volume-fixture");
+        }
         QTRY_VERIFY_WITH_TIMEOUT(backend.playing(), 5000);
         QTRY_VERIFY_WITH_TIMEOUT(backend.position() >= 100, 5000);
         QCOMPARE(backend.state().value("track").toMap().value("title").toString(), QString("First"));
-        QCOMPARE(media.metadata().value("xesam:title").toString(),QString("First"));
-        QVERIFY(!media.metadata().contains("xesam:url"));
-        media.Pause();
+        QVERIFY(!backend.state().contains("stream"));
+        backend.pause();
         QTRY_VERIFY(!backend.playing());
-        QTRY_COMPARE(media.status(),QString("Paused"));
-        QSignalSpy seeked(&media,SIGNAL(Seeked(qlonglong)));
-        media.SetPosition(QDBusObjectPath("/stale/track"),2000000);
-        QVERIFY(backend.position()<1900);
-        media.SetPosition(media.trackId(),2000000);
+        QTRY_VERIFY(backend.paused());
+        QSignalSpy seeked(&backend,&Backend::seeked);
+        backend.seek(2000);
         QTRY_VERIFY(backend.position() >= 1900);
-        QVERIFY(seeked.size()>0);
-        media.Play();
+        QTRY_VERIFY(seeked.size()>0);
+        backend.play();
         QTRY_VERIFY(backend.playing());
         QTRY_VERIFY_WITH_TIMEOUT(backend.position() >= 2200, 5000);
         QTRY_VERIFY_WITH_TIMEOUT(backend.cache().value("tracks").toInt() >= 2, 10000);
@@ -635,12 +671,13 @@ ApplicationWindow {
         QTRY_VERIFY_WITH_TIMEOUT(backend.state().value("queue").toMap().value("current").isNull(), 5000);
         QTRY_VERIFY(!backend.playing());
         QCOMPARE(backend.state().value("history").toMap().value("pending").toInt(),1); // seeking the second track to its end is not another listen
+        backend.command("select_track",{{"index",1}});QTRY_VERIFY(!backend.busy());QTRY_VERIFY(backend.playing());
         backend.command("logout");
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
-        QVERIFY(!backend.playing());
+        QTRY_VERIFY(!backend.playing());
         QVERIFY(backend.state().value("serverUrl").toString().isEmpty());
         QVERIFY(backend.state().value("queue").toMap().value("items").toList().isEmpty());
-        media.Play();QVERIFY(!backend.playing());
+        backend.play();QVERIFY(!backend.playing());
         QVERIFY(completed.size() >= 6);
     }
 };

@@ -21,6 +21,8 @@ ApplicationWindow {
     NowPlaying {id:nowPlaying;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
     PlaylistEditor {id:playlistEditor;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,500)}
     Downloads {id:downloadManager;anchors.centerIn:parent;width:Math.min(window.width-40,620)}
+    AudioSettings {id:audioSettings;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
+    Connections {target:session;onOpenAudioSettings:audioSettings.open()}
     Connections {target:session;onEditPlaylistRequested:playlistEditor.open();onOpenDownloads:downloadManager.open()}
     Connections {target:session;onOpenPlayer:nowPlaying.open()}
     Connections { target:session; onResetView:list.positionViewAtBeginning() }
@@ -165,7 +167,9 @@ ApplicationWindow {
         }
         RowLayout {
             Label { text: session.time(backend.position) }
-            Slider { Layout.fillWidth: true; from: 0; to: Math.max(1, backend.duration); value: backend.position; onMoved: backend.seek(value) }
+            Slider {id:progress;objectName:"playbackSlider";Layout.fillWidth: true; from: 0; to: Math.max(1, backend.duration); value: backend.position; onMoved: backend.seek(value)
+                Connections {target:backend;onPlaybackChanged:if(!progress.pressed)progress.value=backend.position}
+            }
             Label { text: session.time(backend.duration) }
             Slider { Layout.preferredWidth: 100; from: 0; to: 1; value: 0.8; onMoved: backend.setVolume(value) }
         }
@@ -230,6 +234,7 @@ ApplicationWindow {
             Button { text: qsTr("Connect directly"); enabled: !backend.busy && address.text.length > 0; onClicked: { backend.command("connect", {url:address.text, token:token.text}); token.clear(); settings.close() } }
             Button { text: qsTr("Sign out and clear saved tokens"); enabled: !backend.busy; onClicked: { backend.command("logout"); token.clear() } }
             Label { text:qsTr("Offline audio cache"); font.bold:true; Layout.fillWidth:true }
+            Button {text:qsTr("Audio settings");onClicked:session.openAudioSettings()}
             Switch {text:qsTr("Autoplay related music at queue end");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}
             Switch { text:qsTr("Cache queued audio automatically"); checked:backend.cache.enabled; enabled:!backend.busy; onClicked:backend.command("cache_config", {enabled:checked, limit_mb:backend.cache.limitMb, ahead:backend.cache.ahead}) }
             ComboBox { model:[128,256,512,1024,2048]; enabled:!backend.busy; displayText:qsTr("Cache limit") + ": " + backend.cache.limitMb + " MiB"; onActivated:backend.command("cache_config", {enabled:backend.cache.enabled, limit_mb:model[currentIndex], ahead:backend.cache.ahead}) }

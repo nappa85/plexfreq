@@ -1,7 +1,43 @@
-# Audio-engine direction (planning, not an engine replacement)
+# Rust audio engine and runtime
 
-The user currently prefers retaining the audio engine. This document answers the
-follow-up architecture question and records a possible path to gapless/fades/DSP.
+The user authorized replacing the old worker/player and minimizing C++. The
+implementation now uses Rust-owned request, audio, HTTP, network and MPRIS workers.
+The earlier evaluation below remains as rationale; Qt Multimedia is no longer the
+application's playback engine.
+
+## Implemented topology
+
+```
+QML → small QObject/list-model/translation bridge → opaque Runtime C ABI
+  Rust Core actor: Plex, queue/radio, prepared successors, persistence/history
+  Rust audio actor: PCM scheduling, transport, position, EQ/gain/crossfade
+  Rust HTTP readers: header authentication, byte seeks, cancellation, no redirects
+  GStreamer: installed codecs/resampling + appsink/appsrc + PulseAudio music sink
+  Rust zbus workers: MPRIS and read-only network observation
+```
+
+No QThread or QMediaPlayer is created by the C++ bridge. Qt polls bounded runtime
+events/snapshots; it does not perform audio transport, measure heard time, advance
+the queue, run maintenance timers or own D-Bus policy. PCM never crosses Qt/JSON.
+
+Decoders convert to 48 kHz stereo F32 PCM. One persistent output stream timestamps
+successive buffers by frame count. Prepared successors provide gapless joins;
+equal-power crossfades overlap an exact configured frame count (off by default,
+0–12 seconds, suppressed within the same identified album). A Rust ten-band
+peaking EQ, metadata gain option and sample clamp run on PCM before the sink.
+This does not claim bit-perfect sample-rate matching or Plexamp's proprietary fades.
+
+Source HTTP is Rust-owned: the decoder sees an appsrc byte stream rather than a
+credential-bearing URI. Requests use X-Plex-Token headers, disable redirects and
+validate partial-range start/representation encoding. Local files use native file
+decoding. Output uses pulsesink with media.role=music; tests use synchronized fake
+or captured PCM sinks without changing system audio services.
+
+The Core HTTP actor may block on metadata without blocking audio controls/output.
+It prepares the next queue/radio snapshot in advance and commits it when that
+successor becomes audible. Only one successor is decoded ahead, with bounded
+buffering; a not-yet-prepared successor after slow/outage conditions can still
+require buffering. Codec trims, long sessions, power and routing need wider tests.
 
 ## Current boundary
 

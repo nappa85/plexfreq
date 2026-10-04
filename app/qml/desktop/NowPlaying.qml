@@ -20,7 +20,9 @@ Dialog {
                 Button {text:backend.playing?"⏸":"▶";onClicked:backend.togglePlayback()}
                 Button {text:"⏭";enabled:!backend.busy;onClicked:backend.command("next")}
             }
-            Slider {Layout.fillWidth:true;from:0;to:Math.max(1,backend.duration);value:backend.position;onMoved:backend.seek(value)}
+            Slider {id:progress;objectName:"playbackSlider";Layout.fillWidth:true;from:0;to:Math.max(1,backend.duration);value:backend.position;onMoved:backend.seek(value)
+                Connections {target:backend;onPlaybackChanged:if(!progress.pressed)progress.value=backend.position}
+            }
             Label {text:music.time(backend.position)+" / "+music.time(backend.duration);Layout.alignment:Qt.AlignHCenter}
             Button {text:track.userRating>=10?qsTr("★ Favorite"):qsTr("☆ Add to favorites");enabled:!backend.busy && !!music.trackKey;Layout.alignment:Qt.AlignHCenter;onClicked:music.favorite(track)}
             Label {text:qsTr("Lyrics");font.pixelSize:20}

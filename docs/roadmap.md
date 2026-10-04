@@ -126,7 +126,7 @@ views show total counts/time, and the Sailfish app cover now includes the album
 image. Updated bundle is deployed. Next: interactive review of cover/layout and
 timed JSON lyric variants on other server/provider versions.
 
-## Requested i18n follow-up — pending
+## Requested i18n follow-up — implemented (2026-10-04)
 
 - Implement Qt translation loading/catalogue packaging using the patterns from
   `../ElectricEel` and `../sailfish-proton`; generate the translations ourselves.
@@ -140,8 +140,8 @@ timed JSON lyric variants on other server/provider versions.
 - Translate Rust-origin user messages through stable message keys/parameters at the
   presentation boundary; do not translate protocol fields or store localized data.
 
-Audio-engine replacement remains planning work; see `audio-engine-plan.md` for the
-current boundary and a Rust-controlled GStreamer-first evaluation strategy.
+Audio-engine replacement is implemented; see `audio-engine-plan.md` for the
+Rust worker/PCM/HTTP/output boundary and actual verification limits.
 
 ## Next everyday-use expansion implemented/deployed — 2026-10-03
 
@@ -154,5 +154,34 @@ current boundary and a Rust-controlled GStreamer-first evaluation strategy.
 
 Host/SDK and selected phone runtime/metadata checks pass. The bundle is deployed;
 normal UI/server mutation and long-session tests remain interactive follow-ups.
-The i18n task above is still pending and includes generating the translations
-ourselves for the reference projects' same 39 locales. Current Qt audio remains.
+The i18n/audio follow-up above was implemented in the next iteration (2026-10-04).
+
+## Rust runtime / audio / i18n — 2026-10-04
+
+- Rust-owned workers replace the C++ QThread/player, maintenance/listening sampler,
+  MPRIS and network observation. C++ is Qt models/properties/events, translation and
+  window activation only; QML does not manage Rust audio lifetime.
+- Rust header-authenticated, no-redirect HTTP media transport; installed GStreamer
+  decoders feed Rust PCM/DSP and a persistent appsrc/PulseAudio music sink.
+- Exact decoded-PCM gapless joins, equal-power crossfade (0–12s, off by default,
+  suppressed within the same identified album), ten-band EQ and optional Plex gain.
+- 39 TS/QM locale catalogues, full/base/English pre-QML fallback, checked resources
+  and placeholders, Qt5.6/Qt6 load tests. New technical translations use compact
+  localized clauses, with expanded Italian UI prose; wording polish can continue.
+- Host/SDK and phone fake/real-PulseAudio generated-media regressions pass.
+- Remaining: wider compressed-codec trim/mixed-rate traces, long sessions/power,
+  Bluetooth/headset/call routing, installed sandbox validation, adaptive sample-rate
+  matching and advanced DSP/transition policy.
+
+### First everyday-use regressions
+
+- Restore native Sailfish media-volume recognition using its x-maemo stream role.
+- Preserve optional-request correlation keys on failed replies to finish lyric loading.
+- Resynchronize seek sliders after dragging and track changes on both UIs.
+Local regressions pass; phone verification results are recorded in validation.md.
+- Numeric-string gain tolerance also restores full track/lyric metadata retrieval;
+  current live sample returns 28 decoded lines. All fixes are deployed/tested on the
+  phone; physical key/visual interaction confirmation remains everyday-use validation.
+- Optional numeric-string gain parsing restored real lyric metadata retrieval;
+  current live probe decodes 28 lines. All fixes are phone-tested/deployed; physical
+  key/visual interaction confirmation remains part of everyday-use validation.
