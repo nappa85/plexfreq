@@ -24,6 +24,7 @@ fn item(id: &str) -> Item {
                 size: None,
                 ..Default::default()
             }],
+            ..Default::default()
         }],
         ..Default::default()
     }

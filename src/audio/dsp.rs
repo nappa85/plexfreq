@@ -7,6 +7,16 @@ pub struct Config {
     pub crossfade_ms: u32,
     pub normalization: bool,
     pub eq: [f32; 10],
+    pub normalization_mode: NormalizationMode,
+    pub headroom_db: f32,
+}
+#[derive(Clone, Copy, Default, Deserialize, Serialize, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum NormalizationMode {
+    #[default]
+    Track,
+    Album,
+    Auto,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -14,12 +24,16 @@ impl Default for Config {
             crossfade_ms: 0,
             normalization: false,
             eq: [0.; 10],
+            normalization_mode: NormalizationMode::Track,
+            headroom_db: 0.,
         }
     }
 }
 impl Config {
     pub fn validate(&self) -> crate::Result<()> {
         if self.crossfade_ms > 12000
+            || !self.headroom_db.is_finite()
+            || !(0.0..=12.0).contains(&self.headroom_db)
             || self
                 .eq
                 .iter()
@@ -68,6 +82,7 @@ impl Biquad {
 pub struct Processor {
     filters: [Biquad; 10],
     eq_enabled: bool,
+    headroom: f32,
 }
 impl Processor {
     pub fn new(rate: u32, config: &Config) -> Self {
@@ -86,10 +101,11 @@ impl Processor {
                 )
             }),
             eq_enabled: config.eq.iter().any(|g| *g != 0.),
+            headroom: 10f32.powf(-config.headroom_db / 20.),
         }
     }
     pub fn process(&mut self, pcm: &mut [f32], gain_db: f32, volume: f32) {
-        let gain = 10f32.powf(gain_db.clamp(-30., 20.) / 20.) * volume.clamp(0., 1.);
+        let gain = amplitude(gain_db) * volume.clamp(0., 1.) * self.headroom;
         for (i, sample) in pcm.iter_mut().enumerate() {
             let mut value = if sample.is_finite() { *sample } else { 0. };
             if self.eq_enabled {
@@ -100,6 +116,14 @@ impl Processor {
             *sample = (value * gain).clamp(-1., 1.);
         }
     }
+}
+pub fn amplitude(gain_db: f32) -> f32 {
+    let db = if gain_db.is_finite() {
+        gain_db.clamp(-30., 20.)
+    } else {
+        0.
+    };
+    10f32.powf(db / 20.)
 }
 /// Equal-power mixing preserves the exact overlap frame count and channel order.
 /// Buffers are stereo-interleaved pairs; only the shortest shared prefix is
@@ -130,6 +154,20 @@ mod tests {
         let mut pcm = [0.5, -0.5, 2., f32::NAN];
         p.process(&mut pcm, 0., 0.5);
         assert_eq!(pcm, [0.25, -0.25, 1., 0.]);
+    }
+    #[test]
+    fn headroom_preserves_unclipped_crossfade_peaks_and_bounds_bad_gain() {
+        let config = Config {
+            headroom_db: 6.,
+            ..Default::default()
+        };
+        let mut processor = Processor::new(48000, &config);
+        let mut pcm = [std::f32::consts::SQRT_2; 2];
+        processor.process(&mut pcm, 0., 1.);
+        assert!((pcm[0] - 0.7087858).abs() < 1e-5);
+        assert_eq!(amplitude(f32::INFINITY), 1.);
+        assert_eq!(amplitude(f32::NAN), 1.);
+        assert_eq!(amplitude(1000.), 10.);
     }
     #[test]
     fn equal_power_fade_has_expected_endpoints_and_midpoint() {

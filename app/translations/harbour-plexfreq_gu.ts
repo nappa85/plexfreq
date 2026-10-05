@@ -7,6 +7,30 @@
       <translation>ઑડિયો · સેટિંગ્સ</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ઑડિયો · સેટિંગ્સ</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>નેટવર્ક · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>ડાઉનલોડ · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · ડિકોડર · ફરી પ્રયાસ કરો</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ઑડિયો · સેટિંગ્સ · આગળ · ગીતો · ડાઉનલોડ · તૈયાર · ઑડિયો</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ઑડિયો · વિરામ વગર · PCM · આઉટપુટ</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>ગીત · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>આલ્બમો · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>આપમેળે વગાડો · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ઑડિયો · અવાજ · શ્રેણી</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>ઑડિયો · સેટિંગ્સ</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ઑડિયો · સેટિંગ્સ</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>નેટવર્ક · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>ડાઉનલોડ · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · ડિકોડર · ફરી પ્રયાસ કરો</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ઑડિયો · સેટિંગ્સ · આગળ · ગીતો · ડાઉનલોડ · તૈયાર · ઑડિયો</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ઑડિયો · વિરામ વગર · PCM · આઉટપુટ</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>સામાન્યીકરણ · સેટિંગ્સ</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>આલ્બમો · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>આપમેળે વગાડો · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>ગીત · સામાન્યીકરણ</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ઑડિયો · અવાજ · શ્રેણી</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>પસંદ કરો · 1–10 · કલાકારો · આલ્બમો · મિશ્રણ</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>પસંદ કરો · 30–480 · રેડિયો · ડાઉનલોડ</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>પસંદ કરો</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>પસંદ કરો · પ્લેલિસ્ટ · ગીત</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>પસંદ કરો · પ્લેલિસ્ટ · આલ્બમ · રેડિયો · ડાઉનલોડ</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>પસંદ કરો · ગીત · આલ્બમ · પ્લેલિસ્ટ · ઑફલાઇન રાખો</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>પસંદ કરો · ઑડિયો · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>ઑનલાઇન · Plex · પ્લેલિસ્ટો</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>ઑનલાઇન · તાજું કરો · ડાઉનલોડ</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>રેડિયો · ક્રમ · બંધ કરો · રેન્ડમ</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>રેડિયો · વગાડો · જોડાણ</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>રેડિયો · મળેલું · કોઈ નહીં · વગાડો · ગીતો</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>ગીત · કોઈ નહીં · વગાડો · ડેટા</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>ગીત · ઉપલબ્ધ નથી · ડાઉનલોડ થયેલું</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ગીત · ઉપલબ્ધ નથી · કૅશ · ડાઉનલોડ થયેલું · ગીતો</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>ગીત · અવધિ · ડાઉનલોડ</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>પ્લેલિસ્ટ · મેટાડેટા</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>રેડિયો · ડાઉનલોડ · ગીતો</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>રેડિયો · કતાર</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>સર્વર · શોધ</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>સમાન</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>ડાઉનલોડ · વ્યવસ્થાપન</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>રેડિયો · ડાઉનલોડ · અવધિ</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>ડાઉનલોડ · ફક્ત વાંચવા માટે · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · ઑડિયો · કૅશ · વપરાયેલું</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ઑડિયો · અવધિ · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · ગીતો · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>વર્તમાન · ગીત · %1 · MiB · મળેલું</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>વગાડો</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>રિફ્રેશ</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>ડાઉનલોડ · વ્યવસ્થાપન</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>રેડિયો · ડાઉનલોડ · અવધિ</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>સિંક કરો · ઇતિહાસ</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ઑડિયો · અવધિ · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · ગીતો · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>વર્તમાન · ગીત · %1 · MiB · મળેલું</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>વગાડો · ડાઉનલોડ થયેલું · ગીતો</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>તાજું કરો · ડાઉનલોડ</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>શોધ · લાઇબ્રેરી</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>જોડાણ</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>પ્રકારો · આલ્બમો</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ઑડિયો · સમાન</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>શરૂ કરો · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · ગીત</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>ડાઉનલોડ · રેડિયો · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>ડાઉનલોડ · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>શોધ</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>શોધ · લાઇબ્રેરી</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>મનપસંદ · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>ડાઉનલોડ થયેલું</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ઑડિયો · સમાન</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>શરૂ કરો · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · ગીત</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>ડાઉનલોડ · રેડિયો · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>ડાઉનલોડ · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>કલાકારો</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>શોધ</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>સ્રોત · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ઑડિયો · સમાન</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>મનપસંદ · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>ગીત · રેડિયો</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>ઑફલાઇન · લાઇબ્રેરી</translation>
     </message>
     <message>
       <source>Search results</source>

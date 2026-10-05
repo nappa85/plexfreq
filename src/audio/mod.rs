@@ -29,7 +29,7 @@ fn lock_capture(capture: &Arc<Mutex<Vec<f32>>>) -> std::sync::MutexGuard<'_, Vec
     crate::mutex_lock(capture)
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Source {
     pub id: u64,
     pub url: String,
@@ -37,7 +37,24 @@ pub struct Source {
     pub resume: u64,
     pub listened: u64,
     pub gain: f32,
+    pub album_gain: Option<f32>,
+    pub album_normalization: bool,
     pub album: String,
+}
+impl Source {
+    fn normalization_gain(&self, mode: dsp::NormalizationMode) -> f32 {
+        match mode {
+            dsp::NormalizationMode::Track => self.gain,
+            dsp::NormalizationMode::Album => self.album_gain.unwrap_or(self.gain),
+            dsp::NormalizationMode::Auto => {
+                if self.album_normalization {
+                    self.album_gain.unwrap_or(self.gain)
+                } else {
+                    self.gain
+                }
+            }
+        }
+    }
 }
 #[derive(Clone, Default, Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -176,9 +193,10 @@ impl Engine {
             state: state.clone(),
             capture: capture.clone(),
         };
+        let closer = http::SessionCloser::new()?;
         let worker = thread::Builder::new()
             .name("plexfreq-audio".into())
-            .spawn(move || Actor::new(sink, state, capture, events).run(rx))?;
+            .spawn(move || Actor::new(sink, state, capture, events, closer).run(rx))?;
         Ok(Self {
             handle,
             events: receiver,
@@ -242,6 +260,7 @@ fn safe_uri(url: &str) -> Result<(String, String)> {
     Ok((uri.to_string(), token))
 }
 struct Decoder {
+    transcoded: bool,
     http: Option<http::Reader>,
     source: Source,
     pipeline: gst::Pipeline,
@@ -252,8 +271,9 @@ struct Decoder {
     frames: u64,
 }
 impl Decoder {
-    fn new(source: Source) -> Result<Self> {
+    fn new(source: Source, closer: &http::SessionCloser) -> Result<Self> {
         let (uri, token) = safe_uri(&source.url)?;
+        let (uri, transcoded) = crate::quality::with_offset(&uri, source.resume)?;
         let pipeline = gst::Pipeline::new();
         let remote = uri.starts_with("http:") || uri.starts_with("https:");
         let decoder = element(if remote { "decodebin" } else { "uridecodebin" })?;
@@ -261,7 +281,11 @@ impl Decoder {
         if remote {
             let input = app::AppSrc::builder()
                 .format(gst::Format::Bytes)
-                .stream_type(app::AppStreamType::Seekable)
+                .stream_type(if transcoded {
+                    app::AppStreamType::Stream
+                } else {
+                    app::AppStreamType::Seekable
+                })
                 .block(true)
                 .max_bytes(512 * 1024)
                 .build();
@@ -271,7 +295,7 @@ impl Decoder {
             input
                 .link(&decoder)
                 .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-            reader = Some(http::Reader::new(&input, uri, token)?);
+            reader = Some(http::Reader::new(&input, uri, token, closer.clone())?);
         } else {
             decoder.set_property("uri", uri);
             pipeline
@@ -308,12 +332,13 @@ impl Decoder {
         pipeline
             .set_state(gst::State::Playing)
             .map_err(|_| Error::Input("Audio decoder initialization failed"))?;
-        let seek = if source.resume > 0 {
+        let seek = if source.resume > 0 && !transcoded {
             Some(source.resume)
         } else {
             None
         };
         Ok(Self {
+            transcoded,
             http: reader,
             source,
             pipeline,
@@ -334,7 +359,11 @@ impl Decoder {
         {
             return Err(Error::Input("Audio decoding or streaming failed"));
         }
-        if let Some(duration) = self.pipeline.query_duration::<gst::ClockTime>() {
+        if let Some(duration) = self
+            .pipeline
+            .query_duration::<gst::ClockTime>()
+            .filter(|_| !self.transcoded)
+        {
             self.source.duration = duration.mseconds();
         }
         for _ in 0..16 {
@@ -532,6 +561,7 @@ struct Segment {
     notified: bool,
 }
 struct Actor {
+    closer: http::SessionCloser,
     intent: u64,
     mode: Sink,
     state: Arc<Mutex<Snapshot>>,
@@ -554,9 +584,11 @@ impl Actor {
         state: Arc<Mutex<Snapshot>>,
         capture: Arc<Mutex<Vec<f32>>>,
         events: mpsc::Sender<Event>,
+        closer: http::SessionCloser,
     ) -> Self {
         let config = dsp::Config::default();
         Self {
+            closer,
             intent: 0,
             mode,
             state,
@@ -581,7 +613,7 @@ impl Actor {
         self.output = None;
         self.segments.clear();
         lock_capture(&self.capture).clear();
-        let decoder = Decoder::new(source.clone())?;
+        let decoder = Decoder::new(source.clone(), &self.closer)?;
         let output = Output::new(self.mode, self.capture.clone())?;
         self.segments.push_back(Segment {
             source,
@@ -603,7 +635,7 @@ impl Actor {
             Control::Prepare(source) => {
                 if let Some(next) = source {
                     let id = next.id;
-                    match Decoder::new(next) {
+                    match Decoder::new(next, &self.closer) {
                         Ok(decoder) => self.next = Some(decoder),
                         Err(_) => {
                             // A bad successor must never kill current playback;
@@ -752,8 +784,15 @@ impl Actor {
                 let mut old = current.take(frames);
                 let mut new = next.take(frames);
                 if self.config.normalization {
-                    let old_gain = 10f32.powf(current.source.gain / 20.);
-                    let new_gain = 10f32.powf(next.source.gain / 20.);
+                    let old_gain = dsp::amplitude(
+                        current
+                            .source
+                            .normalization_gain(self.config.normalization_mode),
+                    );
+                    let new_gain = dsp::amplitude(
+                        next.source
+                            .normalization_gain(self.config.normalization_mode),
+                    );
                     for value in &mut old {
                         *value *= old_gain;
                     }
@@ -811,7 +850,9 @@ impl Actor {
             self.processor.process(
                 &mut pcm,
                 if self.config.normalization {
-                    current.source.gain
+                    current
+                        .source
+                        .normalization_gain(self.config.normalization_mode)
                 } else {
                     0.
                 },
@@ -920,7 +961,17 @@ impl Actor {
                 self.error(message);
             }
             self.publish();
-            thread::sleep(Duration::from_millis(5));
+            // Idle/paused actors wake on commands rather than spinning at 200 Hz.
+            let wait = Duration::from_millis(if self.desired { 5 } else { 100 });
+            match receiver.recv_timeout(wait) {
+                Ok(control) => match self.control(control) {
+                    Ok(false) => return,
+                    Ok(true) => {}
+                    Err(_) => self.error("Audio playback failed"),
+                },
+                Err(mpsc::RecvTimeoutError::Disconnected) => return,
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+            }
         }
     }
 }

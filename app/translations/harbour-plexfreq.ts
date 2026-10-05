@@ -7,6 +7,30 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation type="unfinished" />
     </message>
@@ -24,6 +48,26 @@
     </message>
     <message>
       <source>Normalize loudness</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 dB</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -46,6 +90,30 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation type="unfinished" />
     </message>
@@ -63,6 +131,30 @@
     </message>
     <message>
       <source>Normalize loudness</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 dB</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -229,11 +321,27 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -294,6 +402,10 @@
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -437,6 +549,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation type="unfinished" />
     </message>
@@ -501,7 +617,15 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -593,6 +717,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation type="unfinished" />
     </message>
@@ -614,6 +742,10 @@
     </message>
     <message>
       <source>server discovery</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>sonic adventure</source>
       <translation type="unfinished" />
     </message>
   </context>
@@ -679,6 +811,14 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation type="unfinished" />
     </message>
@@ -699,11 +839,23 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation type="unfinished" />
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Play</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refresh</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -731,6 +883,14 @@
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 minutes</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -762,6 +922,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation type="unfinished" />
     </message>
@@ -771,6 +935,14 @@
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refresh download plan</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation type="unfinished" />
+    </message>
     <message>
       <source>Connection</source>
       <translation type="unfinished" />
@@ -914,6 +1090,26 @@
     </message>
     <message>
       <source>Group albums by type</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1088,6 +1284,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation type="unfinished" />
     </message>
@@ -1165,6 +1365,26 @@
     </message>
     <message>
       <source>Downloaded</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1494,6 +1714,26 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Discover</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation type="unfinished" />
     </message>
@@ -1543,6 +1783,10 @@
     </message>
     <message>
       <source>Track radio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Offline library</source>
       <translation type="unfinished" />
     </message>
     <message>

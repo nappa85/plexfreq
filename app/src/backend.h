@@ -7,13 +7,17 @@
 
 class EntryModel : public QAbstractListModel {
     Q_OBJECT
+    Q_PROPERTY(QVariantList entries READ entries WRITE replace NOTIFY entriesChanged)
 public:
     explicit EntryModel(QObject *parent=nullptr):QAbstractListModel(parent) {}
     int rowCount(const QModelIndex &parent=QModelIndex()) const override {return parent.isValid()?0:m_entries.size();}
     QVariant data(const QModelIndex &index,int role) const override;
-    QHash<int,QByteArray> roleNames() const override {return {{Qt::UserRole+1,"entry"},{Qt::UserRole+2,"albumGroup"}};}
+    QHash<int,QByteArray> roleNames() const override {return {{Qt::UserRole+1,"entry"},{Qt::UserRole+2,"albumGroup"},{Qt::UserRole+3,"groupTitle"}};}
     void replace(const QVariantList &entries);
     void append(const QVariantList &entries);
+    QVariantList entries() const {return m_entries;}
+signals:
+    void entriesChanged();
 private: QVariantList m_entries;
 };
 

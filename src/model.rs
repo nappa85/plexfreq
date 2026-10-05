@@ -33,6 +33,8 @@ pub struct Item {
     pub playlist_item_id: Option<u64>,
     #[serde(deserialize_with = "null_default")]
     pub smart: bool,
+    #[serde(deserialize_with = "radio_flag")]
+    pub radio: bool,
     #[serde(deserialize_with = "null_default")]
     pub playlist_type: String,
     #[serde(deserialize_with = "null_default")]
@@ -75,6 +77,18 @@ where
     Ok(Option::<T>::deserialize(deserializer)?.unwrap_or_default())
 }
 
+fn radio_flag<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
+    // PMS discovery playlists use "1"/"0" even in JSON; other responses use
+    // actual booleans. An optional station flag must not poison the entire hub.
+    let value = serde_json::Value::deserialize(deserializer)?;
+    Ok(match value {
+        serde_json::Value::Bool(flag) => flag,
+        serde_json::Value::Number(number) => number.as_u64() == Some(1),
+        serde_json::Value::String(flag) => flag == "1" || flag.eq_ignore_ascii_case("true"),
+        _ => false,
+    })
+}
+
 // Optional analysis fields vary between PMS versions (numbers or numeric
 // strings). Unusable gain must not invalidate the track or its lyric streams.
 fn optional_gain<'de, D: serde::Deserializer<'de>>(
@@ -88,8 +102,12 @@ fn optional_gain<'de, D: serde::Deserializer<'de>>(
 }
 
 #[derive(Clone, Default, Deserialize, Serialize, Debug, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "camelCase")]
 pub struct Media {
+    #[serde(deserialize_with = "null_default")]
+    pub audio_codec: String,
+    #[serde(deserialize_with = "null_default")]
+    pub bitrate: u32,
     #[serde(rename = "Part")]
     pub parts: Vec<Part>,
 }
@@ -118,6 +136,9 @@ pub struct Stream {
 #[derive(Clone, Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct Hub {
+    pub title: String,
+    #[serde(rename = "hubIdentifier")]
+    pub hub_identifier: String,
     #[serde(rename = "Metadata")]
     pub items: Vec<Item>,
 }

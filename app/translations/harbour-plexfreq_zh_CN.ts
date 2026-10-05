@@ -7,6 +7,30 @@
       <translation>音频 · 设置</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>音频 · 设置</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · 音频</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>网络 · 音频</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>下载 · 音频</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · 解码器 · 重试</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>音频 · 设置 · 下一首 · 曲目 · 下载 · 就绪 · 音频</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · 音频 · 无缝播放 · PCM · 输出</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>响度标准化</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>曲目 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>专辑 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>自动播放 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>音频 · 音量 · 范围</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>音频 · 设置</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>音频 · 设置</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · 音频</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>网络 · 音频</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>下载 · 音频</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · 解码器 · 重试</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>音频 · 设置 · 下一首 · 曲目 · 下载 · 就绪 · 音频</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · 音频 · 无缝播放 · PCM · 输出</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>响度标准化</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>响度标准化 · 设置</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>专辑 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>自动播放 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>曲目 · 响度标准化</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>音频 · 音量 · 范围</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>选择 · 1–10 · 艺人 · 专辑 · 混合播放</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>选择 · 30–480 · 电台 · 下载</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>选择</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>选择 · 播放列表 · 曲目</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>选择 · 播放列表 · 专辑 · 电台 · 下载</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>选择 · 曲目 · 专辑 · 播放列表 · 保留离线</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>选择 · 音频 · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>在线 · Plex · 播放列表</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>在线 · 刷新 · 下载</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>电台 · 顺序 · 停止 · 随机播放</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>电台 · 播放 · 连接</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>电台 · 已接收 · 无 · 播放 · 曲目</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>曲目 · 无 · 播放 · 数据</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>曲目 · 不可用 · 已下载</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>曲目 · 不可用 · 缓存 · 已下载</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>曲目 · 时长 · 下载</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>播放列表 · 元数据</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>电台 · 下载 · 曲目</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>电台 · 队列</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>服务器 · 搜索</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>相似</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>下载 · 管理</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>电台 · 下载 · 时长</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>下载 · 只读 · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · 音频 · 缓存 · 已使用</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>音频 · 时长 · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · 曲目 · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>当前 · 曲目 · %1 · MiB · 已接收</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>播放</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>刷新</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>下载 · 管理</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>电台 · 下载 · 时长</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>同步 · 历史记录</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>音频 · 时长 · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · 曲目 · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>当前 · 曲目 · %1 · MiB · 已接收</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>播放 · 已下载 · 曲目</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>刷新 · 下载</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>搜索 · 音乐库</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>连接</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>类型 · 专辑</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>音频 · 相似</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>开始 · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · 曲目</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>下载 · 电台 · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>下载 · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>搜索</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>搜索 · 音乐库</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>收藏 · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>已下载</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>音频 · 相似</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>开始 · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · 曲目</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>下载 · 电台 · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>下载 · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>艺人</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>搜索</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>来源 · 音频</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>音频 · 相似</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>收藏 · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>曲目 · 电台</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>离线 · 音乐库</translation>
     </message>
     <message>
       <source>Search results</source>

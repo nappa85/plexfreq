@@ -22,7 +22,9 @@ Installed GStreamer codecs/resampling and PulseAudio provide native decoding/out
 C++ is a Qt model/properties/translation bridge; Rust also owns MPRIS/network facts.
 
 Open **Audio settings** from Connection/settings for crossfade (off by default),
-normalization and EQ. Same-album tracks keep gapless transitions without crossfade.
+normalization, headroom, EQ and streaming/download quality. Track, album and
+automatic gain modes are available; automatic mode uses album gain for a single
+album queue or album radio. Same-album tracks keep gapless transitions without crossfade.
 Output PCM is fixed 48 kHz stereo; sample-rate matching and wider codec/routing/
 long-session tests remain follow-ups.
 
@@ -48,6 +50,8 @@ implementation of a Plexamp-inspired client.
   creation/editing and add-to-playlist actions.
 - Paged browsing, audio playlists and editable queues with play-next/add/move/remove.
 - Direct-stream playback, pause/resume, seek, previous/next, shuffle, repeat.
+- Original or 64–320 kbps audio, independent Wi-Fi/mobile/download policies,
+  progressive Plex transcoding and one-shot decoder fallback.
 - Artist radio through Plex stations; sonic album/track radio when server analysis
   is available, with automatic queue continuation.
 - Native Silica UI and playback cover on Sailfish; Controls2 desktop UI.
@@ -60,11 +64,15 @@ implementation of a Plexamp-inspired client.
 - Download manager with per-group progress, retry/cancel/remove and Wi-Fi-only
   policy; general streaming timelines and durable offline listening-history sync.
 - Optional autoplay and balanced multi-artist/album mixes.
+- Server-provided discovery hubs/stations, sonic-neighbor browsing and Sonic Adventure.
+- Duration-bounded radio/station/playlist downloads with persistent refreshable plans.
 
 ## Desktop
 
 Requires Rust stable, CMake, a C++ compiler and Qt **6.2+** Core, Gui, Qml, Quick,
-QuickControls2, Multimedia and DBus development/runtime modules. This host has Qt 6.11.
+QuickControls2 and DBus development/runtime modules, GStreamer core/base development
+packages, installed audio codecs and PulseAudio. Local FLAC fixtures also require
+the GStreamer Good plug-ins. This host has Qt 6.11.
 Local checks also use Qt Test, Network and `dbus-run-session` for an isolated bus.
 Distribution package names vary. The same source builds on Linux distributions
 providing these dependencies; it is not a single universally portable binary.
@@ -100,6 +108,30 @@ Open **Now playing** for artwork, transport/seek, favorite status and lyrics.
 Timed LRC lines highlight during playback; availability depends on Plex metadata.
 Sailfish's pull-down menu and desktop's **Discover** menu open five-star favorite
 tracks, recently added albums and server-reported recently played tracks.
+
+**Discovery home** groups the server's music hubs (including mixes and stations
+when the server exposes them). Station rows start the advertised station directly.
+Entry menus offer **Sonically similar**. For **Sonic Adventure**, select a track
+as the start, then choose **Sonic Adventure to this track** on the destination;
+the returned path can be browsed and played with Play all. Availability depends
+on the server's Sonic Analysis, not a locally invented recommendation graph.
+
+### Audio quality
+
+**Audio settings → Streaming quality** selects original audio or 64, 96, 128,
+160, 192, 256 or 320 kbps independently for Wi-Fi, mobile and downloads. Defaults
+retain original quality. Network classification changes the next streaming plan.
+The mobile cap applies whenever Wi-Fi is not confirmed (including other non-Wi-Fi routes).
+This is network-type policy, not a throughput-measuring adaptive HLS player.
+Completed local audio always takes precedence. Quality changes apply to subsequent
+tracks/jobs; previously downloaded representations remain usable.
+
+Plex converts limited-quality streams to progressive MP3. Transcode seeks restart
+from a server time offset with a fresh session; shutdown/cancellation requests
+session cleanup. Known unsupported codecs, or a failed original decoder with no
+completed cache fallback, can try one transcoded stream when codec fallback is
+enabled. Automatic original-file prefetch is suppressed when it would bypass a
+streaming bitrate cap; explicitly pinned downloads still follow download policy.
 
 Use the browser type/sort controls for albums/tracks, and **Group albums by type**
 on an artist. Entry menus provide **Add to playlist**, **Create playlist from this**,
@@ -159,6 +191,20 @@ with pause/resume/retry/cancel/remove controls. Wi-Fi-only background downloads 
 for a confirmed Wi-Fi connection; playback streaming is still allowed. Network
 facts come from read-only ConnMan/NetworkManager observation and never alter system
 settings. A separate Rust gate cancels transfers even while metadata work is busy.
+
+Select **Radio download length** (30–480 minutes) in the manager, then use
+**Download radio** on an artist/album/track or a discovery station. Playlists also
+offer **Download N minutes**. Plans contain whole unique tracks, up to the duration
+target, 1000 tracks and 20 radio windows; the server may supply fewer tracks, and
+the manager displays the actual planned duration. Unknown track duration is
+rejected for timed plans. Planning does not change playback or report listening.
+
+**Refresh download plan** re-fetches playlist membership (including Plex smart
+playlists) or replenishes a radio/station plan. A failed refresh preserves the
+previous plan. Plans survive restart; **Play downloaded tracks** follows their
+saved order using only completed files. Offline search/browsing merges saved
+pages, download plans and completed media, including inferred album/artist parents.
+This still does not crawl the complete server library automatically.
 
 Listening history uses measured heard time (half a track or four minutes), rather
 than seeking or preparing a queue. Normal remote playback reports timelines;

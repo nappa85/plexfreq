@@ -90,6 +90,7 @@ fn short_next_track_joins_despite_crossfade_tail() {
             listened: 0,
             gain: 0.,
             album: album.into(),
+            ..Default::default()
         }
     }
     let dir = tempfile::tempdir().unwrap();
@@ -294,6 +295,7 @@ fn saveplayback_preserves_position_when_duration_unknown() {
                 size: None,
                 streams: vec![],
             }],
+            ..Default::default()
         }],
         ..Default::default()
     };
@@ -360,6 +362,7 @@ fn prepare_failure_keeps_current_playback_alive() {
                 listened: 0,
                 gain: 0.,
                 album: String::new(),
+                ..Default::default()
             },
             false,
         )
@@ -380,6 +383,7 @@ fn prepare_failure_keeps_current_playback_alive() {
             listened: 0,
             gain: 0.,
             album: String::new(),
+            ..Default::default()
         }))
         .unwrap();
     let until = Instant::now() + Duration::from_secs(2);

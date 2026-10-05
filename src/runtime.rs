@@ -284,6 +284,10 @@ fn is_listing(op: &str) -> bool {
     matches!(
         op,
         "browse"
+            | "discovery_home"
+            | "sonic_neighbors"
+            | "sonic_adventure"
+            | "offline_search"
             | "library_browse"
             | "detail"
             | "artist_albums"
@@ -330,14 +334,18 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
     // per-track analysis still play at a consistent level. Search all streams
     // for track gain first: per-stream fallback would let album gain in an
     // early stream shadow track gain in a later one.
-    let gain = track["Media"][0]["Part"][0]["Stream"]
-        .as_array()
-        .and_then(|s| {
-            s.iter()
-                .find_map(|s| s["gain"].as_f64())
-                .or_else(|| s.iter().find_map(|s| s["albumGain"].as_f64()))
+    let streams = track["Media"][0]["Part"][0]["Stream"].as_array();
+    let find_gain = |name: &str| {
+        streams.and_then(|streams| {
+            streams
+                .iter()
+                .filter_map(|stream| stream[name].as_f64())
+                .map(|n| n as f32)
+                .find(|n| n.is_finite())
         })
-        .unwrap_or(0.) as f32;
+    };
+    let album_gain = find_gain("albumGain");
+    let gain = find_gain("gain").or(album_gain).unwrap_or(0.);
     Ok(Source {
         id,
         url,
@@ -345,6 +353,8 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
         resume: plan["resumePosition"].as_u64().unwrap_or(0),
         listened: plan["resumeListened"].as_u64().unwrap_or(0),
         gain,
+        album_gain,
+        album_normalization: plan["albumNormalization"] == true,
         album: track["parentRatingKey"].as_str().unwrap_or("").into(),
     })
 }
@@ -529,7 +539,15 @@ fn worker(
                             .unwrap_or_else(|poison| poison.into_inner())["playbackSource"]
                             != "cache"
                     {
-                        if let Ok(mut data) = core.execute(Command::CachedPlayback) {
+                        let cached = core.execute(Command::CachedPlayback);
+                        let fallback = cached.or_else(|error| {
+                            if crate::mutex_lock(&shared.model)["playbackSource"] == "transcode" {
+                                Err(error)
+                            } else {
+                                core.execute(Command::TranscodedPlayback)
+                            }
+                        });
+                        if let Ok(mut data) = fallback {
                             data["resumePosition"] = json!(snapshot.position);
                             data["resumeListened"] = json!(snapshot.listened);
                             if start_plan(
@@ -587,6 +605,8 @@ fn worker(
             let transport = matches!(
                 op,
                 "play"
+                    | "play_download"
+                    | "station"
                     | "play_album"
                     | "select_track"
                     | "next"
@@ -666,6 +686,8 @@ fn worker(
                         } else if matches!(
                             op,
                             "enqueue"
+                                | "quality_config"
+                                | "audio_config"
                                 | "enqueue_album"
                                 | "queue_move"
                                 | "queue_remove"
@@ -929,5 +951,10 @@ mod tests {
             source.gain, 1.0,
             "track gain (1.0) must win over album gain (10.0) from another stream"
         );
+        let mut album_plan = plan.clone();
+        album_plan["normalizationMode"] = json!("album");
+        assert_eq!(super::source(8, &album_plan).unwrap().album_gain, Some(10.));
+        album_plan["track"]["Media"][0]["Part"][0]["Stream"][0]["albumGain"] = json!(1e300);
+        assert_eq!(super::source(9, &album_plan).unwrap().album_gain, None);
     }
 }

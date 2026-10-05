@@ -7,6 +7,30 @@
       <translation>Zvok · Nastavitve</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Zvok · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Zvok</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Omrežje · Zvok</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Prenosi · Zvok</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekodirnik · Poskusi znova</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Zvok · Nastavitve · Naslednje · Skladbe · Prenosi · Pripravljeno · Zvok</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Zvok · Brez premorov · PCM · Izhod</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizacija</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Skladba · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumi · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Samodejno predvajanje · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Zvok · Glasnost · Obseg</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Zvok · Nastavitve</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Zvok · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Zvok</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Omrežje · Zvok</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Prenosi · Zvok</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekodirnik · Poskusi znova</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Zvok · Nastavitve · Naslednje · Skladbe · Prenosi · Pripravljeno · Zvok</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Zvok · Brez premorov · PCM · Izhod</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizacija</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Normalizacija · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumi · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Samodejno predvajanje · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Skladba · Normalizacija</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Zvok · Glasnost · Obseg</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Izberi · 1–10 · Izvajalci · Albumi · Miks</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Izberi · 30–480 · Radio · Prenosi</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Izberi</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Izberi · Seznam predvajanja · Skladba</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Izberi · Seznam predvajanja · Album · Radio · Prenosi</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Izberi · Skladba · Album · Seznam predvajanja · Ohrani brez povezave</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Izberi · Zvok · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>Povezano · Plex · Seznami predvajanja</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>Povezano · Osveži · Prenosi</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Radio · Vrstni red · Ustavi · Naključno</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Radio · Predvajaj · Povezava</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Radio · Prejeto · Nič · Predvajaj · Skladbe</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Skladba · Nič · Predvajaj · Podatki</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Skladba · Ni na voljo · Preneseno</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Skladba · Ni na voljo · Predpomnilnik · Preneseno · Skladbe</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Skladba · Trajanje · Prenosi</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Seznam predvajanja · Metapodatki</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Radio · Prenosi · Skladbe</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Radio · Čakalna vrsta</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Strežnik · Iskanje</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Podobno</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Prenosi · Upravljanje</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Radio · Prenosi · Trajanje</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Prenosi · Samo za branje · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Zvok · Predpomnilnik · Uporabljeno</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Zvok · Trajanje · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Skladbe · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Trenutno · Skladba · %1 · MiB · Prejeto</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Predvajaj</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Osveži</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Prenosi · Upravljanje</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Prenosi · Trajanje</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Sinhroniziraj · Zgodovina</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Zvok · Trajanje · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Skladbe · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Trenutno · Skladba · %1 · MiB · Prejeto</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Predvajaj · Preneseno · Skladbe</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Osveži · Prenosi</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Iskanje · Knjižnica</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Povezava</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Vrste · Albumi</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Zvok · Podobno</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Začni · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Skladba</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Prenosi · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Prenosi · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Iskanje</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Iskanje · Knjižnica</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Priljubljeno · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Preneseno</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Zvok · Podobno</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Začni · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Skladba</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Prenosi · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Prenosi · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Izvajalci</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Iskanje</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Vir · Zvok</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Zvok · Podobno</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Priljubljeno · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Skladba · Radio</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Brez povezave · Knjižnica</translation>
     </message>
     <message>
       <source>Search results</source>

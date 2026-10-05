@@ -7,6 +7,30 @@
       <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>നെറ്റ്‌വർക്ക് · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>ഡൗൺലോഡുകൾ · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · ഡീകോഡർ · വീണ്ടും ശ്രമിക്കുക</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ · അടുത്തത് · ഗാനങ്ങൾ · ഡൗൺലോഡുകൾ · തയ്യാർ · ഓഡിയോ</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ഓഡിയോ · വിരാമരഹിതം · PCM · ഔട്ട്പുട്ട്</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>ഗാനം · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>ആൽബങ്ങൾ · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>സ്വയം പ്ലേ ചെയ്യുക · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ഓഡിയോ · ശബ്ദം · ശ്രേണി</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>നെറ്റ്‌വർക്ക് · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>ഡൗൺലോഡുകൾ · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · ഡീകോഡർ · വീണ്ടും ശ്രമിക്കുക</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ഓഡിയോ · ക്രമീകരണങ്ങൾ · അടുത്തത് · ഗാനങ്ങൾ · ഡൗൺലോഡുകൾ · തയ്യാർ · ഓഡിയോ</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ഓഡിയോ · വിരാമരഹിതം · PCM · ഔട്ട്പുട്ട്</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>സാധാരണവൽക്കരണം · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>ആൽബങ്ങൾ · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>സ്വയം പ്ലേ ചെയ്യുക · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>ഗാനം · സാധാരണവൽക്കരണം</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ഓഡിയോ · ശബ്ദം · ശ്രേണി</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>തിരഞ്ഞെടുക്കുക · 1–10 · കലാകാരന്മാർ · ആൽബങ്ങൾ · മിശ്രണം</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>തിരഞ്ഞെടുക്കുക · 30–480 · റേഡിയോ · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>തിരഞ്ഞെടുക്കുക</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>തിരഞ്ഞെടുക്കുക · പ്ലേലിസ്റ്റ് · ഗാനം</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>തിരഞ്ഞെടുക്കുക · പ്ലേലിസ്റ്റ് · ആൽബം · റേഡിയോ · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>തിരഞ്ഞെടുക്കുക · ഗാനം · ആൽബം · പ്ലേലിസ്റ്റ് · ഓഫ്‌ലൈനായി സൂക്ഷിക്കുക</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>തിരഞ്ഞെടുക്കുക · ഓഡിയോ · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>ഓൺലൈൻ · Plex · പ്ലേലിസ്റ്റുകൾ</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>ഓൺലൈൻ · പുതുക്കുക · ഡൗൺലോഡുകൾ</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>റേഡിയോ · ക്രമം · നിർത്തുക · ക്രമരഹിതം</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>റേഡിയോ · പ്ലേ ചെയ്യുക · കണക്ഷൻ</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>റേഡിയോ · ലഭിച്ചത് · ഒന്നുമില്ല · പ്ലേ ചെയ്യുക · ഗാനങ്ങൾ</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>ഗാനം · ഒന്നുമില്ല · പ്ലേ ചെയ്യുക · ഡാറ്റ</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>ഗാനം · ലഭ്യമല്ല · ഡൗൺലോഡ് ചെയ്തു</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ഗാനം · ലഭ്യമല്ല · കാഷെ · ഡൗൺലോഡ് ചെയ്തു · ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>ഗാനം · ദൈർഘ്യം · ഡൗൺലോഡുകൾ</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>പ്ലേലിസ്റ്റ് · മെറ്റാഡാറ്റ</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>റേഡിയോ · ഡൗൺലോഡുകൾ · ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>റേഡിയോ · ക്യൂ</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>സെർവർ · തിരയുക</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>സമാനമായത്</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>റേഡിയോ · ഡൗൺലോഡുകൾ · ദൈർഘ്യം</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>ഡൗൺലോഡുകൾ · വായന മാത്രം · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · ഓഡിയോ · കാഷെ · ഉപയോഗിച്ചത്</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ഓഡിയോ · ദൈർഘ്യം · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · ഗാനങ്ങൾ · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>നിലവിലെ · ഗാനം · %1 · MiB · ലഭിച്ചത്</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>പ്ലേ ചെയ്യുക</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>പുതുക്കുക</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>റേഡിയോ · ഡൗൺലോഡുകൾ · ദൈർഘ്യം</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>സമന്വയിപ്പിക്കുക · ചരിത്രം</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ഓഡിയോ · ദൈർഘ്യം · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · ഗാനങ്ങൾ · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>നിലവിലെ · ഗാനം · %1 · MiB · ലഭിച്ചത്</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>പ്ലേ ചെയ്യുക · ഡൗൺലോഡ് ചെയ്തു · ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>പുതുക്കുക · ഡൗൺലോഡുകൾ</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>തിരയുക · ലൈബ്രറി</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>കണക്ഷൻ</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>തരങ്ങൾ · ആൽബങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ഓഡിയോ · സമാനമായത്</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>ആരംഭിക്കുക · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · ഗാനം</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>ഡൗൺലോഡുകൾ · റേഡിയോ · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>ഡൗൺലോഡുകൾ · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>തിരയുക</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>തിരയുക · ലൈബ്രറി</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>ഡൗൺലോഡ് ചെയ്തു</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ഓഡിയോ · സമാനമായത്</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>ആരംഭിക്കുക · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · ഗാനം</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>ഡൗൺലോഡുകൾ · റേഡിയോ · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>ഡൗൺലോഡുകൾ · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>കലാകാരന്മാർ</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>തിരയുക</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>ഉറവിടം · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ഓഡിയോ · സമാനമായത്</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>ഗാനം · റേഡിയോ</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>ഓഫ്‌ലൈൻ · ലൈബ്രറി</translation>
     </message>
     <message>
       <source>Search results</source>

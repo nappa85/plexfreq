@@ -7,6 +7,30 @@
       <translation>Тавыш · Көйләүләр</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Тавыш · Көйләүләр</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Тавыш</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Челтәр · Тавыш</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Йөкләүләр · Тавыш</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Декодер · Кабат тырышу</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Тавыш · Көйләүләр · Киләсе · Язмалар · Йөкләүләр · Әзер · Тавыш</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Тавыш · Тәнәфессез · PCM · Чыгыш</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Язма · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Альбомнар · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Автоматик уйнату · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Тавыш · Тавыш көче · Аралык</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Тавыш · Көйләүләр</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Тавыш · Көйләүләр</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Тавыш</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Челтәр · Тавыш</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Йөкләүләр · Тавыш</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Декодер · Кабат тырышу</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Тавыш · Көйләүләр · Киләсе · Язмалар · Йөкләүләр · Әзер · Тавыш</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Тавыш · Тәнәфессез · PCM · Чыгыш</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Нормальләштерү · Көйләүләр</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Альбомнар · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Автоматик уйнату · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Язма · Нормальләштерү</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Тавыш · Тавыш көче · Аралык</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Сайлау · 1–10 · Башкаручылар · Альбомнар · Катнашма</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Сайлау · 30–480 · Радио · Йөкләүләр</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Сайлау</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Сайлау · Уйнату исемлеге · Язма</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Сайлау · Уйнату исемлеге · Альбом · Радио · Йөкләүләр</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Сайлау · Язма · Альбом · Уйнату исемлеге · Челтәрсез саклау</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Сайлау · Тавыш · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>Челтәрдә · Plex · Уйнату исемлекләре</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>Челтәрдә · Яңарту · Йөкләүләр</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Радио · Тәртип · Туктату · Бутау</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Радио · Уйнату · Тоташу</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Радио · Алынган · Юк · Уйнату · Язмалар</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Язма · Юк · Уйнату · Мәгълүмат</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Язма · Мөмкин түгел · Йөкләнгән</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Язма · Мөмкин түгел · Кэш · Йөкләнгән · Язмалар</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Язма · Озынлык · Йөкләүләр</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Уйнату исемлеге · Метамәгълүмат</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Радио · Йөкләүләр · Язмалар</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Радио · Чират</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Сервер · Эзләү</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Охшаш</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Йөкләүләр · Идарә</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Радио · Йөкләүләр · Озынлык</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Йөкләүләр · Уку гына · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Тавыш · Кэш · Кулланылган</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Тавыш · Озынлык · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Язмалар · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Хәзерге · Язма · %1 · MiB · Алынган</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Уйнату</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Яңартырга</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Йөкләүләр · Идарә</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Радио · Йөкләүләр · Озынлык</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Синхронлаштыру · Тарих</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Тавыш · Озынлык · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Язмалар · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Хәзерге · Язма · %1 · MiB · Алынган</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Уйнату · Йөкләнгән · Язмалар</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Яңарту · Йөкләүләр</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Эзләү · Китапханә</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Тоташу</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Төрләр · Альбомнар</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Тавыш · Охшаш</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Башлау · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Язма</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Йөкләүләр · Радио · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Йөкләүләр · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Эзләү</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Эзләү · Китапханә</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Яратканнар · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Йөкләнгән</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Тавыш · Охшаш</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Башлау · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Язма</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Йөкләүләр · Радио · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Йөкләүләр · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Башкаручылар</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Эзләү</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Чыганак · Тавыш</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Тавыш · Охшаш</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Яратканнар · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Язма · Радио</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Челтәрсез · Китапханә</translation>
     </message>
     <message>
       <source>Search results</source>

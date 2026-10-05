@@ -1,22 +1,35 @@
 # Development roadmap
 
+## Navigation presentation fix — 2026-10-05
+
+Outgoing Sailfish pages now retain their own heading/detail/list presentation
+before artist/album pushes and during back/peek transitions. Shared state/model
+regressions and the phone's native forward-stack fixture pass. Final native
+pop/reload fixture transfer and deployment are pending restored developer SSH;
+the latest connection attempt timed out. See validation.md for exact check scope.
+
+Retry completed: final native push/pop/reload checks and production QML smoke pass.
+The rootless update is deployed and raised, with sole process/MPRIS owner PID 24916;
+saved session and downloads retained. Interactive visual confirmation remains user-led.
+
 ## Before calling this a complete Plexamp clone
 
 - Actual Plex/device validation: owner/shared resources, large libraries,
   compilations, FLAC/MP3/AAC, connection failure, expired tokens and reconnect.
 - Broader live timeline/scrobble/offline-history coverage and delivery edge cases.
 - Interactive media-key/lock-screen behavior, background/call/Bluetooth checks.
-- Gapless engine, crossfade, ReplayGain/loudness, limiter, equalizer; measured
-  audio tests and scheduling guarantees before claiming gapless/DSP support.
-- Transcode negotiation for unsupported codecs/limited bandwidth; cancellation
-  and session cleanup. Current adapter reports codec failures.
+- Wider lossy-codec gapless trims, advanced transition/limiting policy and
+  sample-rate matching; existing gapless/crossfade/gain/EQ foundations are implemented.
+- Throughput-adaptive streaming and broader transcoder compatibility; progressive
+  MP3 quality selection, codec fallback and session cleanup are implemented.
 - Automatic complete offline library synchronization, richer download management,
   metered/Wi-Fi policies and offline play-history sync.
-- Broader sonic-radio live coverage/weighting, library stations and sonic adventure.
+- Broader sonic-radio live coverage/weighting, Guest DJ and Sonic Sage; server
+  discovery stations and Sonic Adventure browsing are implemented.
 - Smart-playlist filter authoring and richer personalized discovery hubs/mixes.
 - Plex Home managed users/PIN switching, multi-server queue identity, secure
   platform credential store adapters and explicit token revocation.
-- Responsive now-playing/lyrics polish, accessibility/translations,
+- Responsive now-playing/lyrics polish, accessibility/native translation review,
   release signing/Harbour checks, Linux packaging/CI and license distribution.
 
 ## Testing policy
@@ -218,4 +231,25 @@ and structured Rust translation-message extraction. Reduced polling is still
 polling; power/latency measurements and broader phone runtime checks remain open.
 - Optional numeric-string gain parsing restored real lyric metadata retrieval;
   current live probe decodes 28 lines. All fixes are phone-tested/deployed; physical
-  key/visual interaction confirmation remains part of everyday-use validation.
+   key/visual interaction confirmation remains part of everyday-use validation.
+
+### Daily-use priorities 1–4 — implemented baseline, 2026-10-04
+
+1. Independent Wi-Fi/mobile/download quality controls, progressive MP3 transcoding,
+   local-file preference, one-shot codec fallback, fresh seek sessions and bounded
+   cleanup. A real-server 160 kbps/256 KiB transfer and cleanup pass.
+2. Duration-bounded station/radio/playlist downloads, persistent ordered plans,
+   refreshable smart/regular playlist membership, completed-only group playback,
+   and paged offline catalogue/search including inferred parents.
+3. Server-provided discovery home with grouped music hubs/mixes/stations,
+   station activation/download, sonic neighbors and Sonic Adventure. Actual server
+   discovery returns 72 entries/4 stations after string-radio compatibility correction.
+4. Track/album/auto gain and headroom, safe crossfade gains, reduced idle wakeups
+   and MPRIS queue copies, plus FLAC/mixed-rate/pause/gain PCM regressions. Native
+   Qt5.6 navigation/settings/MPRIS and real PulseAudio generated transport pass.
+
+Next within these priorities: measured-throughput adaptation, automatic refresh
+policy and full-library sync, richer server hubs/advanced sonic modes, compressed
+encoder-delay/padding traces and sustained power measurements. Physical Bluetooth
+buttons, calls/routing and installed Sailjail remain hardware/user-session checks.
+Remote-player control is deferred per the user's priority decision.

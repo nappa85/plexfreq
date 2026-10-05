@@ -4,7 +4,8 @@ import Sailfish.Silica 1.0
 Column {
     id: header
     property var music
-    property var detail: music.detail
+    property var view: music
+    property var detail: view.detail
     property string detailKey: detail ? detail.ratingKey : ""
     property bool expanded: false
     height: implicitHeight
@@ -41,8 +42,8 @@ Column {
         objectName:"albumActions"
         x:Theme.horizontalPageMargin; width:parent.width-2*x; spacing:Theme.paddingMedium
         visible:header.detail && header.detail.type==="album"
-        Button { objectName:"playTracks"; width:(parent.width-parent.spacing)/2; text:qsTr("Play tracks"); enabled:!backend.busy && music.items.length>0; onClicked:music.playAll() }
-        Button { objectName:"downloadTracks"; width:(parent.width-parent.spacing)/2; text:qsTr("Download tracks"); enabled:!backend.busy && backend.cache.enabled && music.items.length>0; onClicked:music.downloadTracks() }
+        Button { objectName:"playTracks"; width:(parent.width-parent.spacing)/2; text:qsTr("Play tracks"); enabled:!backend.busy && view.items.length>0; onClicked:music.playAll() }
+        Button { objectName:"downloadTracks"; width:(parent.width-parent.spacing)/2; text:qsTr("Download tracks"); enabled:!backend.busy && backend.cache.enabled && view.items.length>0; onClicked:music.downloadTracks() }
     }
     Label {
         id: description
@@ -57,9 +58,9 @@ Column {
     ListView {
         id:related
         width:parent.width; height:visible ? Theme.itemSizeLarge*2 : 0
-        visible:header.detail && header.detail.type==="artist" && music.similarArtists.length>0
+        visible:header.detail && header.detail.type==="artist" && view.similarArtists.length>0
         orientation:ListView.Horizontal; clip:true; spacing:Theme.paddingMedium
-        model:music.similarArtists
+        model:view.similarArtists
         delegate:BackgroundItem {
             width:Theme.itemSizeLarge*1.6; height:related.height
             enabled:!backend.busy; onClicked:music.activate(modelData,index)
@@ -72,8 +73,8 @@ Column {
     }
     Label {
         x:Theme.horizontalPageMargin; width:parent.width-2*x
-        visible:header.detail && header.detail.type==="artist" && music.similarArtists.length===0
-        text:music.similarState==="loading" ? qsTr("Loading similar artists…") : music.similarState==="unavailable" ? qsTr("Similar artists are unavailable right now.") : qsTr("No similar artists returned by Plex.")
+        visible:header.detail && header.detail.type==="artist" && view.similarArtists.length===0
+        text:view.similarState==="loading" ? qsTr("Loading similar artists…") : view.similarState==="unavailable" ? qsTr("Similar artists are unavailable right now.") : qsTr("No similar artists returned by Plex.")
         wrapMode:Text.Wrap; color:Theme.secondaryColor; font.pixelSize:Theme.fontSizeExtraSmall
     }
     SectionHeader { text: header.detail && header.detail.type === "artist" ? qsTr("Albums") : qsTr("Tracks") }

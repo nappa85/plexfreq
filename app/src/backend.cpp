@@ -8,6 +8,7 @@ QVariant EntryModel::data(const QModelIndex &index,int role) const {
     if(!index.isValid() || index.row()>=m_entries.size())return QVariant();
     if(role==Qt::UserRole+1)return m_entries[index.row()];
     if(role==Qt::UserRole+2)return QCoreApplication::translate("AlbumType",m_entries[index.row()].toMap().value("albumType").toString().toUtf8().constData());
+    if(role==Qt::UserRole+3)return m_entries[index.row()].toMap().value("discoveryGroup");
     return QVariant();
 }
 void EntryModel::replace(const QVariantList &entries) {
@@ -22,9 +23,10 @@ void EntryModel::replace(const QVariantList &entries) {
     int suffix=0;while(suffix<m_entries.size()-prefix && suffix<entries.size()-prefix && identity(m_entries[m_entries.size()-1-suffix])==identity(entries[entries.size()-1-suffix]))++suffix;
     int remove=m_entries.size()-prefix-suffix;if(remove>0){beginRemoveRows(QModelIndex(),prefix,prefix+remove-1);for(int i=0;i<remove;++i)m_entries.removeAt(prefix);endRemoveRows();}
     int add=entries.size()-prefix-suffix;if(add>0){beginInsertRows(QModelIndex(),prefix,prefix+add-1);for(int i=0;i<add;++i)m_entries.insert(prefix+i,entries[prefix+i]);endInsertRows();}
-    for(int i=0;i<entries.size();++i)if(m_entries[i]!=entries[i]){m_entries[i]=entries[i];emit dataChanged(index(i),index(i),{Qt::UserRole+1,Qt::UserRole+2});}
+    for(int i=0;i<entries.size();++i)if(m_entries[i]!=entries[i]){m_entries[i]=entries[i];emit dataChanged(index(i),index(i),{Qt::UserRole+1,Qt::UserRole+2,Qt::UserRole+3});}
+    emit entriesChanged();
 }
-void EntryModel::append(const QVariantList &entries){if(entries.isEmpty())return;const int first=m_entries.size();beginInsertRows(QModelIndex(),first,first+entries.size()-1);m_entries.append(entries);endInsertRows();}
+void EntryModel::append(const QVariantList &entries){if(entries.isEmpty())return;const int first=m_entries.size();beginInsertRows(QModelIndex(),first,first+entries.size()-1);m_entries.append(entries);endInsertRows();emit entriesChanged();}
 static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"error","Backend unavailable"}};const auto value=QJsonDocument::fromJson(QByteArray(text)).toVariant().toMap();pf_string_free(text);return value;}
 Backend::Backend(const QString &directory,QObject *parent):QObject(parent) {
     m_state={{"items",QVariantList()},{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"items",QVariantList()},{"repeat","off"},{"shuffled",false}}}};

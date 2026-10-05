@@ -30,7 +30,7 @@
 class NavigationBackend : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool busy READ busy CONSTANT)
-    Q_PROPERTY(bool loadingMore READ loadingMore CONSTANT)
+    Q_PROPERTY(bool loadingMore READ loadingMore NOTIFY loadingMoreChanged)
     Q_PROPERTY(QVariantMap state READ state NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap cache READ cache CONSTANT)
     Q_PROPERTY(qint64 position READ position NOTIFY playbackChanged)
@@ -48,18 +48,87 @@ public:
     qint64 duration() const {return 10000;}
     bool playing() const {return false;}
     QVariantMap state() const { return data; }
-    QVariantMap cache() const { return QVariantMap{{"enabled",true},{"tracks",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false}}; }
+    QVariantMap cache() const { return QVariantMap{{"enabled",true},{"tracks",0},{"readyKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false}}; }
     Q_INVOKABLE void command(const QString &op, const QVariantMap &args = QVariantMap()) { ++commandCount; operation = op; arguments = args; }
 signals:
     void completed(const QString &op, bool ok, const QVariantMap &data);
     void stateChanged();
     void busyChanged();
+    void loadingMoreChanged();
     void playbackChanged();
 };
 
 class BackendTest : public QObject {
     Q_OBJECT
 private slots:
+    void initTestCase() {qmlRegisterType<EntryModel>("PlexFreq",1,0,"EntryModel");}
+    void stackedBrowsePagesKeepTheirPresentationDuringNavigation() {
+        NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/PageNavigation.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> scene(component.create());QVERIFY(scene.get());
+        auto *music=scene->property("music").value<QObject *>();auto *root=scene->property("rootView").value<QObject *>();auto *artistPage=scene->property("artistView").value<QObject *>();auto *albumPage=scene->property("albumView").value<QObject *>();QVERIFY(music && root && artistPage && albumPage);
+        const QVariant artist=QVariantMap{{"type","artist"},{"ratingKey","10"},{"title","Artist"}},album=QVariantMap{{"type","album"},{"ratingKey","20"},{"title","Album"}},track=QVariantMap{{"type","track"},{"ratingKey","30"},{"title","Track"}};
+        QVERIFY(QMetaObject::invokeMethod(music,"browse"));backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(music,"activate",Q_ARG(QVariant,artist),Q_ARG(QVariant,QVariant(0))));
+        QCOMPARE(root->property("heading").toString(),QString("Artists"));QVERIFY(root->property("detail").toMap().isEmpty());QCOMPARE(root->property("items").toList(),QVariantList{artist});
+        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));
+        QVERIFY(QMetaObject::invokeMethod(music,"activate",Q_ARG(QVariant,album),Q_ARG(QVariant,QVariant(0))));
+        QCOMPARE(artistPage->property("heading").toString(),QString("Artist"));QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));QCOMPARE(artistPage->property("items").toList(),QVariantList{album});
+        backend.data.insert("items",QVariantList{track});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",album},{"start",0}});
+        QCOMPARE(albumPage->property("detail").toMap().value("ratingKey").toString(),QString("20"));QCOMPARE(albumPage->property("items").toList(),QVariantList{track});
+        // These are the retained pages visible behind a pop/peek animation.
+        QCOMPARE(root->property("items").toList(),QVariantList{artist});QCOMPARE(artistPage->property("items").toList(),QVariantList{album});
+        auto *rows=qobject_cast<QAbstractItemModel *>(root->property("rows").value<QObject *>());QVERIFY(rows);QCOMPARE(rows->rowCount(),1);QCOMPARE(rows->data(rows->index(0,0),Qt::UserRole+1),artist);
+        QVERIFY(QMetaObject::invokeMethod(albumPage,"freeze"));QVERIFY(QMetaObject::invokeMethod(music,"back"));
+        backend.data.insert("items",QVariantList());emit backend.stateChanged();
+        QCOMPARE(artistPage->property("items").toList(),QVariantList{album}); // keep the back-animation target while reloading
+        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        QVERIFY(QMetaObject::invokeMethod(artistPage,"thaw"));QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));
+        QCOMPARE(albumPage->property("items").toList(),QVariantList{track});
+        QCOMPARE(qobject_cast<QAbstractItemModel *>(root->property("rows").value<QObject *>()),rows);
+    }
+    void sailfishStackAnimationKeepsOutgoingPageContent() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QSKIP("Actual Silica stack is checked by the Qt5 phone fixture");
+#else
+        NavigationBackend backend;backend.data.insert("libraries",QVariantList());QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent controller(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(controller.isReady());std::unique_ptr<QObject> music(controller.create());QVERIFY(music.get());music->setProperty("section","1");QVERIFY(QMetaObject::invokeMethod(music.get(),"browse"));
+        QQmlComponent component(&engine);component.setData(R"(import QtQuick 2.6
+import Sailfish.Silica 1.0
+import "qrc:/qml/pages" as Pages
+ApplicationWindow {
+    id:app
+    property var music
+    property var current:pageStack.currentPage
+    property bool transitioning:pageStack.busy
+    function pop() {pageStack.pop()}
+    initialPage:Component {Pages.LibraryPage {music:app.music}}
+    Connections {target:app.music;onNavigate:app.pageStack.push(Qt.resolvedUrl(kind==="artist" ? "qrc:/qml/pages/ArtistPage.qml" : "qrc:/qml/pages/AlbumPage.qml"),{music:app.music,pageKey:key})}
+})",QUrl("qrc:/tests/StackNavigation.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        QQuickWindow window;window.resize(600,1000);std::unique_ptr<QObject> app(component.beginCreate(engine.rootContext()));QVERIFY(app.get());app->setProperty("music",QVariant::fromValue(music.get()));component.completeCreate();QVERIFY(!component.isError());
+        auto *item=qobject_cast<QQuickItem *>(app.get());QVERIFY(item);item->setWidth(600);item->setHeight(1000);item->setParentItem(window.contentItem());window.show();
+        QTRY_VERIFY(app->property("current").value<QObject *>());QTRY_VERIFY(!app->property("transitioning").toBool());
+        QObject *root=app->property("current").value<QObject *>();auto *rootView=root->findChild<QObject *>("browsePageView");QVERIFY(rootView);
+        const QVariant artist=QVariantMap{{"type","artist"},{"ratingKey","10"},{"title","Artist"}},album=QVariantMap{{"type","album"},{"ratingKey","20"},{"title","Album"}};
+        backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"activate",Q_ARG(QVariant,artist),Q_ARG(QVariant,QVariant(0))));
+        QCOMPARE(rootView->property("heading").toString(),QString("Artists"));QVERIFY(rootView->property("detail").toMap().isEmpty());QCOMPARE(rootView->property("items").toList(),QVariantList{artist});
+        QTRY_VERIFY(app->property("current").value<QObject *>()!=root);QTRY_VERIFY(!app->property("transitioning").toBool());
+        auto *artistView=app->property("current").value<QObject *>()->findChild<QObject *>("browsePageView");QVERIFY(artistView);
+        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"activate",Q_ARG(QVariant,album),Q_ARG(QVariant,QVariant(0))));
+        QCOMPARE(artistView->property("detail").toMap().value("ratingKey").toString(),QString("10"));QCOMPARE(artistView->property("items").toList(),QVariantList{album});
+        QCOMPARE(rootView->property("items").toList(),QVariantList{artist});QTRY_VERIFY(!app->property("transitioning").toBool());
+        QVERIFY(QMetaObject::invokeMethod(app.get(),"pop"));
+        backend.data.insert("items",QVariantList());emit backend.stateChanged();
+        QCOMPARE(artistView->property("items").toList(),QVariantList{album});
+        QTRY_VERIFY(app->property("current").value<QObject *>() && app->property("current").value<QObject *>()->findChild<QObject *>("browsePageView")==artistView);QTRY_VERIFY(!app->property("transitioning").toBool());
+        QCOMPARE(backend.arguments.value("key").toString(),QString("10"));QVERIFY(artistView->property("frozen").toBool());
+        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        QVERIFY(!artistView->property("frozen").toBool());QCOMPARE(artistView->property("detail").toMap().value("ratingKey").toString(),QString("10"));
+#endif
+    }
     void translationCataloguesLoadAndPreservePlaceholders() {
         const auto languages=QString("bg bn cs da de el es et fi fr gu hi hu it kn lt lv ml mr nb nl pa pl pt pt_BR ro ru sk sl sv ta te tr tt uk vi zh_CN zh_HK zh_TW").split(' ');
         for(const auto &language:languages){QTranslator translator;QVERIFY(translator.load(":/translations/harbour-plexfreq_"+language+".qm"));QCoreApplication::installTranslator(&translator);
@@ -76,11 +145,11 @@ private slots:
     void managementPagesLoad() {
         NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
         QQmlComponent controller(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(controller.isReady());std::unique_ptr<QObject> session(controller.create());QVERIFY(session.get());
-        for(const auto &name:QStringList{"PlaylistDialog","DownloadsPage"}) {
+        for(const auto &name:QStringList{"PlaylistDialog","DownloadsPage","AudioSettingsPage"}) {
             QQuickWindow window;window.resize(600,1000);
             QQmlComponent component(&engine);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            component.loadUrl(QUrl(name=="PlaylistDialog"?"qrc:/qml/desktop/PlaylistEditor.qml":"qrc:/qml/desktop/Downloads.qml"));
+            component.loadUrl(QUrl(name=="PlaylistDialog"?"qrc:/qml/desktop/PlaylistEditor.qml":name=="AudioSettingsPage"?"qrc:/qml/desktop/AudioSettings.qml":"qrc:/qml/desktop/Downloads.qml"));
 #else
             const auto qml=QString("import QtQuick 2.6\nimport Sailfish.Silica 1.0\nApplicationWindow {id:app;property var music;initialPage:Component {Page {}}\nTimer {interval:1;running:true;onTriggered:app.pageStack.push(Qt.resolvedUrl(\"qrc:/qml/pages/%1.qml\"),{music:app.music})}}").arg(name);
             component.setData(qml.toUtf8(),QUrl("qrc:/tests/Management.qml"));
@@ -99,6 +168,21 @@ private slots:
         auto seen=[&]{for(const auto &row:completed)if(row[0].toString()=="network_state")return true;return false;};QTRY_VERIFY_WITH_TIMEOUT(seen(),7000);
         qDebug("Network facts: wifi %d, connected %d",backend.state().value("networkWifi").toBool(),backend.state().value("networkOnline").toBool());
     }
+    void discoveryQualityAndOfflineActionsUseSharedNavigation() {
+        NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(component.isReady());std::unique_ptr<QObject> session(component.create());QVERIFY(session.get());
+        session->setProperty("section","1");QVERIFY(QMetaObject::invokeMethod(session.get(),"home"));QCOMPARE(backend.operation,QString("discovery_home"));QCOMPARE(backend.arguments.value("section").toString(),QString("1"));
+        backend.data.insert("qualityConfig",QVariantMap{{"wifiKbps",0},{"mobileKbps",160},{"downloadKbps",128},{"codecFallback",true}});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(session.get(),"qualitySetting",Q_ARG(QVariant,QVariant("wifiKbps")),Q_ARG(QVariant,QVariant(320))));
+        QCOMPARE(backend.operation,QString("quality_config"));const auto config=backend.arguments.value("config").toMap();QCOMPARE(config.value("wifiKbps").toInt(),320);QCOMPARE(config.value("mobileKbps").toInt(),160);QCOMPARE(config.value("downloadKbps").toInt(),128);
+        const QVariant start=QVariantMap{{"type","track"},{"ratingKey","1"}},end=QVariantMap{{"type","track"},{"ratingKey","3"}};
+        session->setProperty("adventureStart",start);QVERIFY(QMetaObject::invokeMethod(session.get(),"sonicAdventure",Q_ARG(QVariant,end)));QCOMPARE(backend.operation,QString("sonic_adventure"));QCOMPARE(backend.arguments.value("start_key").toString(),QString("1"));QCOMPARE(backend.arguments.value("end_key").toString(),QString("3"));
+        session->setProperty("downloadMinutes",120);QVERIFY(QMetaObject::invokeMethod(session.get(),"downloadRadio",Q_ARG(QVariant,start)));QCOMPARE(backend.operation,QString("download_plan"));QCOMPARE(backend.arguments.value("minutes").toInt(),120);QCOMPARE(backend.arguments.value("kind").toString(),QString("track_radio"));
+        const QVariant station=QVariantMap{{"type","playlist"},{"station",true},{"key","/library/sections/1/station/1"},{"title","Station"}};
+        QVERIFY(QMetaObject::invokeMethod(session.get(),"activate",Q_ARG(QVariant,station),Q_ARG(QVariant,QVariant(0))));QCOMPARE(backend.operation,QString("station"));
+        backend.data.insert("offlineMode",true);emit backend.stateChanged();QVERIFY(QMetaObject::invokeMethod(session.get(),"search",Q_ARG(QVariant,QVariant("Offline album"))));QTRY_COMPARE(backend.operation,QString("offline_search"));QCOMPARE(backend.arguments.value("query").toString(),QString("Offline album"));
+        EntryModel model;model.replace({QVariantMap{{"ratingKey","1"},{"type","track"},{"discoveryGroup","Heavy rotation"}}});QCOMPARE(model.data(model.index(0),Qt::UserRole+3).toString(),QString("Heavy rotation"));
+    }
     void savedExpandedLibraryAndPlaylists() {
         const auto directory=qgetenv("PLEXFREQ_ACCOUNT_CHECK_STATE_DIR");if(directory.isEmpty())QSKIP("Read-only browsing/playlist validation is opt-in");
         std::unique_ptr<Core,decltype(&pf_free)> core(pf_new_inspect(directory.constData()),pf_free);QVERIFY(core.get());
@@ -112,6 +196,16 @@ private slots:
         const auto choices=playlists.value("data").toObject().value("playlistChoices").toArray();int occurrences=0,smart=0;
         for(const auto &item:choices){const auto page=call({{"op","playlist_items"},{"key",item.toObject().value("ratingKey").toString()},{"start",0}});QVERIFY2(page.value("ok").toBool(),qPrintable(page.value("error").toString()));const auto metadata=page.value("data").toObject().value("playlist").toObject();if(metadata.value("smart").toBool())++smart;for(const auto &track:page.value("data").toObject().value("items").toArray()){if(!track.toObject().value("playlistItemId").isNull())++occurrences;else QVERIFY(metadata.value("smart").toBool());}}
         qDebug("Playlist chooser count %d; smart playlists %d; regular first-page occurrence IDs %d",int(choices.size()),smart,occurrences);
+    }
+    void savedDailyDiscoveryAndBoundedTranscode() {
+        const auto directory=qgetenv("PLEXFREQ_ACCOUNT_CHECK_STATE_DIR");if(directory.isEmpty())QSKIP("Opt-in read-only discovery and at most 256 KiB of transcoded audio");
+        std::unique_ptr<Core,decltype(&pf_free)> core(pf_new_inspect(directory.constData()),pf_free);QVERIFY(core.get());
+        auto call=[&](const QVariantMap &input){const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);char *response=pf_call(core.get(),bytes.constData());const auto envelope=QJsonDocument::fromJson(QByteArray(response)).object();pf_string_free(response);return envelope;};
+        const auto libraries=call({{"op","libraries"}});QVERIFY2(libraries.value("ok").toBool(),qPrintable(libraries.value("error").toString()));const auto sections=libraries.value("data").toObject().value("libraries").toArray();QVERIFY(!sections.isEmpty());const auto section=sections.first().toObject().value("key").toString();
+        const auto home=call({{"op","discovery_home"},{"section",section}});QVERIFY2(home.value("ok").toBool(),qPrintable(home.value("error").toString()));const auto items=home.value("data").toObject().value("items").toArray();int stations=0;for(const auto &item:items)if(item.toObject().value("station").toBool())++stations;qDebug("Daily discovery: %d rows; %d stations",int(items.size()),stations);
+        const auto tracks=call({{"op","browse"},{"section",section},{"kind","track"},{"start",0}});QVERIFY2(tracks.value("ok").toBool(),qPrintable(tracks.value("error").toString()));QString key;
+        for(const auto &item:tracks.value("data").toObject().value("items").toArray()){const auto track=item.toObject();const auto duration=track.value("duration").toDouble();if(duration>0 && duration<=600000){key=track.value("ratingKey").toString();break;}}
+        QVERIFY(!key.isEmpty());const auto probe=call({{"op","probe_quality"},{"key",key},{"kbps",160}});QVERIFY2(probe.value("ok").toBool(),qPrintable(probe.value("error").toString()));const auto data=probe.value("data").toObject().value("transcodeProbe").toObject();QVERIFY(data.value("bytes").toInt()>0);QVERIFY(data.value("bytes").toInt()<=256*1024);QVERIFY(data.value("mime").toString().startsWith("audio/"));QVERIFY(data.value("stopped").toBool());qDebug("Transcode probe: %d bytes; cleanup acknowledged",data.value("bytes").toInt());
     }
     void playlistSummarySurvivesTrackNavigation() {
         NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);

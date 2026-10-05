@@ -7,6 +7,30 @@
       <translation>ఆడియో · సెట్టింగ్‌లు</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>నెట్‌వర్క్ · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>డౌన్‌లోడ్‌లు · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · డీకోడర్ · మళ్లీ ప్రయత్నించు</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ఆడియో · సెట్టింగ్‌లు · తరువాతి · పాటలు · డౌన్‌లోడ్‌లు · సిద్ధం · ఆడియో</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ఆడియో · అంతరాయం లేకుండా · PCM · అవుట్‌పుట్</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>పాట · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>ఆల్బమ్‌లు · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>స్వయంచాలక ప్లే · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ఆడియో · శబ్దం · పరిధి</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>ఆడియో · సెట్టింగ్‌లు</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>నెట్‌వర్క్ · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>డౌన్‌లోడ్‌లు · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · డీకోడర్ · మళ్లీ ప్రయత్నించు</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>ఆడియో · సెట్టింగ్‌లు · తరువాతి · పాటలు · డౌన్‌లోడ్‌లు · సిద్ధం · ఆడియో</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · ఆడియో · అంతరాయం లేకుండా · PCM · అవుట్‌పుట్</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>సాధారణీకరణ · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>ఆల్బమ్‌లు · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>స్వయంచాలక ప్లే · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>పాట · సాధారణీకరణ</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>ఆడియో · శబ్దం · పరిధి</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>ఎంచుకో · 1–10 · కళాకారులు · ఆల్బమ్‌లు · మిశ్రమం</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>ఎంచుకో · 30–480 · రేడియో · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>ఎంచుకో</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>ఎంచుకో · ప్లేలిస్ట్ · పాట</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>ఎంచుకో · ప్లేలిస్ట్ · ఆల్బమ్ · రేడియో · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>ఎంచుకో · పాట · ఆల్బమ్ · ప్లేలిస్ట్ · ఆఫ్‌లైన్‌లో ఉంచు</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>ఎంచుకో · ఆడియో · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>ఆన్‌లైన్ · Plex · ప్లేలిస్ట్‌లు</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>ఆన్‌లైన్ · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>రేడియో · క్రమం · ఆపు · కలుపు</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>రేడియో · ప్లే చేయి · కనెక్షన్</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>రేడియో · అందినది · ఏదీ లేదు · ప్లే చేయి · పాటలు</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>పాట · ఏదీ లేదు · ప్లే చేయి · డేటా</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>పాట · అందుబాటులో లేదు · డౌన్‌లోడ్ అయింది</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>పాట · అందుబాటులో లేదు · కాష్ · డౌన్‌లోడ్ అయింది · పాటలు</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>పాట · నిడివి · డౌన్‌లోడ్‌లు</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>ప్లేలిస్ట్ · మెటాడేటా</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>రేడియో · డౌన్‌లోడ్‌లు · పాటలు</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>రేడియో · వరుస</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>సర్వర్ · వెతుకు</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>సారూప్య</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>రేడియో · డౌన్‌లోడ్‌లు · నిడివి</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>డౌన్‌లోడ్‌లు · చదవడానికి మాత్రమే · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · ఆడియో · కాష్ · వాడినది</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ఆడియో · నిడివి · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · పాటలు · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>ప్రస్తుత · పాట · %1 · MiB · అందినది</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>ప్లే చేయి</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>రిఫ్రెష్</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>రేడియో · డౌన్‌లోడ్‌లు · నిడివి</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>సింక్ చేయి · చరిత్ర</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>ఆడియో · నిడివి · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · పాటలు · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>ప్రస్తుత · పాట · %1 · MiB · అందినది</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>ప్లే చేయి · డౌన్‌లోడ్ అయింది · పాటలు</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>వెతుకు · లైబ్రరీ</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>కనెక్షన్</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>రకాలు · ఆల్బమ్‌లు</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ఆడియో · సారూప్య</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>మొదలుపెట్టు · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · పాట</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>డౌన్‌లోడ్‌లు · రేడియో · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>డౌన్‌లోడ్‌లు · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>వెతుకు</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>వెతుకు · లైబ్రరీ</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>ఇష్టమైనవి · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>డౌన్‌లోడ్ అయింది</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ఆడియో · సారూప్య</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>మొదలుపెట్టు · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · పాట</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>డౌన్‌లోడ్‌లు · రేడియో · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>డౌన్‌లోడ్‌లు · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>కళాకారులు</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>వెతుకు</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>మూలం · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>ఆడియో · సారూప్య</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>ఇష్టమైనవి · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>పాట · రేడియో</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>ఆఫ్‌లైన్ · లైబ్రరీ</translation>
     </message>
     <message>
       <source>Search results</source>

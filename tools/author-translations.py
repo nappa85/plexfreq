@@ -26,6 +26,15 @@ SIMPLE = {
     "X-Plex-Token":"=X-Plex-Token",
 }
 PHRASES = {
+    "%1 kbps":"=%1 =kbps", "%1 minutes":"=%1 =min", "%1 dB":"=%1 =dB",
+    "Original audio":"source audio", "Streaming quality":"audio settings",
+    "Plex codec fallback":"=Plex decoder retry", "Wi-Fi audio":"=Wi-Fi audio", "Mobile audio":"network audio", "Download audio":"downloads audio",
+    "Headroom":"audio volume range", "Album gain":"albums normalization", "Track gain":"track normalization", "Automatic gain":"autoplay normalization", "Normalization mode":"normalization settings",
+    "Discovery home":"search library", "Sonically similar":"audio similar",
+    "Sonic Adventure":"=Sonic =Adventure", "Start sonic adventure here":"start =Sonic =Adventure", "Sonic Adventure to this track":"=Sonic =Adventure track",
+    "Radio download length":"radio downloads duration", "Download radio · %1 minutes":"downloads radio =%1 =min", "Download %1 minutes":"downloads =%1 =min",
+    "Planned audio: %1":"audio duration %1", "Refresh download plan":"refresh downloads", "Play downloaded tracks":"play downloaded tracks",
+    "Quality changes apply to following tracks and downloads. Completed local audio is preferred.":"audio settings next tracks downloads ready audio",
     "Plex token":"=Plex token",
     "%1 tracks":"%1 tracks", "1 track":"=1 track", "%1 seconds":"%1 seconds",
     "%1 tracks downloaded · %2 MiB used":"%1 tracks downloaded %2 =MiB used",
@@ -87,6 +96,12 @@ ALIASES = {
 }
 
 ITALIAN = {
+    "Original audio":"Audio originale", "Streaming quality":"Qualità audio", "Wi-Fi audio":"Audio su Wi-Fi", "Mobile audio":"Audio su rete mobile", "Download audio":"Audio dei download", "Plex codec fallback":"Conversione Plex in caso di codec non supportato",
+    "Quality changes apply to following tracks and downloads. Completed local audio is preferred.":"Le modifiche si applicano ai brani successivi e ai download. L’audio già scaricato ha la precedenza.",
+    "%1 minutes":"%1 minuti", "Radio download length":"Durata dei download radio", "Download radio · %1 minutes":"Scarica radio · %1 minuti", "Download %1 minutes":"Scarica %1 minuti", "Planned audio: %1":"Audio nel piano: %1", "Refresh download plan":"Aggiorna il piano di download", "Play downloaded tracks":"Riproduci i brani scaricati", "Refresh":"Aggiorna", "Play":"Riproduci",
+    "Discovery home":"Scopri la tua musica", "Sonically similar":"Somiglianze sonore", "Sonic Adventure":"Percorso sonico", "Start sonic adventure here":"Inizia un percorso sonico da qui", "Sonic Adventure to this track":"Percorso sonico fino a questo brano",
+    "Headroom":"Margine dinamico", "Normalization mode":"Modalità di normalizzazione", "Album gain":"Guadagno dell’album", "Track gain":"Guadagno del brano", "Automatic gain":"Guadagno automatico",
+    "Choose original audio or 64–320 kbps":"Scegli l’audio originale oppure 64–320 kbps", "Choose 30–480 minutes for a radio download":"Scegli 30–480 minuti per un download radio", "Go online to refresh downloads":"Vai online per aggiornare i download", "Choose a music item":"Scegli un elemento musicale", "Choose a playlist, album or radio download":"Scegli una playlist, un album o una radio da scaricare", "Track duration is needed for a timed download":"Per un download a tempo è necessaria la durata dei brani", "Radio playback requires a connection":"La riproduzione della radio richiede una connessione",
     "Search artists, albums and tracks":"Cerca artisti, album e brani",
     "Add to playlist":"Aggiungi alla playlist", "Add to queue":"Aggiungi alla coda",
     "Play next":"Riproduci come successivo", "Up next":"In coda", "Now playing":"In riproduzione",
@@ -166,14 +181,15 @@ def compact(source,words):
 def main():
     vocabulary=json.loads((ROOT/"tools/translation-vocabulary.json").read_text());keys=vocabulary["keys"].split("|")
     sources=sorted({m.findtext("source") for m in ET.parse(ROOT/"app/translations/harbour-plexfreq.ts").getroot().iter("message")})
+    existing=json.loads((ROOT/"tools/translations.json").read_text()) if "--missing-only" in sys.argv else {}
     output={}
     for language in LANGUAGES:
         values=vocabulary[language].split("|")
         if len(values)!=len(keys):raise ValueError(f"{language}: {len(values)} terms, expected {len(keys)}")
         words=dict(zip(keys,values));old=reference(language);table={}
         for source in sources:
-            translated=old.get(source) or compact(source,words)
-            if language=="it":translated=ITALIAN.get(source,translated)
+            translated=existing.get(language,{}).get(source) or old.get(source) or compact(source,words)
+            if language=="it" and source not in existing.get(language,{}):translated=ITALIAN.get(source,translated)
             table[source]=translated
         output[language]=table
     (ROOT/"tools/translations.json").write_text(json.dumps(output,ensure_ascii=False,indent=2)+"\n")

@@ -237,6 +237,41 @@ impl Plex {
         }
         String::from_utf8(bytes).map_err(|_| Error::ProtocolAt("lyrics text"))
     }
+    pub(crate) fn probe_audio(&self, url: Url, token: &str) -> Result<(usize, String)> {
+        let response = self
+            .client
+            .get(url)
+            .header("X-Plex-Token", token)
+            .header("Accept", "*/*")
+            .header("Accept-Encoding", "identity")
+            .send()
+            .map_err(|_| Error::Network)?;
+        if !response.status().is_success() {
+            return Err(Error::Http(response.status().as_u16()));
+        }
+        let mime = response
+            .headers()
+            .get("Content-Type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .split(';')
+            .next()
+            .unwrap_or("")
+            .to_string();
+        if !mime.starts_with("audio/") {
+            return Err(Error::Input(
+                "Server returned non-audio content for this track",
+            ));
+        }
+        let mut bytes = Vec::new();
+        response.take(256 * 1024).read_to_end(&mut bytes)?;
+        if bytes.is_empty() {
+            return Err(Error::Input(
+                "Audio download is incomplete; waiting to resume",
+            ));
+        }
+        Ok((bytes.len(), mime))
+    }
 }
 
 pub fn server_url(value: &str) -> Result<Url> {

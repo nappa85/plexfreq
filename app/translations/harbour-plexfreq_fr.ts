@@ -7,6 +7,30 @@
       <translation>Audio · Paramètres</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Audio · Paramètres</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Audio</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Réseau · Audio</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Téléchargements · Audio</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Décodeur · Réessayer</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Audio · Paramètres · Suivant · Pistes · Téléchargements · Prêt · Audio</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Audio · Sans interruption · PCM · Sortie</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalisation</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Piste · Normalisation</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albums · Normalisation</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Lecture automatique · Normalisation</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Audio · Volume · Plage</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Audio · Paramètres</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Audio · Paramètres</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Audio</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Réseau · Audio</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Téléchargements · Audio</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Décodeur · Réessayer</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Audio · Paramètres · Suivant · Pistes · Téléchargements · Prêt · Audio</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Audio · Sans interruption · PCM · Sortie</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalisation</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Normalisation · Paramètres</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albums · Normalisation</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Lecture automatique · Normalisation</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Piste · Normalisation</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Audio · Volume · Plage</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Choisir · 1–10 · Artistes · Albums · Mix</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Choisir · 30–480 · Radio · Téléchargements</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Choisir</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Choisir · Liste de lecture · Piste</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Choisir · Liste de lecture · Album · Radio · Téléchargements</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Choisir · Piste · Album · Liste de lecture · Conserver hors ligne</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Choisir · Audio · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>En ligne · Plex · Listes de lecture</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>En ligne · Actualiser · Téléchargements</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Radio · Ordre · Arrêter · Aléatoire</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Radio · Lire · Connexion</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Radio · Reçu · Aucun · Lire · Pistes</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Piste · Aucun · Lire · Données</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Piste · Indisponible · Téléchargé</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Piste · Indisponible · Cache · Téléchargé · Pistes</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Piste · Durée · Téléchargements</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Liste de lecture · Métadonnées</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Radio · Téléchargements · Pistes</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Radio · File d’attente</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Serveur · Rechercher</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Similaire</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Téléchargements · Gestion</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Radio · Téléchargements · Durée</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Téléchargements · Lecture seule · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Audio · Cache · Utilisé</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Audio · Durée · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Pistes · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Actuel · Piste · %1 · MiB · Reçu</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Lire</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Actualiser</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Téléchargements · Gestion</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Téléchargements · Durée</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Synchroniser · Historique</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Audio · Durée · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Pistes · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Actuel · Piste · %1 · MiB · Reçu</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Lire · Téléchargé · Pistes</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Actualiser · Téléchargements</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Rechercher · Bibliothèque</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Connexion</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Types · Albums</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similaire</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Démarrer · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Piste</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Téléchargements · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Téléchargements · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Rechercher</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Rechercher · Bibliothèque</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoris · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Téléchargé</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similaire</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Démarrer · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Piste</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Téléchargements · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Téléchargements · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Artistes</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Rechercher</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Source · Audio</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similaire</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoris · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Piste · Radio</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Hors ligne · Bibliothèque</translation>
     </message>
     <message>
       <source>Search results</source>

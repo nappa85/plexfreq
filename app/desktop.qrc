@@ -1,6 +1,7 @@
 <RCC><qresource prefix="/">
 <file>qml/desktop/Main.qml</file>
 <file>qml/shared/Session.qml</file>
+<file>qml/shared/BrowsePageView.qml</file>
 <file>qml/shared/RadioIcon.qml</file>
 <file>qml/shared/IntrinsicLoader.qml</file>
 <file>qml/shared/AlphabetRail.qml</file>

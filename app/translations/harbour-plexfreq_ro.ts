@@ -7,6 +7,30 @@
       <translation>Audio · Setări</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Audio · Setări</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Audio</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Rețea · Audio</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Descărcări · Audio</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Decodor · Reîncearcă</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Audio · Setări · Următorul · Piese · Descărcări · Pregătit · Audio</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Audio · Fără pauze · PCM · Ieșire</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizare</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Piesă · Normalizare</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albume · Normalizare</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Redare automată · Normalizare</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Audio · Volum · Interval</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Audio · Setări</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Audio · Setări</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Audio</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Rețea · Audio</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Descărcări · Audio</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Decodor · Reîncearcă</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Audio · Setări · Următorul · Piese · Descărcări · Pregătit · Audio</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Audio · Fără pauze · PCM · Ieșire</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizare</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Normalizare · Setări</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albume · Normalizare</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Redare automată · Normalizare</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Piesă · Normalizare</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Audio · Volum · Interval</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Alege · 1–10 · Artiști · Albume · Mix</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Alege · 30–480 · Radio · Descărcări</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Alege</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Alege · Listă de redare · Piesă</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Alege · Listă de redare · Album · Radio · Descărcări</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Alege · Piesă · Album · Listă de redare · Păstrează offline</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Alege · Audio · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>Online · Plex · Liste de redare</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>Online · Actualizează · Descărcări</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Radio · Ordine · Oprește · Aleatoriu</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Radio · Redă · Conexiune</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Radio · Primit · Nimic · Redă · Piese</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Piesă · Nimic · Redă · Date</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Piesă · Indisponibil · Descărcat</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Piesă · Indisponibil · Cache · Descărcat · Piese</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Piesă · Durată · Descărcări</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Listă de redare · Metadate</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Radio · Descărcări · Piese</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Radio · Coadă</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Server · Căutare</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Similar</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Descărcări · Gestionare</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Radio · Descărcări · Durată</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Descărcări · Doar citire · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Audio · Cache · Utilizat</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Audio · Durată · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Piese · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Curent · Piesă · %1 · MiB · Primit</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Redă</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Actualizează</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Descărcări · Gestionare</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Descărcări · Durată</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Sincronizează · Istoric</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Audio · Durată · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Piese · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Curent · Piesă · %1 · MiB · Primit</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Redă · Descărcat · Piese</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Actualizează · Descărcări</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Căutare · Bibliotecă</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Conexiune</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Tipuri · Albume</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similar</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Pornește · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Piesă</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Descărcări · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Descărcări · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Căutare</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Căutare · Bibliotecă</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favorite · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Descărcat</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similar</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Pornește · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Piesă</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Descărcări · Radio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Descărcări · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Artiști</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Căutare</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Sursă · Audio</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Audio · Similar</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favorite · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Piesă · Radio</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Bibliotecă</translation>
     </message>
     <message>
       <source>Search results</source>

@@ -2,6 +2,46 @@
 
 ## Current runtime (Rust-owned, 2026-10-04)
 
+Sailfish navigation (2026-10-05): each stacked library/detail page has a
+`BrowsePageView` presentation snapshot and a stable, page-local `EntryModel`.
+Session emits `beforeViewChange` before mutating the shared route or submitting
+a replacement request. Outgoing views retain their heading/detail/rows/alphabet
+through the native transition; deactivation also retains content for back/peek.
+Back restoration keeps that snapshot until the matching list request completes.
+Actions and playback still use Session/Rust; these snapshots contain presentation
+DTOs only and are not a second queue/navigation policy implementation.
+The snapshot adapter is validated against native Silica push/pop/reload and deployed
+in the phone's user-owned rootless bundle; see validation.md for exact runtime scope.
+
+Daily-use expansion: `src/quality.rs` owns quality policy/progressive transcode
+URLs and session confinement; `src/daily.rs` owns discovery, Sonic Adventure and
+bounded durable download plans. `Settings.quality` and `download_plans` default
+cleanly for old sessions. Cache entries/partials include representation quality
+so original and transcoded media do not share a cache key. Transcoded partials
+restart rather than byte-resume a freshly generated representation.
+
+Streaming still prefers complete local files. Wi-Fi/mobile caps select subsequent
+remote plans; explicit downloads use their own cap. A progressive decoder uses
+server time offsets and a fresh session for every load/seek. A bounded, Rust-owned
+cleanup worker closes discarded sessions without network waits in the audio actor;
+shutdown performs bounded best-effort cleanup. Cache download cleanup stays on
+the cache worker. The diagnostic `probe_quality` reads at most 256 KiB in memory
+and stops its own server session; it does not play/scrobble or persist that audio.
+
+Discovery returns flattened Rust DTOs tagged with server hub titles; Qt only
+exposes a `groupTitle` presentation role. Listing generations also cover discovery,
+sonic neighbors/adventures and paged offline search. Station metadata tolerates
+PMS's string-valued radio flag. Download plan specifications retain source, duration
+and refresh time separately from ordered track membership. Planning/refresh is
+transactional with respect to group membership and never replaces the playback queue.
+
+DSP retains both track/album gains, switching gain policy on the audio actor.
+Auto selects album gain for identified single-album queues/album radio, track gain
+otherwise. Optional 0–12 dB headroom precedes the existing sample clamp. Idle/paused
+audio control waits are 100 ms and command-wakeable; active scheduling remains 5 ms.
+MPRIS polling copies a small projection instead of full queues and publishes
+Next/Previous capability changes. Physical headset/call/routing tests remain distinct.
+
 Automation uses independent Rust/Qt/QML/i18n/Sailfish-cross jobs in CI; release
 packaging reuses these gates. Qt checks use local/offscreen/fake-sink fixtures,
 distinct from phone routing and live-account validation. Production-review fixes

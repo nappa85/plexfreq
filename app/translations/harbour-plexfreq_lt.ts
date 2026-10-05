@@ -7,6 +7,30 @@
       <translation>Garsas · Nuostatos</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Garsas · Nuostatos</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Garsas</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Tinklas · Garsas</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Atsiuntimai · Garsas</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekoderis · Bandyti dar kartą</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Garsas · Nuostatos · Kitas · Takeliai · Atsiuntimai · Paruošta · Garsas</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Garsas · Be tarpų · PCM · Išvestis</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Takelis · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumai · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Automatinis grojimas · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Garsas · Garsumas · Diapazonas</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Garsas · Nuostatos</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Garsas · Nuostatos</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Garsas</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Tinklas · Garsas</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Atsiuntimai · Garsas</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekoderis · Bandyti dar kartą</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Garsas · Nuostatos · Kitas · Takeliai · Atsiuntimai · Paruošta · Garsas</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Garsas · Be tarpų · PCM · Išvestis</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Normalizavimas · Nuostatos</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumai · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Automatinis grojimas · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Takelis · Normalizavimas</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Garsas · Garsumas · Diapazonas</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Pasirinkti · 1–10 · Atlikėjai · Albumai · Mišinys</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Pasirinkti · 30–480 · Radijas · Atsiuntimai</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Pasirinkti</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Pasirinkti · Grojaraštis · Takelis</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Pasirinkti · Grojaraštis · Albumas · Radijas · Atsiuntimai</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Pasirinkti · Takelis · Albumas · Grojaraštis · Laikyti neprisijungus</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Pasirinkti · Garsas · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>Prisijungus · Plex · Grojaraščiai</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>Prisijungus · Atnaujinti · Atsiuntimai</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Radijas · Tvarka · Stabdyti · Maišyti</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Radijas · Groti · Ryšys</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Radijas · Gauta · Nėra · Groti · Takeliai</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Takelis · Nėra · Groti · Duomenys</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Takelis · Nepasiekiama · Atsiųsta</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Takelis · Nepasiekiama · Podėlis · Atsiųsta · Takeliai</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Takelis · Trukmė · Atsiuntimai</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Grojaraštis · Metaduomenys</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Radijas · Atsiuntimai · Takeliai</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Radijas · Eilė</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Serveris · Paieška</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Panašus</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Atsiuntimai · Tvarkytuvė</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Radijas · Atsiuntimai · Trukmė</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Atsiuntimai · Tik skaityti · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Garsas · Podėlis · Panaudota</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Garsas · Trukmė · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Takeliai · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Dabartinis · Takelis · %1 · MiB · Gauta</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Groti</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Atnaujinti</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Atsiuntimai · Tvarkytuvė</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radijas · Atsiuntimai · Trukmė</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Sinchronizuoti · Istorija</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Garsas · Trukmė · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Takeliai · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Dabartinis · Takelis · %1 · MiB · Gauta</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Groti · Atsiųsta · Takeliai</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Atnaujinti · Atsiuntimai</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Paieška · Biblioteka</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Ryšys</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Tipai · Albumai</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Garsas · Panašus</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Pradėti · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Takelis</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Atsiuntimai · Radijas · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Atsiuntimai · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Paieška</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Paieška · Biblioteka</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Mėgstami · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Atsiųsta</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Garsas · Panašus</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Pradėti · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Takelis</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Atsiuntimai · Radijas · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Atsiuntimai · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Atlikėjai</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Paieška</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Šaltinis · Garsas</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Garsas · Panašus</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Mėgstami · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Takelis · Radijas</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Neprisijungus · Biblioteka</translation>
     </message>
     <message>
       <source>Search results</source>

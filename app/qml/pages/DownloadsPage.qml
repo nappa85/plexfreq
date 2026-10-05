@@ -6,6 +6,9 @@ Page {
     SilicaListView {id:list;anchors.fill:parent;model:backend.cache.jobs || []
         header:Column {width:list.width;spacing:Theme.paddingSmall
             PageHeader {title:qsTr("Download manager")}
+            ComboBox {width:parent.width;label:qsTr("Radio download length");value:qsTr("%1 minutes").arg(music.downloadMinutes)
+                menu:ContextMenu {Repeater {model:[30,60,120,240,480];MenuItem {text:qsTr("%1 minutes").arg(modelData);onClicked:music.downloadMinutes=modelData}}}
+            }
             TextSwitch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
             Button {anchors.horizontalCenter:parent.horizontalCenter;text:backend.cache.paused ? qsTr("Resume downloads") : qsTr("Pause downloads");onClicked:backend.command("download_policy",{wifi_only:!!backend.cache.wifiOnly,paused:!backend.cache.paused})}
             Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;text:backend.cache.waitingForWifi ? qsTr("Waiting for a confirmed Wi-Fi connection. Streaming remains available.") : qsTr("%1 MiB audio cache used").arg(Math.round(backend.cache.bytes/1048576));wrapMode:Text.Wrap;color:Theme.secondaryColor}
@@ -17,12 +20,15 @@ Page {
             width:list.width;contentHeight:info.height+2*Theme.paddingMedium
             Column {id:info;x:Theme.horizontalPageMargin;width:parent.width-2*x;y:Theme.paddingMedium;spacing:Theme.paddingSmall
                 Label {width:parent.width;text:modelData.title;truncationMode:TruncationMode.Fade}
+                Label {width:parent.width;text:qsTr("Planned audio: %1").arg(music.totalTime(modelData.duration || 0));font.pixelSize:Theme.fontSizeExtraSmall;color:Theme.secondaryColor}
                 Label {width:parent.width;text:qsTr("%1/%2 tracks · %3 MiB").arg(modelData.ready).arg(modelData.total).arg(Math.round(modelData.bytes/1048576))+(modelData.active?" · "+qsTr("Downloading"):"");font.pixelSize:Theme.fontSizeExtraSmall;color:Theme.secondaryColor}
                 ProgressBar {width:parent.width;minimumValue:0;maximumValue:Math.max(1,modelData.total);value:modelData.ready}
                 Label {width:parent.width;visible:modelData.active;text:qsTr("Current track: %1 MiB received").arg(Math.round(backend.cache.received/1048576));font.pixelSize:Theme.fontSizeExtraSmall;color:Theme.secondaryColor}
                 Label {width:parent.width;text:modelData.error;visible:text.length>0;wrapMode:Text.Wrap;color:Theme.errorColor;font.pixelSize:Theme.fontSizeExtraSmall}
             }
             menu:ContextMenu {
+                MenuItem {text:qsTr("Play downloaded tracks");enabled:modelData.ready>0 && !backend.busy;onClicked:backend.command("play_download",{group:modelData.group})}
+                MenuItem {text:qsTr("Refresh download plan");visible:!!modelData.refreshable;enabled:!backend.busy && !backend.state.offlineMode;onClicked:backend.command("download_action",{group:modelData.group,action:"refresh"})}
                 MenuItem {text:qsTr("Retry/resume");onClicked:backend.command("download_action",{group:modelData.group,action:"retry"})}
                 MenuItem {text:qsTr("Cancel plan / keep files");onClicked:backend.command("download_action",{group:modelData.group,action:"cancel"})}
                 MenuItem {text:qsTr("Remove download");onClicked:backend.command("download_action",{group:modelData.group,action:"remove"})}

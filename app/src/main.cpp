@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QWindow>
+#include <qqml.h>
 #include <memory>
 #ifdef SAILFISH
 #include <sailfishapp.h>
@@ -24,6 +25,7 @@ int main(int argc, char *argv[]) {
     application->setOrganizationName("org.plexfreq");
     application->setApplicationName("harbour-plexfreq");
     application->setApplicationVersion("0.1.0");
+    qmlRegisterType<EntryModel>("PlexFreq",1,0,"EntryModel");
     installTranslations(application);
     QString directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     // Isolated state for local integration tests; never touches the user's login.

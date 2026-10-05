@@ -15,9 +15,25 @@ Item {
     signal editPlaylistRequested()
     signal openDownloads()
     signal openAudioSettings()
+    property int downloadMinutes:60
+    property var adventureStart:null
+    property bool homeView:!showQueue && route && route.op==="discovery_home"
+    function home() {if(section)load("discovery_home",{section:section},qsTr("Discover"),true)}
+    function qualitySetting(name,value) {
+        var old=backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:0,downloadKbps:0,codecFallback:true})
+        var config={wifiKbps:old.wifiKbps || 0,mobileKbps:old.mobileKbps || 0,downloadKbps:old.downloadKbps || 0,codecFallback:old.codecFallback!==false}
+        config[name]=value;backend.command("quality_config",{config:config})
+    }
+    function qualityText(kbps) {return kbps ? qsTr("%1 kbps").arg(kbps) : qsTr("Original audio")}
+    function downloadRadio(item) {
+        if(item && item.station)backend.command("download_station",{key:item.key,title:item.title,minutes:downloadMinutes})
+        else if(item && canRadio(item))backend.command("download_plan",{kind:item.type+"_radio",key:item.ratingKey,minutes:downloadMinutes})
+    }
+    function sonicNeighbors(item) {if(item)load("sonic_neighbors",{key:item.ratingKey,kind:item.type},qsTr("Sonically similar"),true)}
+    function sonicAdventure(item) {if(adventureStart && item && section)load("sonic_adventure",{section:section,start_key:adventureStart.ratingKey,end_key:item.ratingKey},qsTr("Sonic Adventure"),true)}
     function audioSetting(name,value) {
         var old=backend.state.audioConfig || ({crossfadeMs:0,normalization:false,eq:[0,0,0,0,0,0,0,0,0,0]})
-        var config={crossfadeMs:old.crossfadeMs || 0,normalization:!!old.normalization,eq:old.eq || [0,0,0,0,0,0,0,0,0,0]}
+        var config={crossfadeMs:old.crossfadeMs || 0,normalization:!!old.normalization,eq:old.eq || [0,0,0,0,0,0,0,0,0,0],normalizationMode:old.normalizationMode || "track",headroomDb:old.headroomDb || 0}
         config[name]=value;backend.command("audio_config",{config:config})
     }
     function playlistEditor(action,item) {
@@ -72,16 +88,19 @@ Item {
     property var alphabet: artistBrowse && query.length === 0 && backend.state.alphabetSection === section ? backend.state.alphabet || [] : []
     signal navigate(string kind, string key)
     signal resetView()
+    signal beforeViewChange(string op, var args)
 
     function reset() {
         history = []; route = null; section = ""; query = ""; showQueue = false
         mixSeeds=[];editorItems=[];editorTarget=null
+        adventureStart=null
         heading = qsTr("Artists")
         detailData = null; failedPageStart = -1; requestedPageStart = -1; indexedSection = ""
         similarKey = ""; similarData = []; similarState = ""
     }
     function load(op, args, title, remember, seed) {
         if (backend.busy) return
+        beforeViewChange(op, args)
         if (op !== "browse") { searchTimer.stop(); searchPending = false }
         else if (args.query !== undefined) query = args.query
         if (remember && route) history = history.concat([route])
@@ -119,6 +138,7 @@ Item {
     }
     function activate(item, index) {
         if (backend.busy || searchPending) return
+        if(item.station) {backend.command("station",{key:item.key,title:item.title});return}
         if (showQueue) backend.command("select_track", { index: index })
         else if (item.type === "track") {
             var tracks = []; var selected = 0
@@ -193,7 +213,8 @@ Item {
             interval = 350
             if (backend.busy) { restart(); return }
             session.searchPending = false
-            if (query.length>0) session.load("search",{query:query},qsTr("Search results"),false)
+            if (backend.state.offlineMode) session.load("offline_search",{query:query,start:0},qsTr("Offline library"),false)
+            else if (query.length>0) session.load("search",{query:query},qsTr("Search results"),false)
             else session.browse()
         }
     }
@@ -205,7 +226,7 @@ Item {
         target: backend
         onCompleted: {
             if (data._discarded) return
-            if (op==="library_browse" || op==="artist_albums" || op==="playlist_items" || op === "browse" || op === "search" || op === "collection" || op === "offline_browse" || op === "detail" || op === "children" || op === "playlists" || op === "jump_artist") {
+            if (op==="discovery_home" || op==="sonic_neighbors" || op==="sonic_adventure" || op==="offline_search" || op==="library_browse" || op==="artist_albums" || op==="playlist_items" || op === "browse" || op === "search" || op === "collection" || op === "offline_browse" || op === "detail" || op === "children" || op === "playlists" || op === "jump_artist") {
                 if (requestedPageStart >= 0 && data._pageStart === requestedPageStart) {
                     if (!ok) failedPageStart = requestedPageStart
                     requestedPageStart = -1
@@ -256,7 +277,7 @@ Item {
                 session.polling = false
                 session.reset()
                 if (data.libraries && data.libraries.length > 0) { session.section = data.libraries[0].key; session.browse() }
-            } else if ((op === "radio" || op === "mix") && ok) { session.showQueue = true }
+            } else if ((op === "radio" || op === "station" || op === "mix" || op === "play_download") && ok) { session.showQueue = true }
             else if (op === "logout" && ok) { session.polling = false; session.reset() }
         }
     }

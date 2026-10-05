@@ -20,7 +20,7 @@ ApplicationWindow {
     Session { id: session }
     NowPlaying {id:nowPlaying;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
     PlaylistEditor {id:playlistEditor;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,500)}
-    Downloads {id:downloadManager;anchors.centerIn:parent;width:Math.min(window.width-40,620)}
+    Downloads {id:downloadManager;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,620)}
     AudioSettings {id:audioSettings;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
     Connections {target:session;onOpenAudioSettings:audioSettings.open()}
     Connections {target:session;onEditPlaylistRequested:playlistEditor.open();onOpenDownloads:downloadManager.open()}
@@ -57,6 +57,7 @@ ApplicationWindow {
             Button { text: qsTr("Playlists"); enabled: !backend.busy; onClicked: session.load("playlists", {start:0}, qsTr("Playlists"), true) }
             Button {text:qsTr("Discover");enabled:!backend.busy;onClicked:discoverMenu.open()
                 Menu {id:discoverMenu
+                    MenuItem {text:qsTr("Discovery home");onTriggered:session.home()}
                     MenuItem {text:qsTr("Favorites · 5 stars");onTriggered:session.discovery("favorites")}
                     MenuItem {text:qsTr("Recently added");onTriggered:session.discovery("added")}
                     MenuItem {text:qsTr("Recently played");onTriggered:session.discovery("played")}
@@ -74,7 +75,7 @@ ApplicationWindow {
         Label {Layout.fillWidth:true;visible:!!session.playlist;text:session.playlist ? session.playlistSummary(session.playlist) : "";wrapMode:Text.Wrap;color:"#9eaabd"}
         Flow {
             Layout.fillWidth:true;spacing:12
-            visible:!session.showQueue && !session.playlist
+            visible:!session.showQueue && !session.playlist && !session.homeView
             ComboBox {model:[qsTr("Artists"),qsTr("Albums"),qsTr("Tracks")];enabled:!backend.busy;onActivated:{session.browseKind=["artist","album","track"][currentIndex];if(session.browseKind==="artist" && session.browseSort==="year")session.browseSort="title";session.query="";session.browse()}}
             ComboBox {model:session.browseKind==="artist"?[qsTr("Title"),qsTr("Recently added")]:[qsTr("Title"),qsTr("Recently added"),qsTr("Year")];enabled:!backend.busy;onActivated:{session.browseSort=["title","newest","year"][currentIndex];session.query="";session.browse()}}
             Button {text:qsTr("Group album types");visible:session.detail && session.detail.type==="artist";enabled:!backend.busy;onClicked:session.groupAlbums()}
@@ -93,7 +94,7 @@ ApplicationWindow {
             Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
             Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
             ScrollBar.vertical: ScrollBar {}
-            section.property:session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
+            section.property:session.homeView ? "groupTitle" : session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
             section.delegate:Label {width:list.width;text:section;font.pixelSize:21;color:"#ebad3d";padding:8}
             header: IntrinsicLoader {
                 width: list.width; active: !!session.detail
@@ -119,18 +120,23 @@ ApplicationWindow {
                     RadioAction { actionName: session.radioActionText(itemData); visible: !session.artistBrowse && session.canRadio(itemData); enabled: !backend.busy; onClicked: session.startRadio(itemData) }
                     Button {text:"⋮";onClicked:entryMenu.open()
                         Menu {id:entryMenu
+                            MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(itemData);onTriggered:session.sonicNeighbors(itemData)}
+                            MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onTriggered:session.adventureStart=itemData}
+                            MenuItem {text:qsTr("Sonic Adventure to this track");visible:itemData.type==="track" && !!session.adventureStart;onTriggered:session.sonicAdventure(itemData)}
+                            MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);visible:itemData.station || session.canRadio(itemData);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
+                            MenuItem {text:qsTr("Download %1 minutes").arg(session.downloadMinutes);visible:itemData.type==="playlist" && !itemData.station;enabled:!backend.state.offlineMode;onTriggered:backend.command("download_plan",{kind:"playlist",key:itemData.ratingKey,minutes:session.downloadMinutes})}
                             MenuItem {text:qsTr("Play next");visible:!session.showQueue;onTriggered:session.enqueue(itemData,true)}
                             MenuItem {text:qsTr("Add to queue");visible:!session.showQueue;onTriggered:session.enqueue(itemData,false)}
                             MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.playlistEditor("add",itemData)}
                             MenuItem {text:qsTr("Create playlist from this");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.playlistEditor("create",itemData)}
                             MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onTriggered:session.addMixSeed(itemData)}
-                            MenuItem {text:qsTr("Rename playlist");visible:itemData.type==="playlist";onTriggered:session.playlistEditor("rename",itemData)}
-                            MenuItem {text:qsTr("Delete playlist");visible:itemData.type==="playlist";onTriggered:backend.command("playlist_edit",{action:"delete",key:itemData.ratingKey})}
+                            MenuItem {text:qsTr("Rename playlist");visible:itemData.type==="playlist" && !itemData.station;onTriggered:session.playlistEditor("rename",itemData)}
+                            MenuItem {text:qsTr("Delete playlist");visible:itemData.type==="playlist" && !itemData.station;onTriggered:backend.command("playlist_edit",{action:"delete",key:itemData.ratingKey})}
                             MenuItem {text:qsTr("Move playlist entry up");visible:!!session.playlist && !session.playlist.smart;enabled:index>0;onTriggered:session.playlistMove(index,false)}
                             MenuItem {text:qsTr("Move playlist entry down");visible:!!session.playlist && !session.playlist.smart;enabled:index+1<session.items.length;onTriggered:session.playlistMove(index,true)}
                             MenuItem {text:qsTr("Remove from playlist");visible:!!session.playlist && !session.playlist.smart;onTriggered:backend.command("playlist_edit",{action:"remove",key:session.playlist.ratingKey,item_id:itemData.playlistItemId})}
                             MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onTriggered:session.favorite(itemData)}
-                            MenuItem {text:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)>=0?qsTr("Unpin download"):qsTr("Pin for offline listening");onTriggered:backend.command("pin",{key:itemData.ratingKey,kind:itemData.type,enabled:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)<0})}
+                            MenuItem {text:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)>=0?qsTr("Unpin download"):qsTr("Pin for offline listening");visible:!itemData.station && (itemData.type==="track" || itemData.type==="album" || itemData.type==="playlist");onTriggered:backend.command("pin",{key:itemData.ratingKey,kind:itemData.type,enabled:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)<0})}
                             MenuItem {text:qsTr("Move up");visible:session.showQueue;enabled:index>0;onTriggered:session.moveQueue(index,index-1)}
                             MenuItem {text:qsTr("Move down");visible:session.showQueue;enabled:index+1<backend.state.queue.items.length;onTriggered:session.moveQueue(index,index+1)}
                             MenuItem {text:qsTr("Remove from queue");visible:session.showQueue;onTriggered:backend.command("queue_remove",{index:index})}

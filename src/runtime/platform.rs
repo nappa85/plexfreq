@@ -78,12 +78,10 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
                     );
                 }
                 let state = bus.playback();
-                let model = bus
-                    .model
-                    .lock()
-                    .unwrap_or_else(|poison| poison.into_inner())
-                    .clone();
-                let changed = json!({"playing":state.playing,"paused":state.paused,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"]});
+                let changed = {
+                    let model=crate::mutex_lock(&bus.model);
+                    json!({"playing":state.playing,"paused":state.paused,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"],"queueLength":model["queue"]["items"].as_array().map_or(0,Vec::len),"current":model["queue"]["current"]})
+                };
                 if changed != previous {
                     let player = Player { shared: bus.clone() };
                     let mut properties = HashMap::new();
@@ -106,6 +104,8 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
                     properties.insert("Volume", OwnedValue::from(state.volume));
                     properties.insert("CanPlay", OwnedValue::from(player.can_play()));
                     properties.insert("CanPause", OwnedValue::from(player.can_pause()));
+                    properties.insert("CanGoNext",OwnedValue::from(player.can_go_next()));
+                    properties.insert("CanGoPrevious",OwnedValue::from(player.can_go_previous()));
                     properties.insert("CanSeek", OwnedValue::from(state.seekable));
                     let _ = connection.emit_signal(
                         None::<&str>,

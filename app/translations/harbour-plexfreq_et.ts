@@ -7,6 +7,30 @@
       <translation>Heli · Seaded</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Heli · Seaded</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Heli</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Võrk · Heli</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Allalaadimised · Heli</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekooder · Proovi uuesti</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Heli · Seaded · Järgmine · Lood · Allalaadimised · Valmis · Heli</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Heli · Katkematu · PCM · Väljund</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Lugu · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumid · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Automaatesitus · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Heli · Helitugevus · Vahemik</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Heli · Seaded</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Heli · Seaded</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Heli</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Võrk · Heli</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Allalaadimised · Heli</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Dekooder · Proovi uuesti</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Heli · Seaded · Järgmine · Lood · Allalaadimised · Valmis · Heli</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Heli · Katkematu · PCM · Väljund</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Normaliseerimine · Seaded</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Albumid · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Automaatesitus · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Lugu · Normaliseerimine</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Heli · Helitugevus · Vahemik</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Vali · 1–10 · Esitajad · Albumid · Miks</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Vali · 30–480 · Raadio · Allalaadimised</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Vali</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Vali · Esitusloend · Lugu</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Vali · Esitusloend · Album · Raadio · Allalaadimised</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Vali · Lugu · Album · Esitusloend · Säilita võrguühenduseta</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Vali · Heli · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>Võrgus · Plex · Esitusloendid</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>Võrgus · Värskenda · Allalaadimised</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Raadio · Järjestus · Peata · Sega</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Raadio · Esita · Ühendus</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Raadio · Vastu võetud · Puudub · Esita · Lood</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Lugu · Puudub · Esita · Andmed</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Lugu · Pole saadaval · Alla laaditud</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Lugu · Pole saadaval · Vahemälu · Alla laaditud · Lood</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Lugu · Kestus · Allalaadimised</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Esitusloend · Metaandmed</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Raadio · Allalaadimised · Lood</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Raadio · Järjekord</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Server · Otsing</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Sarnane</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Allalaadimised · Haldur</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Raadio · Allalaadimised · Kestus</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Allalaadimised · Ainult lugemiseks · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Heli · Vahemälu · Kasutatud</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Heli · Kestus · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Lood · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Praegune · Lugu · %1 · MiB · Vastu võetud</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Esita</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Värskenda</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Allalaadimised · Haldur</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Raadio · Allalaadimised · Kestus</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Sünkrooni · Ajalugu</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Heli · Kestus · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Lood · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Praegune · Lugu · %1 · MiB · Vastu võetud</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Esita · Alla laaditud · Lood</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Värskenda · Allalaadimised</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Otsing · Kogu</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>Ühendus</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Tüübid · Albumid</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Heli · Sarnane</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Alusta · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Lugu</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Allalaadimised · Raadio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Allalaadimised · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Otsing</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Otsing · Kogu</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Lemmikud · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Alla laaditud</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Heli · Sarnane</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Alusta · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Lugu</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Allalaadimised · Raadio · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Allalaadimised · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Esitajad</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Otsing</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Allikas · Heli</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Heli · Sarnane</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Lemmikud · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Lugu · Raadio</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Võrguühenduseta · Kogu</translation>
     </message>
     <message>
       <source>Search results</source>

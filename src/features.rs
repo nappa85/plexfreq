@@ -319,7 +319,7 @@ impl Core {
             for item in &items{if let Some(size)=status["readyBytes"][&item.rating_key].as_u64(){ready+=1;bytes+=size;}}
             let title=self.settings.download_titles.get(group).cloned().or_else(||items.first().map(|i|if group.starts_with("track:"){i.title.clone()}else{i.parent_title.clone()})).filter(|s|!s.is_empty()).unwrap_or_else(||group.split(':').next().unwrap_or("Download").into());
             let error=keys.iter().find_map(|key|status["errors"][key].as_str()).unwrap_or("");
-            json!({"group":group,"title":title,"ready":ready,"total":keys.len(),"bytes":bytes,"active":keys.iter().any(|k|Some(k.as_str())==status["activeKey"].as_str()),"error":error})
+            json!({"group":group,"title":title,"ready":ready,"total":keys.len(),"bytes":bytes,"duration":items.iter().map(|i|i.duration).sum::<u64>(),"refreshable":self.settings.download_plans.contains_key(group) || group.starts_with("playlist:") || group.starts_with("album:"),"minutes":self.settings.download_plans.get(group).map_or(0,|p|p.minutes),"active":keys.iter().any(|k|Some(k.as_str())==status["activeKey"].as_str()),"error":error})
         }).collect()
     }
     pub(crate) fn download_action(&mut self, group: &str, action: &str) -> Result<Value> {
@@ -327,6 +327,7 @@ impl Core {
             return Err(Error::Input("Download group no longer exists"));
         }
         match action {
+            "refresh" => return self.refresh_download(group),
             "retry" => {
                 self.settings.downloads_paused = false;
                 self.cache.cancel();
@@ -339,6 +340,7 @@ impl Core {
                     .remove(group)
                     .unwrap_or_default();
                 self.settings.download_titles.remove(group);
+                self.settings.download_plans.remove(group);
                 let keep: std::collections::BTreeSet<_> = self
                     .settings
                     .download_groups

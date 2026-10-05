@@ -1,5 +1,6 @@
 pub mod audio;
 pub mod cache;
+mod daily;
 mod features;
 mod ffi;
 pub mod history;
@@ -7,6 +8,7 @@ pub mod lyrics;
 pub mod model;
 pub mod offline;
 pub mod plex;
+pub mod quality;
 pub mod queue;
 pub mod radio;
 pub mod runtime;
@@ -104,6 +106,51 @@ pub(crate) fn numeric(value: &str) -> Result<&str> {
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Command {
     Status,
+    QualityConfig {
+        config: quality::Config,
+    },
+    TranscodedPlayback,
+    ProbeQuality {
+        key: String,
+        kbps: u32,
+    },
+    DownloadStation {
+        key: String,
+        title: String,
+        minutes: u32,
+    },
+    Station {
+        key: String,
+        title: String,
+    },
+    DownloadPlan {
+        kind: String,
+        key: String,
+        #[serde(default)]
+        minutes: u32,
+    },
+    PlayDownload {
+        group: String,
+    },
+    OfflineSearch {
+        query: String,
+        #[serde(default)]
+        kind: String,
+        #[serde(default)]
+        start: usize,
+    },
+    DiscoveryHome {
+        section: String,
+    },
+    SonicNeighbors {
+        key: String,
+        kind: String,
+    },
+    SonicAdventure {
+        section: String,
+        start_key: String,
+        end_key: String,
+    },
     PlaylistChoices,
     PlaylistEdit {
         action: String,
@@ -476,10 +523,11 @@ impl Core {
         {
             let pending = core.cache.pending_items(&core.cache_namespace());
             if !pending.is_empty() {
-                let _ = core.cache.schedule(
+                let _ = core.cache.schedule_with_quality(
                     &core.settings.server_url,
                     &core.settings.server_token,
                     pending,
+                    core.settings.quality.download_kbps,
                 );
             }
         }
@@ -650,8 +698,7 @@ impl Core {
     fn detail(&self, key: &str, start: usize) -> Result<Value> {
         let id = numeric(key)?;
         if self.offline_mode {
-            let mut known = self.library.items(&self.cache_namespace());
-            known.extend(self.cache.items(&self.cache_namespace()));
+            let known = self.offline_catalogue();
             let saved = self.library.load(
                 &self.cache_namespace(),
                 &format!("/library/metadata/{id}"),
@@ -790,12 +837,35 @@ impl Core {
         self.playback_with_cache(true)
     }
     fn playback_with_cache(&mut self, schedule: bool) -> Result<Value> {
+        let mut plan = self.playback_plan(schedule, false)?;
+        plan["normalizationMode"] = json!(self.normalization_mode());
+        plan["albumNormalization"] = json!(self.album_normalization());
+        Ok(plan)
+    }
+    fn normalization_mode(&self) -> &'static str {
+        use audio::dsp::NormalizationMode;
+        match self.settings.audio.normalization_mode {
+            NormalizationMode::Album => "album",
+            NormalizationMode::Track => "track",
+            NormalizationMode::Auto => {
+                if self.album_normalization() {
+                    "album"
+                } else {
+                    "track"
+                }
+            }
+        }
+    }
+    fn playback_plan(&mut self, schedule: bool, force_transcode: bool) -> Result<Value> {
         let Some(mut track) = self.queue.track().cloned() else {
             return Ok(
                 json!({"queue": self.queue, "radio": self.radio_summary(), "track": null, "stream": ""}),
             );
         };
-        if let Some((path, mut cached)) = self.cache.lookup(&self.cache_namespace(), &track, true) {
+        if let Some((path, mut cached)) = (!force_transcode)
+            .then(|| self.cache.lookup(&self.cache_namespace(), &track, true))
+            .flatten()
+        {
             cached.play_queue_item_id = track.play_queue_item_id;
             if let Some(index) = self.queue.current {
                 self.queue.items[index] = cached.clone();
@@ -830,7 +900,26 @@ impl Core {
             .first()
             .and_then(|m| m.parts.first())
             .ok_or(Error::Input("This track has no playable media part"))?;
-        let stream = authenticated_url(&self.base()?, &part.key, &self.settings.server_token)?;
+        if self.offline_mode {
+            return Err(Error::Input("This track has not been downloaded"));
+        }
+        let kbps = self.settings.quality.streaming(self.network_wifi);
+        let transcode = force_transcode
+            || kbps > 0
+            || (self.settings.quality.codec_fallback && !quality::codec_supported(&track));
+        let stream = if transcode {
+            let mut url = quality::transcode_url(
+                &self.base()?,
+                &track.rating_key,
+                if kbps > 0 { kbps } else { 192 },
+                &uuid::Uuid::new_v4().to_string(),
+            )?;
+            url.query_pairs_mut()
+                .append_pair("X-Plex-Token", &self.settings.server_token);
+            url.into()
+        } else {
+            authenticated_url(&self.base()?, &part.key, &self.settings.server_token)?
+        };
         if let Some(index) = self.queue.current {
             track.play_queue_item_id = self.queue.items[index].play_queue_item_id;
             self.queue.items[index] = track.clone();
@@ -840,8 +929,26 @@ impl Core {
             self.schedule_cache();
         }
         Ok(
-            json!({"queue": self.queue, "radio":self.radio_summary(), "track": self.display_item(&track), "stream": stream,"playbackSource":"stream","cache":self.cache_status()}),
+            json!({"queue": self.queue, "radio":self.radio_summary(), "track": self.display_item(&track), "stream": stream,"playbackSource":if transcode {"transcode"}else{"stream"},"streamKbps":if transcode {if kbps>0 {kbps}else{192}}else{0},"cache":self.cache_status()}),
         )
+    }
+
+    fn album_normalization(&self) -> bool {
+        let album = self
+            .queue
+            .track()
+            .map(|i| i.parent_rating_key.as_str())
+            .unwrap_or("");
+        !album.is_empty()
+            && (self
+                .radio
+                .as_ref()
+                .is_some_and(|r| r.kind == RadioKind::Album)
+                || self
+                    .queue
+                    .items
+                    .iter()
+                    .all(|i| i.parent_rating_key == album))
     }
 
     fn cache_namespace(&self) -> String {
@@ -862,16 +969,25 @@ impl Core {
         self.cache
             .protect(&self.cache_namespace(), &self.manual_cache);
         if self.settings.cache.enabled && !self.cache_suspended && self.downloads_allowed() {
-            let mut items = self.queue.upcoming(self.settings.cache.ahead + 1);
+            // Do not undermine a mobile bitrate cap with automatic original-file
+            // prefetch. Explicit pins still follow the selected download policy.
+            let mut items = if self.settings.quality.streaming(self.network_wifi) > 0
+                && self.settings.quality.download_kbps == 0
+            {
+                Vec::new()
+            } else {
+                self.queue.upcoming(self.settings.cache.ahead + 1)
+            };
             for item in &self.manual_cache {
                 if !items.iter().any(|i| i.rating_key == item.rating_key) {
                     items.push(item.clone());
                 }
             }
-            let _ = self.cache.schedule(
+            let _ = self.cache.schedule_with_quality(
                 &self.settings.server_url,
                 &self.settings.server_token,
                 items,
+                self.settings.quality.download_kbps,
             );
         }
     }
@@ -915,9 +1031,7 @@ impl Core {
 
     fn nearest(&self, item: &Item) -> Result<Vec<Item>> {
         let id = numeric(&item.rating_key)?;
-        let c = self.plex.container(
-            &self.base()?,
-            &self.settings.server_token,
+        let (c, _) = self.container_cached(
             &format!("/library/metadata/{id}/nearest"),
             &[("limit", "50".into())],
         )?;
@@ -928,6 +1042,9 @@ impl Core {
     }
 
     fn start_radio(&mut self, key: String, kind: RadioKind) -> Result<Value> {
+        if self.offline_mode {
+            return Err(Error::Input("Radio playback requires a connection"));
+        }
         let id = numeric(&key)?;
         let base = self.base()?;
         let c = self.plex.container(
@@ -1124,7 +1241,7 @@ impl Core {
                 }
             }
         }
-        if self.radio.is_some() && self.queue.at_end() {
+        if self.radio.is_some() && self.queue.at_end() && !self.offline_mode {
             self.extend_radio()?;
         }
         self.queue.advance(automatic);
@@ -1213,6 +1330,7 @@ impl Core {
         settings.download_groups.clear();
         settings.download_titles.clear();
         settings.downloads.clear();
+        settings.download_plans.clear();
         store::save(&self.dir, &settings)?;
         self.settings = settings;
         self.library
@@ -1254,10 +1372,20 @@ impl Core {
                 | Command::Mix { .. }
                 | Command::DownloadPolicy { .. }
                 | Command::DownloadAction { .. }
+                | Command::QualityConfig { .. }
+                | Command::DownloadPlan { .. }
+                | Command::DownloadStation { .. }
+                | Command::PlayDownload { .. }
+                | Command::Station { .. }
         );
-        let resuming = matches!(&command, Command::Resume | Command::CachedPlayback);
+        let resuming = matches!(
+            &command,
+            Command::Resume | Command::CachedPlayback | Command::TranscodedPlayback
+        );
         let mut result = self.execute_inner(command)?;
         if result.get("stream").is_some() {
+            result["normalizationMode"] = json!(self.normalization_mode());
+            result["albumNormalization"] = json!(self.album_normalization());
             self.playback_generation = self.playback_generation.wrapping_add(1);
             result["playbackGeneration"] = json!(self.playback_generation);
         }
@@ -1293,6 +1421,40 @@ impl Core {
     }
     fn execute_inner(&mut self, command: Command) -> Result<Value> {
         match command {
+            Command::ProbeQuality { key, kbps } => self.probe_quality(&key, kbps),
+            Command::DownloadStation {
+                key,
+                title,
+                minutes,
+            } => self.download_station(&key, &title, minutes),
+            Command::Station { key, title } => self.start_station(&key, &title),
+            Command::DownloadPlan { kind, key, minutes } => {
+                self.download_plan(&kind, &key, minutes)
+            }
+            Command::PlayDownload { group } => self.play_download(&group),
+            Command::OfflineSearch { query, kind, start } => {
+                self.offline_search(&query, &kind, start)
+            }
+            Command::DiscoveryHome { section } => self.discovery_home(&section),
+            Command::SonicNeighbors { key, kind } => self.sonic_neighbors(&key, &kind),
+            Command::SonicAdventure {
+                section,
+                start_key,
+                end_key,
+            } => self.sonic_adventure(&section, &start_key, &end_key),
+            Command::QualityConfig { config } => {
+                config.validate()?;
+                self.settings.quality = config;
+                self.cache.cancel();
+                self.schedule_cache();
+                Ok(json!({"qualityConfig":self.settings.quality}))
+            }
+            Command::TranscodedPlayback => {
+                if !self.settings.quality.codec_fallback || self.offline_mode {
+                    return Err(Error::Input("Audio decoding or streaming failed"));
+                }
+                self.playback_plan(false, true)
+            }
             Command::PlaylistChoices => self.playlist_choices(),
             Command::PlaylistEdit {
                 action,
@@ -1445,6 +1607,7 @@ impl Core {
                 } else {
                     self.settings.download_groups.remove(&group);
                     self.settings.download_titles.remove(&group);
+                    self.settings.download_plans.remove(&group);
                     let keep: std::collections::BTreeSet<_> = self
                         .settings
                         .download_groups
@@ -1490,8 +1653,7 @@ impl Core {
                 if !matches!(kind.as_str(), "artist" | "album" | "track") {
                     return Err(Error::Input("Unknown offline music type"));
                 }
-                let mut items = self.library.items(&self.cache_namespace());
-                items.extend(self.cache.items(&self.cache_namespace()));
+                let mut items = self.offline_catalogue();
                 let mut seen = std::collections::BTreeSet::new();
                 items.retain(|i| i.kind == kind && seen.insert(i.rating_key.clone()));
                 items.sort_by_cached_key(|i| i.title.to_lowercase());
@@ -1538,21 +1700,7 @@ impl Core {
                     return Ok(json!({"items":[],"start":0,"next":0,"hasMore":false}));
                 }
                 if self.offline_mode {
-                    let query = query.to_lowercase();
-                    let items: Vec<_> = self
-                        .library
-                        .items(&self.cache_namespace())
-                        .iter()
-                        .filter(|i| {
-                            format!("{} {} {}", i.title, i.parent_title, i.grandparent_title)
-                                .to_lowercase()
-                                .contains(&query)
-                        })
-                        .map(|i| self.display_item(i))
-                        .collect();
-                    return Ok(
-                        json!({"items":items,"start":0,"next":0,"hasMore":false,"offline":true}),
-                    );
+                    return self.offline_search(&query, "", 0);
                 }
                 let (c, _) = self.container_cached(
                     "/hubs/search",
@@ -1617,7 +1765,7 @@ impl Core {
                 )
             }
             Command::Status => Ok(
-                json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio}),
+                json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio,"qualityConfig":self.settings.quality}),
             ),
             Command::Resume => {
                 let mut value = self.playback()?;

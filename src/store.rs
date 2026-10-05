@@ -19,10 +19,12 @@ pub struct Settings {
     pub downloads: Vec<crate::model::Item>,
     pub download_groups: std::collections::BTreeMap<String, Vec<String>>,
     pub download_titles: std::collections::BTreeMap<String, String>,
+    pub download_plans: std::collections::BTreeMap<String, crate::daily::DownloadPlan>,
     pub wifi_only: bool,
     pub downloads_paused: bool,
     pub autoplay: bool,
     pub audio: crate::audio::dsp::Config,
+    pub quality: crate::quality::Config,
     pub history: Vec<crate::history::Play>,
 }
 

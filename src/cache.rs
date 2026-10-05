@@ -51,6 +51,8 @@ impl Config {
 
 #[derive(Clone, Deserialize, Serialize)]
 struct Entry {
+    #[serde(default)]
+    quality_kbps: u32,
     namespace: String,
     item: Item,
     file: String,
@@ -63,6 +65,8 @@ struct Manifest {
 }
 #[derive(Default, Deserialize, Serialize)]
 struct Partial {
+    #[serde(default)]
+    quality_kbps: u32,
     total: Option<u64>,
     validator: Option<String>,
     extension: String,
@@ -133,6 +137,7 @@ impl DownloadControl {
     }
 }
 struct Batch {
+    quality_kbps: u32,
     epoch: u64,
     base: Url,
     token: String,
@@ -403,6 +408,20 @@ impl Cache {
         save(&self.root, &state)
     }
     pub fn schedule(&self, server: &str, token: &str, items: Vec<Item>) -> Result<()> {
+        self.schedule_with_quality(server, token, items, 0)
+    }
+    pub fn schedule_with_quality(
+        &self,
+        server: &str,
+        token: &str,
+        items: Vec<Item>,
+        quality_kbps: u32,
+    ) -> Result<()> {
+        crate::quality::Config {
+            download_kbps: quality_kbps,
+            ..Default::default()
+        }
+        .validate()?;
         if !self.config().enabled || !self.gate().allowed() || items.is_empty() {
             return Ok(());
         }
@@ -436,6 +455,7 @@ impl Cache {
             .as_ref()
             .ok_or(Error::Input("Cache worker unavailable"))?
             .send(Batch {
+                quality_kbps,
                 epoch,
                 base,
                 token: token.into(),
@@ -595,10 +615,29 @@ async fn worker(
                     s.pending = batch.items.len() - position;
                     s.active_key = item.rating_key.clone();
                 }
+                let session = uuid::Uuid::new_v4().to_string();
                 let result = tokio::select! {
-                    _=changed.changed()=>break,
-                    result=download(&client,&root,&state,&epoch,&batch,item.clone(),client_id)=>result,
+                    _=changed.changed()=>None,
+                    result=download(&client,&root,&state,&epoch,&batch,item.clone(),(client_id,&session))=>Some(result),
                 };
+                if batch.quality_kbps > 0 {
+                    if let Ok(uri) = crate::quality::transcode_url(
+                        &batch.base,
+                        &item.rating_key,
+                        batch.quality_kbps,
+                        &session,
+                    ) {
+                        if let Some(stop) = crate::quality::stop_url(&uri) {
+                            let _ = client
+                                .get(stop)
+                                .header("X-Plex-Token", &batch.token)
+                                .timeout(Duration::from_secs(2))
+                                .send()
+                                .await;
+                        }
+                    }
+                }
+                let Some(result) = result else { break };
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
                         failed = true;
@@ -707,12 +746,14 @@ async fn download(
     epoch: &AtomicU64,
     batch: &Batch,
     mut item: Item,
-    client_id: &str,
+    identity: (&str, &str),
 ) -> Result<()> {
+    let (client_id, session) = identity;
     {
         let s = state.lock().unwrap_or_else(|poison| poison.into_inner());
         if s.manifest.entries.values().any(|e| {
             e.namespace == batch.namespace
+                && e.quality_kbps == batch.quality_kbps
                 && e.item.rating_key == item.rating_key
                 && part_key(&item).is_none_or(|p| part_key(&e.item) == Some(p))
                 && usable(root, e)
@@ -748,8 +789,17 @@ async fn download(
             .ok_or(Error::ProtocolAt("cache track metadata"))?;
     }
     let part = part_key(&item).ok_or(Error::Input("Track has no downloadable media part"))?;
-    let url = server_path(&batch.base, part)?;
-    let id = key(&batch.namespace, &item);
+    let url = if batch.quality_kbps > 0 {
+        crate::quality::transcode_url(&batch.base, &item.rating_key, batch.quality_kbps, session)?
+    } else {
+        server_path(&batch.base, part)?
+    };
+    let original_id = key(&batch.namespace, &item);
+    let id = if batch.quality_kbps > 0 {
+        hash(&format!("{original_id}\0mp3:{}", batch.quality_kbps))
+    } else {
+        original_id
+    };
     let partial_path = root.join(format!("{id}.part"));
     let meta_path = root.join(format!("{id}.resume.json"));
     let old: Partial = fs::read(&meta_path)
@@ -757,7 +807,11 @@ async fn download(
         .and_then(|b| serde_json::from_slice(&b).ok())
         .unwrap_or_default();
     let mut offset = fs::metadata(&partial_path).map_or(0, |m| m.len());
-    if old.validator.is_none() || old.total.is_some_and(|n| offset >= n) {
+    if batch.quality_kbps > 0
+        || old.quality_kbps != batch.quality_kbps
+        || old.validator.is_none()
+        || old.total.is_some_and(|n| offset >= n)
+    {
         offset = 0;
     }
     let mut request = client
@@ -836,7 +890,11 @@ async fn download(
         offset = 0;
         response.content_length()
     };
-    let extension = extension(part, mime);
+    let extension = if batch.quality_kbps > 0 {
+        "mp3".into()
+    } else {
+        extension(part, mime)
+    };
     let mut file = {
         let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
         if epoch.load(Ordering::SeqCst) != batch.epoch {
@@ -853,6 +911,7 @@ async fn download(
         atomic_json(
             &meta_path,
             &Partial {
+                quality_kbps: batch.quality_kbps,
                 total,
                 validator,
                 extension: extension.clone(),
@@ -915,6 +974,7 @@ async fn download(
     s.manifest.entries.insert(
         id,
         Entry {
+            quality_kbps: batch.quality_kbps,
             namespace: batch.namespace.clone(),
             item,
             file: filename,
@@ -1019,6 +1079,7 @@ mod tests {
             state.manifest.entries.insert(
                 hash(id),
                 Entry {
+                    quality_kbps: 0,
                     namespace: "scope".into(),
                     item: Item {
                         rating_key: id.into(),

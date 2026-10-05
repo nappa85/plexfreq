@@ -1,5 +1,45 @@
 # Research log
 
+## Sailfish navigation flash — 2026-10-05
+
+- User reported destination content appearing immediately, followed by its opening
+  animation. `Session.activate()` changed heading/detail and reset the one shared
+  list model before emitting `navigate`; every stacked LibraryPage read that live
+  state. The outgoing page therefore became the destination before the push.
+- Consulted the actual SDK Silica `Page.qml` (status definitions at lines 82–87)
+  and `PageStack.qml` (activation/deactivation/transition handling). Deactivating
+  pages remain visible during the transition; waiting for that status alone is
+  too late to protect mutations made before `pageStack.push`. The web Page API
+  URL returned missing documentation content, so SDK sources were used instead.
+- Local reproduction failed before the fix: retained root heading was `Artist`,
+  expected `Artists`. A shared presentation helper now captures outgoing DTOs
+  before route changes; local models retain identity and incremental reconciliation.
+  Native back/peek keeps each page's own content, and active back restoration waits
+  for its matching reply before returning to live bindings. No animation delay or
+  screenshot/file capture is used.
+- Host gates: 107 Rust tests, fmt/Clippy and translation freshness pass. Final
+  desktop rebuild/CTest passed 2/2 (13.82s); SDK app and Qt5.6 fixture builds pass.
+- Phone shared snapshot and actual Silica forward-stack cases passed (4 lifecycle/
+  test entries, no skips/failures). A mock-only missing loadingMoreChanged signal
+  warning was corrected, and the fixture was extended with native pop/reload checks.
+  Transfer of that final fixture was blocked by SSH connection timeout. Shared
+  back/reload/model-identity checks pass on the host; final native pop check and
+  deployment require restored connectivity. Known vendor graphics messages remain.
+
+### Connectivity restored / navigation fix deployed
+
+- SSH succeeded with a longer bounded connection attempt after an initial timeout.
+  The final phone fixture passed both presentation retention and actual Silica
+  push/pop/reload cases: 4 lifecycle/test entries, 0 failures/skips. The corrected
+  mock notification removed the loadingMoreChanged warning; known vendor graphics
+  and isolated-bus startup messages remain.
+- Temporary-state production QML smoke exited 0. Updated executable, QML and
+  translations deployed to the existing user-owned rootless directory after
+  stopping the anchored executable-path match. Session/cache files were retained.
+- Relaunched sole PID 24916; normal-session D-Bus GetConnectionUnixProcessID returned
+  the same MPRIS owner. Raise dispatched successfully. Temporary navigation fixture
+  files were removed. No phone packages or system services were modified.
+
 Findings recorded 2026-10-02. Sources distinguish upstream evidence from local
 observations. Consult this file before changing the integration or build route.
 
@@ -975,3 +1015,84 @@ replaced in this iteration.
   freshness, Bash syntax and whitespace pass. The final combined check timed out
   during CTest after concurrent SDK/Cargo-lock contention; standalone CTest passed.
   No phone or live-account experiment was performed.
+
+## Daily-use parity priorities 1–4 — 2026-10-04
+
+### Sources consulted
+
+- https://raw.githubusercontent.com/plexinc/plex-for-kodi/master/lib/_included_packages/plexnet/audioobject.py
+  documents `/music/:/transcode/universal/start.m3u8` with `protocol=http`,
+  directPlay/directStream disabled and MP3 output. The generic python-plexapi
+  `Playable.getStreamURL` uses audio HLS/DASH; it was not assumed to provide a
+  progressive body. A guessed community transcode page and old Feishin Plex path
+  returned 404; Feishin's inspected tree has no Plex provider.
+- https://github.com/music-assistant/server/blob/main/music_assistant/providers/plex/__init__.py
+  supplies musicBitrate/minAudioBitrate/maxAudioBitrate and musicProfile codec/bitrate
+  extras. Its HLS/Opus target is not copied as the transport: our documented Kodi
+  progressive route requests HTTP/MP3 explicitly.
+- https://github.com/RasPlex/OpenPHT/blob/master/plex/Client/PlexMediaServerClient.cpp
+  `StopTranscodeSession` uses `/video/:/transcode/universal/stop?session=...`.
+  Cleanup identifies only our UUID sessions. Fresh decoder/seek sessions prevent
+  an asynchronously queued old stop from terminating the new seek.
+- https://raw.githubusercontent.com/pkkid/python-plexapi/master/plexapi/library.py
+  documents section hubs with includeStations/includeMyMixes and Sonic Adventure
+  via `/library/sections/N/computePath?startID=...&endID=...`.
+  https://plexapi.dev/api-reference/hub/get-home-hubs.md confirms Hub title/identifier
+  and Metadata structure. Section-scoped music hubs are used to avoid unrelated video.
+- https://raw.githubusercontent.com/pkkid/python-plexapi/master/plexapi/media.py
+  documents track/album gain and codec fields. python-plexapi playlist.py casts its
+  radio flag from numeric strings; this matches the live correction below.
+- https://gstreamer.freedesktop.org/documentation/audiorate/index.html describes
+  timestamp correction by inserting/dropping samples. It was considered but not
+  added to pad from Plex duration hints: the measured resampler endpoint tolerance
+  is recorded explicitly instead.
+
+### Implemented policy and bounds
+
+- Independent original/64–320 kbps Wi-Fi/mobile/download settings, local-file priority,
+  progressive transcode seeks, quality-scoped cache files, one-shot codec fallback
+  and bounded session cleanup. Network-type classification is not measured-throughput
+  adaptation. Progressive transcoded downloads restart interrupted representations.
+- Durable ordered album/playlist/radio/station plans; timed plans require known
+  duration and target 30–480 minutes for radio, at most 1000 tracks/20 windows.
+  Whole unique tracks can end short if the station exhausts recommendations; actual
+  duration is shown. Refresh replaces membership only after successful planning;
+  overlapping pins retain shared tracks. No planning timelines or scrobbles.
+- Offline catalogue/search merges snapshots, planned and completed tracks, inferring
+  missing artist/album parents. This is not a full-library crawl. Radio continuation
+  does not fetch new windows in explicit offline mode.
+- Server music hub sections, advertised station activation/download, same-type sonic
+  neighbor browsing and server-computed Sonic Adventure. No Guest DJ/Sonic Sage or
+  proprietary recommendation weighting is claimed.
+- Track/album/auto normalization, configurable headroom, bounded crossfade gain math,
+  fewer idle audio wakeups and smaller MPRIS projections. PCM fixtures verify FLAC,
+  same-album crossfade suppression, pause/prepared-successor retention and mixed-rate
+  joins. 44.1→48 kHz resampling produced a one-output-frame endpoint difference;
+  the test allows that measured rounding, never fabricates padding from DB duration.
+
+### Actual validation and live correction
+
+- Final local gates: 107 Rust tests (parity 12/12), fmt/Clippy, CTest 2/2 (13.57s),
+  39 locales × 470 context messages, SDK production and Qt5.6 fixture builds pass.
+  One earlier combined 300-second invocation expired during fixture packaging;
+  standalone fixture packaging and the final longer invocation completed.
+- Temporary phone fixture under an isolated `dbus-run-session` passed shared
+  discovery/quality/offline navigation, all management pages including audio settings,
+  MPRIS and passive polling (6 lifecycle/test entries), then real PulseAudio
+  generated-audio transport/history/logout (3 entries). No actual-account listening
+  events were fabricated by those loopback fixtures.
+- Initial live discovery failed with a static protocol error. A phone-only,
+  value-free field-type probe saw 12 hubs and four playlist `radio` strings.
+  A synthetic `radio:"1"` station regression reproduced the failure before the
+  tolerant parser fix. Final actual Rust-backed discovery returned 72 rows/4 stations.
+- The opt-in read-only Core probe requested 160 kbps progressive audio and received
+  exactly 262144 bytes in memory; its own transcode stop was acknowledged. It did
+  not play, store, scrobble or fetch artwork. Credentials and library values stayed
+  on the phone. This validates a sampled transfer, not every codec/server version.
+- Temporary-state rootless production QML smoke exited 0. Known vendor graphics/
+  EGL diagnostics remain, plus isolated-bus SELinux/maliit startup messages; no new
+  QML load error. Installed sandbox, physical Bluetooth buttons/calls, compressed
+  encoder-padding coverage and sustained power/routing checks remain open.
+- Final decoder-session UUID isolation regression and complete host/SDK rerun pass.
+  Temporary phone files were removed; the normal session bus still reports the
+  existing user player as PID 64815. The prepared package was not installed over it.

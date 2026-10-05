@@ -1,5 +1,39 @@
 # Validation record
 
+## Sailfish navigation flash — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Initial retained-page regression | Failed: root heading became Artist before navigation, expected Artists |
+| Page-local presentation regression | Passed: outgoing root/artist headings, detail identity and rows retained; back/reload snapshot and stable model identity checked |
+| Rust / formatting / Clippy | Passed: existing 107 Rust tests and all-feature warnings-as-errors gates |
+| Final desktop rebuild + CTest | Passed 2/2, 13.82s; native Silica-only case intentionally runs on Qt5 |
+| SDK production and expanded Qt5 fixture | Passed; existing package lint warnings only |
+| Phone snapshot + native forward stack | Passed: 4 lifecycle/test entries, no skips/failures |
+| Final fixture transfer (native pop/reload extension) | Blocked: SSH connection timeout; not run on hardware yet |
+
+The phone case instantiated the shipped LibraryPage/ArtistPage/AlbumPage under a
+real Silica ApplicationWindow/pageStack with synthetic metadata and an isolated
+session bus. It checked outgoing page content during real pushes, not just a
+standalone controller. The later fixture correction supplies the mock backend's
+loadingMoreChanged notification and additionally tests native pop/reload.
+No real Plex/media requests or credential fixtures were used. Deployment has not
+occurred while developer SSH is unreachable.
+
+### Retry completed — navigation fix deployed
+
+| Check | Actual result |
+| --- | --- |
+| Final Qt5.6 phone snapshot + real Silica push/pop/reload fixture | Passed: 4 lifecycle/test entries, 0 failures/skips |
+| Temporary-state production QML smoke | Exit 0; known vendor graphics/isolated-bus messages only |
+| Rootless deployment/restart | Completed in existing directory; credentials, saved queue and downloads retained |
+| Process/MPRIS ownership | Exactly one executable-path match: PID 24916; D-Bus owner PID matches |
+| Raise / temporary fixture cleanup | Raise dispatched; temporary navigation directory removed |
+
+The new presentation fix is now running on the phone. This resolves the SSH
+transfer/deployment blocker recorded above. Fixtures used synthetic metadata and
+isolated session buses; no live Plex mutations or fabricated account listens.
+
 ## Local test design
 
 `tests/core.rs` exercises repeat/skip/end, shuffled traversal/current retention,
@@ -682,3 +716,46 @@ uses the page-start correlation carried by actual runtime failures.
 
 These are local protocol/state/Qt and SDK build results; no phone deployment or
 hardware-runtime validation was performed in this follow-up.
+
+## Daily-use priorities 1–4 — 2026-10-04
+
+| Check | Actual result |
+| --- | --- |
+| Locked all-target/all-feature Clippy, fmt, Rust tests | Passed: 107 tests, parity 12/12, all existing suites green |
+| Desktop release + CTest | Passed 2/2; final decoder-session isolation run 13.57s |
+| Locale freshness/QM loading | Passed: 39 locales, 470 context messages; existing authored translations preserved |
+| SDK production RPM/rootless build | Passed; 0 rpmlint errors, existing no-url-tag warning |
+| SDK Qt5.6 fixture build | Passed; existing 2 fixture lint warnings |
+| Phone shared navigation/settings/management/MPRIS/passive checks | Passed: 6 lifecycle/test entries, no skips/failures |
+| Phone real PulseAudio generated-media transport/history/logout | Passed: 3 entries, no skips/failures |
+| Initial real-server discovery | Failed: string-valued station radio flag; reproduced synthetically and fixed |
+| Corrected real-server discovery | Passed: 72 entries, including 4 stations |
+| Bounded 160 kbps real-server transcode probe | Passed: 256 KiB received, session cleanup acknowledged; no real playback/storage/history event |
+| Phone temporary-state production QML smoke | Exit 0, known graphics/EGL diagnostics and isolated-bus startup messages only |
+
+Local protocol tests cover quality persistence/validation/network selection,
+representation-scoped downloads, original/transcode cleanup, progressive resume,
+timed multi-window radio plans without queue mutation, ordered playlist refresh,
+failed-refresh rollback, offline parent/search synthesis, grouped music-only hubs,
+string radio flags, station playback/download and server Sonic Adventure queries.
+Audio tests measure exact FLAC/WAV PCM joins, track/album/auto gain output,
+crossfade/headroom math, pause retaining a prepared successor and mixed-rate joins
+within one output frame (48 kHz stereo). These do not claim universal lossy-codec
+encoder-delay trimming or bit-perfect output.
+
+Phone tests used a fresh private test directory and isolated session buses, so
+MPRIS calls could not control the running user player. Synthetic sessions used
+temporary state. The live check used `pf_new_inspect` with existing credentials
+in place, printing only counts/byte counts; `probe_quality` reads at most 256 KiB
+and requests cleanup even on failed transfer. It does not save the sampled audio.
+
+Remaining device work: physical Bluetooth/headset keys, call interruption and
+routing recovery, installed Sailjail, long storage-pressure/offline/power sessions,
+and real-server full transcoded playback/seek and recommendation variants. Live
+playlist membership mutations and actual-account synthetic scrobbles were not used.
+
+After the final decoder-session UUID isolation change, the complete host and both
+SDK builds passed again. Phone checks above cover the preceding parser-corrected
+build; the UUID race has local protocol regression coverage. The temporary phone
+directory was removed. The existing player remains the normal-session MPRIS owner
+(PID 64815); the new package/bundle is prepared, not installed over that player.

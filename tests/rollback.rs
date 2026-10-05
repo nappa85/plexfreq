@@ -64,6 +64,7 @@ fn failed_track_resolution_and_reconnect_preserve_current_session() {
                 size: None,
                 ..Default::default()
             }],
+            ..Default::default()
         }],
         ..Default::default()
     };

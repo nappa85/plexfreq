@@ -7,6 +7,30 @@
       <translation>Звук · Налаштування</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Звук · Налаштування</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Звук</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Мережа · Звук</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Завантаження · Звук</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Декодер · Спробувати знову</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Звук · Налаштування · Далі · Треки · Завантаження · Готово · Звук</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Звук · Без пауз · PCM · Виведення</translation>
     </message>
@@ -25,6 +49,26 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Нормалізація</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Трек · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Альбоми · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Автовідтворення · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Звук · Гучність · Діапазон</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -46,6 +90,30 @@
       <translation>Звук · Налаштування</translation>
     </message>
     <message>
+      <source>Streaming quality</source>
+      <translation>Звук · Налаштування</translation>
+    </message>
+    <message>
+      <source>Wi-Fi audio</source>
+      <translation>Wi-Fi · Звук</translation>
+    </message>
+    <message>
+      <source>Mobile audio</source>
+      <translation>Мережа · Звук</translation>
+    </message>
+    <message>
+      <source>Download audio</source>
+      <translation>Завантаження · Звук</translation>
+    </message>
+    <message>
+      <source>Plex codec fallback</source>
+      <translation>Plex · Декодер · Спробувати знову</translation>
+    </message>
+    <message>
+      <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
+      <translation>Звук · Налаштування · Далі · Треки · Завантаження · Готово · Звук</translation>
+    </message>
+    <message>
       <source>Rust audio engine · gapless PCM output</source>
       <translation>Rust · Звук · Без пауз · PCM · Виведення</translation>
     </message>
@@ -64,6 +132,30 @@
     <message>
       <source>Normalize loudness</source>
       <translation>Нормалізація</translation>
+    </message>
+    <message>
+      <source>Normalization mode</source>
+      <translation>Нормалізація · Налаштування</translation>
+    </message>
+    <message>
+      <source>Album gain</source>
+      <translation>Альбоми · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Automatic gain</source>
+      <translation>Автовідтворення · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Track gain</source>
+      <translation>Трек · Нормалізація</translation>
+    </message>
+    <message>
+      <source>Headroom</source>
+      <translation>Звук · Гучність · Діапазон</translation>
+    </message>
+    <message>
+      <source>%1 dB</source>
+      <translation>%1 · dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
@@ -229,12 +321,28 @@
       <translation>Вибрати · 1–10 · Виконавці · Альбоми · Мікс</translation>
     </message>
     <message>
+      <source>Choose 30–480 minutes for a radio download</source>
+      <translation>Вибрати · 30–480 · Радіо · Завантаження</translation>
+    </message>
+    <message>
+      <source>Choose a music item</source>
+      <translation>Вибрати</translation>
+    </message>
+    <message>
       <source>Choose a playlist occurrence</source>
       <translation>Вибрати · Список відтворення · Трек</translation>
     </message>
     <message>
+      <source>Choose a playlist, album or radio download</source>
+      <translation>Вибрати · Список відтворення · Альбом · Радіо · Завантаження</translation>
+    </message>
+    <message>
       <source>Choose a track, album or playlist to pin</source>
       <translation>Вибрати · Трек · Альбом · Список відтворення · Зберегти без мережі</translation>
+    </message>
+    <message>
+      <source>Choose original audio or 64–320 kbps</source>
+      <translation>Вибрати · Звук · 64–320</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
@@ -295,6 +403,10 @@
     <message>
       <source>Go online to edit Plex playlists</source>
       <translation>У мережі · Plex · Списки відтворення</translation>
+    </message>
+    <message>
+      <source>Go online to refresh downloads</source>
+      <translation>У мережі · Оновити · Завантаження</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -437,6 +549,10 @@
       <translation>Радіо · Порядок · Зупинити · Перемішати</translation>
     </message>
     <message>
+      <source>Radio playback requires a connection</source>
+      <translation>Радіо · Відтворити · З’єднання</translation>
+    </message>
+    <message>
       <source>Radio returned no playable tracks</source>
       <translation>Радіо · Отримано · Немає · Відтворити · Треки</translation>
     </message>
@@ -501,8 +617,16 @@
       <translation>Трек · Немає · Відтворити · Дані</translation>
     </message>
     <message>
+      <source>This track has not been downloaded</source>
+      <translation>Трек · Недоступно · Завантажено</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Трек · Недоступно · Кеш · Завантажено · Треки</translation>
+    </message>
+    <message>
+      <source>Track duration is needed for a timed download</source>
+      <translation>Трек · Тривалість · Завантаження</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
@@ -593,6 +717,10 @@
       <translation>Список відтворення · Метадані</translation>
     </message>
     <message>
+      <source>radio download tracks</source>
+      <translation>Радіо · Завантаження · Треки</translation>
+    </message>
+    <message>
       <source>radio queue center</source>
       <translation>Радіо · Черга</translation>
     </message>
@@ -615,6 +743,10 @@
     <message>
       <source>server discovery</source>
       <translation>Сервер · Пошук</translation>
+    </message>
+    <message>
+      <source>sonic adventure</source>
+      <translation>Схожий</translation>
     </message>
   </context>
   <context>
@@ -679,6 +811,14 @@
       <translation>Завантаження · Керування</translation>
     </message>
     <message>
+      <source>Radio download length</source>
+      <translation>Радіо · Завантаження · Тривалість</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
+    </message>
+    <message>
       <source>Download only on Wi-Fi</source>
       <translation>Завантаження · Лише читання · Wi-Fi</translation>
     </message>
@@ -699,12 +839,24 @@
       <translation>%1 · MiB · Звук · Кеш · Використано</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Звук · Тривалість · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Треки · %3 · MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Поточний · Трек · %1 · MiB · Отримано</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>Відтворити</translation>
+    </message>
+    <message>
+      <source>Refresh</source>
+      <translation>Оновити</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -732,6 +884,14 @@
     <message>
       <source>Download manager</source>
       <translation>Завантаження · Керування</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Радіо · Завантаження · Тривалість</translation>
+    </message>
+    <message>
+      <source>%1 minutes</source>
+      <translation>%1 · min</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -762,6 +922,10 @@
       <translation>Синхронізувати · Історія</translation>
     </message>
     <message>
+      <source>Planned audio: %1</source>
+      <translation>Звук · Тривалість · %1</translation>
+    </message>
+    <message>
       <source>%1/%2 tracks · %3 MiB</source>
       <translation>%1/%2 · Треки · %3 · MiB</translation>
     </message>
@@ -772,6 +936,14 @@
     <message>
       <source>Current track: %1 MiB received</source>
       <translation>Поточний · Трек · %1 · MiB · Отримано</translation>
+    </message>
+    <message>
+      <source>Play downloaded tracks</source>
+      <translation>Відтворити · Завантажено · Треки</translation>
+    </message>
+    <message>
+      <source>Refresh download plan</source>
+      <translation>Оновити · Завантаження</translation>
     </message>
     <message>
       <source>Retry/resume</source>
@@ -788,6 +960,10 @@
   </context>
   <context>
     <name>LibraryPage</name>
+    <message>
+      <source>Discovery home</source>
+      <translation>Пошук · Медіатека</translation>
+    </message>
     <message>
       <source>Connection</source>
       <translation>З’єднання</translation>
@@ -915,6 +1091,26 @@
     <message>
       <source>Group albums by type</source>
       <translation>Типи · Альбоми</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Звук · Схожий</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Почати · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Трек</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Завантаження · Радіо · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Завантаження · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1088,6 +1284,10 @@
       <translation>Пошук</translation>
     </message>
     <message>
+      <source>Discovery home</source>
+      <translation>Пошук · Медіатека</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Улюблене · ★ · 5</translation>
     </message>
@@ -1166,6 +1366,26 @@
     <message>
       <source>Downloaded</source>
       <translation>Завантажено</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Звук · Схожий</translation>
+    </message>
+    <message>
+      <source>Start sonic adventure here</source>
+      <translation>Почати · Sonic · Adventure</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure to this track</source>
+      <translation>Sonic · Adventure · Трек</translation>
+    </message>
+    <message>
+      <source>Download radio · %1 minutes</source>
+      <translation>Завантаження · Радіо · %1 · min</translation>
+    </message>
+    <message>
+      <source>Download %1 minutes</source>
+      <translation>Завантаження · %1 · min</translation>
     </message>
     <message>
       <source>Play next</source>
@@ -1494,6 +1714,26 @@
       <translation>Виконавці</translation>
     </message>
     <message>
+      <source>Discover</source>
+      <translation>Пошук</translation>
+    </message>
+    <message>
+      <source>%1 kbps</source>
+      <translation>%1 · kbps</translation>
+    </message>
+    <message>
+      <source>Original audio</source>
+      <translation>Джерело · Звук</translation>
+    </message>
+    <message>
+      <source>Sonically similar</source>
+      <translation>Звук · Схожий</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Улюблене · ★ · 5</translation>
     </message>
@@ -1544,6 +1784,10 @@
     <message>
       <source>Track radio</source>
       <translation>Трек · Радіо</translation>
+    </message>
+    <message>
+      <source>Offline library</source>
+      <translation>Без мережі · Медіатека</translation>
     </message>
     <message>
       <source>Search results</source>

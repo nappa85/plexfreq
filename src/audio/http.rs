@@ -1,8 +1,71 @@
 //! Authenticated, redirect-confined HTTP byte transport. No credentials enter Gst URIs.
 use gstreamer as gst;
 use gstreamer_app as app;
-use std::{thread, time::Duration};
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        mpsc, Arc,
+    },
+    thread,
+    time::Duration,
+};
 use tokio::sync::watch;
+
+#[derive(Clone)]
+pub(super) struct SessionCloser(Arc<CloseWorker>);
+struct CloseWorker {
+    jobs: Option<mpsc::SyncSender<(url::Url, String)>>,
+    stopping: Arc<AtomicBool>,
+    worker: Option<thread::JoinHandle<()>>,
+}
+impl SessionCloser {
+    pub(super) fn new() -> crate::Result<Self> {
+        let (jobs, receiver) = mpsc::sync_channel::<(url::Url, String)>(64);
+        let stopping = Arc::new(AtomicBool::new(false));
+        let stop = stopping.clone();
+        let worker = thread::Builder::new()
+            .name("plexfreq-transcode-close".into())
+            .spawn(move || {
+                let Ok(client) = reqwest::blocking::Client::builder()
+                    .timeout(Duration::from_secs(2))
+                    .redirect(reqwest::redirect::Policy::none())
+                    .build()
+                else {
+                    return;
+                };
+                let mut shutdown_jobs = 0;
+                while let Ok((uri, token)) = receiver.recv() {
+                    if stop.load(Ordering::SeqCst) {
+                        if shutdown_jobs >= 2 {
+                            break;
+                        }
+                        shutdown_jobs += 1;
+                    }
+                    let _ = client.get(uri).header("X-Plex-Token", token).send();
+                }
+            })?;
+        Ok(Self(Arc::new(CloseWorker {
+            jobs: Some(jobs),
+            stopping,
+            worker: Some(worker),
+        })))
+    }
+    fn close(&self, uri: url::Url, token: String) {
+        // Cleanup cannot block transport; the server also expires idle sessions.
+        if let Some(jobs) = &self.0.jobs {
+            let _ = jobs.try_send((uri, token));
+        }
+    }
+}
+impl Drop for CloseWorker {
+    fn drop(&mut self) {
+        self.stopping.store(true, Ordering::SeqCst);
+        self.jobs.take();
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
+    }
+}
 
 #[derive(Default)]
 struct Representation {
@@ -76,7 +139,12 @@ pub struct Reader {
     worker: Option<thread::JoinHandle<()>>,
 }
 impl Reader {
-    pub fn new(source: &app::AppSrc, uri: String, token: String) -> crate::Result<Self> {
+    pub fn new(
+        source: &app::AppSrc,
+        uri: String,
+        token: String,
+        closer: SessionCloser,
+    ) -> crate::Result<Self> {
         let (stop, mut changed) = watch::channel(Some(0u64));
         let seek = stop.clone();
         source.set_callbacks(
@@ -86,6 +154,9 @@ impl Reader {
         );
         let output = source.clone();
         let worker=thread::Builder::new().name("plexfreq-stream".into()).spawn(move|| {
+            let stop_uri=url::Url::parse(&uri).ok().and_then(|url|crate::quality::stop_url(&url));
+            let stop_token=token.clone();
+            let progressive=stop_uri.is_some();
             let runtime=match tokio::runtime::Builder::new_current_thread().enable_all().build(){Ok(runtime)=>runtime,Err(_)=>{gst::element_error!(output,gst::ResourceError::Failed,["Audio streaming failed"]);return;}};
             runtime.block_on(async move {
                 // Redirects are disabled deliberately: the Plex token travels as
@@ -96,7 +167,8 @@ impl Reader {
                 let mut representation = Representation::default();
                 loop {
                     let Some(offset)=*changed.borrow_and_update() else{return;};
-                    let mut request_builder=client.get(&uri).header("Accept-Encoding", "identity").header("Range",format!("bytes={offset}-"));
+                    let mut request_builder=client.get(&uri).header("Accept-Encoding", "identity");
+                    if !progressive {request_builder=request_builder.header("Range",format!("bytes={offset}-"));}
                     if let Some(validator) = representation.validator.as_deref() {
                         request_builder = request_builder.header("If-Range", validator);
                     }
@@ -125,6 +197,11 @@ impl Reader {
                     if !interrupted && changed.changed().await.is_err(){return;}
                 }
             });
+            // The reader owns the server session, including predecoded successors.
+            // Normal finish/cancel/error and decoder teardown all take this path.
+            if let Some(stop_uri)=stop_uri {
+                closer.close(stop_uri,stop_token);
+            }
         })?;
         Ok(Self {
             stop,
