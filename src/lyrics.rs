@@ -88,6 +88,20 @@ pub fn normalize_cached(lines: Vec<Line>) -> Result<Vec<Line>> {
 }
 
 pub fn parse(text: &str) -> Vec<Line> {
+    fn is_metadata_tag(rest: &str) -> bool {
+        // LRC metadata like [ar:Artist], [ti:Title], [al:Album], [by:X],
+        // [length:03:12] carries a colon inside brackets. Plain bracketed
+        // content like [hello] or [Chorus] has no colon and must be kept.
+        // Empty brackets are never content.
+        if !(rest.starts_with('[') && rest.ends_with(']')) {
+            return false;
+        }
+        let inner = &rest[1..rest.len().saturating_sub(1)];
+        if inner.trim().is_empty() {
+            return true;
+        }
+        inner.contains(':')
+    }
     let mut lines = Vec::new();
     let mut offset = 0i64;
     for raw in text.trim_start_matches('\u{feff}').lines().take(10000) {
@@ -121,7 +135,7 @@ pub fn parse(text: &str) -> Vec<Line> {
                     text: rest.into(),
                 });
             }
-        } else if !(rest.is_empty() || rest.starts_with('[') && rest.ends_with(']')) {
+        } else if !rest.is_empty() && !is_metadata_tag(rest) {
             lines.push(Line {
                 time: None,
                 text: rest.into(),

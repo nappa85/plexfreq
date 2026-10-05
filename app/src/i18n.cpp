@@ -3,13 +3,41 @@
 #include <QLocale>
 #include <QDir>
 #include <QRegularExpression>
+#include <QSettings>
+
+static QString stripQuotes(const QString &value) {
+    QString v=value.trimmed();
+    if(v.size()>=2 && ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith('\'') && v.endsWith('\''))))v=v.mid(1,v.size()-2);
+    return v.trimmed();
+}
+QString translationLocale(const QString &overrideLocale, const QString &systemLocale, const QString &fallbackConfig) {
+    QString locale=stripQuotes(overrideLocale);
+    if(locale.isEmpty()) {
+        if(!fallbackConfig.isEmpty()) {
+            QSettings config(fallbackConfig,QSettings::IniFormat);
+            locale=stripQuotes(config.value("LC_MESSAGES").toString());
+            if(locale.isEmpty())locale=stripQuotes(config.value("LANG").toString());
+        }
+        if(locale.isEmpty())locale=stripQuotes(systemLocale);
+    }
+    locale=locale.section('.',0,0).section('@',0,0);locale.replace('-','_');
+    return locale;
+}
 
 void installTranslations(QCoreApplication *app) {
-    QString locale=QString::fromUtf8(qgetenv("PLEXFREQ_LANGUAGE"));if(locale.isEmpty())locale=QLocale::system().name();locale.replace('-','_');
-    QStringList tags{locale};if(locale.contains('_'))tags<<locale.section('_',0,0);
+    QString fallbackConfig;
+#ifdef SAILFISH
+    // Developer SSH launches may omit the locale inherited by normal GUI apps.
+    if(qgetenv("LC_ALL").isEmpty() && qgetenv("LC_MESSAGES").isEmpty() && qgetenv("LANG").isEmpty() && qgetenv("LANGUAGE").isEmpty())fallbackConfig="/etc/locale.conf";
+#endif
+    const QString locale=translationLocale(QString::fromUtf8(qgetenv("PLEXFREQ_LANGUAGE")),QLocale::system().name(),fallbackConfig);
+    // Install base first, then territory, so missing territory keys fall back
+    // to the base language instead of English. Keep every loaded translator
+    // alive via the app parent; install all that exist.
+    QStringList tags;if(locale.contains('_'))tags<<locale.section('_',0,0);tags<<locale;
     const QString binary=QCoreApplication::applicationDirPath();
     const QStringList paths{binary+"/translations",QDir(binary).absoluteFilePath("../share/plexfreq/translations"),"/usr/share/harbour-plexfreq/translations",":/translations"};
-    for(const auto &tag:tags)for(const auto &path:paths){auto *translator=new QTranslator(app);if(translator->load("harbour-plexfreq_"+tag,path)){app->installTranslator(translator);return;}delete translator;}
+    for(const auto &tag:tags)for(const auto &path:paths){auto *translator=new QTranslator(app);if(translator->load("harbour-plexfreq_"+tag,path)){app->installTranslator(translator);}else{delete translator;}}
 }
 QString translatedMessage(const QString &source) {
     if(source.isEmpty())return source;

@@ -76,6 +76,7 @@ struct Partial {
     item: Option<Item>,
 }
 struct State {
+    catalogue_revision: u64,
     gate: Arc<Gate>,
     manifest: Manifest,
     config: Config,
@@ -271,6 +272,7 @@ impl Cache {
             }
         }
         let state = Arc::new(Mutex::new(State {
+            catalogue_revision: 0,
             gate: Arc::new(Gate::default()),
             manifest,
             config,
@@ -332,6 +334,9 @@ impl Cache {
             .unwrap_or_else(|poison| poison.into_inner())
             .config
             .clone()
+    }
+    pub(crate) fn catalogue_revision(&self) -> u64 {
+        crate::mutex_lock(&self.state).catalogue_revision
     }
     pub fn gate(&self) -> Arc<Gate> {
         self.state
@@ -403,6 +408,7 @@ impl Cache {
             }
         }
         state.manifest.entries.clear();
+        state.catalogue_revision = state.catalogue_revision.wrapping_add(1);
         state.permanent.clear();
         state.error.clear();
         save(&self.root, &state)
@@ -524,6 +530,7 @@ impl Cache {
             .collect();
         for key in keys {
             if let Some(entry) = state.manifest.entries.remove(&key) {
+                state.catalogue_revision = state.catalogue_revision.wrapping_add(1);
                 if safe_file(&entry.file) {
                     let _ = fs::remove_file(self.root.join(entry.file));
                 }
@@ -695,6 +702,7 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
             .map(|(k, _)| k.clone());
         if let Some(old) = old {
             if let Some(entry) = state.manifest.entries.remove(&old) {
+                state.catalogue_revision = state.catalogue_revision.wrapping_add(1);
                 if safe_file(&entry.file) {
                     let _ = fs::remove_file(root.join(entry.file));
                 }
@@ -848,7 +856,12 @@ async fn download(
     let mime = headers
         .get("Content-Type")
         .and_then(|h| h.to_str().ok())
-        .unwrap_or("");
+        .unwrap_or("")
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase();
     if !(mime.is_empty()
         || mime.starts_with("audio/")
         || mime.starts_with("application/octet-stream")
@@ -893,7 +906,7 @@ async fn download(
     let extension = if batch.quality_kbps > 0 {
         "mp3".into()
     } else {
-        extension(part, mime)
+        extension(part, mime.as_str())
     };
     let mut file = {
         let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
@@ -982,6 +995,7 @@ async fn download(
             used: now(),
         },
     );
+    s.catalogue_revision = s.catalogue_revision.wrapping_add(1);
     s.error.clear();
     s.downloading = false;
     save(root, &s)?;

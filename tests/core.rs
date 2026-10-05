@@ -378,8 +378,8 @@ fn artist_alphabet_offsets_jump_to_server_sorted_page_and_search_is_encoded() {
             json!({"MediaContainer":{"Directory":[{"key":"#","title":"#","size":2},{"key":"A","title":"A","size":150},{"key":"B","title":"B","size":80}]}}),
         ),
         (
-            "X-Plex-Container-Start=152",
-            json!({"MediaContainer":{"size":1,"totalSize":232,"Metadata":[{"ratingKey":"10","type":"artist","title":"B fixture"}]}}),
+            "X-Plex-Container-Size=252",
+            json!({"MediaContainer":{"size":153,"totalSize":232,"Metadata":[{"ratingKey":"10","type":"artist","title":"B fixture"}]}}),
         ),
         (
             "title=Bj%C3%B6rk+%26+friends",
@@ -405,8 +405,9 @@ fn artist_alphabet_offsets_jump_to_server_sorted_page_and_search_is_encoded() {
             letter: "B".into(),
         })
         .unwrap();
-    assert_eq!(jump["start"], 152);
+    assert_eq!(jump["start"], 0);
     assert_eq!(jump["next"], 153);
+    assert_eq!(jump["selectedIndex"], 152);
     assert_eq!(jump["replaceItems"], true);
     assert!(core
         .execute(Command::JumpArtist {

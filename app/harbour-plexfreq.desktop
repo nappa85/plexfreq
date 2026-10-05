@@ -6,6 +6,6 @@ Exec=harbour-plexfreq
 X-Nemo-Application-Type=silica-qt5
 
 [X-Sailjail]
-Permissions=Internet;Audio
+Permissions=Internet;Audio;Bluetooth
 OrganizationName=org.plexfreq
 ApplicationName=harbour-plexfreq

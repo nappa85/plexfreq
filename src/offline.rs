@@ -66,6 +66,9 @@ pub struct Library {
     writable: bool,
 }
 impl Library {
+    pub(crate) fn catalogue_stamp(&self) -> Option<std::time::SystemTime> {
+        fs::metadata(&self.root).ok()?.modified().ok()
+    }
     pub fn new(root: PathBuf, writable: bool) -> Result<Self> {
         if writable {
             fs::create_dir_all(&root)?;
@@ -203,14 +206,28 @@ impl Library {
         }
     }
     pub fn lyrics(&self, namespace: &str, key: &str) -> Option<Vec<crate::lyrics::Line>> {
-        serde_json::from_slice(
-            &fs::read(self.root.join(format!("{namespace}-lyrics-{key}.json"))).ok()?,
-        )
-        .ok()
+        serde_json::from_slice(&fs::read(self.lyrics_file(namespace, key)).ok()?).ok()
+    }
+    fn lyrics_file(&self, namespace: &str, key: &str) -> PathBuf {
+        // Keys are numeric ratingKeys in production, but the storage layer must
+        // not trust callers: '/' or '..' would create nested/missing parents
+        // and silently lose lyrics. Safe keys keep the legacy filename for
+        // backward compatibility; anything else is hashed.
+        let safe = !key.is_empty()
+            && key.len() <= 64
+            && key
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_');
+        if safe {
+            self.root.join(format!("{namespace}-lyrics-{key}.json"))
+        } else {
+            self.root
+                .join(format!("{namespace}-lyrics-hash-{}.json", hash(key)))
+        }
     }
     pub fn save_lyrics(&self, namespace: &str, key: &str, lines: &[crate::lyrics::Line]) {
         if self.writable {
-            let target = self.root.join(format!("{namespace}-lyrics-{key}.json"));
+            let target = self.lyrics_file(namespace, key);
             let Ok(bytes) = serde_json::to_vec(lines) else {
                 return;
             };
@@ -294,6 +311,13 @@ impl Artwork {
                                 .headers()
                                 .get("content-type")
                                 .and_then(|h| h.to_str().ok())
+                                .map(|s| {
+                                    s.split(';')
+                                        .next()
+                                        .unwrap_or("")
+                                        .trim()
+                                        .to_ascii_lowercase()
+                                })
                                 .is_some_and(|s| s.starts_with("image/"))
                         {
                             return Err(Error::ProtocolAt("artwork"));

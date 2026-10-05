@@ -24,12 +24,13 @@ if ! docker image inspect "$image" >/dev/null 2>&1; then docker build -f "$root/
 export PKG_CONFIG_aarch64_unknown_linux_gnu="$root/tools/sdk-pkg-config.sh"
 export PKG_CONFIG_ALLOW_CROSS=1
 cargo build --manifest-path "$root/Cargo.toml" --locked --release --target "$triple" --lib
-mkdir -p "$root/app/thirdparty" "$root/build/sailfish"
-install -m 0644 "$root/target/$triple/release/libplexfreq_core.a" "$root/app/thirdparty/"
 # A disposable copy prevents SDK ownership changes/build debris in source files.
-rm -rf "$root/build/sailfish"
-mkdir -p "$root/build/sailfish"
+# Guard against an empty root (would delete /build/sailfish) and avoid dirtying
+# the source tree: stage QML first, then install the archive into the stage.
+rm -rf "${root:?}/build/sailfish"
+mkdir -p "$root/build/sailfish/thirdparty"
 cp -a "$root/app/." "$root/build/sailfish/"
+install -m 0644 "$root/target/$triple/release/libplexfreq_core.a" "$root/build/sailfish/thirdparty/"
 owner="$(id -u):$(id -g)"
 restore_owner() {
     local result=$?

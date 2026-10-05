@@ -321,8 +321,16 @@
       <translation>Escolher · 1–10 · Artistas · Álbuns · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Escolher · 2–8 · Faixas · Semelhante</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Escolher · 30–480 · Rádio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Escolher · 7 · 30 · 90 · Histórico</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Escolher · Playlist · Álbum · Rádio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Escolher · Atualizar · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Inválido · Decodificador · Áudio</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Inválido · Pesquisar</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Inválido · Filtro</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Inválido · Fila · Índice</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Indisponível · Artista · Rádio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Recebido · Nenhum · Semelhante · Faixa · Verificar · Biblioteca · Usado · Artista · Rádio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Fila · Faixas · Válido · Iniciar · Índice</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Inteligente · Playlist · Filtro · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Semelhante · Limite · 250 · Faixas</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Pesquisar · Configurações</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Pesquisar · Configurações</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Mover · Subir</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Mover · Descer</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Downloads · Gerenciador</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Reprodução automática · Atualizar · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Atualizar · Duração</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Atualizar · Downloads · Carregando</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Downloads · Gerenciador</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Reprodução automática · Atualizar · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Atualizar · Duração</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Atualizar · Downloads · Carregando</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Rádio · Downloads · Duração</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Pesquisar · Biblioteca</translation>
+      <source>Library filters</source>
+      <translation>Biblioteca · Filtro</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Conexão</translation>
+      <source>Smart playlist</source>
+      <translation>Inteligente · Playlists</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Downloads · Gerenciador</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligente · Playlists · Filtro · Somente leitura</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Criar · Playlist · Faixas · Fila</translation>
+      <source>Playlist name</source>
+      <translation>Playlist</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Reproduzir · Mix · %1 · Origem</translation>
+      <source>Artists</source>
+      <translation>Artistas</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Limpar · Mix</translation>
+      <source>Albums</source>
+      <translation>Álbuns</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Baixado</translation>
+      <source>Tracks</source>
+      <translation>Faixas</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Gênero</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Biblioteca · Salvo · Offline</translation>
+      <source>Mood</source>
+      <translation>Humor</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Salvo · Álbuns</translation>
+      <source>Style</source>
+      <translation>Estilo</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Downloads · Faixas</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Parar · Rádio</translation>
+      <source>Title contains</source>
+      <translation>Título · Filtro</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Ano · Iniciar</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Ano · Limite</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoritos · Limite</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Reproduzir · Nenhum</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ordenar</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limite · Faixas</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Biblioteca · Filtro</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Inteligente · Playlists</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligente · Playlists · Filtro · Somente leitura</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Playlist</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Biblioteca</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Fila</translation>
+      <source>Artists</source>
+      <translation>Artistas</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Playlists</translation>
+      <source>Albums</source>
+      <translation>Álbuns</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoritos · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Faixas</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Adicionados recentemente</translation>
+      <source>Genre</source>
+      <translation>Gênero</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Reproduzidos recentemente</translation>
+      <source>Mood</source>
+      <translation>Humor</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Subir</translation>
+      <source>Style</source>
+      <translation>Estilo</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Título · Filtro</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Ano · Iniciar</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Ano · Limite</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoritos · Limite</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Reproduzir · Nenhum</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ordenar</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limite · Faixas</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Histórico · Configurações</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Reproduzir · %2 · Histórico</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Histórico · local · Reproduzir · Metadados</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Histórico</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artistas</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Álbuns</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Faixas</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Reproduzir · %2 · Histórico</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Histórico · Configurações</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Reproduzir · %2 · Histórico</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Histórico · local · Reproduzir · Metadados</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Duração</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Histórico</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Biblioteca</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artistas</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Álbuns</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Faixas</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Reproduzir · %2 · Histórico</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Subir · Próximo</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Faixas · Pronto · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Pesquisar · Artistas · Álbuns · Faixas</translation>
+      <source>Library</source>
+      <translation>Biblioteca</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Biblioteca</translation>
+      <source>Search</source>
+      <translation>Pesquisar</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Faixas</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Ordenar</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Título</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adicionados recentemente</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Ano</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Tipos · Álbuns</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Pesquisar · Artistas · Álbuns · Faixas</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Biblioteca</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ordenar</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Adicionar · Sonic · Origem</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligente · Filtro · Configurações</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Conectar · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Usado · Conexão · Configurações</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Conexão · Configurações</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frequência · Pesquisar</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Conectar</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Downloads</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Gerenciador</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Biblioteca</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Rádio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Parar · Rádio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Pesquisar · Artistas · Álbuns · Faixas</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Pesquisar</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Playlists</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Pesquisar</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Pesquisar · Biblioteca</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoritos · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Adicionados recentemente</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Reproduzidos recentemente</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Subir</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artistas</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Subir · Próximo</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Biblioteca</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Fila</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Salvo · Álbuns</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Downloads · Faixas</translation>
+      <source>Artists</source>
+      <translation>Artistas</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Título</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Adicionados recentemente</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Ano</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Tipos · Álbum</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Novo · Playlist</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Baixado</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Adicionar · Sonic · Origem</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligente · Filtro · Configurações</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Biblioteca</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Configurações</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Biblioteca</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Mostrar tudo</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Pesquisar</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Biblioteca</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Playlists</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Pesquisar · Configurações</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Biblioteca · Filtro</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Tipos · Álbuns</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Criar · Inteligente · Playlists</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Criar · Playlist · Faixas · Fila</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Downloads · Faixas</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Limpar · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Limpar · Sonic · Origem</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Parar · Rádio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Fila</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Baixado</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Salvo · Álbuns</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Histórico · Configurações</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Favoritos · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adicionados recentemente</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Reproduzidos recentemente</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Downloads · Gerenciador</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Conexão</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Subir</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Biblioteca · Salvo · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Reproduzir · Mix · %1 · Origem</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Faixas</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Artistas</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Título</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adicionados recentemente</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Ano</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Reproduzidos recentemente</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Histórico · Reproduzir</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Aleatório</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filtro · Áudio</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Pesquisar</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Áudio · Semelhante</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoritos · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Adicionados recentemente</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Reproduzidos recentemente</translation>
     </message>
     <message>
       <source>Albums</source>

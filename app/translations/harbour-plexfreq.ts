@@ -321,7 +321,15 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -334,6 +342,10 @@
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -445,6 +457,14 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation type="unfinished" />
     </message>
@@ -533,6 +553,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation type="unfinished" />
     </message>
@@ -594,6 +618,10 @@
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -805,9 +833,47 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -886,6 +952,22 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation type="unfinished" />
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
+    <name>Filters</name>
+    <message>
+      <source>Library filters</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Genre</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Mood</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Style</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Any</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Genre</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Mood</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Style</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Any</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>All history</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Period</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>All history</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>LibraryPage</name>
-    <message>
-      <source>Discovery home</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Connection</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Download manager</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Clear mix seeds</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Downloaded music</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Browse saved library offline</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Download displayed tracks</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Stop radio</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Library</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Playlists</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Back</source>
-      <translation type="unfinished" />
-    </message>
     <message>
       <source>Up next</source>
       <translation type="unfinished" />
@@ -1057,11 +1303,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
+      <source>Library</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Browse</source>
+      <source>Search</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1077,11 +1323,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Sort</source>
+      <source>Title</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Title</source>
+      <source>Recently added</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1089,7 +1335,23 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Group albums by type</source>
+      <source>Search artists, albums and tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Edit smart filters</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1209,7 +1471,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
+      <source>Use the pull-up menu for connection settings</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1225,26 +1487,6 @@
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Offline library</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1264,10 +1506,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation type="unfinished" />
     </message>
@@ -1276,55 +1514,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Playlists</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Back</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Up next</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Library</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Download tracks</source>
+      <source>Artists</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1340,19 +1534,11 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Recently added</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Year</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Mix</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1365,6 +1551,14 @@
     </message>
     <message>
       <source>Downloaded</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Edit smart filters</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Library</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Back</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Title</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Discover</source>
       <translation type="unfinished" />
     </message>
@@ -1730,19 +2079,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently played</source>
       <translation type="unfinished" />
     </message>
     <message>

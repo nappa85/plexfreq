@@ -17,11 +17,23 @@ ApplicationWindow {
     palette.button: "#253040"
     palette.buttonText: "#edf0f5"
     palette.highlight: "#ebad3d"
-    Session { id: session }
+    property bool libraryView: navigation.libraryView
+    property alias navigationCatalogue: navigation
+    property bool showBack: navigation.definition("back").visible
+    Session { id: session; objectName:"musicSession" }
+    Navigation {
+        id:navigation;objectName:"navigationDefinitions";music:session
+        onConnectionRequested:settings.open()
+        onBackRequested:session.back()
+    }
     NowPlaying {id:nowPlaying;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
     PlaylistEditor {id:playlistEditor;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,500)}
     Downloads {id:downloadManager;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,620)}
     AudioSettings {id:audioSettings;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
+    Filters {id:filterEditor;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,500)}
+    DiscoverySettings {id:discoverySettings;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,500)}
+    Insights {id:insights;music:session;anchors.centerIn:parent;width:Math.min(window.width-40,600)}
+    Connections {target:session;onOpenFilterEditor:filterEditor.open();onOpenDiscoverySettings:discoverySettings.open();onOpenInsights:insights.open()}
     Connections {target:session;onOpenAudioSettings:audioSettings.open()}
     Connections {target:session;onEditPlaylistRequested:playlistEditor.open();onOpenDownloads:downloadManager.open()}
     Connections {target:session;onOpenPlayer:nowPlaying.open()}
@@ -33,10 +45,7 @@ ApplicationWindow {
             Label { text: "PlexFreq"; font.pixelSize: 30; font.bold: true; color: "#ebad3d" }
             Label { text: qsTr("Find your frequency."); Layout.fillWidth: true; color: "#9eaabd" }
             BusyIndicator { running: backend.busy; visible: running; Layout.preferredWidth: 32; Layout.preferredHeight: 32 }
-            Button { text: qsTr("Connect"); onClicked: settings.open() }
-            Button { text: qsTr("Downloads") + " (" + backend.cache.tracks + ")"; enabled: !backend.busy && backend.cache.tracks > 0; onClicked: session.downloads() }
-            Button {text:qsTr("Manage");onClicked:session.openDownloads()}
-            Button {text:backend.state.offlineMode?qsTr("Go online"):qsTr("Offline library");enabled:!backend.busy;onClicked:backend.command("offline_mode",{enabled:!backend.state.offlineMode})}
+            Switch {text:navigation.offlineLabel;checked:navigation.offlineEnabled;enabled:navigation.ready;onClicked:navigation.setOffline(checked)}
         }
         Label { text: backend.error; visible: text.length > 0; color: "#ff998b"; wrapMode: Text.Wrap; Layout.fillWidth: true }
         Label {text:qsTr("Offline · showing saved library metadata");visible:!!backend.state.offline;Layout.fillWidth:true;color:"#9eaabd"}
@@ -44,50 +53,70 @@ ApplicationWindow {
         RowLayout {
             visible: !!backend.state.radio
             Label { text: backend.state.radio ? qsTr("Radio") + " · " + backend.state.radio.title : ""; color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap }
-            Button { text: qsTr("Stop radio"); enabled: !backend.busy; onClicked: backend.command("stop_radio") }
         }
         RowLayout {
-            visible: !!backend.state.serverUrl && !session.detail && !session.showQueue
-            ComboBox {
-                model: backend.state.libraries; textRole: "title"; enabled: !backend.busy
-                onActivated: { session.section = model[currentIndex].key; session.browse() }
+            Layout.fillWidth:true;spacing:8
+            ToolButton {
+                id:destinationsButton
+                text:"☰";font.pixelSize:24;Layout.preferredWidth:44;Layout.preferredHeight:44
+                onClicked:destinationsMenu.open()
+                Accessible.name:navigation.destinationsTitle
+                ToolTip.text:navigation.destinationsTitle;ToolTip.visible:hovered;ToolTip.delay:500
             }
-            TextField { id: search; placeholderText: qsTr("Search artists, albums and tracks"); Layout.fillWidth: true; text:session.query; onTextChanged:session.search(text); onAccepted:session.submitSearch(text) }
-            Button { text: qsTr("Search"); enabled: !backend.busy; onClicked:session.submitSearch(search.text) }
-            Button { text: qsTr("Playlists"); enabled: !backend.busy; onClicked: session.load("playlists", {start:0}, qsTr("Playlists"), true) }
-            Button {text:qsTr("Discover");enabled:!backend.busy;onClicked:discoverMenu.open()
-                Menu {id:discoverMenu
-                    MenuItem {text:qsTr("Discovery home");onTriggered:session.home()}
-                    MenuItem {text:qsTr("Favorites · 5 stars");onTriggered:session.discovery("favorites")}
-                    MenuItem {text:qsTr("Recently added");onTriggered:session.discovery("added")}
-                    MenuItem {text:qsTr("Recently played");onTriggered:session.discovery("played")}
+            Repeater {
+                model:navigation.primaryDestinations
+                Button {
+                    property var descriptor:navigation.definition(modelData)
+                    objectName:descriptor.objectName;text:descriptor.text
+                    Layout.fillWidth:true;Layout.preferredWidth:1;Layout.minimumWidth:0;Layout.preferredHeight:44
+                    highlighted:descriptor.selected;enabled:descriptor.enabled
+                    onClicked:navigation.activate(modelData)
                 }
             }
+            ToolButton {text:"⋮";font.pixelSize:24;Layout.preferredWidth:44;Layout.preferredHeight:44;enabled:!backend.busy;onClicked:actionsMenu.open()
+                Accessible.name:navigation.actionsTitle
+                ToolTip.text:navigation.actionsTitle;ToolTip.visible:hovered;ToolTip.delay:500
+                NavigationMenu {id:actionsMenu;objectName:"pageActionsMenu";navigation:window.navigationCatalogue;actionIds:navigation.pageActions;y:parent.height}
+            }
+            NavigationMenu {id:destinationsMenu;objectName:"destinationsMenu";parent:destinationsButton;navigation:window.navigationCatalogue;actionIds:navigation.secondaryDestinations;y:parent.height}
         }
         RowLayout {
-            Button { text: "‹ " + qsTr("Back"); visible: session.canGoBack; enabled: !backend.busy; onClicked: session.back() }
-            Button { text: qsTr("Artists"); visible: session.canGoBack; enabled: !backend.busy; onClicked: session.browse() }
-            Label { text: session.showQueue ? qsTr("Up next") : session.heading; font.pixelSize: 23; Layout.fillWidth: true }
-            Button { text: session.showQueue ? qsTr("Library") : qsTr("Queue"); onClicked: session.showQueue = !session.showQueue }
-            Button {text:qsTr("Saved albums");visible:!!backend.state.offlineMode;enabled:!backend.busy;onClicked:session.load("offline_browse",{kind:"album"},qsTr("Saved albums"),true)}
-            Button { text: qsTr("Download tracks"); visible: !session.detail && session.items.length > 0 && session.items[0].type === "track"; enabled: !backend.busy && backend.cache.enabled; onClicked: session.downloadTracks() }
+            visible:!!backend.state.serverUrl && !session.detail && !session.showQueue
+            ComboBox {
+                visible:backend.state.libraries.length>1
+                model:backend.state.libraries;textRole:"title";enabled:!backend.busy
+                onActivated:{session.section=model[currentIndex].key;session.goHome(true)}
+            }
+            TextField {id:search;placeholderText:qsTr("Search artists, albums and tracks");Layout.fillWidth:true;text:session.query;onTextChanged:session.search(text);onAccepted:session.submitSearch(text)}
+            Button {text:qsTr("Search");enabled:!backend.busy;onClicked:session.submitSearch(search.text)}
+        }
+        RowLayout {
+            property bool showHeading:session.showQueue || (!session.detail && !window.libraryView && !session.homeView && (!session.route || session.route.op!=="playlists"))
+            visible:window.showBack || showHeading
+            Button {text:"‹ " + navigation.definition("back").text;visible:window.showBack;enabled:navigation.definition("back").enabled;onClicked:navigation.activate("back")}
+            Label {visible:parent.showHeading;text:session.showQueue ? qsTr("Up next") : session.heading;font.pixelSize:23;Layout.fillWidth:true}
+            Item {visible:!parent.showHeading;Layout.fillWidth:true}
         }
         Label {Layout.fillWidth:true;visible:!!session.playlist;text:session.playlist ? session.playlistSummary(session.playlist) : "";wrapMode:Text.Wrap;color:"#9eaabd"}
         Flow {
             Layout.fillWidth:true;spacing:12
-            visible:!session.showQueue && !session.playlist && !session.homeView
-            ComboBox {model:[qsTr("Artists"),qsTr("Albums"),qsTr("Tracks")];enabled:!backend.busy;onActivated:{session.browseKind=["artist","album","track"][currentIndex];if(session.browseKind==="artist" && session.browseSort==="year")session.browseSort="title";session.query="";session.browse()}}
-            ComboBox {model:session.browseKind==="artist"?[qsTr("Title"),qsTr("Recently added")]:[qsTr("Title"),qsTr("Recently added"),qsTr("Year")];enabled:!backend.busy;onActivated:{session.browseSort=["title","newest","year"][currentIndex];session.query="";session.browse()}}
-            Button {text:qsTr("Group album types");visible:session.detail && session.detail.type==="artist";enabled:!backend.busy;onClicked:session.groupAlbums()}
-            Button {text:qsTr("New playlist");enabled:!backend.busy && !backend.state.offlineMode;onClicked:session.playlistEditor("create",null)}
-            Button {text:qsTr("Mix")+" ("+session.mixSeeds.length+")";enabled:!backend.busy && session.mixSeeds.length>0;onClicked:session.playMix();onPressAndHold:session.mixSeeds=[]}
+            visible:window.libraryView
+            ComboBox {visible:window.libraryView;model:[qsTr("Artists"),qsTr("Albums"),qsTr("Tracks")];currentIndex:["artist","album","track"].indexOf(session.browseKind);enabled:!backend.busy;onActivated:{session.browseKind=["artist","album","track"][currentIndex];if(session.browseKind==="artist" && session.browseSort==="year")session.browseSort="title";session.query="";session.browseLibrary(null)}}
+            ComboBox {visible:window.libraryView;model:session.browseKind==="artist"?[qsTr("Title"),qsTr("Recently added")]:[qsTr("Title"),qsTr("Recently added"),qsTr("Year")];currentIndex:["title","newest","year"].indexOf(session.browseSort);enabled:!backend.busy;onActivated:{session.browseSort=["title","newest","year"][currentIndex];session.query="";session.browseLibrary(null)}}
         }
         RowLayout {
         Layout.fillWidth:true; Layout.fillHeight:true
         ListView {
             id: list; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 5
-            model: session.rows
+            model: session.artistBrowse ? null : session.rows
             function checkMore() { session.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
+            function positionArtist(index) {
+                Qt.callLater(function() {
+                    if (!footerItem || artistGrid.columns < 1) return
+                    var target=footerItem.y+Math.floor(index/artistGrid.columns)*artistGrid.cellHeight
+                    contentY=Math.max(originY,Math.min(target,Math.max(originY,contentHeight-height)))
+                })
+            }
             onContentYChanged:moreTimer.restart()
             onCountChanged:moreTimer.restart()
             onHeightChanged:moreTimer.restart()
@@ -95,7 +124,12 @@ ApplicationWindow {
             Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
             ScrollBar.vertical: ScrollBar {}
             section.property:session.homeView ? "groupTitle" : session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
-            section.delegate:Label {width:list.width;text:section;font.pixelSize:21;color:"#ebad3d";padding:8}
+            section.delegate:RowLayout {
+                property var groupItem:session.homeView ? session.groupHub(section,session.items) : null
+                width:list.width;height:implicitHeight
+                Label {Layout.fillWidth:true;Layout.minimumWidth:0;text:section;font.pixelSize:21;color:"#ebad3d";padding:8;leftPadding:0;wrapMode:Text.Wrap}
+                TextLink {text:navigation.showAllLabel;color:window.palette.highlight;pressedColor:window.palette.text;minimumTouchHeight:32;visible:!!parent.groupItem;Layout.maximumWidth:list.width*0.45;enabled:!backend.busy;onClicked:session.hub(parent.groupItem)}
+            }
             header: IntrinsicLoader {
                 width: list.width; active: !!session.detail
                 sourceComponent: Component { DetailHeader { width: list.width; music: session } }
@@ -120,6 +154,8 @@ ApplicationWindow {
                     RadioAction { actionName: session.radioActionText(itemData); visible: !session.artistBrowse && session.canRadio(itemData); enabled: !backend.busy; onClicked: session.startRadio(itemData) }
                     Button {text:"⋮";onClicked:entryMenu.open()
                         Menu {id:entryMenu
+                            MenuItem {text:qsTr("Add sonic waypoint");visible:itemData.type==="track";enabled:session.journeyTracks.length<8;onTriggered:session.addJourneyTrack(itemData)}
+                            MenuItem {text:qsTr("Edit smart filters");visible:itemData.type==="playlist" && !!itemData.smart && !itemData.station;enabled:!backend.state.offlineMode;onTriggered:session.editFilters("update",itemData)}
                             MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(itemData);onTriggered:session.sonicNeighbors(itemData)}
                             MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onTriggered:session.adventureStart=itemData}
                             MenuItem {text:qsTr("Sonic Adventure to this track");visible:itemData.type==="track" && !!session.adventureStart;onTriggered:session.sonicAdventure(itemData)}
@@ -145,17 +181,47 @@ ApplicationWindow {
                 }
             }
             footer: Item {
-                width:list.width; height:!session.showQueue && backend.state.hasMore ? 44 : 0
-                BusyIndicator { anchors.centerIn:parent; running:backend.loadingMore; opacity:running ? 1 : 0; width:36; height:36 }
-                Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:session.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:session.retryMore() }
+                width:list.width
+                property int pagingHeight:!session.showQueue && backend.state.hasMore ? 44 : 0
+                height:artistGrid.height+pagingHeight
+                GridView {
+                    id:artistGrid;width:parent.width;height:visible ? Math.ceil(count/columns)*cellHeight : 0
+                    visible:session.artistBrowse;model:visible ? session.rows : null;interactive:false
+                    property int columns:Math.max(1,Math.floor(width/170))
+                    cellWidth:width/columns;cellHeight:180
+                    delegate:ItemDelegate {
+                        property var itemData:entry
+                        width:artistGrid.cellWidth;height:artistGrid.cellHeight;enabled:!backend.busy
+                        onClicked:session.activate(itemData,index)
+                        contentItem:Column {
+                            spacing:8
+                            Image {x:8;width:parent.width-16;height:136;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                            Label {x:8;width:parent.width-16;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
+                        }
+                        Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:artistMenu.open()
+                            Menu {id:artistMenu
+                                MenuItem {text:qsTr("Sonically similar");onTriggered:session.sonicNeighbors(itemData)}
+                                MenuItem {text:qsTr("Start sonic adventure here");onTriggered:session.adventureStart=itemData}
+                                MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
+                                MenuItem {text:qsTr("Add as mix seed");onTriggered:session.addMixSeed(itemData)}
+                            }
+                        }
+                    }
+                }
+                Item {
+                    y:artistGrid.height;width:parent.width;height:parent.pagingHeight
+                    BusyIndicator { anchors.centerIn:parent; running:backend.loadingMore; opacity:running ? 1 : 0; width:36; height:36 }
+                    Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:session.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:session.retryMore() }
+                }
             }
             Label {
-                anchors.centerIn: parent; visible: list.count === 0 && !backend.busy
+                anchors.centerIn: parent; visible: (session.artistBrowse ? artistGrid.count===0 : list.count===0) && !backend.busy
                 text: backend.state.serverUrl ? qsTr("No music found.") : qsTr("Connect to your Plex music server to start listening.")
                 color: "#9eaabd"; width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
             }
         }
-        AlphabetRail { groups:session.alphabet; visible:session.artistBrowse && groups.length>0; Layout.preferredWidth:32; Layout.fillHeight:true; color:"#9eaabd"; highlightColor:"#ebad3d"; fontSize:16; onChosen:session.jump(letter) }
+        Connections {target:session;onArtistJumped:list.positionArtist(index)}
+        AlphabetRail { groups:session.alphabet; visible:session.artistBrowse && groups.length>0; Layout.preferredWidth:Math.max(44,implicitWidth); Layout.fillHeight:true; color:"#9eaabd"; highlightColor:"#ebad3d"; fontSize:16; onChosen:session.jump(letter) }
         }
         Rectangle { Layout.fillWidth: true; height: 1; color: "#303c4c" }
         RowLayout {

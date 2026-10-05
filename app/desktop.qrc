@@ -1,6 +1,9 @@
 <RCC><qresource prefix="/">
 <file>qml/desktop/Main.qml</file>
+<file>qml/desktop/NavigationMenu.qml</file>
 <file>qml/shared/Session.qml</file>
+<file>qml/shared/Navigation.qml</file>
+<file>qml/shared/TextLink.qml</file>
 <file>qml/shared/BrowsePageView.qml</file>
 <file>qml/shared/RadioIcon.qml</file>
 <file>qml/shared/IntrinsicLoader.qml</file>
@@ -11,4 +14,7 @@
 <file>qml/desktop/PlaylistEditor.qml</file>
 <file>qml/desktop/Downloads.qml</file>
 <file>qml/desktop/AudioSettings.qml</file>
+<file>qml/desktop/Filters.qml</file>
+<file>qml/desktop/DiscoverySettings.qml</file>
+<file>qml/desktop/Insights.qml</file>
 </qresource></RCC>

@@ -321,8 +321,16 @@
       <translation>বেছে নিন · 1–10 · শিল্পী · অ্যালবাম · মিশ্রণ</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>বেছে নিন · 2–8 · গান · অনুরূপ</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>বেছে নিন · 30–480 · রেডিও · ডাউনলোড</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>বেছে নিন · 7 · 30 · 90 · ইতিহাস</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>বেছে নিন · প্লেলিস্ট · অ্যালবাম · রেডিও · ডাউনলোড</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>বেছে নিন · রিফ্রেশ করুন · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>অবৈধ · ডিকোডার · অডিও</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>অবৈধ · অনুসন্ধান</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>অবৈধ · ফিল্টার</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>অবৈধ · সারি · সূচক</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · অনুপলব্ধ · শিল্পী · রেডিও</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · প্রাপ্ত · কোনোটিই নয় · অনুরূপ · গান · পরীক্ষা করুন · লাইব্রেরি · ব্যবহৃত · শিল্পী · রেডিও</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>সারি · গান · বৈধ · শুরু করুন · সূচক</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>স্মার্ট · প্লেলিস্ট · ফিল্টার · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>অনুরূপ · সীমা · 250 · গান</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>অনুসন্ধান · সেটিংস</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>অনুসন্ধান · সেটিংস</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>স্থানান্তর করুন · উপরে</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>স্থানান্তর করুন · নিচে</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>ডাউনলোড · ব্যবস্থাপনা</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>স্বয়ংক্রিয় চালনা · রিফ্রেশ করুন · ডাউনলোড</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>রিফ্রেশ করুন · সময়কাল</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>রিফ্রেশ করুন · ডাউনলোড · লোড হচ্ছে</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>ডাউনলোড · ব্যবস্থাপনা</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>স্বয়ংক্রিয় চালনা · রিফ্রেশ করুন · ডাউনলোড</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>রিফ্রেশ করুন · সময়কাল</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>রিফ্রেশ করুন · ডাউনলোড · লোড হচ্ছে</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>রেডিও · ডাউনলোড · সময়কাল</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>অনুসন্ধান · লাইব্রেরি</translation>
+      <source>Library filters</source>
+      <translation>লাইব্রেরি · ফিল্টার</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>সংযোগ</translation>
+      <source>Smart playlist</source>
+      <translation>স্মার্ট · প্লেলিস্ট</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>ডাউনলোড · ব্যবস্থাপনা</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>স্মার্ট · প্লেলিস্ট · ফিল্টার · শুধু পড়া</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>তৈরি করুন · প্লেলিস্ট · গান · সারি</translation>
-    </message>
-    <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>চালান · মিশ্রণ · %1 · উৎস</translation>
-    </message>
-    <message>
-      <source>Clear mix seeds</source>
-      <translation>পরিষ্কার করুন · মিশ্রণ</translation>
-    </message>
-    <message>
-      <source>Downloaded music</source>
-      <translation>ডাউনলোড হয়েছে</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>অনলাইন</translation>
-    </message>
-    <message>
-      <source>Browse saved library offline</source>
-      <translation>লাইব্রেরি · সংরক্ষিত · অফলাইন</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>সংরক্ষিত · অ্যালবাম</translation>
-    </message>
-    <message>
-      <source>Download displayed tracks</source>
-      <translation>ডাউনলোড · গান</translation>
-    </message>
-    <message>
-      <source>Stop radio</source>
-      <translation>বন্ধ করুন · রেডিও</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>লাইব্রেরি</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>সারি</translation>
-    </message>
-    <message>
-      <source>Playlists</source>
+      <source>Playlist name</source>
       <translation>প্লেলিস্ট</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>পছন্দের · ★ · 5</translation>
+      <source>Artists</source>
+      <translation>শিল্পী</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>সম্প্রতি যোগ করা</translation>
+      <source>Albums</source>
+      <translation>অ্যালবাম</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>সম্প্রতি চালানো</translation>
+      <source>Tracks</source>
+      <translation>গান</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>উপরে</translation>
+      <source>Genre</source>
+      <translation>ধরন</translation>
     </message>
+    <message>
+      <source>Mood</source>
+      <translation>মেজাজ</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>শৈলী</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>শিরোনাম · ফিল্টার</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>বছর · শুরু করুন</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>বছর · সীমা</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>পছন্দের · সীমা</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>চালান · কোনোটিই নয়</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>সাজান</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>সীমা · গান</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>লাইব্রেরি · ফিল্টার</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>স্মার্ট · প্লেলিস্ট</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>স্মার্ট · প্লেলিস্ট · ফিল্টার · শুধু পড়া</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>প্লেলিস্ট</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>শিল্পী</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>গান</translation>
+    </message>
+    <message>
+      <source>Genre</source>
+      <translation>ধরন</translation>
+    </message>
+    <message>
+      <source>Mood</source>
+      <translation>মেজাজ</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>শৈলী</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>শিরোনাম · ফিল্টার</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>বছর · শুরু করুন</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>বছর · সীমা</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>পছন্দের · সীমা</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>চালান · কোনোটিই নয়</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>সাজান</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>সীমা · গান</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ইতিহাস · সেটিংস</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · চালান · %2 · ইতিহাস</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ইতিহাস · local · চালান · মেটাডেটা</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ইতিহাস</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>শিল্পী</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>গান</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · চালান · %2 · ইতিহাস</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ইতিহাস · সেটিংস</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · চালান · %2 · ইতিহাস</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ইতিহাস · local · চালান · মেটাডেটা</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>সময়কাল</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ইতিহাস</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>শিল্পী</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>গান</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · চালান · %2 · ইতিহাস</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>উপরে · পরবর্তী</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · গান · প্রস্তুত · অফলাইন</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>অনুসন্ধান · শিল্পী · অ্যালবাম · গান</translation>
+      <source>Library</source>
+      <translation>লাইব্রেরি</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>লাইব্রেরি</translation>
+      <source>Search</source>
+      <translation>অনুসন্ধান</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>গান</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>সাজান</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>শিরোনাম</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>সম্প্রতি যোগ করা</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>বছর</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>ধরন · অ্যালবাম</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>অনুসন্ধান · শিল্পী · অ্যালবাম · গান</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>সাজান</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>যোগ করুন · Sonic · উৎস</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>স্মার্ট · ফিল্টার · সেটিংস</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>সংযোগ করুন · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>ব্যবহৃত · সংযোগ · সেটিংস</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · সংযোগ · সেটিংস</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>কম্পাঙ্ক · অনুসন্ধান</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>সংযোগ করুন</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>ডাউনলোড</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>ব্যবস্থাপনা</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>অনলাইন</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>অফলাইন · লাইব্রেরি</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>রেডিও</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>বন্ধ করুন · রেডিও</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>অনুসন্ধান · শিল্পী · অ্যালবাম · গান</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>অনুসন্ধান</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>প্লেলিস্ট</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>অনুসন্ধান</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>অনুসন্ধান · লাইব্রেরি</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>পছন্দের · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>সম্প্রতি যোগ করা</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>সম্প্রতি চালানো</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>উপরে</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>শিল্পী</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>উপরে · পরবর্তী</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>লাইব্রেরি</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>সারি</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>সংরক্ষিত · অ্যালবাম</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>ডাউনলোড · গান</translation>
+      <source>Artists</source>
+      <translation>শিল্পী</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>শিরোনাম</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>সম্প্রতি যোগ করা</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>বছর</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>ধরন · অ্যালবাম</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>নতুন · প্লেলিস্ট</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>মিশ্রণ</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>ডাউনলোড হয়েছে</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>যোগ করুন · Sonic · উৎস</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>স্মার্ট · ফিল্টার · সেটিংস</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>অফলাইন · লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>সেটিংস</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>সব দেখান</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>অনুসন্ধান</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>লাইব্রেরি</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>প্লেলিস্ট</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>অনুসন্ধান · সেটিংস</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>লাইব্রেরি · ফিল্টার</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>ধরন · অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>তৈরি করুন · স্মার্ট · প্লেলিস্ট</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>তৈরি করুন · প্লেলিস্ট · গান · সারি</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>ডাউনলোড · গান</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>পরিষ্কার করুন · মিশ্রণ</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>পরিষ্কার করুন · Sonic · উৎস</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>বন্ধ করুন · রেডিও</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>সারি</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>ডাউনলোড হয়েছে</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>সংরক্ষিত · অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>ইতিহাস · সেটিংস</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>পছন্দের · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>সম্প্রতি যোগ করা</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>সম্প্রতি চালানো</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>ডাউনলোড · ব্যবস্থাপনা</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>সংযোগ</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>উপরে</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>অনলাইন</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>লাইব্রেরি · সংরক্ষিত · অফলাইন</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>চালান · মিশ্রণ · %1 · উৎস</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · মিশ্রণ · %1 · গান</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>শিল্পী</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>শিরোনাম</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>সম্প্রতি যোগ করা</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>বছর</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>সম্প্রতি চালানো</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>ইতিহাস · চালান</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>এলোমেলো</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>ফিল্টার · অডিও</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>অনুসন্ধান</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>অডিও · অনুরূপ</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>পছন্দের · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>সম্প্রতি যোগ করা</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>সম্প্রতি চালানো</translation>
     </message>
     <message>
       <source>Albums</source>

@@ -7,12 +7,16 @@ Item {
     property color highlightColor: "#ebad3d"
     property real fontSize: 16
     property string selected: ""
+    property real minimumTouchWidth: 44
+    Accessible.role: Accessible.List
+    Accessible.name: "Alphabet"
     signal chosen(string letter)
     function selectAt(y) {
         if (!groups.length || height<=0) return
         var index=Math.max(0,Math.min(groups.length-1,Math.floor(y*groups.length/height)))
         selected=groups[index].letter
     }
+    implicitWidth: minimumTouchWidth
     Column {
         width:parent.width
         Repeater {

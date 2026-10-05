@@ -321,8 +321,16 @@
       <translation>चुनें · 1–10 · कलाकार · एल्बम · मिश्रण</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>चुनें · 2–8 · गीत · समान</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>चुनें · 30–480 · रेडियो · डाउनलोड</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>चुनें · 7 · 30 · 90 · इतिहास</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>चुनें · प्लेलिस्ट · एल्बम · रेडियो · डाउनलोड</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>चुनें · ताज़ा करें · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>अमान्य · डिकोडर · ऑडियो</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>अमान्य · खोज</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>अमान्य · फ़िल्टर</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>अमान्य · कतार · सूचकांक</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · अनुपलब्ध · कलाकार · रेडियो</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · प्राप्त · कोई नहीं · समान · गीत · जाँचें · लाइब्रेरी · प्रयुक्त · कलाकार · रेडियो</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>कतार · गीत · मान्य · शुरू करें · सूचकांक</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>स्मार्ट · प्लेलिस्ट · फ़िल्टर · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>समान · सीमा · 250 · गीत</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>खोज · सेटिंग्स</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>खोज · सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>स्थान बदलें · ऊपर</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>स्थान बदलें · नीचे</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>डाउनलोड · प्रबंधन</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>स्वतः चलाएँ · ताज़ा करें · डाउनलोड</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ताज़ा करें · अवधि</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ताज़ा करें · डाउनलोड · लोड हो रहा है</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>डाउनलोड · प्रबंधन</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>स्वतः चलाएँ · ताज़ा करें · डाउनलोड</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ताज़ा करें · अवधि</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ताज़ा करें · डाउनलोड · लोड हो रहा है</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>रेडियो · डाउनलोड · अवधि</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>खोज · लाइब्रेरी</translation>
+      <source>Library filters</source>
+      <translation>लाइब्रेरी · फ़िल्टर</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>कनेक्शन</translation>
+      <source>Smart playlist</source>
+      <translation>स्मार्ट · प्लेलिस्ट</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>डाउनलोड · प्रबंधन</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>स्मार्ट · प्लेलिस्ट · फ़िल्टर · केवल पढ़ने के लिए</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>बनाएँ · प्लेलिस्ट · गीत · कतार</translation>
-    </message>
-    <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>चलाएँ · मिश्रण · %1 · स्रोत</translation>
-    </message>
-    <message>
-      <source>Clear mix seeds</source>
-      <translation>साफ़ करें · मिश्रण</translation>
-    </message>
-    <message>
-      <source>Downloaded music</source>
-      <translation>डाउनलोड हुआ</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ऑनलाइन</translation>
-    </message>
-    <message>
-      <source>Browse saved library offline</source>
-      <translation>लाइब्रेरी · सहेजा गया · ऑफ़लाइन</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>सहेजा गया · एल्बम</translation>
-    </message>
-    <message>
-      <source>Download displayed tracks</source>
-      <translation>डाउनलोड · गीत</translation>
-    </message>
-    <message>
-      <source>Stop radio</source>
-      <translation>बंद करें · रेडियो</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>लाइब्रेरी</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>कतार</translation>
-    </message>
-    <message>
-      <source>Playlists</source>
+      <source>Playlist name</source>
       <translation>प्लेलिस्ट</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>पसंदीदा · ★ · 5</translation>
+      <source>Artists</source>
+      <translation>कलाकार</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>हाल में जोड़े गए</translation>
+      <source>Albums</source>
+      <translation>एल्बम</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>हाल में चलाए गए</translation>
+      <source>Tracks</source>
+      <translation>गीत</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>ऊपर</translation>
+      <source>Genre</source>
+      <translation>शैली</translation>
     </message>
+    <message>
+      <source>Mood</source>
+      <translation>मनोभाव</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>अंदाज़</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>शीर्षक · फ़िल्टर</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>वर्ष · शुरू करें</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>वर्ष · सीमा</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>पसंदीदा · सीमा</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>चलाएँ · कोई नहीं</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>क्रमबद्ध करें</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>सीमा · गीत</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>लाइब्रेरी · फ़िल्टर</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>स्मार्ट · प्लेलिस्ट</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>स्मार्ट · प्लेलिस्ट · फ़िल्टर · केवल पढ़ने के लिए</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>प्लेलिस्ट</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>कलाकार</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>एल्बम</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>गीत</translation>
+    </message>
+    <message>
+      <source>Genre</source>
+      <translation>शैली</translation>
+    </message>
+    <message>
+      <source>Mood</source>
+      <translation>मनोभाव</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>अंदाज़</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>शीर्षक · फ़िल्टर</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>वर्ष · शुरू करें</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>वर्ष · सीमा</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>पसंदीदा · सीमा</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>चलाएँ · कोई नहीं</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>क्रमबद्ध करें</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>सीमा · गीत</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>इतिहास · सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · चलाएँ · %2 · इतिहास</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>इतिहास · local · चलाएँ · मेटाडेटा</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · इतिहास</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>कलाकार</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>एल्बम</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>गीत</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · चलाएँ · %2 · इतिहास</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>इतिहास · सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · चलाएँ · %2 · इतिहास</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>इतिहास · local · चलाएँ · मेटाडेटा</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>अवधि</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · इतिहास</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>कलाकार</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>एल्बम</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>गीत</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · चलाएँ · %2 · इतिहास</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>ऊपर · अगला</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · गीत · तैयार · ऑफ़लाइन</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>खोज · कलाकार · एल्बम · गीत</translation>
+      <source>Library</source>
+      <translation>लाइब्रेरी</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>लाइब्रेरी</translation>
+      <source>Search</source>
+      <translation>खोज</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>गीत</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>क्रमबद्ध करें</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>शीर्षक</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>हाल में जोड़े गए</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>वर्ष</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>प्रकार · एल्बम</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>खोज · कलाकार · एल्बम · गीत</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>क्रमबद्ध करें</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>जोड़ें · Sonic · स्रोत</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>स्मार्ट · फ़िल्टर · सेटिंग्स</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>जोड़ें · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>प्रयुक्त · कनेक्शन · सेटिंग्स</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · कनेक्शन · सेटिंग्स</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>आवृत्ति · खोज</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>जोड़ें</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>डाउनलोड</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>प्रबंधन</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ऑनलाइन</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>ऑफ़लाइन · लाइब्रेरी</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>रेडियो</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>बंद करें · रेडियो</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>खोज · कलाकार · एल्बम · गीत</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>खोज</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>प्लेलिस्ट</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>खोज</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>खोज · लाइब्रेरी</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>पसंदीदा · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>हाल में जोड़े गए</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>हाल में चलाए गए</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>ऊपर</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>कलाकार</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>ऊपर · अगला</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>लाइब्रेरी</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>कतार</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>सहेजा गया · एल्बम</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>डाउनलोड · गीत</translation>
+      <source>Artists</source>
+      <translation>कलाकार</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>शीर्षक</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>हाल में जोड़े गए</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>वर्ष</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>प्रकार · एल्बम</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>नया · प्लेलिस्ट</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>मिश्रण</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>डाउनलोड हुआ</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>जोड़ें · Sonic · स्रोत</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>स्मार्ट · फ़िल्टर · सेटिंग्स</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>ऑफ़लाइन · लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>सभी दिखाएँ</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>खोज</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>लाइब्रेरी</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>प्लेलिस्ट</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>खोज · सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>लाइब्रेरी · फ़िल्टर</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>प्रकार · एल्बम</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>बनाएँ · स्मार्ट · प्लेलिस्ट</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>बनाएँ · प्लेलिस्ट · गीत · कतार</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>डाउनलोड · गीत</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>साफ़ करें · मिश्रण</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>साफ़ करें · Sonic · स्रोत</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>बंद करें · रेडियो</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>कतार</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>डाउनलोड हुआ</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>सहेजा गया · एल्बम</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>इतिहास · सेटिंग्स</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>पसंदीदा · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>हाल में जोड़े गए</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>हाल में चलाए गए</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>डाउनलोड · प्रबंधन</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>कनेक्शन</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>ऊपर</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ऑनलाइन</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>लाइब्रेरी · सहेजा गया · ऑफ़लाइन</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>चलाएँ · मिश्रण · %1 · स्रोत</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · मिश्रण · %1 · गीत</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>कलाकार</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>शीर्षक</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>हाल में जोड़े गए</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>वर्ष</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>हाल में चलाए गए</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>इतिहास · चलाएँ</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>शफ़ल</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>फ़िल्टर · ऑडियो</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>खोज</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>ऑडियो · समान</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>पसंदीदा · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>हाल में जोड़े गए</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>हाल में चलाए गए</translation>
     </message>
     <message>
       <source>Albums</source>

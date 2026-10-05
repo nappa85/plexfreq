@@ -321,8 +321,16 @@
       <translation>Vælg · 1–10 · Kunstnere · Album · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Vælg · 2–8 · Numre · Lignende</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Vælg · 30–480 · Radio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Vælg · 7 · 30 · 90 · Historik</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Vælg · Afspilningsliste · Album · Radio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Vælg · Opdater · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Ugyldig · Dekoder · Lyd</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Ugyldig · Søg</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Ugyldig · Filter</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Ugyldig · Kø · Indeks</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Ikke tilgængelig · Kunstner · Radio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Modtaget · Ingen · Lignende · Nummer · Kontroller · Bibliotek · Brugt · Kunstner · Radio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Kø · Numre · Gyldig · Start · Indeks</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Smart · Afspilningsliste · Filter · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Lignende · Grænse · 250 · Numre</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Søg · Indstillinger</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Søg · Indstillinger</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Flyt · Op</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Flyt · Ned</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Downloads · Administration</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatisk afspilning · Opdater · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Opdater · Varighed</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Opdater · Downloads · Indlæser</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Downloads · Administration</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatisk afspilning · Opdater · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Opdater · Varighed</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Opdater · Downloads · Indlæser</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radio · Downloads · Varighed</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Søg · Bibliotek</translation>
+      <source>Library filters</source>
+      <translation>Bibliotek · Filter</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Forbindelse</translation>
+      <source>Smart playlist</source>
+      <translation>Smart · Afspilningslister</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Downloads · Administration</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Smart · Afspilningslister · Filter · Skrivebeskyttet</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Opret · Afspilningsliste · Numre · Kø</translation>
+      <source>Playlist name</source>
+      <translation>Afspilningsliste</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Afspil · Mix · %1 · Kilde</translation>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Tøm · Mix</translation>
+      <source>Albums</source>
+      <translation>Album</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Downloadet</translation>
+      <source>Tracks</source>
+      <translation>Numre</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Bibliotek · Gemt · Offline</translation>
+      <source>Mood</source>
+      <translation>Stemning</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Gemt · Album</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Downloads · Numre</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Stop · Radio</translation>
+      <source>Title contains</source>
+      <translation>Titel · Filter</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>År · Start</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>År · Grænse</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoritter · Grænse</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Afspil · Ingen</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorter</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Grænse · Numre</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotek · Filter</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Smart · Afspilningslister</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Smart · Afspilningslister · Filter · Skrivebeskyttet</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Afspilningsliste</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Bibliotek</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Kø</translation>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Afspilningslister</translation>
+      <source>Albums</source>
+      <translation>Album</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoritter · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Numre</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Nyligt tilføjet</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Nyligt afspillet</translation>
+      <source>Mood</source>
+      <translation>Stemning</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Op</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Titel · Filter</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>År · Start</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>År · Grænse</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoritter · Grænse</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Afspil · Ingen</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorter</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Grænse · Numre</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historik · Indstillinger</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Afspil · %2 · Historik</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Historik · local · Afspil · Metadata</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Historik</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Album</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Numre</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Afspil · %2 · Historik</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historik · Indstillinger</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Afspil · %2 · Historik</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Historik · local · Afspil · Metadata</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Varighed</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Historik</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Album</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Numre</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Afspil · %2 · Historik</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Op · Næste</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Numre · Klar · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Søg · Kunstnere · Album · Numre</translation>
+      <source>Library</source>
+      <translation>Bibliotek</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Bibliotek</translation>
+      <source>Search</source>
+      <translation>Søg</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Numre</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Sorter</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nyligt tilføjet</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>År</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Typer · Album</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Søg · Kunstnere · Album · Numre</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorter</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Tilføj · Sonic · Kilde</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Smart · Filter · Indstillinger</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Forbind · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Brugt · Forbindelse · Indstillinger</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Forbindelse · Indstillinger</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frekvens · Søg</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Forbind</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Downloads</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Administration</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Bibliotek</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Stop · Radio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Søg · Kunstnere · Album · Numre</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Søg</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Afspilningslister</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Søg</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Søg · Bibliotek</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoritter · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nyligt tilføjet</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nyligt afspillet</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Op</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Kunstnere</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Op · Næste</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Bibliotek</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Kø</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Gemt · Album</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Downloads · Numre</translation>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Titel</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Nyligt tilføjet</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>År</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Typer · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Ny · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Downloadet</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Tilføj · Sonic · Kilde</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Smart · Filter · Indstillinger</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Bibliotek</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Indstillinger</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Vis alle</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Søg</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Afspilningslister</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Søg · Indstillinger</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotek · Filter</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Typer · Album</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Opret · Smart · Afspilningslister</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Opret · Afspilningsliste · Numre · Kø</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Downloads · Numre</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Tøm · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Tøm · Sonic · Kilde</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Stop · Radio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Kø</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Downloadet</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Gemt · Album</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historik · Indstillinger</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Favoritter · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nyligt tilføjet</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nyligt afspillet</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Downloads · Administration</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Forbindelse</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Op</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Bibliotek · Gemt · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Afspil · Mix · %1 · Kilde</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Numre</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Kunstnere</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nyligt tilføjet</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>År</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nyligt afspillet</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Historik · Afspil</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Bland</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filter · Lyd</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Søg</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Lyd · Lignende</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoritter · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nyligt tilføjet</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nyligt afspillet</translation>
     </message>
     <message>
       <source>Albums</source>

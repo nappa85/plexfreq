@@ -7,6 +7,10 @@ Dialog {
     property var music
     title:qsTr("Download manager");standardButtons:Dialog.Close
     contentItem:ColumnLayout {
+        Switch {text:qsTr("Automatically refresh download plans");checked:!!backend.cache.autoRefresh;onClicked:backend.command("refresh_policy",{enabled:checked,interval_hours:backend.cache.refreshHours || 6})}
+        ComboBox {Layout.fillWidth:true;visible:!!backend.cache.autoRefresh;model:[1,6,12,24];displayText:qsTr("Refresh interval")+": "+qsTr("%1 hours").arg(backend.cache.refreshHours || 6);onActivated:backend.command("refresh_policy",{enabled:true,interval_hours:model[currentIndex]})}
+        Label {Layout.fillWidth:true;visible:!!backend.cache.refreshingGroup;text:qsTr("Refreshing download plans…");wrapMode:Text.Wrap}
+        Label {Layout.fillWidth:true;text:backend.cache.refreshError || "";visible:text.length>0;wrapMode:Text.Wrap;color:"#ff998b"}
         ComboBox {Layout.fillWidth:true;model:[30,60,120,240,480];displayText:qsTr("Radio download length")+": "+qsTr("%1 minutes").arg(music.downloadMinutes);onActivated:music.downloadMinutes=model[currentIndex]}
         Switch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
         Button {text:backend.cache.paused ? qsTr("Resume downloads") : qsTr("Pause downloads");onClicked:backend.command("download_policy",{wifi_only:!!backend.cache.wifiOnly,paused:!backend.cache.paused})}

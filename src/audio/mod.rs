@@ -384,16 +384,45 @@ impl Decoder {
                 self.pcm.clear();
                 continue;
             }
-            let map = sample
+            let buffer = sample
                 .buffer()
-                .ok_or(Error::Input("Invalid decoded audio"))?
+                .ok_or(Error::Input("Invalid decoded audio"))?;
+            let map = buffer
                 .map_readable()
                 .map_err(|_| Error::Input("Invalid decoded audio"))?;
             if map.len() % 8 != 0 {
                 return Err(Error::Input("Invalid decoded audio"));
             }
+            let mut first = 0usize;
+            let mut end = map.len() / 8;
+            if let (Some(pts), Some(segment)) = (
+                buffer.pts(),
+                sample
+                    .segment()
+                    .and_then(|segment| segment.downcast_ref::<gst::ClockTime>()),
+            ) {
+                let frames = |time: gst::ClockTime| {
+                    ((u128::from(time.nseconds()) * u128::from(RATE) + 500_000_000) / 1_000_000_000)
+                        .min(usize::MAX as u128) as usize
+                };
+                if let Some(start) = segment.start() {
+                    if pts < start {
+                        first = frames(start - pts).min(end);
+                    }
+                }
+                if let Some(stop) = segment.stop() {
+                    end = if pts >= stop {
+                        0
+                    } else {
+                        end.min(frames(stop - pts))
+                    };
+                }
+            }
+            // Container edit lists/segment limits, not Plex database duration,
+            // define encoder priming/padding boundaries at the PCM sink.
+            first = first.min(end);
             self.pcm.extend(
-                map.as_slice()
+                map.as_slice()[first * 8..end * 8]
                     .as_chunks::<4>()
                     .0
                     .iter()

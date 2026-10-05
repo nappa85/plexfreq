@@ -1,5 +1,86 @@
 # Development roadmap
 
+Show all and Read more/less now use shared lightweight text links. Italian phone
+launch corrected by reading the configured locale when SSH omits language variables;
+actual fallback test and production startup pass. Latest app deployed/raised on phone
+(PID/MPRIS 18911). Separate detail pixel check remains limited by window exposure.
+
+Discovery header overlap corrected: title margin removed, title bounded before
+the button, and shared action shortened to Show all / Mostra tutto. Desktop/SDK
+checks and phone fixture/production startup checks pass with explicit exit statuses.
+Update deployed and raised on phone, app/MPRIS PID 14813. Interactive confirmation
+of long real group headings remains user-led.
+
+Phone retry completed: shared-policy and native navigation/caption/geometry checks
+pass, production QML smoke passes, and latest shared-navigation bundle is deployed
+and raised with sole app/MPRIS PID 10743. Saved session and downloads retained;
+the connectivity/deployment blocker recorded below is resolved.
+
+Latest shared-catalogue phone launch requested; initial policy fixture passed and
+native caption-parent binding corrected. Final native fixture and deployment are
+blocked by repeated No route to host for 192.168.1.120. Corrected bundle is built;
+resume transfer, geometry check and launch when developer SSH is reachable.
+
+## Shared navigation/main-menu definitions — 2026-10-05
+
+Completed: primary destinations and both main-menu groups share one QtQuick2.6
+catalogue, including labels, ordering, capabilities, selection and dispatch. Desktop
+and Sailfish keep native rendering/window/page-stack adapters. Shared policy and
+actual desktop adapter regressions pass, as do host and Sailfish build gates. Local
+desktop update is running; Sailfish runtime verification of the new repeaters remains
+distinct from the successful package/fixture build.
+
+Discovery's shared Show all navigation now appears once per group header, rather
+than in every child item's context menu. Desktop checks pass and local app is
+running for review; matching Sailfish source uses retained presentation DTOs.
+
+Desktop now mirrors mobile's three primary destinations (Discover, Library,
+Playlists) and contextual/secondary menu split. Queue is a plain menu destination,
+Back is separate, controls align equally. Desktop build/smoke gates pass and the
+updated local app is open for interactive review; replaces standalone Home layout.
+
+Desktop navigation cleanup completed locally: direct Discovery Home, single Back,
+Queue in menu, non-duplicated detail/category headings and Italian Scopri. Desktop
+checks pass; local app launched for user review. Home/Library return-history is
+covered by the shared controller regression.
+
+## Discovery default / Library layout — 2026-10-05
+
+Implemented and deployed: Discovery Home startup, inline header scroll plane,
+single-row expandable search/browse/sort and in-viewport alphabet shortcuts with
+full-width aligned destination tabs. Host/SDK gates and phone startup/navigation/
+geometry checks pass. Current app/MPRIS PID 43912. Interactive scroll/expansion
+ergonomics and visual confirmation remain user-led.
+
+## Discovery access / menu organization — 2026-10-05
+
+Discovery Home, Library and Playlists now have visible root-header destinations;
+contextual actions and secondary navigation/settings are split between pull-down
+and pull-up. Queue sits beside Now playing. Retained-view completion/idle handling
+and library-only browse controls address stale/misleading discovery presentation.
+Host/SDK gates, native phone destination/back checks and read-only live discovery
+pass. Rootless update deployed (app/MPRIS PID 39668); user confirmation of the
+reported interaction and the revised menu ergonomics is next.
+
+## Next recommendations — 2026-10-05
+
+Implemented: opt-in scheduled/reconnect refresh on an independent worker; normalized
+offline search index; canonical server filter choices and validated browsing; basic
+smart-playlist create/rule editing; scoped discovery visibility/order and hub paging;
+local qualified listening insights; 2–8-waypoint Sonic Adventure; MP3/AAC trim/seek
+checks and actual transcode playback/seek validation. Car Bluetooth controls are
+user-confirmed. Disconnect auto-pause is verified by an isolated actual signal/audio
+fixture; physical disconnect confirmation remains after deployment. Guest DJ/Sonic
+Sage, complex Boolean rule editing, full server-history insights/full-library sync,
+and sustained power/call/routing coverage remain distinct follow-ups.
+
+Final gates pass (122 Rust tests, desktop CTest 2/2, SDK package/fixture builds),
+along with live read-only filter choices/browse and phone navigation/management/
+MPRIS checks. Expansion deployed to the existing rootless directory, sole process
+and MPRIS owner PID 36423. Next user check: disconnect the car while playing and
+confirm pause, then reconnect and confirm playback remains paused. Live smart
+playlist mutations and normally installed sandbox validation remain pending.
+
 ## Navigation presentation fix — 2026-10-05
 
 Outgoing Sailfish pages now retain their own heading/detail/list presentation
@@ -104,6 +185,11 @@ returns, then confirm full UI scrolling, touch alphabet and layout on real data.
 Connectivity returned and this prepared update was deployed/relaunched on
 2026-10-03. The temporary-state phone QML load check passed. Next is interactive
 real-data scrolling, alphabet touch/search and pulse/layout confirmation.
+
+Artist browsing now uses responsive photo/title grids on desktop and Sailfish.
+Alphabet jumps retain all preceding artists and position the selected letter, so
+users can scroll in either direction; host verification is recorded in validation.md.
+Interactive phone grid sizing, touch and large-library latency remain user-led.
 
 ## Similar artists implemented/deployed (2026-10-03)
 

@@ -1,4 +1,5 @@
 use super::Shared;
+use futures_util::StreamExt;
 use serde_json::{json, Value};
 use std::{collections::HashMap, sync::mpsc, thread, time::Duration};
 use zbus::{
@@ -18,6 +19,76 @@ impl Drop for Platform {
 }
 pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
     let mut threads = Vec::new();
+    let bluetooth = shared.clone();
+    let bluetooth_connection = Connection::system().ok();
+    if let Ok(worker) = thread::Builder::new()
+        .name("plexfreq-bluetooth".into())
+        .spawn(move || {
+            let connection = bluetooth_connection;
+            let mut policy = crate::bluetooth::PausePolicy::default();
+            let signals = connection.as_ref().and_then(|connection| {
+                zbus::MatchRule::builder()
+                    .msg_type(zbus::message::Type::Signal)
+                    .sender("org.bluez")
+                    .ok()
+                    .and_then(|builder| {
+                        zbus::blocking::MessageIterator::for_match_rule(
+                            builder.build(),
+                            connection,
+                            Some(64),
+                        )
+                        .ok()
+                    })
+            });
+            let mut observe = || {
+                let facts = connection
+                    .as_ref()
+                    .and_then(|connection| bluetooth_audio(connection).ok());
+                let snapshot = bluetooth.playback();
+                if policy.observe(
+                    facts,
+                    snapshot.loaded && (snapshot.playing || snapshot.buffering),
+                ) {
+                    let _ = bluetooth.send(json!({"op":"audio_pause"}));
+                }
+            };
+            // Subscribe first, then seed, so startup disconnects stay queued.
+            observe();
+            if let Some(signals) = signals {
+                let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                else {
+                    return;
+                };
+                let mut stream = signals.into_inner();
+                runtime.block_on(async {
+                    while !bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                        tokio::select! {
+                            signal=stream.next()=>match signal {Some(Ok(_))=>observe(),_=>break},
+                            _=tokio::time::sleep(Duration::from_millis(100))=>{},
+                        }
+                    }
+                    // Deregister while the connection is still open. Closing it
+                    // first can make zbus's synchronous iterator drop send on a
+                    // closed Unix socket in the C++ host (SIGPIPE).
+                    zbus::AsyncDrop::async_drop(stream).await;
+                });
+                return;
+            }
+            while !bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                observe();
+                for _ in 0..5 {
+                    if bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(100));
+                }
+            }
+        })
+    {
+        threads.push(worker);
+    }
     let network = shared.clone();
     if let Ok(net) = thread::Builder::new()
         .name("plexfreq-network".into())
@@ -127,6 +198,232 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
         threads.push(player);
     }
     Platform { threads }
+}
+fn bluetooth_audio(connection: &Connection) -> zbus::Result<crate::bluetooth::Facts> {
+    type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+    let proxy = Proxy::new(
+        connection,
+        "org.bluez",
+        "/",
+        "org.freedesktop.DBus.ObjectManager",
+    )?;
+    let objects: Objects = proxy.call("GetManagedObjects", &())?;
+    let mut facts = crate::bluetooth::Facts::default();
+    for (path, interfaces) in &objects {
+        if let Some(device) = interfaces.get("org.bluez.Device1") {
+            let connected = device
+                .get("Connected")
+                .and_then(|v| bool::try_from(v).ok())
+                .unwrap_or(false);
+            let uuids = device
+                .get("UUIDs")
+                .and_then(|v| v.try_clone().ok())
+                .and_then(|v| Vec::<String>::try_from(v).ok())
+                .unwrap_or_default();
+            if connected && uuids.iter().any(|uuid| crate::bluetooth::audio_uuid(uuid)) {
+                facts.connected.insert(path.to_string());
+            }
+        }
+        if let Some(transport) = interfaces.get("org.bluez.MediaTransport1") {
+            let active = transport
+                .get("State")
+                .and_then(|v| <&str>::try_from(v).ok())
+                .is_some_and(|state| matches!(state, "active" | "pending"));
+            if active {
+                if let Some(device) = transport
+                    .get("Device")
+                    .and_then(|v| v.try_clone().ok())
+                    .and_then(|v| OwnedObjectPath::try_from(v).ok())
+                {
+                    facts.active.insert(device.to_string());
+                }
+            }
+        }
+    }
+    Ok(facts)
+}
+
+#[cfg(test)]
+mod bluetooth_tests {
+    use super::*;
+    use std::{
+        io::{BufRead, BufReader, Write},
+        sync::{
+            atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
+            Arc, Mutex,
+        },
+        time::Instant,
+    };
+    struct Manager {
+        connected: Arc<AtomicBool>,
+        reads: Arc<AtomicUsize>,
+    }
+    #[zbus::interface(name = "org.freedesktop.DBus.ObjectManager")]
+    impl Manager {
+        fn get_managed_objects(
+            &self,
+        ) -> HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>> {
+            self.reads.fetch_add(1, Ordering::SeqCst);
+            let properties = HashMap::from([
+                (
+                    "Connected".into(),
+                    OwnedValue::from(self.connected.load(Ordering::SeqCst)),
+                ),
+                (
+                    "UUIDs".into(),
+                    OwnedValue::try_from(zbus::zvariant::Value::from(vec![
+                        "0000110b-0000-1000-8000-00805f9b34fb".to_string(),
+                    ]))
+                    .unwrap(),
+                ),
+            ]);
+            HashMap::from([(
+                OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture").unwrap(),
+                HashMap::from([("org.bluez.Device1".into(), properties)]),
+            )])
+        }
+    }
+    struct Bus(std::process::Child);
+    impl Drop for Bus {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+    struct Environment(Vec<(&'static str, Option<std::ffi::OsString>)>);
+    impl Drop for Environment {
+        fn drop(&mut self) {
+            for (key, value) in self.0.drain(..) {
+                if let Some(value) = value {
+                    std::env::set_var(key, value)
+                } else {
+                    std::env::remove_var(key)
+                }
+            }
+        }
+    }
+    #[test]
+    fn bluez_disconnect_signal_pauses_audio_even_with_a_full_metadata_queue() {
+        let mut process = std::process::Command::new("dbus-daemon")
+            .args(["--session", "--nofork", "--print-address=1"])
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("dbus-daemon fixture is required");
+        let mut address = String::new();
+        BufReader::new(process.stdout.take().unwrap())
+            .read_line(&mut address)
+            .unwrap();
+        let _bus = Bus(process);
+        let address = address.trim();
+        let _environment = Environment(
+            ["DBUS_SYSTEM_BUS_ADDRESS", "DBUS_SESSION_BUS_ADDRESS"]
+                .into_iter()
+                .map(|key| (key, std::env::var_os(key)))
+                .collect(),
+        );
+        for key in ["DBUS_SYSTEM_BUS_ADDRESS", "DBUS_SESSION_BUS_ADDRESS"] {
+            std::env::set_var(key, address);
+        }
+        let connected = Arc::new(AtomicBool::new(true));
+        let reads = Arc::new(AtomicUsize::new(0));
+        let service = ConnectionBuilder::address(address)
+            .unwrap()
+            .name("org.bluez")
+            .unwrap()
+            .serve_at(
+                "/",
+                Manager {
+                    connected: connected.clone(),
+                    reads: reads.clone(),
+                },
+            )
+            .unwrap()
+            .build()
+            .unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("fixture.wav");
+        let frames = 480000u32;
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.write_all(b"RIFF").unwrap();
+        file.write_all(&(36 + frames * 2).to_le_bytes()).unwrap();
+        file.write_all(b"WAVEfmt ").unwrap();
+        file.write_all(&16u32.to_le_bytes()).unwrap();
+        file.write_all(&1u16.to_le_bytes()).unwrap();
+        file.write_all(&1u16.to_le_bytes()).unwrap();
+        file.write_all(&48000u32.to_le_bytes()).unwrap();
+        file.write_all(&96000u32.to_le_bytes()).unwrap();
+        file.write_all(&2u16.to_le_bytes()).unwrap();
+        file.write_all(&16u16.to_le_bytes()).unwrap();
+        file.write_all(b"data").unwrap();
+        file.write_all(&(frames * 2).to_le_bytes()).unwrap();
+        file.set_len(44 + u64::from(frames) * 2).unwrap();
+        drop(file);
+        let engine = crate::audio::Engine::new(crate::audio::Sink::Fake).unwrap();
+        engine
+            .handle
+            .load(
+                crate::audio::Source {
+                    id: 1,
+                    url: url::Url::from_file_path(path).unwrap().into(),
+                    duration: 10000,
+                    ..Default::default()
+                },
+                false,
+            )
+            .unwrap();
+        let (requests, _receiver) = mpsc::sync_channel(1);
+        requests.try_send(json!({"op":"blocked"})).unwrap();
+        let shared = Shared {
+            requests,
+            audio: Arc::new(Mutex::new(Some(engine.handle.clone()))),
+            model: Arc::new(Mutex::new(json!({"track":null,"queue":{"items":[]}}))),
+            control: Arc::new(Mutex::new(None)),
+            stop: Arc::new(AtomicBool::new(false)),
+            foreground: Arc::new(AtomicUsize::new(1)),
+            pages: Arc::new(AtomicUsize::new(0)),
+            view: Arc::new(AtomicU64::new(0)),
+            plans: Arc::new(Mutex::new(std::collections::BTreeMap::new())),
+            shown: Arc::new(AtomicU64::new(0)),
+            seeks: Arc::new(Mutex::new(Vec::new())),
+            checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
+        };
+        let (events, _output) = mpsc::channel();
+        let platform = start(shared.clone(), events);
+        let end = Instant::now() + Duration::from_secs(5);
+        while !engine.handle.snapshot().playing || reads.load(Ordering::SeqCst) == 0 {
+            assert!(Instant::now() < end);
+            thread::sleep(Duration::from_millis(10));
+        }
+        thread::sleep(Duration::from_millis(30));
+        connected.store(false, Ordering::SeqCst);
+        service
+            .emit_signal(
+                None::<&str>,
+                "/org/bluez/hci0/dev_fixture",
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                &(
+                    "org.bluez.Device1",
+                    HashMap::from([("Connected", false)]),
+                    Vec::<String>::new(),
+                ),
+            )
+            .unwrap();
+        let end = Instant::now() + Duration::from_secs(3);
+        while !engine.handle.snapshot().paused {
+            assert!(
+                Instant::now() < end,
+                "Bluetooth disconnect did not pause audio"
+            );
+            thread::sleep(Duration::from_millis(10));
+        }
+        assert!(shared.busy());
+        assert!(!crate::mutex_lock(&shared.checkpoint_overflow).is_empty());
+        shared.stop.store(true, Ordering::SeqCst);
+        drop(platform);
+        drop(service);
+        drop(engine);
+    }
 }
 fn facts(connection: &Connection) -> zbus::Result<(bool, bool)> {
     if let Ok(proxy) = Proxy::new(connection, "net.connman", "/", "net.connman.Manager") {

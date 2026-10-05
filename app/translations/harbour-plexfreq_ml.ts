@@ -321,8 +321,16 @@
       <translation>തിരഞ്ഞെടുക്കുക · 1–10 · കലാകാരന്മാർ · ആൽബങ്ങൾ · മിശ്രണം</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>തിരഞ്ഞെടുക്കുക · 2–8 · ഗാനങ്ങൾ · സമാനമായത്</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>തിരഞ്ഞെടുക്കുക · 30–480 · റേഡിയോ · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>തിരഞ്ഞെടുക്കുക · 7 · 30 · 90 · ചരിത്രം</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>തിരഞ്ഞെടുക്കുക · പ്ലേലിസ്റ്റ് · ആൽബം · റേഡിയോ · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>തിരഞ്ഞെടുക്കുക · പുതുക്കുക · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>അസാധു · ഡീകോഡർ · ഓഡിയോ</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>അസാധു · തിരയുക</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>അസാധു · ഫിൽട്ടർ</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>അസാധു · ക്യൂ · സൂചിക</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · ലഭ്യമല്ല · കലാകാരൻ · റേഡിയോ</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · ലഭിച്ചത് · ഒന്നുമില്ല · സമാനമായത് · ഗാനം · പരിശോധിക്കുക · ലൈബ്രറി · ഉപയോഗിച്ചത് · കലാകാരൻ · റേഡിയോ</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>ക്യൂ · ഗാനങ്ങൾ · സാധു · ആരംഭിക്കുക · സൂചിക</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>സ്മാർട്ട് · പ്ലേലിസ്റ്റ് · ഫിൽട്ടർ · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>സമാനമായത് · പരിധി · 250 · ഗാനങ്ങൾ</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>തിരയുക · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>തിരയുക · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>മാറ്റുക · മുകളിലേക്ക്</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>മാറ്റുക · താഴേക്ക്</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>സ്വയം പ്ലേ ചെയ്യുക · പുതുക്കുക · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>പുതുക്കുക · ദൈർഘ്യം</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>പുതുക്കുക · ഡൗൺലോഡുകൾ · ലോഡ് ചെയ്യുന്നു</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>സ്വയം പ്ലേ ചെയ്യുക · പുതുക്കുക · ഡൗൺലോഡുകൾ</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>പുതുക്കുക · ദൈർഘ്യം</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>പുതുക്കുക · ഡൗൺലോഡുകൾ · ലോഡ് ചെയ്യുന്നു</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>റേഡിയോ · ഡൗൺലോഡുകൾ · ദൈർഘ്യം</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>തിരയുക · ലൈബ്രറി</translation>
+      <source>Library filters</source>
+      <translation>ലൈബ്രറി · ഫിൽട്ടർ</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>കണക്ഷൻ</translation>
+      <source>Smart playlist</source>
+      <translation>സ്മാർട്ട് · പ്ലേലിസ്റ്റുകൾ</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>സ്മാർട്ട് · പ്ലേലിസ്റ്റുകൾ · ഫിൽട്ടർ · വായന മാത്രം</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>സൃഷ്ടിക്കുക · പ്ലേലിസ്റ്റ് · ഗാനങ്ങൾ · ക്യൂ</translation>
+      <source>Playlist name</source>
+      <translation>പ്ലേലിസ്റ്റ്</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>പ്ലേ ചെയ്യുക · മിശ്രണം · %1 · ഉറവിടം</translation>
+      <source>Artists</source>
+      <translation>കലാകാരന്മാർ</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>മായ്ക്കുക · മിശ്രണം</translation>
+      <source>Albums</source>
+      <translation>ആൽബങ്ങൾ</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>ഡൗൺലോഡ് ചെയ്തു</translation>
+      <source>Tracks</source>
+      <translation>ഗാനങ്ങൾ</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>ഓൺലൈൻ</translation>
+      <source>Genre</source>
+      <translation>വിഭാഗം</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>ലൈബ്രറി · സംരക്ഷിച്ചത് · ഓഫ്‌ലൈൻ</translation>
+      <source>Mood</source>
+      <translation>മനോഭാവം</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>സംരക്ഷിച്ചത് · ആൽബങ്ങൾ</translation>
+      <source>Style</source>
+      <translation>ശൈലി</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>ഡൗൺലോഡുകൾ · ഗാനങ്ങൾ</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>നിർത്തുക · റേഡിയോ</translation>
+      <source>Title contains</source>
+      <translation>ശീർഷകം · ഫിൽട്ടർ</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>വർഷം · ആരംഭിക്കുക</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>വർഷം · പരിധി</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>പ്രിയപ്പെട്ടവ · പരിധി</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>പ്ലേ ചെയ്യുക · ഒന്നുമില്ല</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>അടുക്കുക</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>പരിധി · ഗാനങ്ങൾ</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>ലൈബ്രറി · ഫിൽട്ടർ</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>സ്മാർട്ട് · പ്ലേലിസ്റ്റുകൾ</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>സ്മാർട്ട് · പ്ലേലിസ്റ്റുകൾ · ഫിൽട്ടർ · വായന മാത്രം</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>പ്ലേലിസ്റ്റ്</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>ലൈബ്രറി</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>ക്യൂ</translation>
+      <source>Artists</source>
+      <translation>കലാകാരന്മാർ</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>പ്ലേലിസ്റ്റുകൾ</translation>
+      <source>Albums</source>
+      <translation>ആൽബങ്ങൾ</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>ഗാനങ്ങൾ</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>അടുത്തിടെ ചേർത്തത്</translation>
+      <source>Genre</source>
+      <translation>വിഭാഗം</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>അടുത്തിടെ പ്ലേ ചെയ്തത്</translation>
+      <source>Mood</source>
+      <translation>മനോഭാവം</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>മുകളിലേക്ക്</translation>
+      <source>Style</source>
+      <translation>ശൈലി</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>ശീർഷകം · ഫിൽട്ടർ</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>വർഷം · ആരംഭിക്കുക</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>വർഷം · പരിധി</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>പ്രിയപ്പെട്ടവ · പരിധി</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>പ്ലേ ചെയ്യുക · ഒന്നുമില്ല</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>അടുക്കുക</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>പരിധി · ഗാനങ്ങൾ</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ചരിത്രം · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · പ്ലേ ചെയ്യുക · %2 · ചരിത്രം</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ചരിത്രം · local · പ്ലേ ചെയ്യുക · മെറ്റാഡാറ്റ</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ചരിത്രം</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>കലാകാരന്മാർ</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ആൽബങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · പ്ലേ ചെയ്യുക · %2 · ചരിത്രം</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ചരിത്രം · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · പ്ലേ ചെയ്യുക · %2 · ചരിത്രം</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ചരിത്രം · local · പ്ലേ ചെയ്യുക · മെറ്റാഡാറ്റ</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>ദൈർഘ്യം</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ചരിത്രം</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ലൈബ്രറി</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>കലാകാരന്മാർ</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ആൽബങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · പ്ലേ ചെയ്യുക · %2 · ചരിത്രം</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>മുകളിലേക്ക് · അടുത്തത്</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · ഗാനങ്ങൾ · തയ്യാർ · ഓഫ്‌ലൈൻ</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>തിരയുക · കലാകാരന്മാർ · ആൽബങ്ങൾ · ഗാനങ്ങൾ</translation>
+      <source>Library</source>
+      <translation>ലൈബ്രറി</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>ലൈബ്രറി</translation>
+      <source>Search</source>
+      <translation>തിരയുക</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>ഗാനങ്ങൾ</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>അടുക്കുക</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>ശീർഷകം</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>അടുത്തിടെ ചേർത്തത്</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>വർഷം</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>തരങ്ങൾ · ആൽബങ്ങൾ</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>തിരയുക · കലാകാരന്മാർ · ആൽബങ്ങൾ · ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ലൈബ്രറി</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>അടുക്കുക</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ചേർക്കുക · Sonic · ഉറവിടം</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>സ്മാർട്ട് · ഫിൽട്ടർ · ക്രമീകരണങ്ങൾ</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>ബന്ധിപ്പിക്കുക · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>ഉപയോഗിച്ചത് · കണക്ഷൻ · ക്രമീകരണങ്ങൾ</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · കണക്ഷൻ · ക്രമീകരണങ്ങൾ</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>ആവൃത്തി · തിരയുക</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>ബന്ധിപ്പിക്കുക</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>ഡൗൺലോഡുകൾ</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>നിർവ്വഹണം</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ഓൺലൈൻ</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>ഓഫ്‌ലൈൻ · ലൈബ്രറി</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>റേഡിയോ</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>നിർത്തുക · റേഡിയോ</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>തിരയുക · കലാകാരന്മാർ · ആൽബങ്ങൾ · ഗാനങ്ങൾ</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>തിരയുക</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>പ്ലേലിസ്റ്റുകൾ</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>തിരയുക</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>തിരയുക · ലൈബ്രറി</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>അടുത്തിടെ ചേർത്തത്</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>അടുത്തിടെ പ്ലേ ചെയ്തത്</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>മുകളിലേക്ക്</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>കലാകാരന്മാർ</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>മുകളിലേക്ക് · അടുത്തത്</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>ലൈബ്രറി</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>ക്യൂ</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>സംരക്ഷിച്ചത് · ആൽബങ്ങൾ</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>ഡൗൺലോഡുകൾ · ഗാനങ്ങൾ</translation>
+      <source>Artists</source>
+      <translation>കലാകാരന്മാർ</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>ശീർഷകം</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>അടുത്തിടെ ചേർത്തത്</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>വർഷം</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>തരങ്ങൾ · ആൽബം</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>പുതിയത് · പ്ലേലിസ്റ്റ്</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>മിശ്രണം</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>ഡൗൺലോഡ് ചെയ്തു</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ചേർക്കുക · Sonic · ഉറവിടം</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>സ്മാർട്ട് · ഫിൽട്ടർ · ക്രമീകരണങ്ങൾ</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>ഓഫ്‌ലൈൻ · ലൈബ്രറി</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>ലൈബ്രറി</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>എല്ലാം കാണിക്കുക</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>തിരയുക</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>ലൈബ്രറി</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>പ്ലേലിസ്റ്റുകൾ</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>തിരയുക · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>ലൈബ്രറി · ഫിൽട്ടർ</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>തരങ്ങൾ · ആൽബങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>സൃഷ്ടിക്കുക · സ്മാർട്ട് · പ്ലേലിസ്റ്റുകൾ</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>സൃഷ്ടിക്കുക · പ്ലേലിസ്റ്റ് · ഗാനങ്ങൾ · ക്യൂ</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>ഡൗൺലോഡുകൾ · ഗാനങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>മായ്ക്കുക · മിശ്രണം</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>മായ്ക്കുക · Sonic · ഉറവിടം</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>നിർത്തുക · റേഡിയോ</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>ക്യൂ</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>ഡൗൺലോഡ് ചെയ്തു</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>സംരക്ഷിച്ചത് · ആൽബങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>ചരിത്രം · ക്രമീകരണങ്ങൾ</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>അടുത്തിടെ ചേർത്തത്</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>അടുത്തിടെ പ്ലേ ചെയ്തത്</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>ഡൗൺലോഡുകൾ · നിർവ്വഹണം</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>കണക്ഷൻ</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>മുകളിലേക്ക്</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ഓൺലൈൻ</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>ലൈബ്രറി · സംരക്ഷിച്ചത് · ഓഫ്‌ലൈൻ</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>പ്ലേ ചെയ്യുക · മിശ്രണം · %1 · ഉറവിടം</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · മിശ്രണം · %1 · ഗാനങ്ങൾ</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>കലാകാരന്മാർ</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>ശീർഷകം</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>അടുത്തിടെ ചേർത്തത്</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>വർഷം</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>അടുത്തിടെ പ്ലേ ചെയ്തത്</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>ചരിത്രം · പ്ലേ ചെയ്യുക</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>ക്രമരഹിതം</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>ഫിൽട്ടർ · ഓഡിയോ</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>തിരയുക</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>ഓഡിയോ · സമാനമായത്</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>പ്രിയപ്പെട്ടവ · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>അടുത്തിടെ ചേർത്തത്</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>അടുത്തിടെ പ്ലേ ചെയ്തത്</translation>
     </message>
     <message>
       <source>Albums</source>

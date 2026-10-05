@@ -7,8 +7,9 @@
 QVariant EntryModel::data(const QModelIndex &index,int role) const {
     if(!index.isValid() || index.row()>=m_entries.size())return QVariant();
     if(role==Qt::UserRole+1)return m_entries[index.row()];
-    if(role==Qt::UserRole+2)return QCoreApplication::translate("AlbumType",m_entries[index.row()].toMap().value("albumType").toString().toUtf8().constData());
-    if(role==Qt::UserRole+3)return m_entries[index.row()].toMap().value("discoveryGroup");
+    const auto entry=m_entries[index.row()].toMap();
+    if(role==Qt::UserRole+2){const auto key=entry.value("albumType").toString();if(key.isEmpty())return QVariant();return QCoreApplication::translate("AlbumType",key.toUtf8().constData());}
+    if(role==Qt::UserRole+3)return entry.value("discoveryGroup");
     return QVariant();
 }
 void EntryModel::replace(const QVariantList &entries) {
@@ -16,9 +17,9 @@ void EntryModel::replace(const QVariantList &entries) {
     // Queue occurrences repeat ratingKey with distinct playQueueItemID; regular
     // playlist rows repeat it with distinct playlistItemId. Identity must
     // include the occurrence or radio repeats collapse into one row.
-    // Upper/lower casings are legacy variants of the same field: separate them
-    // so "12"+"34" never collides with "123"+"4".
-    auto identity=[](const QVariant &value){const auto e=value.toMap();return e.value("type").toString()+":"+e.value("ratingKey").toString()+":"+e.value("key").toString()+":"+e.value("playQueueItemID").toString()+":"+e.value("playQueueItemId").toString()+":"+e.value("playlistItemID").toString()+":"+e.value("playlistItemId").toString();};
+    // Use U+001F (unit separator, never in URLs/IDs) instead of ":" so values
+    // containing ":" (keys, future IDs) cannot collide.
+    auto identity=[](const QVariant &value){const auto e=value.toMap();const QString sep=QChar(0x1F);return e.value("type").toString()+sep+e.value("ratingKey").toString()+sep+e.value("key").toString()+sep+e.value("playQueueItemID").toString()+sep+e.value("playQueueItemId").toString()+sep+e.value("playlistItemID").toString()+sep+e.value("playlistItemId").toString();};
     int prefix=0;while(prefix<m_entries.size() && prefix<entries.size() && identity(m_entries[prefix])==identity(entries[prefix]))++prefix;
     int suffix=0;while(suffix<m_entries.size()-prefix && suffix<entries.size()-prefix && identity(m_entries[m_entries.size()-1-suffix])==identity(entries[entries.size()-1-suffix]))++suffix;
     int remove=m_entries.size()-prefix-suffix;if(remove>0){beginRemoveRows(QModelIndex(),prefix,prefix+remove-1);for(int i=0;i<remove;++i)m_entries.removeAt(prefix);endRemoveRows();}
@@ -27,18 +28,22 @@ void EntryModel::replace(const QVariantList &entries) {
     emit entriesChanged();
 }
 void EntryModel::append(const QVariantList &entries){if(entries.isEmpty())return;const int first=m_entries.size();beginInsertRows(QModelIndex(),first,first+entries.size()-1);m_entries.append(entries);endInsertRows();emit entriesChanged();}
-static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"error","Backend unavailable"}};const auto value=QJsonDocument::fromJson(QByteArray(text)).toVariant().toMap();pf_string_free(text);return value;}
-Backend::Backend(const QString &directory,QObject *parent):QObject(parent) {
+static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"error","Backend unavailable"}};QJsonParseError parseError;const auto doc=QJsonDocument::fromJson(QByteArray(text),&parseError);pf_string_free(text);if(parseError.error!=QJsonParseError::NoError || !doc.isObject())return {{"accepted",false},{"error","Backend unavailable"}};return doc.toVariant().toMap();}
+Backend::Backend(const QString &directory,QObject *parent):QObject(parent),m_items(this),m_queue(this) {
     m_state={{"items",QVariantList()},{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"items",QVariantList()},{"repeat","off"},{"shuffled",false}}}};
     m_state.insert("networkOnline",false);m_state.insert("networkWifi",false);
     m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"pinnedKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"error",""}};
     const auto directoryBytes=directory.toUtf8();m_runtime=pf_runtime_new(directoryBytes.constData());
     auto *timer=new QTimer(this);timer->setInterval(100);connect(timer,&QTimer::timeout,this,&Backend::poll);timer->start();
-    command("status");
+    if(m_runtime)command("status");
+    else{m_error=QStringLiteral("Backend unavailable");emit errorChanged();}
 }
 Backend::~Backend(){pf_runtime_free(m_runtime);}
 void Backend::status(const QVariantMap &value){const bool busy=value.value("busy").toBool(),more=value.value("loadingMore").toBool();if(busy!=m_busy){m_busy=busy;emit busyChanged();}if(more!=m_more){m_more=more;emit loadingMoreChanged();}}
 void Backend::command(const QString &op,const QVariantMap &args) {
+    if(!m_runtime){m_error=QStringLiteral("Backend unavailable");emit errorChanged();return;}
+    // Never let QML drive internal worker coordination.
+    if(op.startsWith(QStringLiteral("_"))){m_error=translatedError({{"error",QStringLiteral("Invalid request data")}});emit errorChanged();return;}
     auto input=args;input.insert("op",op);const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);const auto accepted=decoded(pf_runtime_submit(m_runtime,bytes.constData()));
     if(accepted.value("accepted").toBool())status(accepted);
     if(accepted.value("clearError").toBool() && !m_error.isEmpty()){m_error.clear();emit errorChanged();}
@@ -46,8 +51,11 @@ void Backend::command(const QString &op,const QVariantMap &args) {
     if(!accepted.value("accepted").toBool()){m_error=translatedError(accepted);emit errorChanged();}
 }
 void Backend::poll() {
-    const auto value=decoded(pf_runtime_poll(m_runtime));status(value);
-    const auto playback=value.value("playback").toMap();if(playback!=m_playback){m_playback=playback;emit playbackChanged();}
+    if(!m_runtime)return;
+    const auto value=decoded(pf_runtime_poll(m_runtime));
+    if(value.isEmpty())return;
+    status(value);
+    if(value.contains("playback")){const auto playback=value.value("playback").toMap();if(playback!=m_playback){m_playback=playback;emit playbackChanged();}}
     for(const auto &event:value.value("events").toList())handle(event.toMap());
 }
 void Backend::handle(const QVariantMap &event) {

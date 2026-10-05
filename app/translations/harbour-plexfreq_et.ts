@@ -321,8 +321,16 @@
       <translation>Vali · 1–10 · Esitajad · Albumid · Miks</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Vali · 2–8 · Lood · Sarnane</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Vali · 30–480 · Raadio · Allalaadimised</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Vali · 7 · 30 · 90 · Ajalugu</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Vali · Esitusloend · Album · Raadio · Allalaadimised</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Vali · Värskenda · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Vigane · Dekooder · Heli</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Vigane · Otsing</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Vigane · Filter</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Vigane · Järjekord · Indeks</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Pole saadaval · Esitaja · Raadio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Vastu võetud · Puudub · Sarnane · Lugu · Kontrolli · Kogu · Kasutatud · Esitaja · Raadio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Järjekord · Lood · Kehtiv · Alusta · Indeks</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Nutikas · Esitusloend · Filter · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Sarnane · Piirang · 250 · Lood</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Otsing · Seaded</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Otsing · Seaded</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Liiguta · Üles</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Liiguta · Alla</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Allalaadimised · Haldur</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automaatesitus · Värskenda · Allalaadimised</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Värskenda · Kestus</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Värskenda · Allalaadimised · Laadimine</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Allalaadimised · Haldur</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automaatesitus · Värskenda · Allalaadimised</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Värskenda · Kestus</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Värskenda · Allalaadimised · Laadimine</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Raadio · Allalaadimised · Kestus</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Otsing · Kogu</translation>
+      <source>Library filters</source>
+      <translation>Kogu · Filter</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Ühendus</translation>
+      <source>Smart playlist</source>
+      <translation>Nutikas · Esitusloendid</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Allalaadimised · Haldur</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Nutikas · Esitusloendid · Filter · Ainult lugemiseks</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Loo · Esitusloend · Lood · Järjekord</translation>
+      <source>Playlist name</source>
+      <translation>Esitusloend</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Esita · Miks · %1 · Allikas</translation>
+      <source>Artists</source>
+      <translation>Esitajad</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Tühjenda · Miks</translation>
+      <source>Albums</source>
+      <translation>Albumid</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Alla laaditud</translation>
+      <source>Tracks</source>
+      <translation>Lood</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Võrgus</translation>
+      <source>Genre</source>
+      <translation>Žanr</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Kogu · Salvestatud · Võrguühenduseta</translation>
+      <source>Mood</source>
+      <translation>Meeleolu</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Salvestatud · Albumid</translation>
+      <source>Style</source>
+      <translation>Stiil</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Allalaadimised · Lood</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Peata · Raadio</translation>
+      <source>Title contains</source>
+      <translation>Pealkiri · Filter</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Aasta · Alusta</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Aasta · Piirang</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Lemmikud · Piirang</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Esita · Puudub</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sordi</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Piirang · Lood</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Kogu · Filter</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Nutikas · Esitusloendid</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Nutikas · Esitusloendid · Filter · Ainult lugemiseks</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Esitusloend</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Kogu</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Järjekord</translation>
+      <source>Artists</source>
+      <translation>Esitajad</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Esitusloendid</translation>
+      <source>Albums</source>
+      <translation>Albumid</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Lemmikud · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Lood</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Hiljuti lisatud</translation>
+      <source>Genre</source>
+      <translation>Žanr</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Hiljuti esitatud</translation>
+      <source>Mood</source>
+      <translation>Meeleolu</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Üles</translation>
+      <source>Style</source>
+      <translation>Stiil</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Pealkiri · Filter</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Aasta · Alusta</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Aasta · Piirang</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Lemmikud · Piirang</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Esita · Puudub</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sordi</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Piirang · Lood</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ajalugu · Seaded</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Esita · %2 · Ajalugu</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Ajalugu · local · Esita · Metaandmed</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Ajalugu</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Esitajad</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumid</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Lood</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Esita · %2 · Ajalugu</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ajalugu · Seaded</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Esita · %2 · Ajalugu</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Ajalugu · local · Esita · Metaandmed</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Kestus</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Ajalugu</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kogu</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Esitajad</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumid</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Lood</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Esita · %2 · Ajalugu</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Üles · Järgmine</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Lood · Valmis · Võrguühenduseta</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Otsing · Esitajad · Albumid · Lood</translation>
+      <source>Library</source>
+      <translation>Kogu</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Kogu</translation>
+      <source>Search</source>
+      <translation>Otsing</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Lood</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Sordi</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Pealkiri</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Hiljuti lisatud</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Aasta</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Tüübid · Albumid</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Otsing · Esitajad · Albumid · Lood</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kogu</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sordi</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Lisa · Sonic · Allikas</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Nutikas · Filter · Seaded</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Ühenda · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Kasutatud · Ühendus · Seaded</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Ühendus · Seaded</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Sagedus · Otsing</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Ühenda</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Allalaadimised</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Haldur</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Võrgus</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Võrguühenduseta · Kogu</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Raadio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Peata · Raadio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Otsing · Esitajad · Albumid · Lood</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Otsing</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Esitusloendid</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Otsing</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Otsing · Kogu</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Lemmikud · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Hiljuti lisatud</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Hiljuti esitatud</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Üles</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Esitajad</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Üles · Järgmine</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Kogu</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Järjekord</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Salvestatud · Albumid</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Allalaadimised · Lood</translation>
+      <source>Artists</source>
+      <translation>Esitajad</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Pealkiri</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Hiljuti lisatud</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Aasta</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Tüübid · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Uus · Esitusloend</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Miks</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Alla laaditud</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Lisa · Sonic · Allikas</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Nutikas · Filter · Seaded</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Võrguühenduseta · Kogu</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Seaded</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Kogu</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Näita kõiki</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Otsing</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Kogu</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Esitusloendid</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Otsing · Seaded</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Kogu · Filter</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Tüübid · Albumid</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Loo · Nutikas · Esitusloendid</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Loo · Esitusloend · Lood · Järjekord</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Allalaadimised · Lood</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Tühjenda · Miks</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Tühjenda · Sonic · Allikas</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Peata · Raadio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Järjekord</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Alla laaditud</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Salvestatud · Albumid</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ajalugu · Seaded</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Lemmikud · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Hiljuti lisatud</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Hiljuti esitatud</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Allalaadimised · Haldur</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Ühendus</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Üles</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Võrgus</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Kogu · Salvestatud · Võrguühenduseta</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Esita · Miks · %1 · Allikas</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Miks · %1 · Lood</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Esitajad</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Pealkiri</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Hiljuti lisatud</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Aasta</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Hiljuti esitatud</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Ajalugu · Esita</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Sega</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filter · Heli</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Otsing</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Heli · Sarnane</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Lemmikud · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Hiljuti lisatud</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Hiljuti esitatud</translation>
     </message>
     <message>
       <source>Albums</source>

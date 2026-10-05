@@ -26,6 +26,16 @@ SIMPLE = {
     "X-Plex-Token":"=X-Plex-Token",
 }
 PHRASES = {
+    "Page actions":"settings", "More destinations":"library",
+    "Use the pull-up menu for connection settings":"=↑ connection settings",
+    "Automatically refresh download plans":"autoplay refresh downloads", "Refresh interval":"refresh duration", "%1 hours":"=%1 =h", "Refreshing download plans…":"refresh downloads loading",
+    "Library filters":"library filter", "Smart playlist":"smart playlists", "Filtered music":"filter audio", "Create smart playlist":"create smart playlists", "Edit smart filters":"smart filter settings",
+    "Any":"all", "Title contains":"title filter", "Year from":"year start", "Year to":"year limit", "Minimum rating":"favorites limit", "Maximum tracks":"limit tracks", "Unplayed only":"play none",
+    "Most played":"history play", "Customize discovery":"search settings", "Show all in this group":"open all types", "Listening insights":"history settings", "Period":"duration", "All history":"all history", "%1 days":"=%1 =d",
+    "%1 qualified plays · %2 listened":"%1 play %2 history", "%1 plays · %2 listened":"%1 play %2 history",
+    "Based on locally measured qualified plays since insights tracking began.":"history local play metadata",
+    "Add sonic waypoint":"add =Sonic source", "Clear sonic waypoints":"clear =Sonic source", "Sonic journey (%1 tracks)":"=Sonic mix %1 tracks",
+    "These smart-playlist rules cannot be represented by this editor.":"smart playlists filter readonly",
     "%1 kbps":"=%1 =kbps", "%1 minutes":"=%1 =min", "%1 dB":"=%1 =dB",
     "Original audio":"source audio", "Streaming quality":"audio settings",
     "Plex codec fallback":"=Plex decoder retry", "Wi-Fi audio":"=Wi-Fi audio", "Mobile audio":"network audio", "Download audio":"downloads audio",
@@ -96,10 +106,17 @@ ALIASES = {
 }
 
 ITALIAN = {
+    "Automatically refresh download plans":"Aggiorna automaticamente i piani di download", "Refresh interval":"Intervallo di aggiornamento", "%1 hours":"%1 ore", "Refreshing download plans…":"Aggiornamento dei piani di download…",
+    "Library filters":"Filtri della libreria", "Smart playlist":"Playlist intelligente", "Filtered music":"Musica filtrata", "Create smart playlist":"Crea una playlist intelligente", "Edit smart filters":"Modifica i filtri intelligenti", "Any":"Qualsiasi",
+    "Title contains":"Il titolo contiene", "Year from":"Dall’anno", "Year to":"Fino all’anno", "Minimum rating":"Valutazione minima", "Maximum tracks":"Numero massimo di brani", "Unplayed only":"Solo brani mai ascoltati", "Most played":"Più ascoltati",
+    "Customize discovery":"Personalizza Scopri", "Show all in this group":"Mostra tutto nel gruppo", "Listening insights":"Statistiche di ascolto", "Period":"Periodo", "All history":"Tutta la cronologia", "%1 days":"%1 giorni", "%1 qualified plays · %2 listened":"%1 ascolti qualificati · %2 di ascolto", "%1 plays · %2 listened":"%1 ascolti · %2 di ascolto",
+    "Based on locally measured qualified plays since insights tracking began.":"Dati basati sugli ascolti qualificati misurati localmente dall’inizio del rilevamento delle statistiche.", "Add sonic waypoint":"Aggiungi una tappa sonica", "Clear sonic waypoints":"Svuota le tappe soniche", "Sonic journey (%1 tracks)":"Percorso sonico (%1 brani)", "These smart-playlist rules cannot be represented by this editor.":"Le regole di questa playlist intelligente non possono essere rappresentate da questo editor.",
+    "Invalid music filter values":"Valori dei filtri musicali non validi", "Invalid discovery layout":"Configurazione di Scopri non valida", "Choose a refresh interval of 1, 6, 12 or 24 hours":"Scegli un intervallo di aggiornamento di 1, 6, 12 o 24 ore", "Choose 7, 30, 90 days or all listening history":"Scegli 7, 30, 90 giorni oppure tutta la cronologia", "Choose 2–8 tracks for a sonic journey":"Scegli 2–8 brani per un percorso sonico", "Sonic journey exceeds 250 tracks":"Il percorso sonico supera 250 brani",
     "Original audio":"Audio originale", "Streaming quality":"Qualità audio", "Wi-Fi audio":"Audio su Wi-Fi", "Mobile audio":"Audio su rete mobile", "Download audio":"Audio dei download", "Plex codec fallback":"Conversione Plex in caso di codec non supportato",
     "Quality changes apply to following tracks and downloads. Completed local audio is preferred.":"Le modifiche si applicano ai brani successivi e ai download. L’audio già scaricato ha la precedenza.",
     "%1 minutes":"%1 minuti", "Radio download length":"Durata dei download radio", "Download radio · %1 minutes":"Scarica radio · %1 minuti", "Download %1 minutes":"Scarica %1 minuti", "Planned audio: %1":"Audio nel piano: %1", "Refresh download plan":"Aggiorna il piano di download", "Play downloaded tracks":"Riproduci i brani scaricati", "Refresh":"Aggiorna", "Play":"Riproduci",
-    "Discovery home":"Scopri la tua musica", "Sonically similar":"Somiglianze sonore", "Sonic Adventure":"Percorso sonico", "Start sonic adventure here":"Inizia un percorso sonico da qui", "Sonic Adventure to this track":"Percorso sonico fino a questo brano",
+    "Page actions":"Azioni della pagina", "More destinations":"Altre destinazioni",
+    "Discover":"Scopri", "Discovery home":"Scopri la tua musica", "Sonically similar":"Somiglianze sonore", "Sonic Adventure":"Percorso sonico", "Start sonic adventure here":"Inizia un percorso sonico da qui", "Sonic Adventure to this track":"Percorso sonico fino a questo brano",
     "Headroom":"Margine dinamico", "Normalization mode":"Modalità di normalizzazione", "Album gain":"Guadagno dell’album", "Track gain":"Guadagno del brano", "Automatic gain":"Guadagno automatico",
     "Choose original audio or 64–320 kbps":"Scegli l’audio originale oppure 64–320 kbps", "Choose 30–480 minutes for a radio download":"Scegli 30–480 minuti per un download radio", "Go online to refresh downloads":"Vai online per aggiornare i download", "Choose a music item":"Scegli un elemento musicale", "Choose a playlist, album or radio download":"Scegli una playlist, un album o una radio da scaricare", "Track duration is needed for a timed download":"Per un download a tempo è necessaria la durata dei brani", "Radio playback requires a connection":"La riproduzione della radio richiede una connessione",
     "Search artists, albums and tracks":"Cerca artisti, album e brani",
@@ -156,6 +173,19 @@ ITALIAN = {
     "Cannot read or write application state":"Impossibile leggere o salvare lo stato dell’applicazione"
 }
 
+SHOW_ALL = {
+    "bg":"Покажи всички", "bn":"সব দেখান", "cs":"Zobrazit vše", "da":"Vis alle",
+    "de":"Alle anzeigen", "el":"Εμφάνιση όλων", "es":"Mostrar todo", "et":"Näita kõiki",
+    "fi":"Näytä kaikki", "fr":"Tout afficher", "gu":"બધું બતાવો", "hi":"सभी दिखाएँ",
+    "hu":"Összes megjelenítése", "it":"Mostra tutto", "kn":"ಎಲ್ಲವನ್ನೂ ತೋರಿಸಿ",
+    "lt":"Rodyti viską", "lv":"Rādīt visu", "ml":"എല്ലാം കാണിക്കുക", "mr":"सर्व दाखवा",
+    "nb":"Vis alle", "nl":"Alles tonen", "pa":"ਸਭ ਦਿਖਾਓ", "pl":"Pokaż wszystko",
+    "pt":"Mostrar tudo", "pt_BR":"Mostrar tudo", "ro":"Afișează tot", "ru":"Показать всё",
+    "sk":"Zobraziť všetko", "sl":"Prikaži vse", "sv":"Visa alla", "ta":"அனைத்தையும் காட்டு",
+    "te":"అన్నీ చూపించు", "tr":"Tümünü göster", "tt":"Барысын күрсәт", "uk":"Показати все",
+    "vi":"Hiển thị tất cả", "zh_CN":"显示全部", "zh_HK":"顯示全部", "zh_TW":"顯示全部"
+}
+
 def compact(source,words):
     if source in SIMPLE:return words.get(SIMPLE[source], SIMPLE[source][1:] if SIMPLE[source].startswith("=") else SIMPLE[source])
     if source in PHRASES:
@@ -182,12 +212,28 @@ def main():
     vocabulary=json.loads((ROOT/"tools/translation-vocabulary.json").read_text());keys=vocabulary["keys"].split("|")
     sources=sorted({m.findtext("source") for m in ET.parse(ROOT/"app/translations/harbour-plexfreq.ts").getroot().iter("message")})
     existing=json.loads((ROOT/"tools/translations.json").read_text()) if "--missing-only" in sys.argv else {}
+    if "--preserve-committed" in sys.argv:
+        import subprocess
+        baseline=json.loads(subprocess.check_output(["git","show","HEAD:tools/translations.json"],cwd=ROOT))
+        for language,table in baseline.items():
+            table.update(existing.get(language,{}));existing[language]=table
     output={}
     for language in LANGUAGES:
         values=vocabulary[language].split("|")
         if len(values)!=len(keys):raise ValueError(f"{language}: {len(values)} terms, expected {len(keys)}")
         words=dict(zip(keys,values));old=reference(language);table={}
         for source in sources:
+            if source=="Show all":
+                table[source]=existing.get(language,{}).get(source) or SHOW_ALL[language]
+                continue
+            # These category labels have no equivalent in the older compact
+            # vocabulary; keep their authored names explicit in every locale.
+            genre_mood_style={
+                "bg":("Жанр","Настроение","Стил"),"bn":("ধরন","মেজাজ","শৈলী"),"cs":("Žánr","Nálada","Styl"),"da":("Genre","Stemning","Stil"),"de":("Genre","Stimmung","Stil"),"el":("Είδος","Διάθεση","Στυλ"),"es":("Género","Estado de ánimo","Estilo"),"et":("Žanr","Meeleolu","Stiil"),"fi":("Genre","Tunnelma","Tyyli"),"fr":("Genre","Ambiance","Style"),"gu":("પ્રકાર","મનોભાવ","શૈલી"),"hi":("शैली","मनोभाव","अंदाज़"),"hu":("Műfaj","Hangulat","Stílus"),"it":("Genere","Atmosfera","Stile"),"kn":("ಪ್ರಕಾರ","ಮನೋಭಾವ","ಶೈಲಿ"),"lt":("Žanras","Nuotaika","Stilius"),"lv":("Žanrs","Noskaņa","Stils"),"ml":("വിഭാഗം","മനോഭാവം","ശൈലി"),"mr":("प्रकार","भावना","शैली"),"nb":("Sjanger","Stemning","Stil"),"nl":("Genre","Stemming","Stijl"),"pa":("ਕਿਸਮ","ਮਨੋਭਾਵ","ਸ਼ੈਲੀ"),"pl":("Gatunek","Nastrój","Styl"),"pt":("Género","Estado de espírito","Estilo"),"pt_BR":("Gênero","Humor","Estilo"),"ro":("Gen","Stare","Stil"),"ru":("Жанр","Настроение","Стиль"),"sk":("Žáner","Nálada","Štýl"),"sl":("Zvrst","Razpoloženje","Slog"),"sv":("Genre","Stämning","Stil"),"ta":("வகை","மனநிலை","பாணி"),"te":("రకం","మనోభావం","శైలి"),"tr":("Tür","Ruh hâli","Stil"),"tt":("Жанр","Кәеф","Стиль"),"uk":("Жанр","Настрій","Стиль"),"vi":("Thể loại","Tâm trạng","Phong cách"),"zh_CN":("流派","情绪","风格"),"zh_HK":("類型","情緒","風格"),"zh_TW":("類型","情緒","風格")
+            }
+            if source in ("Genre","Mood","Style"):
+                table[source]=existing.get(language,{}).get(source) or genre_mood_style[language][("Genre","Mood","Style").index(source)]
+                continue
             translated=existing.get(language,{}).get(source) or old.get(source) or compact(source,words)
             if language=="it" and source not in existing.get(language,{}):translated=ITALIAN.get(source,translated)
             table[source]=translated

@@ -321,8 +321,16 @@
       <translation>Kiezen · 1–10 · Artiesten · Albums · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Kiezen · 2–8 · Nummers · Vergelijkbaar</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Kiezen · 30–480 · Radio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Kiezen · 7 · 30 · 90 · Geschiedenis</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Kiezen · Afspeellijst · Album · Radio · Downloads</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Kiezen · Vernieuwen · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Ongeldig · Decoder · Audio</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Ongeldig · Zoeken</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Ongeldig · Filter</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Ongeldig · Wachtrij · Index</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Niet beschikbaar · Artiest · Radio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Ontvangen · Geen · Vergelijkbaar · Nummer · Controleren · Bibliotheek · Gebruikt · Artiest · Radio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Wachtrij · Nummers · Geldig · Starten · Index</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Slim · Afspeellijst · Filter · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Vergelijkbaar · Limiet · 250 · Nummers</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Zoeken · Instellingen</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Zoeken · Instellingen</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Verplaatsen · Omhoog</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Verplaatsen · Omlaag</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Downloads · Beheer</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatisch afspelen · Vernieuwen · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Vernieuwen · Duur</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Vernieuwen · Downloads · Laden</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Downloads · Beheer</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatisch afspelen · Vernieuwen · Downloads</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Vernieuwen · Duur</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Vernieuwen · Downloads · Laden</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radio · Downloads · Duur</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Zoeken · Bibliotheek</translation>
+      <source>Library filters</source>
+      <translation>Bibliotheek · Filter</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Verbinding</translation>
+      <source>Smart playlist</source>
+      <translation>Slim · Afspeellijsten</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Downloads · Beheer</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Slim · Afspeellijsten · Filter · Alleen-lezen</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Maken · Afspeellijst · Nummers · Wachtrij</translation>
+      <source>Playlist name</source>
+      <translation>Afspeellijst</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Afspelen · Mix · %1 · Bron</translation>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Legen · Mix</translation>
+      <source>Albums</source>
+      <translation>Albums</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Gedownload</translation>
+      <source>Tracks</source>
+      <translation>Nummers</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Bibliotheek · Opgeslagen · Offline</translation>
+      <source>Mood</source>
+      <translation>Stemming</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Opgeslagen · Albums</translation>
+      <source>Style</source>
+      <translation>Stijl</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Downloads · Nummers</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Stoppen · Radio</translation>
+      <source>Title contains</source>
+      <translation>Titel · Filter</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Jaar · Starten</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Jaar · Limiet</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favorieten · Limiet</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Afspelen · Geen</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorteren</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limiet · Nummers</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotheek · Filter</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Slim · Afspeellijsten</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Slim · Afspeellijsten · Filter · Alleen-lezen</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Afspeellijst</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Bibliotheek</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Wachtrij</translation>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Afspeellijsten</translation>
+      <source>Albums</source>
+      <translation>Albums</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favorieten · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Nummers</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Recent toegevoegd</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Recent afgespeeld</translation>
+      <source>Mood</source>
+      <translation>Stemming</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Omhoog</translation>
+      <source>Style</source>
+      <translation>Stijl</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Titel · Filter</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Jaar · Starten</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Jaar · Limiet</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favorieten · Limiet</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Afspelen · Geen</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorteren</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limiet · Nummers</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geschiedenis · Instellingen</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Afspelen · %2 · Geschiedenis</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Geschiedenis · local · Afspelen · Metadata</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Geschiedenis</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albums</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Nummers</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Afspelen · %2 · Geschiedenis</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geschiedenis · Instellingen</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Afspelen · %2 · Geschiedenis</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Geschiedenis · local · Afspelen · Metadata</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Duur</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Geschiedenis</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albums</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Nummers</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Afspelen · %2 · Geschiedenis</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Omhoog · Volgende</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Nummers · Gereed · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Zoeken · Artiesten · Albums · Nummers</translation>
+      <source>Library</source>
+      <translation>Bibliotheek</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Bibliotheek</translation>
+      <source>Search</source>
+      <translation>Zoeken</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Nummers</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Sorteren</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Jaar</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Typen · Albums</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Zoeken · Artiesten · Albums · Nummers</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorteren</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Toevoegen · Sonic · Bron</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Slim · Filter · Instellingen</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Verbinden · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Gebruikt · Verbinding · Instellingen</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Verbinding · Instellingen</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frequentie · Zoeken</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Verbinden</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Downloads</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Beheer</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Bibliotheek</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Stoppen · Radio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Zoeken · Artiesten · Albums · Nummers</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Zoeken</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Afspeellijsten</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Zoeken</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Zoeken · Bibliotheek</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favorieten · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Recent toegevoegd</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Recent afgespeeld</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Omhoog</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artiesten</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Omhoog · Volgende</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Bibliotheek</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Wachtrij</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Opgeslagen · Albums</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Downloads · Nummers</translation>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Titel</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Jaar</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Typen · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Nieuw · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Gedownload</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Toevoegen · Sonic · Bron</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Slim · Filter · Instellingen</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Instellingen</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Alles tonen</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Zoeken</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Afspeellijsten</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Zoeken · Instellingen</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotheek · Filter</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Typen · Albums</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Maken · Slim · Afspeellijsten</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Maken · Afspeellijst · Nummers · Wachtrij</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Downloads · Nummers</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Legen · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Legen · Sonic · Bron</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Stoppen · Radio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Wachtrij</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Gedownload</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Opgeslagen · Albums</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geschiedenis · Instellingen</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Favorieten · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Recent afgespeeld</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Downloads · Beheer</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Verbinding</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Omhoog</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Bibliotheek · Opgeslagen · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Afspelen · Mix · %1 · Bron</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Nummers</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Artiesten</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Jaar</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Recent afgespeeld</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Geschiedenis · Afspelen</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Willekeurig</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filter · Audio</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Zoeken</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Audio · Vergelijkbaar</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favorieten · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Recent toegevoegd</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Recent afgespeeld</translation>
     </message>
     <message>
       <source>Albums</source>

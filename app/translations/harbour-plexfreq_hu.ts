@@ -321,8 +321,16 @@
       <translation>Kiválasztás · 1–10 · Előadók · Albumok · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Kiválasztás · 2–8 · Számok · Hasonló</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Kiválasztás · 30–480 · Rádió · Letöltések</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Kiválasztás · 7 · 30 · 90 · Előzmények</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Kiválasztás · Lejátszási lista · Album · Rádió · Letöltések</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Kiválasztás · Frissítés · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Érvénytelen · Dekóder · Hang</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Érvénytelen · Keresés</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Érvénytelen · Szűrő</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Érvénytelen · Sor · Index</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Nem érhető el · Előadó · Rádió</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Fogadva · Nincs · Hasonló · Szám · Ellenőrzés · Könyvtár · Használva · Előadó · Rádió</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Sor · Számok · Érvényes · Indítás · Index</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Intelligens · Lejátszási lista · Szűrő · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Hasonló · Korlát · 250 · Számok</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Keresés · Beállítások</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Keresés · Beállítások</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Áthelyezés · Fel</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Áthelyezés · Le</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Letöltések · Kezelés</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatikus lejátszás · Frissítés · Letöltések</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Frissítés · Időtartam</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Frissítés · Letöltések · Betöltés</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Letöltések · Kezelés</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatikus lejátszás · Frissítés · Letöltések</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Frissítés · Időtartam</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Frissítés · Letöltések · Betöltés</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Rádió · Letöltések · Időtartam</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Keresés · Könyvtár</translation>
+      <source>Library filters</source>
+      <translation>Könyvtár · Szűrő</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Kapcsolat</translation>
+      <source>Smart playlist</source>
+      <translation>Intelligens · Lejátszási listák</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Letöltések · Kezelés</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Intelligens · Lejátszási listák · Szűrő · Csak olvasható</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Létrehozás · Lejátszási lista · Számok · Sor</translation>
+      <source>Playlist name</source>
+      <translation>Lejátszási lista</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Lejátszás · Mix · %1 · Forrás</translation>
+      <source>Artists</source>
+      <translation>Előadók</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Ürítés · Mix</translation>
+      <source>Albums</source>
+      <translation>Albumok</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Letöltve</translation>
+      <source>Tracks</source>
+      <translation>Számok</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Műfaj</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Könyvtár · Mentve · Offline</translation>
+      <source>Mood</source>
+      <translation>Hangulat</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Mentve · Albumok</translation>
+      <source>Style</source>
+      <translation>Stílus</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Letöltések · Számok</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Leállítás · Rádió</translation>
+      <source>Title contains</source>
+      <translation>Cím · Szűrő</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Év · Indítás</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Év · Korlát</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Kedvencek · Korlát</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Lejátszás · Nincs</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Rendezés</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Korlát · Számok</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Könyvtár · Szűrő</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Intelligens · Lejátszási listák</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Intelligens · Lejátszási listák · Szűrő · Csak olvasható</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Lejátszási lista</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Könyvtár</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Sor</translation>
+      <source>Artists</source>
+      <translation>Előadók</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Lejátszási listák</translation>
+      <source>Albums</source>
+      <translation>Albumok</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Kedvencek · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Számok</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Nemrég hozzáadott</translation>
+      <source>Genre</source>
+      <translation>Műfaj</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Nemrég lejátszott</translation>
+      <source>Mood</source>
+      <translation>Hangulat</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Fel</translation>
+      <source>Style</source>
+      <translation>Stílus</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Cím · Szűrő</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Év · Indítás</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Év · Korlát</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Kedvencek · Korlát</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Lejátszás · Nincs</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Rendezés</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Korlát · Számok</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Előzmények · Beállítások</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Előzmények · local · Lejátszás · Metaadatok</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Előzmények</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Előadók</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumok</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Számok</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Előzmények · Beállítások</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Előzmények · local · Lejátszás · Metaadatok</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Időtartam</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Előzmények</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Könyvtár</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Előadók</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumok</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Számok</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Fel · Következő</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Számok · Kész · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Keresés · Előadók · Albumok · Számok</translation>
+      <source>Library</source>
+      <translation>Könyvtár</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Könyvtár</translation>
+      <source>Search</source>
+      <translation>Keresés</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Számok</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Rendezés</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Cím</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nemrég hozzáadott</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Év</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Típusok · Albumok</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Keresés · Előadók · Albumok · Számok</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Könyvtár</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Rendezés</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Hozzáadás · Sonic · Forrás</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Intelligens · Szűrő · Beállítások</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Csatlakozás · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Használva · Kapcsolat · Beállítások</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Kapcsolat · Beállítások</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frekvencia · Keresés</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Csatlakozás</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Letöltések</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Kezelés</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Könyvtár</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Rádió</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Leállítás · Rádió</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Keresés · Előadók · Albumok · Számok</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Keresés</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Lejátszási listák</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Keresés</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Keresés · Könyvtár</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Kedvencek · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nemrég hozzáadott</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nemrég lejátszott</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Fel</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Előadók</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Fel · Következő</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Könyvtár</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Sor</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Mentve · Albumok</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Letöltések · Számok</translation>
+      <source>Artists</source>
+      <translation>Előadók</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Cím</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Nemrég hozzáadott</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Év</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Típusok · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Új · Lejátszási lista</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Letöltve</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Hozzáadás · Sonic · Forrás</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Intelligens · Szűrő · Beállítások</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Könyvtár</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Beállítások</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Könyvtár</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Összes megjelenítése</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Keresés</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Könyvtár</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Lejátszási listák</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Keresés · Beállítások</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Könyvtár · Szűrő</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Típusok · Albumok</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Létrehozás · Intelligens · Lejátszási listák</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Létrehozás · Lejátszási lista · Számok · Sor</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Letöltések · Számok</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Ürítés · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Ürítés · Sonic · Forrás</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Leállítás · Rádió</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Sor</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Letöltve</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Mentve · Albumok</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Előzmények · Beállítások</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Kedvencek · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nemrég hozzáadott</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nemrég lejátszott</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Letöltések · Kezelés</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Kapcsolat</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Fel</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Könyvtár · Mentve · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Lejátszás · Mix · %1 · Forrás</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Számok</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Előadók</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Cím</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nemrég hozzáadott</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Év</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nemrég lejátszott</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Előzmények · Lejátszás</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Véletlenszerű</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Szűrő · Hang</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Keresés</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Hang · Hasonló</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Kedvencek · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nemrég hozzáadott</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nemrég lejátszott</translation>
     </message>
     <message>
       <source>Albums</source>

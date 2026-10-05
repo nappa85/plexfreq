@@ -1,6 +1,97 @@
 # Architecture
 
+Shared TextLink.qml renders compact underlined Show all and Read more/less actions
+on both platforms. Native adapters supply font/color and minimum touch height;
+the shared component handles mouse, keyboard and accessibility activation.
+Sailfish's thin translation adapter falls back to read-only `/etc/locale.conf`
+LC_MESSAGES/LANG when the launcher supplies no locale environment. Explicit
+PLEXFREQ_LANGUAGE or environment locale retains precedence; codeset suffixes are
+removed for catalogue lookup. No system settings are written.
+
+Discovery group headers reserve title width from the button's actual left edge.
+Sailfish overrides SectionHeader's built-in x margin and clips long titles; desktop
+uses its layout's width allocation without extra left padding. Show all is a shared
+translated label in Navigation. Qt5 fixture geometry now uses the production-like
+QQuickView hierarchy and SDK-only quick-private polish; no private Qt dependency is
+added to the production application.
+
+## Shared navigation/action catalogue
+
+`app/qml/shared/Navigation.qml` is the common presentation catalogue for the three
+primary destinations, page actions and secondary destinations. Stable IDs define
+order; `definition(id)` supplies translated labels, selection, visibility and
+enabled state. `activate(id)` checks the current capability before forwarding to
+Session or the existing backend command. Offline and Back shortcuts use the same
+definitions. Session owns route/history transitions; Rust owns data and enforcement.
+
+Desktop's `NavigationMenu.qml` uses Controls2 Instantiator/insertItem/removeItem;
+its primary row uses Repeater. Sailfish's LibraryPage uses native MenuItem and
+BackgroundItem repeaters. Both adapters handle only layout and native signals for
+Connection/Back. Sailfish supplies retained BrowsePageView DTOs, active-page state
+and whether the page can navigate root destinations. Stable ID models keep widgets
+alive when backend busy/capabilities/labels change. This replaces duplicated primary
+and main-menu definitions in the platform screens.
+
+Silica primary captions/highlights reference their destination control ID explicitly:
+BackgroundItem's default content parent is an internal item, not the control itself.
+The shared catalogue is now running in the phone's rootless bundle. Native stack
+and shared-policy checks pass; geometry fixture supplies the real Silica context
+and explicitly polishes a controlled Qt window for deterministic size assertions.
+
+Discovery group navigation belongs to section headers. Session's presentation-only
+`groupHub` resolves the common advertised hub key from the displayed group DTOs;
+ambiguous keys produce no shared link. Desktop uses current DTOs; Sailfish uses
+the page-local retained DTOs. Rust still validates and pages the hub endpoint.
+
+Desktop/mobile navigation alignment: desktop now exposes equal-size Discover,
+Library and Playlists destination controls in one full-width row. Selection follows
+the current route or its parent destination for detail pages. Back belongs to a
+separate contextual row. Two menu buttons mirror Sailfish's split: page operations
+(⋮) and secondary destinations/settings (☰). Queue is a normal destination, not a
+checkable toggle. This supersedes the earlier desktop standalone Home-button layout.
+
+Desktop navigation exposes Discovery Home directly at every connected destination,
+one Back control and a Library entry point; Queue is a menu destination. Session's
+`goHome` can reset history, while `browseLibrary` distinguishes entering Library,
+refining the current browse and a fresh browse. Existing no-argument home/browse
+entry points retain their behavior. Detail headers own detail titles, library
+selectors own category labels; contextual headings cover discovery/queue/collections.
+
+Discovery is the default initial destination after Session resolves music libraries.
+Sailfish Library uses an inline scrolling header and a collapsed control summary;
+IntrinsicLoader expands search/browse/sort on demand. Header/tabs use the full page
+width, while only list rows reserve space for the alphabet rail. That rail is a
+list-viewport child bounded below the visible header and above the playback dock.
+
+Sailfish destinations (2026-10-05): root headers expose Discovery Home, Library and
+Playlists directly. Pull-down contains contextual actions, pull-up secondary
+destinations/settings, and the playback dock exposes Queue. Browse/sort controls
+are library-route-only. An active page releases its retained presentation on a
+matching route completion, even when unrelated work remains busy; idle transitions
+retry restoration. Deactivating/off-stack pages keep their transition snapshots.
+Navigation remains in Session, data/grouping in Rust.
+
 ## Current runtime (Rust-owned, 2026-10-04)
+
+Next recommendations (2026-10-05): `refresh.rs` serializes automatic metadata plans
+on a separate Rust thread using read-only planner state. Core commits current
+namespace/recipe/generation results, honoring network gates/backoff. `catalogue.rs`
+owns reusable normalized text/order; snapshot stamp, audio revision and plan epoch
+invalidate it. `filters.rs` owns validated scopes/choices/query URIs and smart
+mutations; `discovery.rs` owns scoped layout, hub confinement, measured insights
+and multi-waypoint paths. Qt/QML only edit and present these DTOs.
+
+`bluetooth.rs` tracks audio accessories; a BlueZ signal worker pauses the independent
+audio handle on tracked disconnect. Read errors/idle are not disconnects; reconnect
+never auto-plays. Async match removal precedes connection teardown. Bluetooth
+permission is declared. PCM clipping uses decoded segment limits to honor container
+priming/padding independently of Plex DB duration.
+
+This expansion is deployed in the phone's existing rootless bundle. Final local
+gates and Qt5.6 controller/navigation/MPRIS checks pass; live read-only filter
+choices and genre/year browsing pass. Smart mutations, physical Bluetooth
+disconnect behavior and installed sandbox permissions have distinct validation
+scope; see validation.md.
 
 Sailfish navigation (2026-10-05): each stacked library/detail page has a
 `BrowsePageView` presentation snapshot and a stable, page-local `EntryModel`.
@@ -296,9 +387,13 @@ and snapshots detail metadata independently of generic list/state updates.
 
 Rust `alphabet(section)` reads/caches server firstCharacter groups with artist
 type/titleSort ordering. `jump_artist(section,letter)` validates the returned
-label and fetches the corresponding offset, replacing the current visible window.
-The alphabet rail uses those groups; filtered searches hide it. Normal scrolling
-starts subsequent-page fetches at 75% without resetting the current list.
+label and fetches from the beginning through that offset plus one normal page,
+replacing the current items and returning the selected index. Session forwards
+that index as presentation intent so each shell positions its existing scroll plane;
+earlier artists therefore remain available above the selected letter. The alphabet
+rail uses those groups; filtered searches hide it. Normal scrolling starts the next
+server-returned page at 75% without resetting the current list. Artist browse items
+use responsive artwork/title grids in both shells; other item types retain rows.
 
 ## Similar-artist navigation
 

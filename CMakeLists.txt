@@ -1,16 +1,21 @@
 cmake_minimum_required(VERSION 3.16)
 project(PlexFreq VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0 gstreamer-app-1.0 gio-2.0)
 find_program(CARGO cargo REQUIRED)
-set(RUST_LIBRARY "${CMAKE_SOURCE_DIR}/target/release/libplexfreq_core.a")
+# Keep cargo artifacts out of the source tree; reuse the binary dir.
+set(RUST_TARGET_DIR "${CMAKE_BINARY_DIR}/cargo-target")
+set(RUST_LIBRARY "${RUST_TARGET_DIR}/release/libplexfreq_core.a")
 file(GLOB_RECURSE RUST_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.rs")
 add_custom_command(OUTPUT "${RUST_LIBRARY}"
-    COMMAND "${CARGO}" build --locked --release --lib
+    COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} "${CARGO}" build --locked --release --lib
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     DEPENDS ${RUST_SOURCES} Cargo.toml Cargo.lock)
 add_custom_target(rust_core DEPENDS "${RUST_LIBRARY}")
@@ -18,7 +23,7 @@ add_custom_target(translations ALL COMMAND bash "${CMAKE_SOURCE_DIR}/tools/build
 add_executable(plexfreq app/src/main.cpp app/src/backend.cpp app/src/backend.h app/src/i18n.cpp app/src/i18n.h app/desktop.qrc app/translations.qrc)
 add_dependencies(plexfreq translations)
 add_dependencies(plexfreq rust_core)
-target_link_libraries(plexfreq PRIVATE "${RUST_LIBRARY}" Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 PkgConfig::GST pthread dl m)
+target_link_libraries(plexfreq PRIVATE "${RUST_LIBRARY}" Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 PkgConfig::GST Threads::Threads ${CMAKE_DL_LIBS} m)
 include(GNUInstallDirs)
 install(TARGETS plexfreq RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES packaging/plexfreq.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
@@ -31,7 +36,7 @@ add_executable(qt_backend_test tests/qt_backend.cpp tests/qt-backend-test.qrc ap
 add_dependencies(qt_backend_test translations)
 add_dependencies(qt_backend_test rust_core)
 target_include_directories(qt_backend_test PRIVATE app/src)
-target_link_libraries(qt_backend_test PRIVATE "${RUST_LIBRARY}" Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Test Qt6::Network Qt6::DBus PkgConfig::GST pthread dl m)
+target_link_libraries(qt_backend_test PRIVATE "${RUST_LIBRARY}" Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Test Qt6::Network Qt6::DBus PkgConfig::GST Threads::Threads ${CMAKE_DL_LIBS} m)
 find_program(DBUS_RUN_SESSION dbus-run-session REQUIRED)
 add_test(NAME native_backend_integration COMMAND "${DBUS_RUN_SESSION}" -- $<TARGET_FILE:qt_backend_test>)
 set_tests_properties(native_backend_integration PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;PLEXFREQ_AUDIO_SINK=fake" TIMEOUT 60)

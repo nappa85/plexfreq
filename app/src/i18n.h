@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVariantMap>
 void installTranslations(QCoreApplication *application);
+QString translationLocale(const QString &overrideLocale, const QString &systemLocale, const QString &fallbackConfig = QString());
 QString translatedError(const QVariantMap &response);
 QString translatedMessage(const QString &source);
 void translateErrorFields(QVariantMap &data);

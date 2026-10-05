@@ -1,5 +1,225 @@
 # Validation record
 
+## Artist grids and reversible alphabet jumps — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Jump protocol regression | Passed: request starts at zero, spans selected offset plus 100, returns selectedIndex, and preserves the next page offset |
+| Full `./tools/check.sh` | Passed: 122 Rust tests, fmt/Clippy, translation validation, desktop build and CTest 2/2 (18.88s) |
+| Translation catalogues | Passed: 39 locales / 549 messages; no new user-facing string required |
+| Desktop production QML smoke | Passed as part of CTest; artist grid QML loads without reported errors |
+| `./tools/build-sailfish.sh` | Passed: Qt5.6/aarch64 GNU app, RPM and rootless bundle; 0 errors and existing no-url-tag warning |
+
+The protocol test establishes that artists before the selected letter remain in
+the replacement model and that forward pagination continues correctly. Desktop
+smoke and Sailfish packaging are not visual/gesture tests. Responsive card sizing,
+alphabet touch positioning and scroll-up behavior on physical hardware remain for
+interactive confirmation; no live Plex or phone experiment was performed.
+
+## Text links and Italian rootless launch — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Phone language facts | SSH locale environment absent; configured system LANG=it_IT.utf8 |
+| Synthetic config/override and Italian installation regression | Passed on desktop and Qt5.6, including LC_MESSAGES preference and codeset normalization |
+| Actual phone locale fallback with all language variables unset | Passed: configured Italian catalogue returns Scopri |
+| Final desktop build / CTest | Passed 2/2 (14.23s); earlier full check passed all 122 Rust tests and fmt/Clippy |
+| SDK package / fixture / locales | Passed; 39 locales / 549 messages |
+| Phone locale/shared/navigation checks | 6 entries passed, no skips/failures, explicit process exit 0 |
+| Additional detail pixel/geometry case | Did not pass: qWaitForWindowExposed failed, including standalone retry |
+| Production smoke with language environment unset | Explicit exit 0, no application QML errors |
+| Phone update / process / MPRIS / Raise | Deployed with saved session/cache retained, sole PID and owner 18911; Raise succeeds |
+
+The final phone check covers native QML navigation and configured language loading;
+it does not substitute for the window-exposure-dependent detail pixel test above.
+Known vendor/isolated-bus messages and the fixture's pending-incubation warning remain.
+
+
+## Discovery header spacing / Show all — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Native SectionHeader source inspection | Confirmed default x margin caused the reserved-width calculation to extend into the button area |
+| Shared label / catalogues | Show all / Mostra tutto authored; 39 locales / 549 messages validated |
+| Final desktop build / CTest | Passed 2/2 (14.38s) |
+| SDK production and fixture builds | Passed; fixture build initially exceeded 240s, longer retry succeeded |
+| Initial phone fixture assertions / exit | Assertions passed, but explicit exit check exposed teardown signals 139/135; grabWindow alternative failed |
+| Final phone shared policy + native stack/geometry fixture | 4 entries pass, explicit process exit 0; QQuickView hierarchy and SDK-only private polish replace separate render-control contexts |
+| Production temporary-state smoke | Explicit exit 0; known vendor diagnostics only |
+| Deployment / process / MPRIS / Raise | Completed, sole app and matching MPRIS owner PID 14813; Raise succeeds |
+
+The final fixture has a non-fatal pending-incubation warning in its isolated
+application hierarchy. Production startup is independently smoke-tested. Previous
+QtTest pass counts alone did not establish a clean fixture-process shutdown;
+this run verifies the exit status explicitly. Saved session/cache retained.
+
+
+## Retry completed: shared catalogue launched on phone — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Restored SSH / fresh fixture transfer | Passed after user requested retry |
+| Initial geometry retry | Failed: Column.forceLayout is unavailable on Qt5.6; asynchronous frame waits were unreliable |
+| SDK fixture rebuild retry | One transient Jolla QtTest package TLS-download failure; subsequent build succeeded |
+| Final Qt5.6 shared policy + native navigation/caption/geometry fixture | Passed: 4 lifecycle/test entries, no failures/skips; caption TypeErrors removed |
+| Final geometry method | Fresh shipped LibraryPage with real Silica application context; QQuickRenderControl.polishItems drives layout deterministically |
+| Production temporary-state QML smoke | Exit 0; known vendor/isolated-bus diagnostics only |
+| Final desktop build / CTest / whitespace | Passed 2/2 (14.33s), `git diff --check` passed |
+| Phone deployment / ownership / Raise | Updated existing rootless directory; sole app PID and MPRIS owner 10743; Raise returned successfully |
+| State/cache / temporary update files | Preserved saved session/cache; update directory removed |
+
+This completes the launch blocked below. Native stack assertions still use real
+Silica push/pop; separate geometry assertions use controlled Qt item polishing,
+not pixel-level compositor or gesture claims. No system-service changes or root.
+
+
+## Shared catalogue phone deployment attempt — 2026-10-05
+
+- User requested launching the latest version on the phone. Temporary update
+  directory created: `/home/defaultuser/plexfreq-update.fAxhXD`; initial bundle and
+  fixture transferred successfully. Shared catalogue test passed on Qt5.6.
+- Native navigation test found blank primary captions: Silica BackgroundItem reparents
+  its Label into an internal item, so `parent.descriptor` was undefined. Caption and
+  highlight bindings now reference the explicit destinationControl ID; a non-empty
+  caption assertion was added. Subsequent native run had no caption TypeErrors.
+- Reparented geometry fixture intermittently delayed Column polish (loader/item
+  height 390 while header stayed 457; later layout exceeded the 5s check deadline).
+  It now scrolls the header into view and invokes Column.forceLayout on expand/collapse.
+  Corrected fixture rebuilt; final phone run is pending restored connectivity.
+- SSH/SCP then failed repeatedly with No route to host for 192.168.1.120. Deployment
+  has not occurred. Latest corrected production bundle built successfully; desktop
+  CTest passed 2/2 (14.41s), translation and whitespace checks passed.
+
+
+## Shared primary/main-menu catalogue — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| New shared catalogue test | Passed: disconnected/cache/offline/busy/inactive gates, hidden and unknown actions, Queue/Back dispatch, root navigation constraints, frozen DTO presentation |
+| Initial desktop adapter test | Failed: QObject child lookup missed Repeater visual delegates; corrected to visual-tree traversal and complete mock bridge defaults |
+| Actual desktop Main.qml adapter test | Passed: generated menu counts/items, non-checkable Queue, shared visibility/dispatch, equal destination sizing, controls retained across busy changes |
+| Final `./tools/check.sh` | Passed: 122 Rust tests, fmt/Clippy, CTest 2/2 (13.97s) |
+| Translations | Passed: 39 locales / 550 messages; common action labels reduce duplicate contexts |
+| `./tools/build-sailfish.sh` | Passed: production RPM/rootless bundle; existing no-url-tag warning |
+| `./tools/build-device-tests.sh` | Passed: Qt5.6 aarch64 fixture; existing lint warnings |
+| Whitespace / local launch | `git diff --check` passed; desktop PID 583520 running |
+
+Sailfish compilation is not a runtime check. Its fixture includes the shared test
+and adapted native-navigation case; this work did not run or deploy it on hardware.
+Desktop validation uses synthetic backend data and an isolated bus, with no live
+Plex mutation or account fixtures.
+
+
+## Discovery group-level navigation — 2026-10-05
+
+Desktop build/CTest passed 2/2 (14.04s), translation validation passed 39/571,
+and `git diff --check` passed. Local app relaunched PID 564113. Discovery headers
+now own the shared Show all link; item menus no longer repeat it. Sailfish source
+uses the same group lookup with retained page DTOs; this update was verified and
+launched on desktop, not deployed or runtime-tested on the phone.
+
+
+## Desktop three-destination / two-menu layout — 2026-10-05
+
+- Desktop build/CTest: passed 2/2 (14.30s), including production QML smoke.
+- Translation validation: passed 39 locales / 571 context messages; Italian menu
+  tooltips authored as Azioni della pagina and Altre destinazioni.
+- `git diff --check`: passed. Local updated app launched PID 559261.
+- Three primary controls have equal layout weights and fixed 44px heights; both
+  menu controls use 44px dimensions. Queue is non-checkable, Back separate, and
+  contextual/secondary menu contents follow the existing Sailfish menu split.
+- Interactive visual/menu ergonomics remain user-led; no new hardware experiment.
+
+
+## Desktop home/navigation clarity — 2026-10-05
+
+- Desktop build and CTest passed 2/2 (14.29s); 39 locales / 567 messages validated.
+- Shared controller regression verifies Home → Library → refinement → Back returns
+  Home once, and explicit Home resets navigation history. Existing detail navigation
+  checks remain green. Desktop QML smoke passed; `git diff --check` passed.
+- Italian Discover dictionary/authoring now says Scopri. Direct Home and Back remain
+  available on detail pages; Queue is in the menu. Detail titles live only in their
+  detail header, and library category is shown by its selector without another title.
+- Local desktop application launched PID 540423 for interactive confirmation.
+
+
+## Discovery startup / compact Library layout — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Final host check | Passed: 122 Rust tests, fmt/Clippy, CTest 2/2 (14.29s); earlier retry timed out during a cold run, final retry completed |
+| Locales / SDK production and fixture | Passed: 39 locales / 569 messages; package/fixture builds succeeded |
+| Initial phone geometry fixture | Failed: root inherited hidden standalone Silica-window state; corrected geometry stage to render returned page directly in QQuickWindow |
+| Initial expandable controls | Failed: header remained 457 pixels on expansion; replaced hidden nested Column with IntrinsicLoader |
+| Final phone native navigation + startup controller | Passed: 4 lifecycle/test entries, no failures/skips |
+| Geometry scope | 60 synthetic artists; expand/collapse changes/restores header height; header/list remain full width; alphabet parent/bounds stay inside viewport after down/up contentY changes |
+| Production QML smoke | Exit 0 with temporary state/isolated bus; known vendor diagnostics only |
+| Deployment / MPRIS / Raise | Rootless update with saved state/cache retained; sole app and MPRIS owner PID 43912; Raise succeeded |
+
+The startup controller checks a libraries completion selects Discovery Home.
+The native stack still checks push/pop/snapshots; geometric assertions use the
+same shipped page reparented into the fixture window after stack checks, rather
+than treating inherited hidden ancestors as visible. InlineHeader eliminates the
+returning overlay plane. Tests do not claim pixel-level gesture/visual confirmation.
+
+
+## Discovery destination / menu reorganization — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Initial native discovery selection after detail/back navigation | Passed; exact user interaction not reproduced |
+| Host `./tools/check.sh` | Passed: 122 Rust tests, fmt/Clippy, desktop CTest 2/2 (15.88s) |
+| Translation freshness/completeness | Passed: 39 locales / 568 context messages |
+| SDK production/fixture | Passed; fixture concurrent build initially timed out at 240s, retry and final sequential builds succeeded |
+| Initial new header-control fixture | Failed: BackgroundItem clicked requires QQuickMouseEvent pointer; test invocation corrected |
+| Final phone native stack and shared discovery controller | Passed: 4 entries, no failures/skips; discovery completion releases frozen rows with unrelated busy work, returning to Library dispatches browse |
+| Read-only saved-server discovery / bounded transcode probe | Passed: 3 entries; 63 discovery rows, 4 stations, 262144 bytes, owned session cleanup acknowledged |
+| Final production QML smoke | Exit 0; temporary state/isolated bus, known vendor diagnostics only |
+| Rootless deployment / MPRIS / Raise | Saved state/cache retained; sole app PID and MPRIS owner 39668; Raise successful |
+
+Native destination checks exercise the shipped QML control signal and synthetic
+metadata, including retained presentation and an unrelated busy operation. They
+are distinct from the read-only server check and from final user interaction.
+The first failing fixture left a destroyed ApplicationWindow reference in the
+combined management-page run; DialogHeader null-parent warnings occurred there.
+Final isolated navigation/controller and production smoke runs had no such warnings.
+
+
+## Next recommendations / car disconnect — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Initial new protocol reproductions | 4 failures: missing refresh/filter/layout/insight operations |
+| Final `./tools/check.sh`: Rust fmt/Clippy/all-feature tests | Passed: 122 tests (library 24, audio 8, parity 21), existing suites green |
+| MP3/AAC PCM join/seek | Passed; AAC boundary reproduced before decoded-segment clipping fix |
+| Isolated BlueZ signal → actual audio pause | Passed with full metadata queue; no actual Bluetooth device/service changes |
+| Initial D-Bus shutdown | SIGPIPE; corrected async match teardown while connection remains open |
+| Final desktop release / CTest | Passed 2/2, 14.10s |
+| Locale checks | 39 catalogues / 568 context messages, existing authored values retained |
+| SDK app/RPM/rootless + Qt5.6 fixture | Passed, existing lint warnings only |
+| Phone filter/journey controller, management pages, MPRIS/startup | Passed: 6 lifecycle/test entries |
+| Phone real PulseAudio synthetic transport/history/logout | Passed: 3 entries |
+| Real server progressive playback/pause/seek via fake sink | Passed: 3 entries, 268 ms heard; no persisted play/history event |
+| Final real-server filter choices / filtered browse | Passed: 3 entries; genre 14, mood 230, style 0 choices; genre/year query returned 36 rows |
+| Final phone controller/management/startup/MPRIS/native navigation regressions | Passed: 8 entries (6 cases plus init/cleanup), no failures/skips |
+| Final production rootless QML smoke | Exit 0 with temporary state and isolated bus; known vendor graphics/SELinux/maliit diagnostics only |
+| Final rootless deployment | Updated existing `/home/defaultuser/plexfreq-test.mTmhFP`; session/cache retained; sole app PID 36423 |
+| Normal-session MPRIS owner / Raise | Owner PID 36423 matches; Raise returned successfully |
+
+The first owner query used `/run/user/100000/dbus`, which refused the connection.
+The inherited normal-session address is `/run/user/100000/dbus/user_bus_socket`;
+the corrected query and Raise succeeded. This is a rootless runtime deployment,
+not an installed Sailjail permission test. Smart-playlist mutations remain covered
+by synthetic tests only. The server advertised no style choices in this check.
+
+Codec fixtures are generated from synthetic PCM in temporary directories. Bluetooth
+uses a private daemon exposing synthetic Device1 state; it does not pair/disconnect
+real devices. The user separately confirmed car controls work. Physical disconnect
+confirmation and call/routing/power tests require actual accessory interaction.
+The live seek check uses read-only saved credentials in place, a non-audible fake
+sink and owned-session cleanup, printing only counters. No actual playlist edits
+or fabricated account scrobbles were submitted.
+
 ## Sailfish navigation flash — 2026-10-05
 
 | Check | Actual result |

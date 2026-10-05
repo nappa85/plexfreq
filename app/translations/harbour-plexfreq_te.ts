@@ -321,8 +321,16 @@
       <translation>ఎంచుకో · 1–10 · కళాకారులు · ఆల్బమ్‌లు · మిశ్రమం</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>ఎంచుకో · 2–8 · పాటలు · సారూప్య</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>ఎంచుకో · 30–480 · రేడియో · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>ఎంచుకో · 7 · 30 · 90 · చరిత్ర</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>ఎంచుకో · ప్లేలిస్ట్ · ఆల్బమ్ · రేడియో · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>ఎంచుకో · రిఫ్రెష్ చేయి · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>చెల్లనిది · డీకోడర్ · ఆడియో</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>చెల్లనిది · వెతుకు</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>చెల్లనిది · ఫిల్టర్</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>చెల్లనిది · వరుస · సూచిక</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · అందుబాటులో లేదు · కళాకారుడు · రేడియో</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · అందినది · ఏదీ లేదు · సారూప్య · పాట · తనిఖీ చేయి · లైబ్రరీ · వాడినది · కళాకారుడు · రేడియో</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>వరుస · పాటలు · చెల్లుబాటు · మొదలుపెట్టు · సూచిక</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>స్మార్ట్ · ప్లేలిస్ట్ · ఫిల్టర్ · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>సారూప్య · పరిమితి · 250 · పాటలు</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>కదిలించు · పైకి</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>కదిలించు · కిందకి</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>స్వయంచాలక ప్లే · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>రిఫ్రెష్ చేయి · నిడివి</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు · లోడ్ అవుతోంది</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>స్వయంచాలక ప్లే · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>రిఫ్రెష్ చేయి · నిడివి</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు · లోడ్ అవుతోంది</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>రేడియో · డౌన్‌లోడ్‌లు · నిడివి</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>వెతుకు · లైబ్రరీ</translation>
+      <source>Library filters</source>
+      <translation>లైబ్రరీ · ఫిల్టర్</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>కనెక్షన్</translation>
+      <source>Smart playlist</source>
+      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · ఫిల్టర్ · చదవడానికి మాత్రమే</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్ · పాటలు · వరుస</translation>
+      <source>Playlist name</source>
+      <translation>ప్లేలిస్ట్</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>ప్లే చేయి · మిశ్రమం · %1 · మూలం</translation>
+      <source>Artists</source>
+      <translation>కళాకారులు</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>శుభ్రం చేయి · మిశ్రమం</translation>
+      <source>Albums</source>
+      <translation>ఆల్బమ్‌లు</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>డౌన్‌లోడ్ అయింది</translation>
+      <source>Tracks</source>
+      <translation>పాటలు</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>ఆన్‌లైన్</translation>
+      <source>Genre</source>
+      <translation>రకం</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>లైబ్రరీ · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+      <source>Mood</source>
+      <translation>మనోభావం</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>భద్రపరచినది · ఆల్బమ్‌లు</translation>
+      <source>Style</source>
+      <translation>శైలి</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>డౌన్‌లోడ్‌లు · పాటలు</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ఆపు · రేడియో</translation>
+      <source>Title contains</source>
+      <translation>శీర్షిక · ఫిల్టర్</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>సంవత్సరం · మొదలుపెట్టు</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>సంవత్సరం · పరిమితి</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ఇష్టమైనవి · పరిమితి</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ప్లే చేయి · ఏదీ లేదు</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>క్రమబద్ధీకరించు</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>పరిమితి · పాటలు</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>లైబ్రరీ · ఫిల్టర్</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · ఫిల్టర్ · చదవడానికి మాత్రమే</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>ప్లేలిస్ట్</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>లైబ్రరీ</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>వరుస</translation>
+      <source>Artists</source>
+      <translation>కళాకారులు</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ప్లేలిస్ట్‌లు</translation>
+      <source>Albums</source>
+      <translation>ఆల్బమ్‌లు</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ఇష్టమైనవి · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>పాటలు</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
+      <source>Genre</source>
+      <translation>రకం</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>ఇటీవల ప్లే చేసినవి</translation>
+      <source>Mood</source>
+      <translation>మనోభావం</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>పైకి</translation>
+      <source>Style</source>
+      <translation>శైలి</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>శీర్షిక · ఫిల్టర్</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>సంవత్సరం · మొదలుపెట్టు</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>సంవత్సరం · పరిమితి</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ఇష్టమైనవి · పరిమితి</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ప్లే చేయి · ఏదీ లేదు</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>క్రమబద్ధీకరించు</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>పరిమితి · పాటలు</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>చరిత్ర · local · ప్లే చేయి · మెటాడేటా</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · చరిత్ర</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>కళాకారులు</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ఆల్బమ్‌లు</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>పాటలు</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>చరిత్ర · local · ప్లే చేయి · మెటాడేటా</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>నిడివి</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · చరిత్ర</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>లైబ్రరీ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>కళాకారులు</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ఆల్బమ్‌లు</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>పాటలు</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>పైకి · తరువాతి</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · పాటలు · సిద్ధం · ఆఫ్‌లైన్</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>వెతుకు · కళాకారులు · ఆల్బమ్‌లు · పాటలు</translation>
+      <source>Library</source>
+      <translation>లైబ్రరీ</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>లైబ్రరీ</translation>
+      <source>Search</source>
+      <translation>వెతుకు</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>పాటలు</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>క్రమబద్ధీకరించు</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>శీర్షిక</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ఇటీవల చేర్చినవి</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>సంవత్సరం</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>రకాలు · ఆల్బమ్‌లు</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>వెతుకు · కళాకారులు · ఆల్బమ్‌లు · పాటలు</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>లైబ్రరీ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>క్రమబద్ధీకరించు</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>చేర్చు · Sonic · మూలం</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>స్మార్ట్ · ఫిల్టర్ · సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>కనెక్ట్ చేయి · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>వాడినది · కనెక్షన్ · సెట్టింగ్‌లు</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · కనెక్షన్ · సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>పౌనఃపున్యం · వెతుకు</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>కనెక్ట్ చేయి</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>డౌన్‌లోడ్‌లు</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>నిర్వహణ</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ఆన్‌లైన్</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>ఆఫ్‌లైన్ · లైబ్రరీ</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>రేడియో</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ఆపు · రేడియో</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>వెతుకు · కళాకారులు · ఆల్బమ్‌లు · పాటలు</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>వెతుకు</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ప్లేలిస్ట్‌లు</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>వెతుకు</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>వెతుకు · లైబ్రరీ</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ఇష్టమైనవి · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ఇటీవల ప్లే చేసినవి</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>పైకి</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>కళాకారులు</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>పైకి · తరువాతి</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>లైబ్రరీ</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>వరుస</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>భద్రపరచినది · ఆల్బమ్‌లు</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>డౌన్‌లోడ్‌లు · పాటలు</translation>
+      <source>Artists</source>
+      <translation>కళాకారులు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>శీర్షిక</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>ఇటీవల చేర్చినవి</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>సంవత్సరం</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>రకాలు · ఆల్బమ్</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>కొత్త · ప్లేలిస్ట్</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>మిశ్రమం</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>డౌన్‌లోడ్ అయింది</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>చేర్చు · Sonic · మూలం</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>స్మార్ట్ · ఫిల్టర్ · సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>ఆఫ్‌లైన్ · లైబ్రరీ</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>లైబ్రరీ</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>అన్నీ చూపించు</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>వెతుకు</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>లైబ్రరీ</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>ప్లేలిస్ట్‌లు</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>లైబ్రరీ · ఫిల్టర్</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>రకాలు · ఆల్బమ్‌లు</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>సృష్టించు · స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>సృష్టించు · ప్లేలిస్ట్ · పాటలు · వరుస</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>డౌన్‌లోడ్‌లు · పాటలు</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>శుభ్రం చేయి · మిశ్రమం</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>శుభ్రం చేయి · Sonic · మూలం</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>ఆపు · రేడియో</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>వరుస</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>డౌన్‌లోడ్ అయింది</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>భద్రపరచినది · ఆల్బమ్‌లు</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>ఇష్టమైనవి · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ఇటీవల చేర్చినవి</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ఇటీవల ప్లే చేసినవి</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>కనెక్షన్</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>పైకి</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ఆన్‌లైన్</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>లైబ్రరీ · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>ప్లే చేయి · మిశ్రమం · %1 · మూలం</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · మిశ్రమం · %1 · పాటలు</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>కళాకారులు</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>శీర్షిక</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ఇటీవల చేర్చినవి</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>సంవత్సరం</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ఇటీవల ప్లే చేసినవి</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>చరిత్ర · ప్లే చేయి</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>కలుపు</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>ఫిల్టర్ · ఆడియో</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>వెతుకు</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>ఆడియో · సారూప్య</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>ఇష్టమైనవి · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ఇటీవల ప్లే చేసినవి</translation>
     </message>
     <message>
       <source>Albums</source>

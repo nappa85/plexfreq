@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QWindow>
+#include <QDir>
 #include <qqml.h>
 #include <memory>
 #ifdef SAILFISH
@@ -30,6 +31,7 @@ int main(int argc, char *argv[]) {
     QString directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     // Isolated state for local integration tests; never touches the user's login.
     if (!qgetenv("PLEXFREQ_STATE_DIR").isEmpty()) directory = QString::fromUtf8(qgetenv("PLEXFREQ_STATE_DIR"));
+    if (directory.isEmpty()) directory = QDir::temp().absoluteFilePath(QStringLiteral("plexfreq"));
     Backend backend(directory);
     QObject::connect(&backend,&Backend::raiseRequested,application,[]{for(auto *window:QGuiApplication::topLevelWindows()){window->show();window->raise();window->requestActivate();}});
 #ifdef SAILFISH
@@ -38,7 +40,7 @@ int main(int argc, char *argv[]) {
     const QString bundledQml = application->applicationDirPath() + "/qml/harbour-plexfreq.qml";
     view->setSource(QFileInfo(bundledQml).exists() ? QUrl::fromLocalFile(bundledQml)
         : SailfishApp::pathTo("qml/harbour-plexfreq.qml"));
-    if (view->status() == QQuickView::Error) return 1;
+    if (view->status() == QQuickView::Error) {delete view;return 1;}
     view->showFullScreen();
 #else
     QQmlApplicationEngine engine;

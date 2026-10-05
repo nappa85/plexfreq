@@ -44,11 +44,14 @@ public:
     QAbstractItemModel *queueModel(){return &m_queue;}
     QString error() const {return m_error;}
     bool playing() const {return m_playback.value("playing").toBool();}
+    Q_PROPERTY(bool paused READ paused NOTIFY playbackChanged)
     bool paused() const {return m_playback.value("paused").toBool();}
+    Q_PROPERTY(double volume READ volume NOTIFY playbackChanged)
+    double volume() const {return m_playback.value("volume",0.8).toDouble();}
+    Q_PROPERTY(bool seekable READ seekable NOTIFY playbackChanged)
+    bool seekable() const {return m_playback.value("seekable").toBool();}
     qint64 position() const {return m_playback.value("position").toLongLong();}
     qint64 duration() const {return m_playback.value("duration").toLongLong();}
-    double volume() const {return m_playback.value("volume",0.8).toDouble();}
-    bool seekable() const {return m_playback.value("seekable").toBool();}
     Q_INVOKABLE void command(const QString &op,const QVariantMap &args=QVariantMap());
     Q_INVOKABLE void play(){command("audio_play");}
     Q_INVOKABLE void pause(){command("audio_pause");}

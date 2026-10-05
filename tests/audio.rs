@@ -265,3 +265,103 @@ fn normalization_modes_produce_the_expected_decoded_pcm() {
         );
     }
 }
+
+fn encode_audio(wave: &std::path::Path, output: &std::path::Path, codec: &str) {
+    if codec == "libmp3lame" {
+        let status = std::process::Command::new("lame")
+            .args(["--silent", "-b", "192"])
+            .arg(wave)
+            .arg(output)
+            .status()
+            .expect("LAME fixture encoder is required");
+        assert!(status.success());
+        return;
+    }
+    let status = std::process::Command::new("ffmpeg")
+        .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
+        .arg(wave)
+        .args(["-c:a", codec, "-b:a", "192k"])
+        .arg(output)
+        .status()
+        .expect("FFmpeg fixture encoder is required");
+    assert!(status.success());
+}
+
+#[test]
+fn mp3_and_aac_container_joins_trim_encoder_padding() {
+    let dir = tempfile::tempdir().unwrap();
+    let one = dir.path().join("one.wav");
+    let two = dir.path().join("two.wav");
+    wav(&one, RATE, 48000, 4096);
+    wav(&two, RATE, 48000, -8192);
+    for (ext, codec) in [("mp3", "libmp3lame"), ("m4a", "aac")] {
+        let a = dir.path().join(format!("one.{ext}"));
+        let b = dir.path().join(format!("two.{ext}"));
+        encode_audio(&one, &a, codec);
+        encode_audio(&two, &b, codec);
+        let engine = Engine::new(Sink::Capture).unwrap();
+        engine.handle.volume(1.).unwrap();
+        let mut sa = source(1, &a);
+        sa.duration = 1000;
+        let mut sb = source(2, &b);
+        sb.duration = 1000;
+        engine.handle.load(sa, false).unwrap();
+        engine.handle.prepare(Some(sb)).unwrap();
+        wait_end(&engine, 2);
+        let pcm = engine.handle.captured();
+        assert_eq!(
+            pcm.len(),
+            192000,
+            "{ext}: decoded PCM must exclude encoder priming/padding"
+        );
+        assert!(
+            pcm[4000..90000].iter().all(|x| (*x - 0.125).abs() < 0.03),
+            "{ext}"
+        );
+        assert!(
+            pcm[100000..188000].iter().all(|x| (*x + 0.25).abs() < 0.04),
+            "{ext}"
+        );
+    }
+}
+
+#[test]
+fn mp3_and_aac_resume_seek_keep_heard_time_separate_from_position() {
+    let dir = tempfile::tempdir().unwrap();
+    let wave = dir.path().join("seek.wav");
+    wav(&wave, RATE, 96000, 4096);
+    for (ext, codec) in [("mp3", "libmp3lame"), ("m4a", "aac")] {
+        let file = dir.path().join(format!("seek.{ext}"));
+        encode_audio(&wave, &file, codec);
+        let engine = Engine::new(Sink::Fake).unwrap();
+        let mut input = source(1, &file);
+        input.duration = 2000;
+        input.resume = 1000;
+        engine.handle.load(input, true).unwrap();
+        let until = Instant::now() + Duration::from_secs(5);
+        while !engine.handle.snapshot().loaded {
+            assert!(Instant::now() < until);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        engine.handle.play().unwrap();
+        while engine.handle.snapshot().position < 1100 {
+            assert!(Instant::now() < until);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        engine.handle.pause().unwrap();
+        while !engine.handle.snapshot().paused {
+            assert!(Instant::now() < until);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let state = engine.handle.snapshot();
+        assert!(state.position >= 1100);
+        assert!(
+            state.listened < 500,
+            "{ext}: seek offsets are not listened time"
+        );
+        engine.handle.seek(1800).unwrap();
+        engine.handle.play().unwrap();
+        wait_end(&engine, 1);
+        assert!(engine.handle.snapshot().listened < 800, "{ext}");
+    }
+}

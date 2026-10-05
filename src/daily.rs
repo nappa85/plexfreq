@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadPlan {
     pub kind: String,
@@ -17,6 +17,127 @@ pub struct DownloadPlan {
 }
 
 impl Core {
+    pub(crate) fn probe_playback(&self, key: &str, kbps: u32) -> Result<Value> {
+        if self.offline_mode {
+            return Err(Error::Input("Go online to refresh downloads"));
+        }
+        crate::quality::Config {
+            mobile_kbps: kbps,
+            ..Default::default()
+        }
+        .validate()?;
+        let track = self.fresh_metadata_item(key, "track")?;
+        if track.duration < 10000 || track.duration > 600000 {
+            return Err(Error::Input(
+                "Track duration is needed for a timed download",
+            ));
+        }
+        let mut uri = crate::quality::transcode_url(
+            &self.base()?,
+            key,
+            kbps,
+            &uuid::Uuid::new_v4().to_string(),
+        )?;
+        uri.query_pairs_mut()
+            .append_pair("X-Plex-Token", &self.settings.server_token);
+        let engine = crate::audio::Engine::new(crate::audio::Sink::Fake)?;
+        engine.handle.load(
+            crate::audio::Source {
+                id: 1,
+                url: uri.into(),
+                duration: track.duration,
+                album: track.parent_rating_key,
+                ..Default::default()
+            },
+            false,
+        )?;
+        let wait = |predicate: &dyn Fn(&crate::audio::Snapshot) -> bool| -> Result<crate::audio::Snapshot> {
+            let end = std::time::Instant::now() + std::time::Duration::from_secs(10);
+            loop {
+                let state = engine.handle.snapshot();
+                if !state.error.is_empty() { return Err(Error::Input("Audio playback failed")); }
+                if predicate(&state) { return Ok(state); }
+                if std::time::Instant::now() >= end { return Err(Error::Input("Audio playback failed")); }
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+        };
+        wait(&|state| state.playing && state.position >= 150)?;
+        engine.handle.pause()?;
+        let paused = wait(&|state| state.paused)?;
+        let target = (track.duration / 2).min(60000);
+        engine.handle.seek(target)?;
+        engine.handle.play()?;
+        let state = wait(&|state| state.playing && state.position >= target + 100)?;
+        if state.listened > 2000 {
+            return Err(Error::Input("Audio playback failed"));
+        }
+        let result = json!({"playbackProbe":{"played":true,"paused":paused.paused,"seeked":true,"position":state.position,"listened":state.listened}});
+        engine.handle.stop()?;
+        drop(engine);
+        Ok(result)
+    }
+    pub(crate) fn check_planning(&self) -> Result<()> {
+        if self.planning_guard.as_ref().is_some_and(|(epoch, wanted)| {
+            epoch.load(std::sync::atomic::Ordering::SeqCst) != *wanted
+        }) {
+            return Err(Error::Input("Cache request cancelled"));
+        }
+        Ok(())
+    }
+    pub(crate) fn maintain_refresh(&mut self) -> Result<Value> {
+        let allowed = self.writable
+            && self.network_online
+            && self.downloads_allowed()
+            && self.cache.gate().allowed()
+            && self.settings.refresh_policy.enabled;
+        if !allowed {
+            self.refresh.cancel();
+        }
+        if let Some(outcome) = self.refresh.poll() {
+            if allowed
+                && outcome.job.namespace == self.cache_namespace()
+                && self.settings.download_plans.get(&outcome.job.group) == Some(&outcome.job.plan)
+            {
+                match outcome.result {
+                    Ok((title, tracks)) => {
+                        match self.install_download_plan(
+                            &outcome.job.plan.kind,
+                            &outcome.job.plan.key,
+                            outcome.job.plan.minutes,
+                            title,
+                            tracks,
+                        ) {
+                            Ok(_) => {
+                                self.settings.downloads = self.manual_cache.clone();
+                                crate::store::save(&self.dir, &self.settings)?;
+                            }
+                            Err(error) => self.refresh.error = error.to_string(),
+                        }
+                    }
+                    Err(error) => self.refresh.error = error.to_string(),
+                }
+            }
+        }
+        if allowed && self.refresh.pending.is_none() {
+            let now = crate::history::now();
+            let due = self
+                .settings
+                .download_plans
+                .iter()
+                .find(|(group, plan)| {
+                    plan.kind != "album"
+                        && self
+                            .refresh
+                            .due(group, plan, &self.settings.refresh_policy, now)
+                })
+                .map(|(group, plan)| (group.clone(), plan.clone()));
+            if let Some((group, plan)) = due {
+                self.refresh
+                    .submit(self.dir.clone(), self.cache_namespace(), group, plan, now)?;
+            }
+        }
+        Ok(json!({"cache":self.cache_status()}))
+    }
     pub(crate) fn probe_quality(&self, key: &str, kbps: u32) -> Result<Value> {
         if self.offline_mode {
             return Err(Error::Input("Go online to refresh downloads"));
@@ -53,6 +174,7 @@ impl Core {
         Ok(json!({"transcodeProbe":{"bytes":bytes,"mime":mime,"stopped":stopped}}))
     }
     fn fresh_metadata_item(&self, key: &str, kind: &str) -> Result<Item> {
+        self.check_planning()?;
         crate::numeric(key)?;
         let path = format!("/library/metadata/{key}");
         let params = [("includeStations", "1".into())];
@@ -150,6 +272,7 @@ impl Core {
                 && tracks.len() < 1000)
         };
         if let Some(key) = radio::station_key(&seed, &base)? {
+            self.check_planning()?;
             let identity =
                 self.plex
                     .container(&base, &self.settings.server_token, "/identity", &[])?;
@@ -162,6 +285,7 @@ impl Core {
                 .ok_or(Error::ProtocolAt("radio queue identity"))?;
             let mut centers = BTreeSet::new();
             for _ in 0..20 {
+                self.check_planning()?;
                 let center = page.items.last().and_then(|i| i.play_queue_item_id);
                 if !add(page.items)? {
                     break;
@@ -190,6 +314,7 @@ impl Core {
             let mut seed = seed;
             let mut seeds = BTreeSet::new();
             for _ in 0..20 {
+                self.check_planning()?;
                 if !seeds.insert(seed.rating_key.clone()) {
                     break;
                 }
@@ -239,7 +364,17 @@ impl Core {
         {
             return Err(Error::Input("Choose 30–480 minutes for a radio download"));
         }
-        let (title, mut tracks) = match kind {
+        let (title, tracks) = self.collect_download(kind, key, minutes)?;
+        self.install_download_plan(kind, key, minutes, title, tracks)
+    }
+    pub(crate) fn collect_download(
+        &self,
+        kind: &str,
+        key: &str,
+        minutes: u32,
+    ) -> Result<(String, Vec<Item>)> {
+        self.check_planning()?;
+        let collected = match kind {
             "station" => {
                 let group = format!("station:{}", crate::cache::namespace(key, "station"));
                 let title = self
@@ -279,6 +414,17 @@ impl Core {
             }
             _ => return Err(Error::Input("Choose a playlist, album or radio download")),
         };
+        self.check_planning()?;
+        Ok(collected)
+    }
+    fn install_download_plan(
+        &mut self,
+        kind: &str,
+        key: &str,
+        minutes: u32,
+        title: String,
+        mut tracks: Vec<Item>,
+    ) -> Result<Value> {
         let mut seen = BTreeSet::new();
         tracks.retain(|i| seen.insert(i.rating_key.clone()));
         if tracks.is_empty() {
@@ -320,6 +466,7 @@ impl Core {
             },
         );
         self.manual_cache = plan.into_values().collect();
+        self.catalogue_epoch = self.catalogue_epoch.wrapping_add(1);
         self.library.save(
             &self.cache_namespace(),
             &format!("/plexfreq/downloads/{group}"),
@@ -377,7 +524,7 @@ impl Core {
         }
         self.execute_inner(Command::Play { items, index: 0 })
     }
-    pub(crate) fn offline_catalogue(&self) -> Vec<Item> {
+    fn build_offline_catalogue(&self) -> Vec<Item> {
         let mut catalogue: BTreeMap<_, _> = self
             .library
             .items(&self.cache_namespace())
@@ -417,29 +564,44 @@ impl Core {
         }
         catalogue.into_values().collect()
     }
+    fn ensure_offline_index(&self) {
+        let stamp = crate::catalogue::Stamp {
+            namespace: self.cache_namespace(),
+            library: self.library.catalogue_stamp(),
+            audio: self.cache.catalogue_revision(),
+            plans: self.catalogue_epoch,
+        };
+        if self
+            .offline_index
+            .borrow()
+            .as_ref()
+            .is_some_and(|index| index.stamp == stamp)
+        {
+            return;
+        }
+        let items = self.build_offline_catalogue();
+        *self.offline_index.borrow_mut() = Some(crate::catalogue::Index::new(stamp, items));
+    }
+    pub(crate) fn offline_catalogue(&self) -> Vec<Item> {
+        self.ensure_offline_index();
+        self.offline_index
+            .borrow()
+            .as_ref()
+            .map_or_else(Vec::new, |index| index.items.clone())
+    }
     pub(crate) fn offline_search(&self, query: &str, kind: &str, start: usize) -> Result<Value> {
         if !matches!(kind, "" | "artist" | "album" | "track") || query.len() > 512 {
             return Err(Error::Input("Choose a music item"));
         }
-        let terms: Vec<_> = query.split_whitespace().map(str::to_lowercase).collect();
-        let mut items: Vec<_> = self
-            .offline_catalogue()
-            .into_iter()
-            .filter(|i| kind.is_empty() || i.kind == kind)
-            .filter(|i| {
-                let text = format!("{} {} {}", i.title, i.parent_title, i.grandparent_title)
-                    .to_lowercase();
-                terms.iter().all(|term| text.contains(term))
-            })
-            .collect();
-        items
-            .sort_by_cached_key(|i| (i.title.to_lowercase(), i.kind.clone(), i.rating_key.clone()));
-        let total = items.len();
-        let page: Vec<_> = items
-            .iter()
+        self.ensure_offline_index();
+        let index = self.offline_index.borrow();
+        let index = index.as_ref().ok_or(Error::Input("Choose a music item"))?;
+        let total = index.search(query, kind).count();
+        let page: Vec<_> = index
+            .search(query, kind)
             .skip(start)
             .take(100)
-            .map(|i| self.display_item(i))
+            .map(|item| self.display_item(item))
             .collect();
         let next = start.saturating_add(page.len());
         Ok(json!({"items":page,"start":start,"next":next,"hasMore":next<total,"offline":true}))
@@ -454,8 +616,22 @@ impl Core {
                 ("includeMyMixes", "1".into()),
             ],
         )?;
+        let layout = self.discovery_layout(section);
+        let mut hubs = container.hubs;
+        hubs.sort_by_cached_key(|hub| {
+            layout
+                .order
+                .iter()
+                .position(|id| id == &hub.hub_identifier)
+                .unwrap_or(usize::MAX)
+        });
+        let options:Vec<_>=hubs.iter().map(|hub|json!({"identifier":hub.hub_identifier,"title":hub.title,"hidden":layout.hidden.contains(&hub.hub_identifier)})).collect();
         let mut items = Vec::new();
-        for hub in container.hubs.into_iter().take(24) {
+        for hub in hubs
+            .into_iter()
+            .filter(|hub| !layout.hidden.contains(&hub.hub_identifier))
+            .take(24)
+        {
             for item in hub.items.into_iter().take(12) {
                 let station = item.kind == "playlist"
                     && item.radio
@@ -472,11 +648,13 @@ impl Core {
                 value["station"] = json!(station);
                 value["discoveryGroup"] = json!(hub.title);
                 value["hubIdentifier"] = json!(hub.hub_identifier);
+                value["hubKey"] = json!(hub.key);
+                value["hubMore"] = json!(hub.more);
                 items.push(value);
             }
         }
         Ok(
-            json!({"items":items,"start":0,"next":0,"hasMore":false,"offline":offline,"discoveryHome":true}),
+            json!({"items":items,"start":0,"next":0,"hasMore":false,"offline":offline,"discoveryHome":true,"discoveryHubs":options,"discoveryLayout":layout}),
         )
     }
     pub(crate) fn sonic_neighbors(&self, key: &str, kind: &str) -> Result<Value> {

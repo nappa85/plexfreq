@@ -1146,6 +1146,7 @@ name = "plexfreq-core"
 version = "0.1.0"
 dependencies = [
  "fs2",
+ "futures-util",
  "gstreamer",
  "gstreamer-app",
  "rand 0.8.8",

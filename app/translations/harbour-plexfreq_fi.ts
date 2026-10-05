@@ -321,8 +321,16 @@
       <translation>Valitse · 1–10 · Artistit · Albumit · Miksaus</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Valitse · 2–8 · Kappaleet · Samankaltainen</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Valitse · 30–480 · Radio · Lataukset</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Valitse · 7 · 30 · 90 · Historia</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Valitse · Soittolista · Albumi · Radio · Lataukset</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Valitse · Päivitä · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Virheellinen · Dekooderi · Ääni</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Virheellinen · Haku</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Virheellinen · Suodatin</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Virheellinen · Jono · Indeksi</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Ei saatavilla · Artisti · Radio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Vastaanotettu · Ei mitään · Samankaltainen · Kappale · Tarkista · Kirjasto · Käytetty · Artisti · Radio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Jono · Kappaleet · Kelvollinen · Aloita · Indeksi</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Älykäs · Soittolista · Suodatin · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Samankaltainen · Raja · 250 · Kappaleet</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Haku · Asetukset</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Haku · Asetukset</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Siirrä · Ylös</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Siirrä · Alas</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Lataukset · Hallinta</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automaattinen toisto · Päivitä · Lataukset</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Päivitä · Kesto</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Päivitä · Lataukset · Ladataan</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Lataukset · Hallinta</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automaattinen toisto · Päivitä · Lataukset</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Päivitä · Kesto</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Päivitä · Lataukset · Ladataan</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radio · Lataukset · Kesto</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Haku · Kirjasto</translation>
+      <source>Library filters</source>
+      <translation>Kirjasto · Suodatin</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Yhteys</translation>
+      <source>Smart playlist</source>
+      <translation>Älykäs · Soittolistat</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Lataukset · Hallinta</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Älykäs · Soittolistat · Suodatin · Vain luku</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Luo · Soittolista · Kappaleet · Jono</translation>
+      <source>Playlist name</source>
+      <translation>Soittolista</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Toista · Miksaus · %1 · Lähde</translation>
+      <source>Artists</source>
+      <translation>Artistit</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Tyhjennä · Miksaus</translation>
+      <source>Albums</source>
+      <translation>Albumit</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Ladattu</translation>
+      <source>Tracks</source>
+      <translation>Kappaleet</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Kirjasto · Tallennettu · Offline</translation>
+      <source>Mood</source>
+      <translation>Tunnelma</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Tallennettu · Albumit</translation>
+      <source>Style</source>
+      <translation>Tyyli</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Lataukset · Kappaleet</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Pysäytä · Radio</translation>
+      <source>Title contains</source>
+      <translation>Nimi · Suodatin</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Vuosi · Aloita</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Vuosi · Raja</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Suosikit · Raja</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Toista · Ei mitään</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Järjestä</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Raja · Kappaleet</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Kirjasto · Suodatin</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Älykäs · Soittolistat</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Älykäs · Soittolistat · Suodatin · Vain luku</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Soittolista</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Kirjasto</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Jono</translation>
+      <source>Artists</source>
+      <translation>Artistit</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Soittolistat</translation>
+      <source>Albums</source>
+      <translation>Albumit</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Suosikit · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Kappaleet</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Äskettäin lisätyt</translation>
+      <source>Genre</source>
+      <translation>Genre</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Äskettäin toistetut</translation>
+      <source>Mood</source>
+      <translation>Tunnelma</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Ylös</translation>
+      <source>Style</source>
+      <translation>Tyyli</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Nimi · Suodatin</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Vuosi · Aloita</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Vuosi · Raja</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Suosikit · Raja</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Toista · Ei mitään</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Järjestä</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Raja · Kappaleet</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historia · Asetukset</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Toista · %2 · Historia</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Historia · local · Toista · Metatiedot</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Historia</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artistit</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumit</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Kappaleet</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Toista · %2 · Historia</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historia · Asetukset</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Toista · %2 · Historia</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Historia · local · Toista · Metatiedot</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Kesto</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Historia</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kirjasto</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artistit</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumit</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Kappaleet</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Toista · %2 · Historia</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Ylös · Seuraava</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Kappaleet · Valmis · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Haku · Artistit · Albumit · Kappaleet</translation>
+      <source>Library</source>
+      <translation>Kirjasto</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Kirjasto</translation>
+      <source>Search</source>
+      <translation>Haku</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Kappaleet</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Järjestä</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Nimi</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Äskettäin lisätyt</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Vuosi</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Tyypit · Albumit</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Haku · Artistit · Albumit · Kappaleet</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kirjasto</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Järjestä</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Lisää · Sonic · Lähde</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Älykäs · Suodatin · Asetukset</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Yhdistä · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Käytetty · Yhteys · Asetukset</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Yhteys · Asetukset</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Taajuus · Haku</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Yhdistä</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Lataukset</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Hallinta</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Kirjasto</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Pysäytä · Radio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Haku · Artistit · Albumit · Kappaleet</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Haku</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Soittolistat</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Haku</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Haku · Kirjasto</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Suosikit · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Äskettäin lisätyt</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Äskettäin toistetut</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Ylös</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artistit</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Ylös · Seuraava</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Kirjasto</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Jono</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Tallennettu · Albumit</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Lataukset · Kappaleet</translation>
+      <source>Artists</source>
+      <translation>Artistit</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Nimi</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Äskettäin lisätyt</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Vuosi</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Tyypit · Albumi</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Uusi · Soittolista</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Miksaus</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Ladattu</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Lisää · Sonic · Lähde</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Älykäs · Suodatin · Asetukset</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Kirjasto</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Asetukset</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Kirjasto</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Näytä kaikki</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Haku</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Kirjasto</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Soittolistat</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Haku · Asetukset</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Kirjasto · Suodatin</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Tyypit · Albumit</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Luo · Älykäs · Soittolistat</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Luo · Soittolista · Kappaleet · Jono</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Lataukset · Kappaleet</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Tyhjennä · Miksaus</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Tyhjennä · Sonic · Lähde</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Pysäytä · Radio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Jono</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Ladattu</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Tallennettu · Albumit</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Historia · Asetukset</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Suosikit · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Äskettäin lisätyt</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Äskettäin toistetut</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Lataukset · Hallinta</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Yhteys</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Ylös</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Kirjasto · Tallennettu · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Toista · Miksaus · %1 · Lähde</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Miksaus · %1 · Kappaleet</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Artistit</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Nimi</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Äskettäin lisätyt</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Vuosi</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Äskettäin toistetut</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Historia · Toista</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Sekoita</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Suodatin · Ääni</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Haku</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Ääni · Samankaltainen</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Suosikit · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Äskettäin lisätyt</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Äskettäin toistetut</translation>
     </message>
     <message>
       <source>Albums</source>

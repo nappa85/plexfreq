@@ -10,26 +10,26 @@ Item {
     property string pageKey: ""
     property bool frozen: false
     property var saved: ({})
-    property string heading: frozen ? saved.heading || "" : music.heading
-    property var detail: frozen ? saved.detail : music.detail
-    property var playlist: frozen ? saved.playlist : music.playlist
-    property var items: frozen ? saved.items || [] : music.items
+    property string heading: frozen ? saved.heading || "" : (music ? music.heading : "")
+    property var detail: frozen ? saved.detail : (music ? music.detail : null)
+    property var playlist: frozen ? saved.playlist : (music ? music.playlist : null)
+    property var items: frozen ? saved.items || [] : (music ? music.items || [] : [])
     property var rows: entries
-    property bool showQueue: frozen ? !!saved.showQueue : music.showQueue
-    property bool homeView: frozen ? !!saved.homeView : music.homeView
-    property bool artistBrowse: frozen ? !!saved.artistBrowse : music.artistBrowse
-    property var alphabet: frozen ? saved.alphabet || [] : music.alphabet
-    property var route: frozen ? saved.route : music.route
-    property string query: frozen ? saved.query || "" : music.query
-    property var similarArtists: frozen ? saved.similarArtists || [] : music.similarArtists
-    property string similarState: frozen ? saved.similarState || "" : music.similarState
-    property bool canGoBack: frozen ? !!saved.canGoBack : music.canGoBack
+    property bool showQueue: frozen ? !!saved.showQueue : (music ? !!music.showQueue : false)
+    property bool homeView: frozen ? !!saved.homeView : (music ? !!music.homeView : false)
+    property bool artistBrowse: frozen ? !!saved.artistBrowse : (music ? !!music.artistBrowse : false)
+    property var alphabet: frozen ? saved.alphabet || [] : (music ? music.alphabet || [] : [])
+    property var route: frozen ? saved.route : (music ? music.route : null)
+    property string query: frozen ? saved.query || "" : (music ? music.query || "" : "")
+    property var similarArtists: frozen ? saved.similarArtists || [] : (music ? music.similarArtists || [] : [])
+    property string similarState: frozen ? saved.similarState || "" : (music ? music.similarState || "" : "")
+    property bool canGoBack: frozen ? !!saved.canGoBack : (music ? !!music.canGoBack : false)
     property bool busy: frozen ? !!saved.busy : backend.busy
     property bool loadingMore: frozen ? !!saved.loadingMore : backend.loadingMore
     property bool hasMore: frozen ? !!saved.hasMore : !!backend.state.hasMore
     property bool offline: frozen ? !!saved.offline : !!backend.state.offline
     property string error: frozen ? saved.error || "" : backend.error || ""
-    property int failedPageStart: frozen ? saved.failedPageStart : music.failedPageStart
+    property int failedPageStart: frozen ? saved.failedPageStart : (music ? music.failedPageStart : -1)
 
     EntryModel { id: entries; entries: view.items }
     function freeze() {

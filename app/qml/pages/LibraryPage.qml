@@ -8,7 +8,16 @@ Page {
     property string pageKind: "root"
     property string pageKey: ""
     property bool restoringView: false
+    property bool controlsExpanded: false
+    property bool libraryView: pageKind === "root" && navigation.libraryView
+    property bool searchableView: pageKind === "root" && !pageView.showQueue && !!backend.state.serverUrl && pageView.route && (libraryView || pageView.route.op === "search" || pageView.route.op === "discovery_home" || pageView.route.op === "offline_search" || pageView.route.op === "cached_tracks")
     BrowsePageView { id: pageView; objectName:"browsePageView"; music: page.music; pageKind: page.pageKind; pageKey: page.pageKey }
+    Navigation {
+        id:navigation;objectName:"navigationDefinitions";music:page.music;view:pageView
+        interactive:page.status===PageStatus.Active;rootNavigation:page.pageKind==="root"
+        onConnectionRequested:pageStack.push(Qt.resolvedUrl("SettingsPage.qml"),{music:page.music})
+        onBackRequested:pageStack.depth>1 ? pageStack.pop() : page.music.back()
+    }
     allowedOrientations: Orientation.All
     function restorePage() {
         if (status !== PageStatus.Active || !music || backend.busy) return
@@ -24,46 +33,79 @@ Page {
         restorePage()
     }
     Connections { target: backend; onCompleted: {
-        if (page.restoringView && !data._discarded && music.route && op === music.route.op && music.matchesPage(pageKind, pageKey)) {
+        if (page.status === PageStatus.Active && !data._discarded && music.route && op === music.route.op && music.matchesPage(pageKind, pageKey)) {
             page.restoringView = false
             pageView.thaw()
         }
         page.restorePage()
-    } }
-    Connections { target: music; onResetView: if (page.status===PageStatus.Active) list.positionViewAtBeginning() }
+    }
+        onBusyChanged: if (!backend.busy) page.restorePage()
+    }
+    Connections {
+        target: music
+        onResetView: if (page.status===PageStatus.Active) list.positionViewAtBeginning()
+        onArtistJumped: if (page.status===PageStatus.Active && pageKind==="root") list.positionArtist(index)
+    }
     SilicaListView {
-        id: list; anchors.fill: parent; anchors.bottomMargin: player.height; anchors.rightMargin:alphabet.visible ? alphabet.width : 0; clip: true
-        model: pageView.rows
-        headerPositioning:pageKind==="root" && pageView.artistBrowse ? ListView.PullBackHeader : ListView.InlineHeader
+        id: list; objectName:"libraryList"; anchors.fill: parent; anchors.bottomMargin: player.height; clip: true
+        model: pageView.artistBrowse ? null : pageView.rows
+        // Keep header and rows in one scrolling plane, avoiding transparent
+        // PullBackHeader overlap when reversing direction on Qt5.6 Silica.
+        headerPositioning:ListView.InlineHeader
         function checkMore() { if (page.status===PageStatus.Active) music.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
+        function positionArtist(index) {
+            Qt.callLater(function() {
+                if (!footerItem || artistGrid.columns < 1) return
+                var target = footerItem.y + Math.floor(index / artistGrid.columns) * artistGrid.cellHeight
+                contentY = Math.max(originY, Math.min(target, Math.max(originY, contentHeight - height)))
+            })
+        }
         onContentYChanged:moreTimer.restart()
         onCountChanged:moreTimer.restart()
         onHeightChanged:moreTimer.restart()
         Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
         Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
         PullDownMenu {
-            MenuItem {text:qsTr("Discovery home");visible:pageKind==="root";enabled:!backend.busy;onClicked:music.home()}
-            MenuItem { text: qsTr("Connection"); onClicked: pageStack.push(Qt.resolvedUrl("SettingsPage.qml"), {music: music}) }
-            MenuItem {text:qsTr("Download manager");onClicked:music.openDownloads()}
-            MenuItem {text:qsTr("Create playlist from tracks/queue");enabled:!backend.busy && !backend.state.offlineMode;onClicked:music.playlistEditor("create",null)}
-            MenuItem {text:qsTr("Play mix (%1 seeds)").arg(music.mixSeeds.length);visible:music.mixSeeds.length>0;enabled:!backend.busy;onClicked:music.playMix()}
-            MenuItem {text:qsTr("Clear mix seeds");visible:music.mixSeeds.length>0;onClicked:music.mixSeeds=[]}
-            MenuItem { text: qsTr("Downloaded music"); enabled: !backend.busy && backend.cache.tracks > 0; onClicked: music.downloads() }
-            MenuItem {text:backend.state.offlineMode?qsTr("Go online"):qsTr("Browse saved library offline");enabled:!backend.busy;onClicked:backend.command("offline_mode",{enabled:!backend.state.offlineMode})}
-            MenuItem {text:qsTr("Saved albums");visible:!!backend.state.offlineMode;enabled:!backend.busy;onClicked:music.load("offline_browse",{kind:"album"},qsTr("Saved albums"),true)}
-            MenuItem { text: qsTr("Download displayed tracks"); visible: music.items.length > 0 && music.items[0].type === "track"; enabled: !backend.busy && backend.cache.enabled; onClicked: music.downloadTracks() }
-            MenuItem { text: qsTr("Stop radio"); visible: !!backend.state.radio; enabled: !backend.busy; onClicked: backend.command("stop_radio") }
-            MenuItem { text: music.showQueue ? qsTr("Library") : qsTr("Queue"); onClicked: music.showQueue = !music.showQueue }
-            MenuItem { text: qsTr("Playlists"); visible: pageKind === "root"; enabled: !backend.busy && !!backend.state.serverUrl; onClicked: music.load("playlists", {start:0}, qsTr("Playlists"), true) }
-            MenuItem {text:qsTr("Favorites · 5 stars");visible:pageKind==="root";enabled:!backend.busy;onClicked:music.discovery("favorites")}
-            MenuItem {text:qsTr("Recently added");visible:pageKind==="root";enabled:!backend.busy;onClicked:music.discovery("added")}
-            MenuItem {text:qsTr("Recently played");visible:pageKind==="root";enabled:!backend.busy;onClicked:music.discovery("played")}
-            MenuItem { text: qsTr("Back"); visible: music.canGoBack; enabled: !backend.busy; onClicked: pageStack.depth > 1 ? pageStack.pop() : music.back() }
+            Repeater {
+                model:navigation.pageActions
+                MenuItem {
+                    property var descriptor:navigation.definition(modelData)
+                    objectName:"nav_"+modelData;text:descriptor.text;visible:descriptor.visible;enabled:descriptor.enabled
+                    onClicked:navigation.activate(modelData)
+                }
+            }
+            MenuItem {text:navigation.definition("offline").text;enabled:navigation.definition("offline").enabled;onClicked:navigation.activate("offline")}
+            MenuItem {text:navigation.definition("back").text;visible:navigation.definition("back").visible;enabled:navigation.definition("back").enabled;onClicked:navigation.activate("back")}
+        }
+        PushUpMenu {
+            Repeater {
+                model:navigation.secondaryDestinations
+                MenuItem {
+                    property var descriptor:navigation.definition(modelData)
+                    objectName:"nav_"+modelData;text:descriptor.text;visible:descriptor.visible;enabled:descriptor.enabled
+                    onClicked:navigation.activate(modelData)
+                }
+            }
         }
         header: Column {
+            objectName:"libraryHeader"
             width: list.width
             height: implicitHeight
             PageHeader { title: pageView.showQueue ? qsTr("Up next") : pageKind === "root" ? "PlexFreq" : pageView.heading; description: pageKind === "root" && !pageView.showQueue ? pageView.heading : "" }
+            Row {
+                width:parent.width;visible:navigation.rootNavigation
+                Repeater {
+                    model:navigation.primaryDestinations
+                    BackgroundItem {
+                        id:destinationControl
+                        property var descriptor:navigation.definition(modelData)
+                        objectName:descriptor.objectName;width:parent.width/navigation.primaryDestinations.length
+                        enabled:descriptor.enabled;highlighted:descriptor.selected
+                        onClicked:navigation.activate(modelData)
+                        Label {objectName:"destinationLabel";anchors.centerIn:parent;width:parent.width-2*Theme.paddingSmall;text:destinationControl.descriptor.text;horizontalAlignment:Text.AlignHCenter;wrapMode:Text.Wrap;font.pixelSize:Theme.fontSizeExtraSmall;color:destinationControl.highlighted ? Theme.highlightColor : Theme.primaryColor}
+                    }
+                }
+            }
             Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;visible:!!pageView.playlist;text:pageView.playlist ? music.playlistSummary(pageView.playlist) : "";wrapMode:Text.Wrap;color:Theme.secondaryColor}
             Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; visible: !!backend.state.radio; text: backend.state.radio ? qsTr("Radio") + " · " + backend.state.radio.title : ""; color: Theme.highlightColor; wrapMode: Text.Wrap }
             Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: pageView.error; visible: text.length > 0; color: Theme.errorColor; wrapMode: Text.Wrap }
@@ -78,22 +120,37 @@ Page {
                     }
                 }
             }
+            BackgroundItem {
+                objectName:"libraryControlsToggle";width:parent.width;visible:page.searchableView || page.libraryView
+                onClicked:page.controlsExpanded=!page.controlsExpanded
+                Label {
+                    x:Theme.horizontalPageMargin;anchors.verticalCenter:parent.verticalCenter;width:parent.width-2*x-Theme.iconSizeSmall
+                    text:(pageView.query || qsTr("Search")) + (page.libraryView ? " · " + (music.browseKind==="artist" ? qsTr("Artists") : music.browseKind==="album" ? qsTr("Albums") : qsTr("Tracks")) + " · " + (music.browseSort==="title" ? qsTr("Title") : music.browseSort==="newest" ? qsTr("Recently added") : qsTr("Year")) : "")
+                    font.pixelSize:Theme.fontSizeExtraSmall;truncationMode:TruncationMode.Fade
+                }
+                Label {anchors.right:parent.right;anchors.rightMargin:Theme.horizontalPageMargin;anchors.verticalCenter:parent.verticalCenter;text:page.controlsExpanded ? "−" : "+";color:Theme.highlightColor}
+            }
+            IntrinsicLoader {
+                objectName:"libraryControlsLoader";width:parent.width;active:page.controlsExpanded && (page.searchableView || page.libraryView)
+                sourceComponent: Component { Column {
+                width:list.width
             SearchField {
                 id:artistSearch
-                width: parent.width; visible: pageKind === "root" && !pageView.showQueue && !!backend.state.serverUrl && pageView.route && (pageView.route.op === "browse" || pageView.route.op === "library_browse" || pageView.route.op === "search" || pageView.route.op==="discovery_home" || pageView.route.op==="offline_browse" || pageView.route.op==="offline_search" || pageView.route.op==="cached_tracks")
+                width: parent.width; visible: page.searchableView
                 placeholderText: qsTr("Search artists, albums and tracks")
                 text:pageView.query
                 onTextChanged:if(!pageView.frozen)music.search(text)
                 EnterKey.enabled: !backend.busy
                 EnterKey.onClicked: { music.submitSearch(text); focus = false }
             }
-            ComboBox {width:parent.width;label:qsTr("Browse");visible:pageKind==="root" && !pageView.showQueue && !pageView.detail && !pageView.playlist;value:music.browseKind==="artist"?qsTr("Artists"):music.browseKind==="album"?qsTr("Albums"):qsTr("Tracks")
+            ComboBox {objectName:"browseKindControl";width:parent.width;label:qsTr("Browse");visible:page.libraryView;value:music.browseKind==="artist"?qsTr("Artists"):music.browseKind==="album"?qsTr("Albums"):qsTr("Tracks")
                 menu:ContextMenu {Repeater {model:["artist","album","track"];MenuItem {text:modelData==="artist"?qsTr("Artists"):modelData==="album"?qsTr("Albums"):qsTr("Tracks");onClicked:{music.browseKind=modelData;if(modelData==="artist" && music.browseSort==="year")music.browseSort="title";music.query="";music.browse()}}}}
             }
-            ComboBox {width:parent.width;label:qsTr("Sort");visible:pageKind==="root" && !pageView.showQueue && !pageView.detail && !pageView.playlist;value:music.browseSort==="title"?qsTr("Title"):music.browseSort==="newest"?qsTr("Recently added"):qsTr("Year")
+            ComboBox {width:parent.width;label:qsTr("Sort");visible:page.libraryView;value:music.browseSort==="title"?qsTr("Title"):music.browseSort==="newest"?qsTr("Recently added"):qsTr("Year")
                 menu:ContextMenu {Repeater {model:music.browseKind==="artist"?["title","newest"]:["title","newest","year"];MenuItem {text:modelData==="title"?qsTr("Title"):modelData==="newest"?qsTr("Recently added"):qsTr("Year");onClicked:{music.browseSort=modelData;music.query="";music.browse()}}}}
             }
-            Button {anchors.horizontalCenter:parent.horizontalCenter;visible:pageView.detail && pageView.detail.type==="artist";text:qsTr("Group albums by type");enabled:!backend.busy;onClicked:music.groupAlbums()}
+            }
+            } }
             BusyIndicator { anchors.horizontalCenter: parent.horizontalCenter; running: pageView.busy; visible: running; size: BusyIndicatorSize.Medium }
             IntrinsicLoader {
                 width: parent.width; active: !!pageView.detail
@@ -101,13 +158,20 @@ Page {
             }
         }
         section.property:pageView.homeView ? "groupTitle" : pageView.route && pageView.route.op==="artist_albums" ? "albumGroup" : ""
-        section.delegate:SectionHeader {text:section}
+        section.delegate:Item {
+            property var groupItem:pageView.homeView ? music.groupHub(section,pageView.items) : null
+            width:list.width;height:Math.max(groupTitle.height,groupButton.visible ? groupButton.height : 0)
+            SectionHeader {id:groupTitle;x:0;width:Math.max(0,groupButton.visible ? groupButton.x-Theme.paddingSmall : parent.width);anchors.verticalCenter:parent.verticalCenter;text:section;horizontalAlignment:Text.AlignLeft;clip:true}
+            TextLink {id:groupButton;anchors.right:parent.right;anchors.rightMargin:Theme.horizontalPageMargin;anchors.verticalCenter:parent.verticalCenter;width:Math.min(implicitWidth,parent.width*0.45);text:navigation.showAllLabel;fontSize:Theme.fontSizeExtraSmall;fontFamily:Theme.fontFamily;color:Theme.highlightColor;pressedColor:Theme.primaryColor;minimumTouchHeight:Theme.itemSizeSmall;visible:!!parent.groupItem;enabled:!backend.busy && page.status===PageStatus.Active;onClicked:music.hub(parent.groupItem)}
+        }
         delegate: ListItem {
             property var itemData: entry
-            width: list.width
+            width: list.width - (alphabet.visible ? alphabet.width : 0)
             contentHeight: Math.max(Theme.itemSizeMedium, rowDetails.height + 2 * Theme.paddingSmall, radioAction.height + 2 * Theme.paddingSmall)
             enabled: !backend.busy && page.status === PageStatus.Active
             menu: ContextMenu {
+                MenuItem {text:qsTr("Add sonic waypoint");visible:itemData.type==="track";enabled:music.journeyTracks.length<8;onClicked:music.addJourneyTrack(itemData)}
+                MenuItem {text:qsTr("Edit smart filters");visible:itemData.type==="playlist" && !!itemData.smart && !itemData.station;enabled:!backend.state.offlineMode;onClicked:music.editFilters("update",itemData)}
                 MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(itemData);onClicked:music.sonicNeighbors(itemData)}
                 MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onClicked:music.adventureStart=itemData}
                 MenuItem {text:qsTr("Sonic Adventure to this track");visible:itemData.type==="track" && !!music.adventureStart;onClicked:music.sonicAdventure(itemData)}
@@ -151,19 +215,54 @@ Page {
             }
         }
         footer: Item {
-            width:list.width; height:!pageView.showQueue && pageView.hasMore ? Theme.itemSizeSmall : 0
-            BusyIndicator { anchors.centerIn:parent; running:pageView.loadingMore; opacity:running ? 1 : 0; size:BusyIndicatorSize.Small }
-            Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:pageView.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:music.retryMore() }
+            width:list.width
+            property int pagingHeight:!pageView.showQueue && pageView.hasMore ? Theme.itemSizeSmall : 0
+            height:artistGrid.height+pagingHeight
+            GridView {
+                id:artistGrid
+                width:parent.width-(alphabet.visible ? alphabet.width : 0)
+                height:visible ? Math.ceil(count/columns)*cellHeight : 0
+                visible:pageView.artistBrowse
+                model:visible ? pageView.rows : null
+                interactive:false
+                property int columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
+                cellWidth:width/columns
+                cellHeight:cellWidth+Theme.itemSizeSmall
+                delegate:ListItem {
+                    property var itemData:entry
+                    width:artistGrid.cellWidth;height:artistGrid.cellHeight;contentHeight:height
+                    enabled:!backend.busy && page.status===PageStatus.Active
+                    onClicked:music.activate(itemData,index)
+                    menu:ContextMenu {
+                        MenuItem {text:qsTr("Sonically similar");onClicked:music.sonicNeighbors(itemData)}
+                        MenuItem {text:qsTr("Start sonic adventure here");onClicked:music.adventureStart=itemData}
+                        MenuItem {text:qsTr("Download radio · %1 minutes").arg(music.downloadMinutes);enabled:!backend.state.offlineMode;onClicked:music.downloadRadio(itemData)}
+                        MenuItem {text:qsTr("Add as mix seed");onClicked:music.addMixSeed(itemData)}
+                    }
+                    Column {
+                        anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
+                        Image {width:parent.width;height:width;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                        Label {width:parent.width;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:Theme.highlightColor;font.pixelSize:Theme.fontSizeSmall;horizontalAlignment:Text.AlignHCenter}
+                    }
+                }
+            }
+            Item {
+                y:artistGrid.height;width:parent.width;height:parent.pagingHeight
+                BusyIndicator { anchors.centerIn:parent; running:pageView.loadingMore; opacity:running ? 1 : 0; size:BusyIndicatorSize.Small }
+                Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:pageView.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:music.retryMore() }
+            }
         }
-        ViewPlaceholder { enabled: list.count === 0 && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to Plex"); hintText: qsTr("Use the pull-down menu for connection settings") }
+        ViewPlaceholder { enabled: (pageView.artistBrowse ? artistGrid.count===0 : list.count===0) && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to Plex"); hintText: qsTr("Use the pull-up menu for connection settings") }
         VerticalScrollDecorator {}
-    }
     AlphabetRail {
-        id:alphabet; groups:pageView.alphabet
+        id:alphabet; objectName:"libraryAlphabet"; parent:list; groups:pageView.alphabet
         visible:pageKind==="root" && pageView.artistBrowse && groups.length>0
-        anchors.right:parent.right; anchors.top:list.top; anchors.bottom:player.top; anchors.topMargin:Theme.paddingLarge; anchors.bottomMargin:Theme.paddingMedium
-        width:Theme.itemSizeExtraSmall; fontSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor; highlightColor:Theme.highlightColor
+        anchors.right:parent.right
+        y:Math.max(0,list.headerItem ? list.headerItem.y + list.headerItem.height - list.contentY : 0) + Theme.paddingSmall
+        height:Math.max(0,list.height-y-Theme.paddingMedium)
+        width:Math.max(Theme.itemSizeExtraSmall,minimumTouchWidth); fontSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor; highlightColor:Theme.highlightColor
         onChosen:music.jump(letter)
+    }
     }
     DockedPanel {
         id: player; dock: Dock.Bottom; width: parent.width; height: playerContent.height; open: true
@@ -171,7 +270,11 @@ Page {
             id: playerContent
             width: parent.width
             Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: backend.state.track ? backend.state.track.title || qsTr("Nothing playing") : qsTr("Nothing playing"); truncationMode: TruncationMode.Fade; color: Theme.highlightColor }
-            Button {anchors.horizontalCenter:parent.horizontalCenter;text:qsTr("Now playing");onClicked:music.openPlayer()}
+            Row {
+                width:parent.width-2*Theme.horizontalPageMargin;anchors.horizontalCenter:parent.horizontalCenter;spacing:Theme.paddingSmall
+                Button {width:(parent.width-parent.spacing)/2;text:qsTr("Now playing");onClicked:music.openPlayer()}
+                Button {width:(parent.width-parent.spacing)/2;text:navigation.definition(music.showQueue ? "back" : "queue").text;enabled:navigation.definition(music.showQueue ? "back" : "queue").enabled;onClicked:navigation.activate(music.showQueue ? "back" : "queue")}
+            }
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter; spacing: Theme.paddingLarge
                 IconButton { icon.source: "image://theme/icon-m-previous"; enabled: !backend.busy; onClicked: backend.position > 3000 ? backend.seek(0) : backend.command("previous") }

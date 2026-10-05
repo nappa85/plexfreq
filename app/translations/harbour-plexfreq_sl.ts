@@ -321,8 +321,16 @@
       <translation>Izberi · 1–10 · Izvajalci · Albumi · Miks</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Izberi · 2–8 · Skladbe · Podobno</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Izberi · 30–480 · Radio · Prenosi</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Izberi · 7 · 30 · 90 · Zgodovina</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Izberi · Seznam predvajanja · Album · Radio · Prenosi</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Izberi · Osveži · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Neveljavno · Dekodirnik · Zvok</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Neveljavno · Iskanje</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Neveljavno · Filter</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Neveljavno · Čakalna vrsta · Indeks</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Ni na voljo · Izvajalec · Radio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Prejeto · Nič · Podobno · Skladba · Preveri · Knjižnica · Uporabljeno · Izvajalec · Radio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Čakalna vrsta · Skladbe · Veljavno · Začni · Indeks</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Pametno · Seznam predvajanja · Filter · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Podobno · Omejitev · 250 · Skladbe</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Iskanje · Nastavitve</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Iskanje · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Premakni · Gor</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Premakni · Dol</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Prenosi · Upravljanje</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Samodejno predvajanje · Osveži · Prenosi</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Osveži · Trajanje</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Osveži · Prenosi · Nalaganje</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Prenosi · Upravljanje</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Samodejno predvajanje · Osveži · Prenosi</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Osveži · Trajanje</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Osveži · Prenosi · Nalaganje</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radio · Prenosi · Trajanje</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Iskanje · Knjižnica</translation>
+      <source>Library filters</source>
+      <translation>Knjižnica · Filter</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Povezava</translation>
+      <source>Smart playlist</source>
+      <translation>Pametno · Seznami predvajanja</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Prenosi · Upravljanje</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Pametno · Seznami predvajanja · Filter · Samo za branje</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Ustvari · Seznam predvajanja · Skladbe · Čakalna vrsta</translation>
+      <source>Playlist name</source>
+      <translation>Seznam predvajanja</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Predvajaj · Miks · %1 · Vir</translation>
+      <source>Artists</source>
+      <translation>Izvajalci</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Počisti · Miks</translation>
+      <source>Albums</source>
+      <translation>Albumi</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Preneseno</translation>
+      <source>Tracks</source>
+      <translation>Skladbe</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Povezano</translation>
+      <source>Genre</source>
+      <translation>Zvrst</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Knjižnica · Shranjeno · Brez povezave</translation>
+      <source>Mood</source>
+      <translation>Razpoloženje</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Shranjeno · Albumi</translation>
+      <source>Style</source>
+      <translation>Slog</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Prenosi · Skladbe</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Ustavi · Radio</translation>
+      <source>Title contains</source>
+      <translation>Naslov · Filter</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Leto · Začni</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Leto · Omejitev</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Priljubljeno · Omejitev</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Predvajaj · Nič</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Razvrsti</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Omejitev · Skladbe</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Knjižnica · Filter</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Pametno · Seznami predvajanja</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Pametno · Seznami predvajanja · Filter · Samo za branje</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Seznam predvajanja</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Knjižnica</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Čakalna vrsta</translation>
+      <source>Artists</source>
+      <translation>Izvajalci</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Seznami predvajanja</translation>
+      <source>Albums</source>
+      <translation>Albumi</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Priljubljeno · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Skladbe</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Nedavno dodano</translation>
+      <source>Genre</source>
+      <translation>Zvrst</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Nedavno predvajano</translation>
+      <source>Mood</source>
+      <translation>Razpoloženje</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Gor</translation>
+      <source>Style</source>
+      <translation>Slog</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Naslov · Filter</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Leto · Začni</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Leto · Omejitev</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Priljubljeno · Omejitev</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Predvajaj · Nič</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Razvrsti</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Omejitev · Skladbe</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Zgodovina · Nastavitve</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Predvajaj · %2 · Zgodovina</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Zgodovina · local · Predvajaj · Metapodatki</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Zgodovina</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Izvajalci</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumi</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Skladbe</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Predvajaj · %2 · Zgodovina</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Zgodovina · Nastavitve</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Predvajaj · %2 · Zgodovina</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Zgodovina · local · Predvajaj · Metapodatki</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Trajanje</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Zgodovina</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Knjižnica</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Izvajalci</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumi</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Skladbe</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Predvajaj · %2 · Zgodovina</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Gor · Naslednje</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Skladbe · Pripravljeno · Brez povezave</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Iskanje · Izvajalci · Albumi · Skladbe</translation>
+      <source>Library</source>
+      <translation>Knjižnica</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Knjižnica</translation>
+      <source>Search</source>
+      <translation>Iskanje</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Skladbe</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Razvrsti</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Naslov</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedavno dodano</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Leto</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Vrste · Albumi</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Iskanje · Izvajalci · Albumi · Skladbe</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Knjižnica</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Razvrsti</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Dodaj · Sonic · Vir</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Pametno · Filter · Nastavitve</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Poveži · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Uporabljeno · Povezava · Nastavitve</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Povezava · Nastavitve</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frekvenca · Iskanje</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Poveži</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Prenosi</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Upravljanje</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Povezano</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Brez povezave · Knjižnica</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Ustavi · Radio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Iskanje · Izvajalci · Albumi · Skladbe</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Iskanje</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Seznami predvajanja</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Iskanje</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Iskanje · Knjižnica</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Priljubljeno · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nedavno dodano</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nedavno predvajano</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Gor</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Izvajalci</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Gor · Naslednje</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Knjižnica</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Čakalna vrsta</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Shranjeno · Albumi</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Prenosi · Skladbe</translation>
+      <source>Artists</source>
+      <translation>Izvajalci</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Naslov</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Nedavno dodano</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Leto</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Vrste · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Novo · Seznam predvajanja</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Miks</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Preneseno</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Dodaj · Sonic · Vir</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Pametno · Filter · Nastavitve</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Brez povezave · Knjižnica</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Nastavitve</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Knjižnica</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Prikaži vse</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Iskanje</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Knjižnica</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Seznami predvajanja</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Iskanje · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Knjižnica · Filter</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Vrste · Albumi</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Ustvari · Pametno · Seznami predvajanja</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Ustvari · Seznam predvajanja · Skladbe · Čakalna vrsta</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Prenosi · Skladbe</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Počisti · Miks</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Počisti · Sonic · Vir</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Ustavi · Radio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Čakalna vrsta</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Preneseno</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Shranjeno · Albumi</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Zgodovina · Nastavitve</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Priljubljeno · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedavno dodano</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedavno predvajano</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Prenosi · Upravljanje</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Povezava</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Gor</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Povezano</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Knjižnica · Shranjeno · Brez povezave</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Predvajaj · Miks · %1 · Vir</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Miks · %1 · Skladbe</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Izvajalci</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Naslov</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedavno dodano</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Leto</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedavno predvajano</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Zgodovina · Predvajaj</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Naključno</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filter · Zvok</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Iskanje</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Zvok · Podobno</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Priljubljeno · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nedavno dodano</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nedavno predvajano</translation>
     </message>
     <message>
       <source>Albums</source>

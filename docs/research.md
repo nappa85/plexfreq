@@ -1,5 +1,250 @@
 # Research log
 
+## Artist grids and reversible alphabet jumps — 2026-10-05
+
+- User reported that full-width artist rows wasted horizontal space and that an
+  alphabet jump created a hard upper boundary. Inspection confirmed `jump_artist`
+  requested its 100-item page at the letter offset and replaced the model, so no
+  earlier artists existed client-side to scroll into.
+- Existing similar-artist cards established the requested artwork-above-title
+  presentation. Both platform library views now use responsive artist card grids
+  in their existing scroll plane, while non-artist rows and artist action menus
+  retain their prior behavior.
+- The existing Plex container start/size contract is reused: a jump requests from
+  zero through the selected offset plus the normal 100-item forward window. Rust
+  returns the selected index; shared Session emits presentation intent and each
+  shell positions its scroll view after replacement. Subsequent paging still starts
+  at the server-returned next offset. No new endpoint or external API assumption
+  was introduced.
+
+## Lightweight links / configured phone language — 2026-10-05
+
+- User requested text links for Show all and Read more/less, and reported English
+  on an Italian phone. Shared TextLink.qml now provides underlined compact text,
+  native-sized touch targets, keyboard activation and accessibility Link semantics;
+  both frontends use it for these actions.
+- Read-only phone inspection found no LANG/LC_MESSAGES/LC_ALL/PLEXFREQ_LANGUAGE in
+  the SSH environment, while `/etc/locale.conf` contains LANG=it_IT.utf8. Qt's shell
+  locale therefore did not select the configured catalogue. Consulted locale.conf:
+  https://man7.org/linux/man-pages/man5/locale.conf.5.html
+  The freedesktop documentation endpoint returned HTTP 418.
+- Sailfish translation adapter now reads the configured LC_MESSAGES/LANG only when
+  locale environment variables are absent; explicit language/environment overrides
+  retain precedence. Codeset/modifier suffixes are normalized before catalogue lookup.
+  Synthetic config/override and installed Italian-catalogue tests pass; phone opt-in
+  test removes language variables and verifies Scopri from the configured catalogue.
+- Host full gate passes (122 Rust, desktop CTest 2/2); final desktop CTest 14.23s,
+  39 locales/549 messages and SDK app/fixture builds pass. Phone locale/shared/native
+  checks pass (6 entries, explicit exit 0). Separate detail geometry case could not
+  obtain window exposure, both combined and alone; pixel-oriented check not passed.
+  Production smoke exits 0 with no language variables. Updated phone app/MPRIS owner
+  PID 18911 launched/raised with the same environment; saved state retained.
+
+
+## Discovery header spacing / shorter group action — 2026-10-05
+
+- User reported section text overlapping the group button. Read the actual device
+  `/usr/lib64/qt5/qml/Sailfish/Silica/SectionHeader.qml`: it supplies an x offset of
+  Theme.horizontalPageMargin as well as a default width. Our custom width reserved
+  button space but retained that x offset. Header now uses x=0, left alignment,
+  clipping and a width ending before the button's actual x position.
+- Shared Navigation.showAllLabel now says Show all (Italian Mostra tutto), explicitly
+  authored in all 39 locales. Desktop also removes the title's left padding.
+- Verification uncovered a fixture teardown problem: QQuickRenderControl assertions
+  passed but process exits were 139/135; a grabWindow alternative also failed.
+  Consulted Qt5.6 render-control/view implementations:
+  https://raw.githubusercontent.com/qt/qtdeclarative/5.6/src/quick/items/qquickrendercontrol.cpp
+  https://raw.githubusercontent.com/qt/qtdeclarative/5.6/src/quick/items/qquickview.cpp
+  Fixture now uses production-like QQuickView with one owner for its root, retaining
+  the Silica hierarchy. SDK-only quick-private polishing updates geometry without
+  creating another scenegraph or waiting for unavailable compositor callbacks.
+- Final phone fixture: 4 entries pass and explicit process exit 0. Isolated harness
+  still reports one pending incubation at engine destruction plus known vendor
+  diagnostics. Production QML smoke exits 0. Desktop CTest passes 2/2 (14.38s),
+  locales 39/549 pass; production/fixture SDK builds pass. Deployed and raised sole
+  phone app/MPRIS PID 14813, state/cache retained and temporary update files removed.
+
+
+## Phone retry completed / deterministic geometry — 2026-10-05
+
+- Connectivity restored. Retry confirmed Qt5.6 Column has no forceLayout method;
+  compositor-driven geometry waits were unreliable, and an isolated fresh page
+  without Silica's application context produced framework reference errors.
+- Consulted QQuickRenderControl's documented controlled scene/polishItems API:
+  https://doc.qt.io/qt-6/qquickrendercontrol.html
+  Fixture now uses the shipped LibraryPage with the actual Silica application-window
+  context, a controlled QQuickWindow and explicit polishItems. No graphics rendering
+  or fabricated geometry values are needed for size assertions. Native stack checks
+  remain separate. Final phone tests pass (4 entries), captions and expansion valid.
+- One fixture rebuild hit a transient Jolla QtTest package TLS error; retry succeeded.
+  Final desktop CTest passes 2/2 (14.33s), production phone QML smoke exits 0.
+  Updated bundle deployed with session/cache retained; sole app/MPRIS owner PID 10743,
+  Raise successful and temporary update directory removed.
+
+
+## Shared catalogue Qt5 phone findings — 2026-10-05
+
+Native fixture exposed Silica BackgroundItem's internal content-parent behavior:
+the new tab Label's parent was not the destination control. Explicit ID bindings
+fix caption/highlight lookup; non-empty caption assertion now guards it. The
+shared catalogue policy test itself passed on Qt5.6. The reparented fixture also
+showed delayed positioner polish; it now explicitly lays out Column after changing
+loader state, with the header scrolled into view. Corrected fixture and package
+builds pass; desktop tests pass 2/2 (14.41s). Phone became unreachable before final
+fixture transfer/run: repeated SSH/SCP No route to host. Latest deployment pending.
+
+
+## Shared navigation/action catalogue — 2026-10-05
+
+- User requested centralizing primary destinations and main-menu actions to prevent
+  desktop/mobile drift. Compared Main.qml/LibraryPage.qml and native page snapshots;
+  labels, ordering, predicates and dispatch now live in shared Navigation.qml.
+- Consulted Qt Menu's dynamic-generation example: Instantiator with insertItem and
+  removeItem. Desktop NavigationMenu follows that documented ownership/lifetime flow;
+  Sailfish keeps QtQuick2.6-compatible native repeaters:
+  https://doc.qt.io/qt-6/qml-qtquick-controls-menu.html
+- Stable ID arrays separate delegate lifetime from capability/label recalculation.
+  The shared catalogue checks hidden/disabled/unknown actions before dispatch; native
+  adapters expose Connection/Back signals and Sailfish active/root-page capabilities.
+  Page-local retained DTOs drive Sailfish menu presentation through transitions.
+- Added a shared capability/dispatch/frozen-view regression and an actual desktop
+  Main.qml adapter test. Initial desktop lookup failed because Repeater's visual
+  descendants differ from QObject descendants; tests now traverse childItems. Mock
+  error/cache/server defaults were filled in to match the production bridge shape.
+- Final host gate passes: 122 Rust tests, CTest 2/2 (13.97s), 39 locales/550 messages.
+  SDK app/RPM/rootless and Qt5.6 fixture builds pass with existing lint warnings.
+  Local desktop relaunched PID 583520. No phone runtime/deployment performed here.
+
+
+## Shared discovery links — 2026-10-05
+
+User observed Show all in this group opening the same endpoint from every row.
+Inspection confirmed discovery DTOs repeat hubKey/discoveryGroup on child items.
+Moved the action to section headers on both QML frontends, using the common key
+only when unambiguous; item-specific menus retain item-specific actions. Desktop
+build/CTest passed 2/2 (14.04s), locales 39/571 passed; local PID 564113 launched.
+
+
+## Desktop/mobile destination alignment — 2026-10-05
+
+- User rejected checkable Queue, oversized Home and Library beside Back. Compared
+  desktop Main.qml with Sailfish LibraryPage.qml pull-down/pull-up contents.
+- Desktop now has three equal-width/44px-high primary destinations and two matching
+  menu controls. Page operations move to ⋮; Queue, saved music, collections,
+  insights, download manager and Connection live under ☰. Queue opens explicitly,
+  without a checkbox. Back is separate; detail-parent destination stays highlighted.
+- Desktop build/CTest passed 2/2 (14.30s), locales passed 39/571 messages; local
+  executable PID 559261 launched for interactive review.
+
+
+## Desktop home/navigation labels — 2026-10-05
+
+- User reported Italian Discover as Cerca, redundant Artists/Back/title controls,
+  duplicate category/detail headings and menu-only Home access. The dictionary had
+  Discover=Cerca despite correctly authored Discovery home. Both dictionary and
+  Italian authoring now specify Discover=Scopri.
+- Inspection of Main.qml/DetailHeader.qml/Session.qml found the menu hidden on
+  details, duplicate detail titles and browse resetting history. Desktop exposes
+  Home/Back globally, puts Queue in the menu, removes duplicate headings, and uses
+  explicit Library-entry/refinement history. Shared navigation regression and both
+  desktop tests pass (14.29s), locale validation passes; local PID 540423 launched.
+
+
+## Discovery startup / Library space and alignment — 2026-10-05
+
+- User requested Discovery Home at launch, a fix for artist rows painting over a
+  returning header, compact expandable search/browse/sort, and alphabet shortcuts
+  inside Library content. Session now selects home after initial library resolution.
+- Library used Qt5 ListView.PullBackHeader, exposing a transparent returning header
+  over rows. InlineHeader keeps header and rows in one scroll plane. The viewport
+  no longer reserves an external right margin: header/tabs keep full width, only
+  row delegates reserve alphabet space. The internal rail starts below the visible
+  header and is clamped to the list viewport above the playback dock.
+- Search/browse/sort share a collapsed summary row. Initial hidden nested Column
+  failed native expansion sizing (457px both states); the existing IntrinsicLoader
+  now instantiates the panel on demand and uses its implicit height.
+- Consulted device `/usr/lib64/qt5/qml/Sailfish/Silica/ApplicationWindow.qml` for
+  window/content/pageStack visibility plumbing. Standalone fixture ancestors were
+  hidden; geometry checks now render the returned shipped page directly in the
+  fixture QQuickWindow after native stack assertions. Explicit geometry checks cover
+  expansion, full-width headers, internal rail bounds and down/up scroll positions.
+- Final host gates pass (122 Rust, CTest 2/2 14.29s, 39 locales/569 messages), SDK
+  app/fixture pass, and final phone startup/navigation/geometry checks pass (4 entries).
+  A cold host run exceeded its deadline; retry completed. Production QML smoke exits
+  0. Deployed sole app/MPRIS owner PID 43912 with saved state retained; Raise succeeds.
+
+
+## Discovery destination / Sailfish menus — 2026-10-05
+
+- User reported Discovery Home leaving the artist screen visible and an overly long
+  pull-down. The initial native stack fixture could select discovery normally;
+  it did not reproduce the exact user's interaction sequence. Inspection found
+  retained views only thawed on a matching completion when `restoringView` was set,
+  and idle restoration was not retried on `busyChanged`. Active matching completions
+  now release retained presentation independently of unrelated pending work.
+- Browse/sort controls previously appeared on discovery and other non-library
+  routes. They now belong only to library browsing. Discovery clears the search
+  query, cancels its debounce through `load`, and avoids duplicate home history.
+- Primary destinations are visible header controls; secondary navigation uses
+  PushUpMenu, contextual operations PullDownMenu, and Queue is beside Now playing.
+  Consulted https://sailfishos.org/develop/docs/silica/qml-sailfishsilica-pushupmenu.html;
+  the site returned missing documentation content. Actual Qt5.6 Silica runtime
+  confirmed component compatibility. BackgroundItem's clicked signal takes a
+  QQuickMouseEvent pointer; corrected the synthetic fixture invocation accordingly.
+- Host check passes (122 Rust tests, CTest 2/2, 15.88s, 39 locales/568 messages).
+  SDK fixture initially hit its 240-second timeout during concurrent linking;
+  longer/sequential builds pass. Phone retained-snapshot/busy discovery selection,
+  native back navigation and library return checks pass (4 lifecycle/test entries).
+  Read-only real-server discovery returns 63 rows including 4 stations; bounded
+  transcode probe reads 262144 bytes and acknowledges cleanup (3 entries).
+- Final rootless QML smoke exits 0; deployed with state/cache retained, sole app and
+  MPRIS owner PID 39668, Raise succeeds. Exact interactive user confirmation remains
+  pending; fixtures are synthetic and live checks use read-only inspection.
+
+## Next recommendations and Bluetooth disconnect — 2026-10-05
+
+- User confirmed car Bluetooth controls work and requested disconnect auto-pause.
+  Consulted BlueZ Device1/MediaTransport1 docs: Connected/UUIDs identify audio
+  accessories; active/pending transports identify the current device. Idle is
+  not a disconnect. Read-only ObjectManager/signals drive direct Rust pause:
+  https://raw.githubusercontent.com/bluez/bluez/master/doc/org.bluez.Device.rst
+  https://raw.githubusercontent.com/bluez/bluez/master/doc/org.bluez.MediaTransport.rst
+- Consulted Sailjail Bluetooth.permission and app permissions. Bluetooth access
+  is declared for normal installation; no pairing/disconnect/routing/volume writes:
+  https://raw.githubusercontent.com/sailfishos/sailjail-permissions/master/permissions/Bluetooth.permission
+  https://docs.sailfishos.org/Develop/Apps/Application_Permissions/
+- Initial iterator teardown closed the Unix D-Bus connection before zbus removed
+  its match, causing SIGPIPE in the C++ host. Async stream deregistration while
+  open fixes it. A private daemon/BlueZ fixture confirms actual audio pause even
+  with a full metadata queue, plus startup/read-error/idle/non-audio/reconnect cases.
+- python-plexapi playlist.py/library.py document smart=1 create, server:// query
+  sources, update via /playlists/N/items uri, and Meta Type/Field/Filter scopes and
+  choice endpoints. Unsupported Boolean rules are not flattened by this editor:
+  https://github.com/pkkid/python-plexapi/blob/master/plexapi/playlist.py
+  https://github.com/pkkid/python-plexapi/blob/master/plexapi/library.py
+- Automatic refresh uses a separate cancellable read-only planner, with credential,
+  recipe and generation checks on commit. Normalized offline text/order invalidates
+  on snapshot replacement, audio revision, plan changes or namespace. Defaults retain
+  manual refresh; legacy playlist pins acquire recipes without changing membership.
+- Generated MP3/LAME and AAC/M4A/FFmpeg tests exposed an extra AAC output frame per
+  file. PCM now clips to the decoded time segment/edit-list limits, not Plex DB
+  duration. Exact joins and seek/heard-time tests pass; CI declares fixture tools.
+- Discovery layout is private/library-scoped, hub URLs origin-confined, and journey
+  waypoints use genuine server paths. Insight counts use unique qualified occurrences
+  and measured time, retain 10000 entries, and are not a full Plex history archive.
+- Final host gates pass: 122 Rust tests, fmt/Clippy, CTest 2/2 (14.10s), 39 locales/568
+  context messages. SDK app/fixture builds pass. Phone filter/journey navigation,
+  six management pages, MPRIS/startup gates pass (6 entries), and real PulseAudio
+  loopback transport passes (3). Real-server fake-sink transcode playback/pause/seek
+  passes (3 entries, 268 ms heard), without persistence/timelines/scrobbles.
+- Final read-only live filter check passes: 14 genre, 230 mood, zero style choices;
+  genre/year filtering returns 36 rows. Canonical scoped choice endpoints also have
+  a passing local regression. No live smart-playlist mutation was performed.
+- Final phone controller/management/startup/MPRIS and native push/pop/reload checks
+  pass (8 entries), as does temporary-state production QML smoke. Updated rootless
+  bundle is deployed with saved state/cache retained; sole app/MPRIS owner PID 36423,
+  Raise successful. Normal-session bus uses `dbus/user_bus_socket`, not `dbus`.
+
 ## Sailfish navigation flash — 2026-10-05
 
 - User reported destination content appearing immediately, followed by its opening

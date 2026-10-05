@@ -574,3 +574,403 @@ fn bounded_transcode_probe_reads_at_most_256_kib_and_stops_the_session() {
     assert_eq!(probe["transcodeProbe"]["stopped"], true);
     assert!(stopped.load(Ordering::SeqCst));
 }
+
+#[test]
+fn music_filters_and_smart_playlists_use_scoped_server_source_uris() {
+    let server = Server::new(|r| {
+        if r.starts_with("GET /identity") {
+            return json!({"MediaContainer":{"machineIdentifier":"fixture-server"}});
+        }
+        if r.starts_with("GET /library/sections/1/all?") {
+            if r.contains("includeMeta=1") {
+                return json!({"MediaContainer":{"Meta":{"Type":[{"type":"track","Field":[{"key":"track.genre"},{"key":"track.year"},{"key":"track.viewCount"}]}]}}});
+            }
+            let path = r.split_whitespace().nth(1).unwrap();
+            let uri = url::Url::parse(&format!("http://fixture{path}")).unwrap();
+            let p: std::collections::BTreeMap<_, _> = uri.query_pairs().into_owned().collect();
+            assert_eq!(p["track.genre"], "7");
+            assert_eq!(p["track.year>="], "2000");
+            assert_eq!(p["track.year<="], "2009");
+            assert_eq!(p["track.viewCount"], "0");
+            return json!({"MediaContainer":{"size":1,"Metadata":[track("1")]}});
+        }
+        if r.starts_with("POST /playlists?") {
+            let path = r.split_whitespace().nth(1).unwrap();
+            let uri = url::Url::parse(&format!("http://fixture{path}")).unwrap();
+            let p: std::collections::BTreeMap<_, _> = uri.query_pairs().into_owned().collect();
+            assert_eq!(p["smart"], "1");
+            assert!(p["uri"].starts_with(
+                "server://fixture-server/com.plexapp.plugins.library/library/sections/1/all?"
+            ));
+            assert!(p["uri"].contains("track.genre=7"));
+            assert!(p["uri"].contains("track.year%3E%3D=2000"));
+            return json!({"MediaContainer":{"Metadata":[{"type":"playlist","ratingKey":"50","title":"Filtered","smart":true,"playlistType":"audio"}]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let filters = json!({"genre":"7","yearFrom":2000,"yearTo":2009,"unplayed":true});
+    let page=call(&mut core,json!({"op":"filtered_browse","section":"1","kind":"track","sort":"title","filters":filters,"start":0})).unwrap();
+    assert_eq!(page["items"][0]["ratingKey"], "1");
+    let created=call(&mut core,json!({"op":"smart_playlist","action":"create","section":"1","title":"Filtered","filters":filters,"sort":"title","limit":100})).unwrap();
+    assert_eq!(created["createdPlaylist"]["smart"], true);
+}
+
+#[test]
+fn discovery_layout_is_scoped_persistent_and_hub_drilldown_is_paged() {
+    let server = Server::new(|r| {
+        if r.starts_with("GET /hubs/sections/1/recent?") {
+            return json!({"MediaContainer":{"size":1,"totalSize":101,"Metadata":[track("3")]}});
+        }
+        if r.starts_with("GET /hubs/sections/1?") {
+            return json!({"MediaContainer":{"Hub":[{"title":"One","hubIdentifier":"one","key":"/hubs/sections/1/recent","more":true,"Metadata":[track("1")]},{"title":"Two","hubIdentifier":"two","Metadata":[track("2")]}]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    call(&mut core, json!({"op":"discovery_home","section":"1"})).unwrap();
+    call(
+        &mut core,
+        json!({"op":"discovery_config","section":"1","hidden":["two"],"order":["two","one"]}),
+    )
+    .unwrap();
+    let home = call(&mut core, json!({"op":"discovery_home","section":"1"})).unwrap();
+    assert_eq!(home["items"].as_array().unwrap().len(), 1);
+    assert_eq!(home["items"][0]["hubKey"], "/hubs/sections/1/recent");
+    let page = call(
+        &mut core,
+        json!({"op":"hub_items","key":"/hubs/sections/1/recent","start":100}),
+    )
+    .unwrap();
+    assert_eq!(page["start"], 100);
+    assert_eq!(page["items"][0]["ratingKey"], "3");
+    drop(core);
+    let mut core = Core::new(dir.path().into()).unwrap();
+    call(&mut core, json!({"op":"offline_mode","enabled":true})).unwrap();
+    drop(server);
+    assert_eq!(
+        call(&mut core, json!({"op":"discovery_home","section":"1"})).unwrap()["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(call(
+        &mut core,
+        json!({"op":"hub_items","key":"//other.invalid/hubs/sections/1","start":0})
+    )
+    .is_err());
+}
+
+#[test]
+fn automatic_refresh_is_nonblocking_obeys_network_gate_and_replaces_membership() {
+    let changed = Arc::new(AtomicBool::new(false));
+    let flag = changed.clone();
+    let server = Server::new(move |r| {
+        if r.starts_with("GET /playlists/5/items") {
+            if flag.load(Ordering::SeqCst) {
+                thread::sleep(Duration::from_millis(200));
+            }
+            return json!({"MediaContainer":{"size":1,"Metadata":[track(if flag.load(Ordering::SeqCst){"2"}else{"1"})]}});
+        }
+        if r.starts_with("GET /playlists/5") {
+            return json!({"MediaContainer":{"Metadata":[{"type":"playlist","ratingKey":"5","title":"Fixture"}]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    call(
+        &mut core,
+        json!({"op":"download_plan","kind":"playlist","key":"5","minutes":30}),
+    )
+    .unwrap();
+    changed.store(true, Ordering::SeqCst);
+    call(
+        &mut core,
+        json!({"op":"refresh_policy","enabled":true,"interval_hours":1}),
+    )
+    .unwrap();
+    call(
+        &mut core,
+        json!({"op":"network_state","wifi":true,"online":true}),
+    )
+    .unwrap();
+    // Still paused: maintenance must not fetch/commit the changed plan.
+    call(&mut core, json!({"op":"refresh_downloads"})).unwrap();
+    thread::sleep(Duration::from_millis(250));
+    let saved: Value =
+        serde_json::from_slice(&std::fs::read(dir.path().join("session.json")).unwrap()).unwrap();
+    assert_eq!(saved["downloadGroups"]["playlist:5"], json!(["1"]));
+    call(
+        &mut core,
+        json!({"op":"download_policy","wifi_only":true,"paused":false}),
+    )
+    .unwrap();
+    let started = std::time::Instant::now();
+    call(&mut core, json!({"op":"refresh_downloads"})).unwrap();
+    assert!(started.elapsed() < Duration::from_millis(100));
+    let until = std::time::Instant::now() + Duration::from_secs(5);
+    loop {
+        call(&mut core, json!({"op":"refresh_downloads"})).unwrap();
+        let saved: Value =
+            serde_json::from_slice(&std::fs::read(dir.path().join("session.json")).unwrap())
+                .unwrap();
+        if saved["downloadGroups"]["playlist:5"] == json!(["2"]) {
+            break;
+        }
+        assert!(std::time::Instant::now() < until);
+        thread::sleep(Duration::from_millis(10));
+    }
+}
+
+#[test]
+fn listening_insights_count_qualified_occurrences_not_seeks_or_checkpoints() {
+    let server = Server::new(|_| empty());
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let play = call(
+        &mut core,
+        json!({"op":"play","items":[track("1")],"index":0}),
+    )
+    .unwrap();
+    let occurrence = play["playbackOccurrence"].clone();
+    call(&mut core,json!({"op":"playback_event","key":"1","occurrence":occurrence,"listened":10000,"duration":180000})).unwrap();
+    assert_eq!(
+        call(&mut core, json!({"op":"listening_insights","days":30})).unwrap()["insights"]["plays"],
+        0
+    );
+    for listened in [90000, 120000, 120000] {
+        call(&mut core,json!({"op":"playback_event","key":"1","occurrence":occurrence,"listened":listened,"duration":180000})).unwrap();
+    }
+    let insights = call(&mut core, json!({"op":"listening_insights","days":30})).unwrap();
+    assert_eq!(insights["insights"]["plays"], 1);
+    assert_eq!(insights["insights"]["listenedMs"], 120000);
+    assert_eq!(
+        insights["insights"]["artists"][0]["title"],
+        "Offline artist"
+    );
+    drop(core);
+    let mut core = Core::new(dir.path().into()).unwrap();
+    assert_eq!(
+        call(&mut core, json!({"op":"listening_insights","days":30})).unwrap()["insights"]["plays"],
+        1
+    );
+}
+
+#[test]
+fn normalized_offline_index_invalidates_after_external_snapshot_replacement() {
+    use plexfreq_core::{
+        cache::namespace,
+        model::{Container, Item},
+        offline::Library,
+    };
+    let server = Server::new(|_| empty());
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let library = Library::new(dir.path().join("library-cache"), true).unwrap();
+    let ns = namespace(&server.url, "fixture");
+    let save = |title: &str| {
+        library.save(
+            &ns,
+            "/library/metadata/10",
+            &[],
+            &Container {
+                items: vec![Item {
+                    rating_key: "10".into(),
+                    kind: "artist".into(),
+                    title: title.into(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+        )
+    };
+    save("Björk");
+    call(&mut core, json!({"op":"offline_mode","enabled":true})).unwrap();
+    assert_eq!(
+        call(
+            &mut core,
+            json!({"op":"offline_search","query":"BJÖRK","kind":"artist","start":0})
+        )
+        .unwrap()["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    save("Updated artist");
+    assert!(call(
+        &mut core,
+        json!({"op":"offline_search","query":"BJÖRK","kind":"artist","start":0})
+    )
+    .unwrap()["items"]
+        .as_array()
+        .unwrap()
+        .is_empty());
+    assert_eq!(
+        call(
+            &mut core,
+            json!({"op":"offline_search","query":"updated artist","kind":"artist","start":0})
+        )
+        .unwrap()["items"][0]["ratingKey"],
+        "10"
+    );
+}
+
+#[test]
+fn smart_rules_roundtrip_and_unsupported_boolean_rules_are_not_silently_flattened() {
+    let advanced = Arc::new(AtomicBool::new(false));
+    let flag = advanced.clone();
+    let server = Server::new(move |r| {
+        if r.starts_with("GET /playlists/5") {
+            let content = if flag.load(Ordering::SeqCst) {
+                "server://fixture-server/com.plexapp.plugins.library/library/sections/1/all?type=10&push=1&track.genre=7&or=1&track.genre=8&pop=1"
+            } else {
+                "server://fixture-server/com.plexapp.plugins.library/library/sections/1/all?type=10&track.genre=7&track.year%3E%3D=2000&sort=titleSort%3Aasc&limit=100"
+            };
+            return json!({"MediaContainer":{"Metadata":[{"type":"playlist","ratingKey":"5","smart":true,"content":content}]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let rules = call(&mut core, json!({"op":"smart_rules","key":"5"})).unwrap();
+    assert_eq!(rules["smartEditable"], true);
+    assert_eq!(rules["smartFilters"]["genre"], "7");
+    assert_eq!(rules["smartFilters"]["yearFrom"], 2000);
+    advanced.store(true, Ordering::SeqCst);
+    assert_eq!(
+        call(&mut core, json!({"op":"smart_rules","key":"5"})).unwrap()["smartEditable"],
+        false
+    );
+    assert!(call(&mut core,json!({"op":"filtered_browse","section":"1","kind":"track","sort":"title","filters":{"yearFrom":2010,"yearTo":2000},"start":0})).is_err());
+    assert!(call(&mut core,json!({"op":"filtered_browse","section":"1","kind":"track","sort":"title","filters":{"arbitrary":"bad"},"start":0})).is_err());
+}
+
+#[test]
+fn multi_waypoint_sonic_journey_joins_paths_without_duplicate_junctions() {
+    let server = Server::new(|r| {
+        if r.starts_with("GET /library/sections/1/computePath?") {
+            let ids = if r.contains("startID=1") {
+                ["1", "2", "3"]
+            } else {
+                ["3", "4", "5"]
+            };
+            return json!({"MediaContainer":{"size":3,"Metadata":ids.map(track)}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let journey = call(
+        &mut core,
+        json!({"op":"sonic_journey","section":"1","keys":["1","3","5"]}),
+    )
+    .unwrap();
+    let ids: Vec<_> = journey["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| i["ratingKey"].as_str().unwrap())
+        .collect();
+    assert_eq!(ids, ["1", "2", "3", "4", "5"]);
+    assert!(call(
+        &mut core,
+        json!({"op":"sonic_journey","section":"1","keys":["1"]})
+    )
+    .is_err());
+}
+
+#[test]
+fn progressive_playback_probe_restarts_at_time_offset_without_recording_a_listen() {
+    let server = Server::bytes(|r| {
+        if r.starts_with("GET /library/metadata/1?") {
+            let mut item = track("1");
+            item["duration"] = json!(10000);
+            return (
+                "application/json",
+                json!({"MediaContainer":{"Metadata":[item]}})
+                    .to_string()
+                    .into_bytes(),
+            );
+        }
+        if r.starts_with("GET /music/:/transcode/universal/start.m3u8?") {
+            let path = r.split_whitespace().nth(1).unwrap();
+            let uri = url::Url::parse(&format!("http://fixture{path}")).unwrap();
+            let offset = uri
+                .query_pairs()
+                .find(|(key, _)| key == "offset")
+                .unwrap()
+                .1
+                .parse::<f64>()
+                .unwrap();
+            let frames = ((10. - offset) * 48000.) as u32;
+            let mut wave = Vec::new();
+            wave.extend(b"RIFF");
+            wave.extend((36 + frames * 2).to_le_bytes());
+            wave.extend(b"WAVEfmt ");
+            wave.extend(16u32.to_le_bytes());
+            wave.extend(1u16.to_le_bytes());
+            wave.extend(1u16.to_le_bytes());
+            wave.extend(48000u32.to_le_bytes());
+            wave.extend(96000u32.to_le_bytes());
+            wave.extend(2u16.to_le_bytes());
+            wave.extend(16u16.to_le_bytes());
+            wave.extend(b"data");
+            wave.extend((frames * 2).to_le_bytes());
+            wave.resize(44 + frames as usize * 2, 0);
+            return ("audio/wav", wave);
+        }
+        ("application/json", empty().to_string().into_bytes())
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let result = call(
+        &mut core,
+        json!({"op":"probe_playback","key":"1","kbps":160}),
+    )
+    .unwrap();
+    assert_eq!(result["playbackProbe"]["seeked"], true);
+    assert_eq!(
+        call(&mut core, json!({"op":"listening_insights","days":0})).unwrap()["insights"]["plays"],
+        0
+    );
+}
+
+#[test]
+fn filter_choices_use_advertised_same_section_endpoints_and_canonical_scopes() {
+    let server = Server::new(|r| {
+        if r.starts_with("GET /library/sections/1/genre?") {
+            return json!({"MediaContainer":{"Directory":[{"key":"7","title":"Fixture genre"}]}});
+        }
+        if r.starts_with("GET /library/sections/1/all?") {
+            if r.contains("includeMeta=1") {
+                return json!({"MediaContainer":{"Meta":{"Type":[{"type":"track","Field":[{"key":"album.genre"}],"Filter":[{"filter":"genre","key":"/library/sections/1/genre?type=10"}]}]}}});
+            }
+            assert!(r.contains("album.genre=7"));
+            return json!({"MediaContainer":{"size":1,"Metadata":[track("1")]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let choices = call(
+        &mut core,
+        json!({"op":"filter_options","section":"1","kind":"track","field":"genre"}),
+    )
+    .unwrap();
+    assert_eq!(choices["filterChoices"][0]["key"], "7");
+    assert_eq!(call(&mut core,json!({"op":"filtered_browse","section":"1","kind":"track","sort":"title","filters":{"genre":"7"},"start":0})).unwrap()["items"][0]["ratingKey"],"1");
+}

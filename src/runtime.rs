@@ -53,6 +53,12 @@ impl Shared {
         let op = request["op"]
             .as_str()
             .ok_or(Error::Input("Invalid request data"))?;
+        // Internal worker coordination must never be reachable from QML/FFI.
+        // The worker loop interprets these itself; queuing them would let any
+        // view shut the worker down or forge playback checkpoints.
+        if op.starts_with('_') {
+            return Err(Error::Input("Invalid request data"));
+        }
         if op.starts_with("audio_") && op != "audio_config" {
             let handle = self
                 .audio
@@ -284,6 +290,9 @@ fn is_listing(op: &str) -> bool {
     matches!(
         op,
         "browse"
+            | "filtered_browse"
+            | "hub_items"
+            | "sonic_journey"
             | "discovery_home"
             | "sonic_neighbors"
             | "sonic_adventure"
@@ -318,7 +327,10 @@ fn passive(op: &str, input: &Value) -> bool {
                 | "playback_event"
                 | "sync_history"
                 | "playlist_choices"
+                | "filter_options"
+                | "smart_rules"
                 | "network_state"
+                | "refresh_downloads"
         )
 }
 fn update(data: Value) -> Value {
@@ -746,6 +758,22 @@ fn worker(
             if is_listing(op) && !response["data"].is_object() {
                 response["data"] = json!({});
             }
+            if matches!(op, "smart_rules" | "filter_options") {
+                if !response["data"].is_object() {
+                    response["data"] = json!({});
+                }
+                if op == "smart_rules" {
+                    response["data"]["smartKey"] = input["key"].clone();
+                } else {
+                    for (target, source) in [
+                        ("filterSection", "section"),
+                        ("filterKind", "kind"),
+                        ("filterField", "field"),
+                    ] {
+                        response["data"][target] = input[source].clone();
+                    }
+                }
+            }
             if response["data"].is_object() {
                 if input["_page"] == true {
                     response["data"]["_pageStart"] = input["start"].clone();
@@ -789,6 +817,7 @@ fn worker(
             maintenance = Instant::now();
         }
         if cache_tick.elapsed() >= Duration::from_secs(2) {
+            let _ = core.execute(Command::RefreshDownloads);
             if let Ok(data) = core.execute(Command::CacheStatus) {
                 let mut data = data;
                 artwork_delta(&shared, &mut data);

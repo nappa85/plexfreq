@@ -321,8 +321,16 @@
       <translation>Vybrať · 1–10 · Interpreti · Albumy · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Vybrať · 2–8 · Skladby · Podobné</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Vybrať · 30–480 · Rádio · Sťahovanie</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Vybrať · 7 · 30 · 90 · História</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Vybrať · Zoznam skladieb · Album · Rádio · Sťahovanie</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Vybrať · Obnoviť · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Neplatné · Dekodér · Zvuk</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Neplatné · Hľadať</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Neplatné · Filter</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Neplatné · Front · Index</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Nedostupné · Interpret · Rádio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Prijaté · Žiadne · Podobné · Skladba · Skontrolovať · Knižnica · Použité · Interpret · Rádio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Front · Skladby · Platné · Spustiť · Index</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Inteligentný · Zoznam skladieb · Filter · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Podobné · Limit · 250 · Skladby</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Hľadať · Nastavenia</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Hľadať · Nastavenia</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Presunúť · Nahor</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Presunúť · Nadol</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Sťahovanie · Správa</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatické prehrávanie · Obnoviť · Sťahovanie</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Obnoviť · Trvanie</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Obnoviť · Sťahovanie · Načítavanie</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Sťahovanie · Správa</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Automatické prehrávanie · Obnoviť · Sťahovanie</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Obnoviť · Trvanie</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Obnoviť · Sťahovanie · Načítavanie</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Rádio · Sťahovanie · Trvanie</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Hľadať · Knižnica</translation>
+      <source>Library filters</source>
+      <translation>Knižnica · Filter</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Pripojenie</translation>
+      <source>Smart playlist</source>
+      <translation>Inteligentný · Zoznamy skladieb</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Sťahovanie · Správa</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligentný · Zoznamy skladieb · Filter · Iba na čítanie</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Vytvoriť · Zoznam skladieb · Skladby · Front</translation>
+      <source>Playlist name</source>
+      <translation>Zoznam skladieb</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Prehrať · Mix · %1 · Zdroj</translation>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Vyčistiť · Mix</translation>
+      <source>Albums</source>
+      <translation>Albumy</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Stiahnuté</translation>
+      <source>Tracks</source>
+      <translation>Skladby</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Žáner</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Knižnica · Uložené · Offline</translation>
+      <source>Mood</source>
+      <translation>Nálada</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Uložené · Albumy</translation>
+      <source>Style</source>
+      <translation>Štýl</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Sťahovanie · Skladby</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Zastaviť · Rádio</translation>
+      <source>Title contains</source>
+      <translation>Názov · Filter</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Rok · Spustiť</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Rok · Limit</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Obľúbené · Limit</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Prehrať · Žiadne</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Zoradiť</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limit · Skladby</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Knižnica · Filter</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Inteligentný · Zoznamy skladieb</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligentný · Zoznamy skladieb · Filter · Iba na čítanie</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Zoznam skladieb</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Knižnica</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Front</translation>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Zoznamy skladieb</translation>
+      <source>Albums</source>
+      <translation>Albumy</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Obľúbené · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Skladby</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Nedávno pridané</translation>
+      <source>Genre</source>
+      <translation>Žáner</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Nedávno prehrané</translation>
+      <source>Mood</source>
+      <translation>Nálada</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Nahor</translation>
+      <source>Style</source>
+      <translation>Štýl</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Názov · Filter</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Rok · Spustiť</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Rok · Limit</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Obľúbené · Limit</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Prehrať · Žiadne</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Zoradiť</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limit · Skladby</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>História · Nastavenia</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Prehrať · %2 · História</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>História · local · Prehrať · Metaúdaje</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · História</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumy</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Skladby</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Prehrať · %2 · História</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>História · Nastavenia</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Prehrať · %2 · História</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>História · local · Prehrať · Metaúdaje</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Trvanie</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · História</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Knižnica</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumy</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Skladby</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Prehrať · %2 · História</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Nahor · Ďalšie</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Skladby · Pripravené · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Hľadať · Interpreti · Albumy · Skladby</translation>
+      <source>Library</source>
+      <translation>Knižnica</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Knižnica</translation>
+      <source>Search</source>
+      <translation>Hľadať</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Skladby</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Zoradiť</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Názov</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedávno pridané</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Rok</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Typy · Albumy</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Hľadať · Interpreti · Albumy · Skladby</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Knižnica</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Zoradiť</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Pridať · Sonic · Zdroj</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligentný · Filter · Nastavenia</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Pripojiť · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Použité · Pripojenie · Nastavenia</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Pripojenie · Nastavenia</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frekvencia · Hľadať</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Pripojiť</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Sťahovanie</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Správa</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Knižnica</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Rádio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Zastaviť · Rádio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Hľadať · Interpreti · Albumy · Skladby</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Hľadať</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Zoznamy skladieb</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Hľadať</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Hľadať · Knižnica</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Obľúbené · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nedávno pridané</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nedávno prehrané</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Nahor</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Interpreti</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Nahor · Ďalšie</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Knižnica</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Front</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Uložené · Albumy</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Sťahovanie · Skladby</translation>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Názov</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Nedávno pridané</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Rok</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Typy · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Nové · Zoznam skladieb</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Stiahnuté</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Pridať · Sonic · Zdroj</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligentný · Filter · Nastavenia</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Knižnica</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Nastavenia</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Knižnica</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Zobraziť všetko</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Hľadať</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Knižnica</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Zoznamy skladieb</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Hľadať · Nastavenia</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Knižnica · Filter</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Typy · Albumy</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Vytvoriť · Inteligentný · Zoznamy skladieb</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Vytvoriť · Zoznam skladieb · Skladby · Front</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Sťahovanie · Skladby</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Vyčistiť · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Vyčistiť · Sonic · Zdroj</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Zastaviť · Rádio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Front</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Stiahnuté</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Uložené · Albumy</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>História · Nastavenia</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Obľúbené · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedávno pridané</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedávno prehrané</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Sťahovanie · Správa</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Pripojenie</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Nahor</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Knižnica · Uložené · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Prehrať · Mix · %1 · Zdroj</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Skladby</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Interpreti</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Názov</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedávno pridané</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Rok</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedávno prehrané</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>História · Prehrať</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Náhodne</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filter · Zvuk</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Hľadať</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Zvuk · Podobné</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Obľúbené · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nedávno pridané</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Nedávno prehrané</translation>
     </message>
     <message>
       <source>Albums</source>

@@ -321,8 +321,16 @@
       <translation>Alege · 1–10 · Artiști · Albume · Mix</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Alege · 2–8 · Piese · Similar</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Alege · 30–480 · Radio · Descărcări</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Alege · 7 · 30 · 90 · Istoric</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Alege · Listă de redare · Album · Radio · Descărcări</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Alege · Actualizează · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Nevalid · Decodor · Audio</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Nevalid · Căutare</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Nevalid · Filtru</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Nevalid · Coadă · Index</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Indisponibil · Artist · Radio</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Primit · Nimic · Similar · Piesă · Verifică · Bibliotecă · Utilizat · Artist · Radio</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Coadă · Piese · Valid · Pornește · Index</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Inteligent · Listă de redare · Filtru · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Similar · Limită · 250 · Piese</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Căutare · Setări</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Căutare · Setări</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Mută · Sus</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Mută · Jos</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Descărcări · Gestionare</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Redare automată · Actualizează · Descărcări</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Actualizează · Durată</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Actualizează · Descărcări · Încărcare</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Descărcări · Gestionare</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Redare automată · Actualizează · Descărcări</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Actualizează · Durată</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Actualizează · Descărcări · Încărcare</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radio · Descărcări · Durată</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Căutare · Bibliotecă</translation>
+      <source>Library filters</source>
+      <translation>Bibliotecă · Filtru</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Conexiune</translation>
+      <source>Smart playlist</source>
+      <translation>Inteligent · Liste de redare</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Descărcări · Gestionare</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligent · Liste de redare · Filtru · Doar citire</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Creează · Listă de redare · Piese · Coadă</translation>
+      <source>Playlist name</source>
+      <translation>Listă de redare</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Redă · Mix · %1 · Sursă</translation>
+      <source>Artists</source>
+      <translation>Artiști</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Golește · Mix</translation>
+      <source>Albums</source>
+      <translation>Albume</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Descărcat</translation>
+      <source>Tracks</source>
+      <translation>Piese</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Online</translation>
+      <source>Genre</source>
+      <translation>Gen</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Bibliotecă · Salvat · Offline</translation>
+      <source>Mood</source>
+      <translation>Stare</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Salvat · Albume</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Descărcări · Piese</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Oprește · Radio</translation>
+      <source>Title contains</source>
+      <translation>Titlu · Filtru</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>An · Pornește</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>An · Limită</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favorite · Limită</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Redă · Nimic</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sortează</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limită · Piese</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotecă · Filtru</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Inteligent · Liste de redare</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Inteligent · Liste de redare · Filtru · Doar citire</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Listă de redare</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Bibliotecă</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Coadă</translation>
+      <source>Artists</source>
+      <translation>Artiști</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Liste de redare</translation>
+      <source>Albums</source>
+      <translation>Albume</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favorite · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Piese</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Adăugate recent</translation>
+      <source>Genre</source>
+      <translation>Gen</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Redate recent</translation>
+      <source>Mood</source>
+      <translation>Stare</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Sus</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Titlu · Filtru</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>An · Pornește</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>An · Limită</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favorite · Limită</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Redă · Nimic</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sortează</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Limită · Piese</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Istoric · Setări</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Redă · %2 · Istoric</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Istoric · local · Redă · Metadate</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Istoric</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artiști</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albume</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Piese</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Redă · %2 · Istoric</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Istoric · Setări</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Redă · %2 · Istoric</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Istoric · local · Redă · Metadate</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Durată</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Istoric</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotecă</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artiști</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albume</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Piese</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Redă · %2 · Istoric</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Sus · Următorul</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Piese · Pregătit · Offline</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Căutare · Artiști · Albume · Piese</translation>
+      <source>Library</source>
+      <translation>Bibliotecă</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Bibliotecă</translation>
+      <source>Search</source>
+      <translation>Căutare</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Piese</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Sortează</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Titlu</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adăugate recent</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>An</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Tipuri · Albume</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Căutare · Artiști · Albume · Piese</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotecă</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sortează</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Adaugă · Sonic · Sursă</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligent · Filtru · Setări</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Conectare · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Utilizat · Conexiune · Setări</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Conexiune · Setări</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frecvență · Căutare</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Conectare</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Descărcări</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Gestionare</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Online</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Offline · Bibliotecă</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radio</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Oprește · Radio</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Căutare · Artiști · Albume · Piese</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Căutare</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Liste de redare</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Căutare</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Căutare · Bibliotecă</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favorite · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Adăugate recent</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Redate recent</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Sus</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artiști</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Sus · Următorul</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Bibliotecă</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Coadă</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Salvat · Albume</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Descărcări · Piese</translation>
+      <source>Artists</source>
+      <translation>Artiști</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Titlu</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Adăugate recent</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>An</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Tipuri · Album</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Nou · Listă de redare</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Mix</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Descărcat</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Adaugă · Sonic · Sursă</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Inteligent · Filtru · Setări</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Offline · Bibliotecă</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Setări</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Bibliotecă</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Afișează tot</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Căutare</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotecă</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Liste de redare</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Căutare · Setări</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Bibliotecă · Filtru</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Tipuri · Albume</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Creează · Inteligent · Liste de redare</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Creează · Listă de redare · Piese · Coadă</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Descărcări · Piese</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Golește · Mix</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Golește · Sonic · Sursă</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Oprește · Radio</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Coadă</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Descărcat</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Salvat · Albume</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Istoric · Setări</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Favorite · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adăugate recent</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Redate recent</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Descărcări · Gestionare</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Conexiune</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Sus</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Bibliotecă · Salvat · Offline</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Redă · Mix · %1 · Sursă</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Mix · %1 · Piese</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Artiști</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Titlu</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Adăugate recent</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>An</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Redate recent</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Istoric · Redă</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Aleatoriu</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Filtru · Audio</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Căutare</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Audio · Similar</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favorite · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Adăugate recent</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Redate recent</translation>
     </message>
     <message>
       <source>Albums</source>

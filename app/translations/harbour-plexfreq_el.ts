@@ -321,8 +321,16 @@
       <translation>Επιλογή · 1–10 · Καλλιτέχνες · Άλμπουμ · Μίξη</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Επιλογή · 2–8 · Κομμάτια · Παρόμοιο</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Επιλογή · 30–480 · Ραδιόφωνο · Λήψεις</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Επιλογή · 7 · 30 · 90 · Ιστορικό</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Επιλογή · Λίστα αναπαραγωγής · Άλμπουμ · Ραδιόφωνο · Λήψεις</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Επιλογή · Ανανέωση · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Μη έγκυρο · Αποκωδικοποιητής · Ήχος</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Μη έγκυρο · Αναζήτηση</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Μη έγκυρο · Φίλτρο</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Μη έγκυρο · Ουρά · Ευρετήριο</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Μη διαθέσιμο · Καλλιτέχνης · Ραδιόφωνο</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Παραλήφθηκε · Κανένα · Παρόμοιο · Κομμάτι · Έλεγχος · Βιβλιοθήκη · Χρησιμοποιήθηκε · Καλλιτέχνης · Ραδιόφωνο</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Ουρά · Κομμάτια · Έγκυρο · Έναρξη · Ευρετήριο</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Έξυπνο · Λίστα αναπαραγωγής · Φίλτρο · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Παρόμοιο · Όριο · 250 · Κομμάτια</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Αναζήτηση · Ρυθμίσεις</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Αναζήτηση · Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Μετακίνηση · Πάνω</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Μετακίνηση · Κάτω</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>Λήψεις · Διαχείριση</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Αυτόματη αναπαραγωγή · Ανανέωση · Λήψεις</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Ανανέωση · Διάρκεια</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Ανανέωση · Λήψεις · Φόρτωση</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>Λήψεις · Διαχείριση</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Αυτόματη αναπαραγωγή · Ανανέωση · Λήψεις</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Ανανέωση · Διάρκεια</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Ανανέωση · Λήψεις · Φόρτωση</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Ραδιόφωνο · Λήψεις · Διάρκεια</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Αναζήτηση · Βιβλιοθήκη</translation>
+      <source>Library filters</source>
+      <translation>Βιβλιοθήκη · Φίλτρο</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Σύνδεση</translation>
+      <source>Smart playlist</source>
+      <translation>Έξυπνο · Λίστες αναπαραγωγής</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>Λήψεις · Διαχείριση</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Έξυπνο · Λίστες αναπαραγωγής · Φίλτρο · Μόνο ανάγνωση</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Δημιουργία · Λίστα αναπαραγωγής · Κομμάτια · Ουρά</translation>
+      <source>Playlist name</source>
+      <translation>Λίστα αναπαραγωγής</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Αναπαραγωγή · Μίξη · %1 · Πηγή</translation>
+      <source>Artists</source>
+      <translation>Καλλιτέχνες</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Εκκαθάριση · Μίξη</translation>
+      <source>Albums</source>
+      <translation>Άλμπουμ</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>Λήφθηκε</translation>
+      <source>Tracks</source>
+      <translation>Κομμάτια</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Σε σύνδεση</translation>
+      <source>Genre</source>
+      <translation>Είδος</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Βιβλιοθήκη · Αποθηκευμένο · Εκτός σύνδεσης</translation>
+      <source>Mood</source>
+      <translation>Διάθεση</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Αποθηκευμένο · Άλμπουμ</translation>
+      <source>Style</source>
+      <translation>Στυλ</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>Λήψεις · Κομμάτια</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Διακοπή · Ραδιόφωνο</translation>
+      <source>Title contains</source>
+      <translation>Τίτλος · Φίλτρο</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Έτος · Έναρξη</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Έτος · Όριο</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Αγαπημένα · Όριο</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Αναπαραγωγή · Κανένα</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ταξινόμηση</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Όριο · Κομμάτια</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Βιβλιοθήκη · Φίλτρο</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Έξυπνο · Λίστες αναπαραγωγής</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Έξυπνο · Λίστες αναπαραγωγής · Φίλτρο · Μόνο ανάγνωση</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Λίστα αναπαραγωγής</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Βιβλιοθήκη</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Ουρά</translation>
+      <source>Artists</source>
+      <translation>Καλλιτέχνες</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Λίστες αναπαραγωγής</translation>
+      <source>Albums</source>
+      <translation>Άλμπουμ</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Αγαπημένα · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Κομμάτια</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Πρόσφατες προσθήκες</translation>
+      <source>Genre</source>
+      <translation>Είδος</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Πρόσφατη αναπαραγωγή</translation>
+      <source>Mood</source>
+      <translation>Διάθεση</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Πάνω</translation>
+      <source>Style</source>
+      <translation>Στυλ</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Τίτλος · Φίλτρο</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Έτος · Έναρξη</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Έτος · Όριο</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Αγαπημένα · Όριο</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Αναπαραγωγή · Κανένα</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ταξινόμηση</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Όριο · Κομμάτια</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ιστορικό · Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Αναπαραγωγή · %2 · Ιστορικό</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Ιστορικό · local · Αναπαραγωγή · Μεταδεδομένα</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Ιστορικό</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Καλλιτέχνες</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Άλμπουμ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Κομμάτια</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Αναπαραγωγή · %2 · Ιστορικό</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ιστορικό · Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Αναπαραγωγή · %2 · Ιστορικό</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Ιστορικό · local · Αναπαραγωγή · Μεταδεδομένα</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Διάρκεια</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Ιστορικό</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Βιβλιοθήκη</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Καλλιτέχνες</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Άλμπουμ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Κομμάτια</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Αναπαραγωγή · %2 · Ιστορικό</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Πάνω · Επόμενο</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Κομμάτια · Έτοιμο · Εκτός σύνδεσης</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Αναζήτηση · Καλλιτέχνες · Άλμπουμ · Κομμάτια</translation>
+      <source>Library</source>
+      <translation>Βιβλιοθήκη</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Βιβλιοθήκη</translation>
+      <source>Search</source>
+      <translation>Αναζήτηση</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Κομμάτια</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Ταξινόμηση</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Τίτλος</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Πρόσφατες προσθήκες</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Έτος</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Τύποι · Άλμπουμ</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Αναζήτηση · Καλλιτέχνες · Άλμπουμ · Κομμάτια</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Βιβλιοθήκη</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ταξινόμηση</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Προσθήκη · Sonic · Πηγή</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Έξυπνο · Φίλτρο · Ρυθμίσεις</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Σύνδεση · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Χρησιμοποιήθηκε · Σύνδεση · Ρυθμίσεις</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Σύνδεση · Ρυθμίσεις</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Συχνότητα · Αναζήτηση</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Σύνδεση</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>Λήψεις</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Διαχείριση</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Σε σύνδεση</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Εκτός σύνδεσης · Βιβλιοθήκη</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Ραδιόφωνο</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Διακοπή · Ραδιόφωνο</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Αναζήτηση · Καλλιτέχνες · Άλμπουμ · Κομμάτια</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Αναζήτηση</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Λίστες αναπαραγωγής</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Αναζήτηση</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Αναζήτηση · Βιβλιοθήκη</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Αγαπημένα · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Πρόσφατες προσθήκες</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Πρόσφατη αναπαραγωγή</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Πάνω</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Καλλιτέχνες</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Πάνω · Επόμενο</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Βιβλιοθήκη</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Ουρά</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Αποθηκευμένο · Άλμπουμ</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>Λήψεις · Κομμάτια</translation>
+      <source>Artists</source>
+      <translation>Καλλιτέχνες</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Τίτλος</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Πρόσφατες προσθήκες</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Έτος</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Τύποι · Άλμπουμ</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Νέο · Λίστα αναπαραγωγής</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Μίξη</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>Λήφθηκε</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Προσθήκη · Sonic · Πηγή</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Έξυπνο · Φίλτρο · Ρυθμίσεις</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Εκτός σύνδεσης · Βιβλιοθήκη</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Βιβλιοθήκη</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Εμφάνιση όλων</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Αναζήτηση</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Βιβλιοθήκη</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Λίστες αναπαραγωγής</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Αναζήτηση · Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Βιβλιοθήκη · Φίλτρο</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Τύποι · Άλμπουμ</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Δημιουργία · Έξυπνο · Λίστες αναπαραγωγής</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Δημιουργία · Λίστα αναπαραγωγής · Κομμάτια · Ουρά</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>Λήψεις · Κομμάτια</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Εκκαθάριση · Μίξη</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Εκκαθάριση · Sonic · Πηγή</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Διακοπή · Ραδιόφωνο</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Ουρά</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>Λήφθηκε</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Αποθηκευμένο · Άλμπουμ</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Ιστορικό · Ρυθμίσεις</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Αγαπημένα · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Πρόσφατες προσθήκες</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Πρόσφατη αναπαραγωγή</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>Λήψεις · Διαχείριση</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Σύνδεση</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Πάνω</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Σε σύνδεση</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Βιβλιοθήκη · Αποθηκευμένο · Εκτός σύνδεσης</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Αναπαραγωγή · Μίξη · %1 · Πηγή</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Μίξη · %1 · Κομμάτια</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Καλλιτέχνες</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Τίτλος</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Πρόσφατες προσθήκες</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Έτος</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Πρόσφατη αναπαραγωγή</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Ιστορικό · Αναπαραγωγή</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Τυχαία</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Φίλτρο · Ήχος</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Αναζήτηση</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Ήχος · Παρόμοιο</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Αγαπημένα · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Πρόσφατες προσθήκες</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Πρόσφατη αναπαραγωγή</translation>
     </message>
     <message>
       <source>Albums</source>

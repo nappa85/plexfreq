@@ -321,8 +321,16 @@
       <translation>Seç · 1–10 · Sanatçılar · Albümler · Karışım</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>Seç · 2–8 · Parçalar · Benzer</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>Seç · 30–480 · Radyo · İndirmeler</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>Seç · 7 · 30 · 90 · Geçmiş</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>Seç · Çalma listesi · Albüm · Radyo · İndirmeler</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>Seç · Yenile · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>Geçersiz · Kod çözücü · Ses</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>Geçersiz · Ara</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>Geçersiz · Süzgeç</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>Geçersiz · Kuyruk · Dizin</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · Kullanılamıyor · Sanatçı · Radyo</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · Alındı · Yok · Benzer · Parça · Denetle · Kitaplık · Kullanıldı · Sanatçı · Radyo</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Kuyruk · Parçalar · Geçerli · Başlat · Dizin</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>Akıllı · Çalma listesi · Süzgeç · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>Benzer · Sınır · 250 · Parçalar</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Ara · Ayarlar</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Ara · Ayarlar</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>Taşı · Yukarı</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>Taşı · Aşağı</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>İndirmeler · Yönetim</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Otomatik çalma · Yenile · İndirmeler</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Yenile · Süre</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Yenile · İndirmeler · Yükleniyor</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>İndirmeler · Yönetim</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>Otomatik çalma · Yenile · İndirmeler</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Yenile · Süre</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>Yenile · İndirmeler · Yükleniyor</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>Radyo · İndirmeler · Süre</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>Ara · Kitaplık</translation>
+      <source>Library filters</source>
+      <translation>Kitaplık · Süzgeç</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>Bağlantı</translation>
+      <source>Smart playlist</source>
+      <translation>Akıllı · Çalma listeleri</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>İndirmeler · Yönetim</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Akıllı · Çalma listeleri · Süzgeç · Salt okunur</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>Oluştur · Çalma listesi · Parçalar · Kuyruk</translation>
+      <source>Playlist name</source>
+      <translation>Çalma listesi</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>Çal · Karışım · %1 · Kaynak</translation>
+      <source>Artists</source>
+      <translation>Sanatçılar</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>Temizle · Karışım</translation>
+      <source>Albums</source>
+      <translation>Albümler</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>İndirildi</translation>
+      <source>Tracks</source>
+      <translation>Parçalar</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>Çevrimiçi</translation>
+      <source>Genre</source>
+      <translation>Tür</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>Kitaplık · Kaydedildi · Çevrimdışı</translation>
+      <source>Mood</source>
+      <translation>Ruh hâli</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>Kaydedildi · Albümler</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>İndirmeler · Parçalar</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Durdur · Radyo</translation>
+      <source>Title contains</source>
+      <translation>Başlık · Süzgeç</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>Yıl · Başlat</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Yıl · Sınır</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoriler · Sınır</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Çal · Yok</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sırala</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Sınır · Parçalar</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>Kitaplık · Süzgeç</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>Akıllı · Çalma listeleri</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>Akıllı · Çalma listeleri · Süzgeç · Salt okunur</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>Çalma listesi</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>Kitaplık</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>Kuyruk</translation>
+      <source>Artists</source>
+      <translation>Sanatçılar</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Çalma listeleri</translation>
+      <source>Albums</source>
+      <translation>Albümler</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoriler · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>Parçalar</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>Son eklenenler</translation>
+      <source>Genre</source>
+      <translation>Tür</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>Son çalınanlar</translation>
+      <source>Mood</source>
+      <translation>Ruh hâli</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>Yukarı</translation>
+      <source>Style</source>
+      <translation>Stil</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>Başlık · Süzgeç</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>Yıl · Başlat</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>Yıl · Sınır</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>Favoriler · Sınır</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>Çal · Yok</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sırala</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>Sınır · Parçalar</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geçmiş · Ayarlar</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Çal · %2 · Geçmiş</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Geçmiş · local · Çal · Üstveri</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Geçmiş</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Sanatçılar</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albümler</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Parçalar</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Çal · %2 · Geçmiş</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geçmiş · Ayarlar</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · Çal · %2 · Geçmiş</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>Geçmiş · local · Çal · Üstveri</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>Süre</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · Geçmiş</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kitaplık</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Sanatçılar</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albümler</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Parçalar</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · Çal · %2 · Geçmiş</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>Yukarı · Sonraki</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · Parçalar · Hazır · Çevrimdışı</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Ara · Sanatçılar · Albümler · Parçalar</translation>
+      <source>Library</source>
+      <translation>Kitaplık</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>Kitaplık</translation>
+      <source>Search</source>
+      <translation>Ara</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>Parçalar</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>Sırala</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>Başlık</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Son eklenenler</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>Yıl</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>Türler · Albümler</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>Ara · Sanatçılar · Albümler · Parçalar</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Kitaplık</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sırala</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Ekle · Sonic · Kaynak</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Akıllı · Süzgeç · Ayarlar</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>Bağlan · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>Kullanıldı · Bağlantı · Ayarlar</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · Bağlantı · Ayarlar</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>Frekans · Ara</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>Bağlan</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>İndirmeler</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>Yönetim</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>Çevrimiçi</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>Çevrimdışı · Kitaplık</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>Radyo</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>Durdur · Radyo</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>Ara · Sanatçılar · Albümler · Parçalar</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>Ara</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>Çalma listeleri</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>Ara</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>Ara · Kitaplık</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>Favoriler · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Son eklenenler</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Son çalınanlar</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>Yukarı</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Sanatçılar</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>Yukarı · Sonraki</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>Kitaplık</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>Kuyruk</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>Kaydedildi · Albümler</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>İndirmeler · Parçalar</translation>
+      <source>Artists</source>
+      <translation>Sanatçılar</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>Başlık</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>Son eklenenler</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>Yıl</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>Türler · Albüm</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>Yeni · Çalma listesi</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>Karışım</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>İndirildi</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>Ekle · Sonic · Kaynak</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>Akıllı · Süzgeç · Ayarlar</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>Çevrimdışı · Kitaplık</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>Ayarlar</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>Kitaplık</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>Tümünü göster</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>Ara</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Kitaplık</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>Çalma listeleri</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>Ara · Ayarlar</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>Kitaplık · Süzgeç</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>Türler · Albümler</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>Oluştur · Akıllı · Çalma listeleri</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>Oluştur · Çalma listesi · Parçalar · Kuyruk</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>İndirmeler · Parçalar</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>Temizle · Karışım</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>Temizle · Sonic · Kaynak</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>Durdur · Radyo</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>Kuyruk</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>İndirildi</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>Kaydedildi · Albümler</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>Geçmiş · Ayarlar</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>Favoriler · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Son eklenenler</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Son çalınanlar</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>İndirmeler · Yönetim</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>Bağlantı</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>Yukarı</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Çevrimiçi</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>Kitaplık · Kaydedildi · Çevrimdışı</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>Çal · Karışım · %1 · Kaynak</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · Karışım · %1 · Parçalar</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>Sanatçılar</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>Başlık</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Son eklenenler</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Yıl</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Son çalınanlar</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Geçmiş · Çal</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>Karıştır</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>Süzgeç · Ses</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>Ara</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>Ses · Benzer</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoriler · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Son eklenenler</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>Son çalınanlar</translation>
     </message>
     <message>
       <source>Albums</source>

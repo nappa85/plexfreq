@@ -13,6 +13,9 @@ ApplicationWindow {
         onEditPlaylistRequested:pageStack.push(Qt.resolvedUrl("pages/PlaylistDialog.qml"),{music:session})
         onOpenDownloads:pageStack.push(Qt.resolvedUrl("pages/DownloadsPage.qml"),{music:session})
         onOpenAudioSettings:pageStack.push(Qt.resolvedUrl("pages/AudioSettingsPage.qml"),{music:session})
+        onOpenFilterEditor:pageStack.push(Qt.resolvedUrl("pages/FiltersDialog.qml"),{music:session})
+        onOpenDiscoverySettings:pageStack.push(Qt.resolvedUrl("pages/DiscoverySettingsPage.qml"),{music:session})
+        onOpenInsights:pageStack.push(Qt.resolvedUrl("pages/InsightsPage.qml"),{music:session})
     }
     initialPage: Component { LibraryPage { music: session } }
     cover: Component {

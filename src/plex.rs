@@ -32,6 +32,9 @@ impl Plex {
                     .map_err(|_| Error::Input("Invalid client identifier"))?,
             );
         }
+        // `timeout` bounds the whole small-JSON request (headers + body),
+        // so a stalled timeline/library call cannot block the worker beyond
+        // 15s. `connect_timeout` fails fast on unreachable hosts.
         let client = Client::builder()
             .default_headers(headers)
             .timeout(Duration::from_secs(15))
@@ -106,8 +109,9 @@ impl Plex {
             .collect();
         let mut valid = Vec::with_capacity(servers.len());
         for r in servers.iter() {
-            match serde_json::from_value(r.clone()) {
-                Ok(resource) => valid.push(resource),
+            match serde_json::from_value::<Resource>(r.clone()) {
+                Ok(resource) if !resource.access_token.is_empty() => valid.push(resource),
+                Ok(_) => continue,
                 Err(_) => continue,
             }
         }
@@ -143,6 +147,14 @@ impl Plex {
             self.request(Method::POST, url, token, &[], "radio queue creation")?;
         Ok(envelope.container)
     }
+    fn status(code: u16) -> Result<()> {
+        match code {
+            200..=299 => Ok(()),
+            401 | 403 => Err(Error::Unauthorized),
+            code => Err(Error::Http(code)),
+        }
+    }
+
     pub fn mutate(
         &self,
         base: &Url,
@@ -154,17 +166,12 @@ impl Plex {
         let mut url = server_path(base, path)?;
         url.query_pairs_mut()
             .extend_pairs(params.iter().map(|(k, v)| (*k, v.as_str())));
-        let response = self
-            .client
-            .request(method, url)
-            .header("X-Plex-Token", token)
-            .send()
-            .map_err(|_| Error::Network)?;
-        match response.status().as_u16() {
-            200..=299 => Ok(()),
-            401 | 403 => Err(Error::Unauthorized),
-            code => Err(Error::Http(code)),
+        let mut builder = self.client.request(method, url);
+        if !token.is_empty() {
+            builder = builder.header("X-Plex-Token", token);
         }
+        let response = builder.send().map_err(|_| Error::Network)?;
+        Self::status(response.status().as_u16())
     }
     pub fn create_playlist(
         &self,
@@ -184,17 +191,12 @@ impl Plex {
         let mut url = server_path(base, "/:/timeline")?;
         url.query_pairs_mut()
             .extend_pairs(params.iter().map(|(k, v)| (*k, v.as_str())));
-        let response = self
-            .client
-            .post(url)
-            .header("X-Plex-Token", token)
-            .send()
-            .map_err(|_| Error::Network)?;
-        match response.status().as_u16() {
-            200..=299 => Ok(()),
-            401 | 403 => Err(Error::Unauthorized),
-            code => Err(Error::Http(code)),
+        let mut builder = self.client.post(url);
+        if !token.is_empty() {
+            builder = builder.header("X-Plex-Token", token);
         }
+        let response = builder.send().map_err(|_| Error::Network)?;
+        Self::status(response.status().as_u16())
     }
     pub fn rate(&self, base: &Url, token: &str, key: &str, rating: u8) -> Result<()> {
         let mut url = server_path(base, "/:/rate")?;
@@ -203,25 +205,19 @@ impl Plex {
             ("identifier", "com.plexapp.plugins.library"),
             ("rating", &rating.to_string()),
         ]);
-        let response = self
-            .client
-            .put(url)
-            .header("X-Plex-Token", token)
-            .send()
-            .map_err(|_| Error::Network)?;
-        match response.status().as_u16() {
-            200..=299 => Ok(()),
-            401 | 403 => Err(Error::Unauthorized),
-            code => Err(Error::Http(code)),
+        let mut builder = self.client.put(url);
+        if !token.is_empty() {
+            builder = builder.header("X-Plex-Token", token);
         }
+        let response = builder.send().map_err(|_| Error::Network)?;
+        Self::status(response.status().as_u16())
     }
     pub fn text(&self, base: &Url, token: &str, path: &str) -> Result<String> {
-        let response = self
-            .client
-            .get(server_path(base, path)?)
-            .header("X-Plex-Token", token)
-            .send()
-            .map_err(|_| Error::Network)?;
+        let mut builder = self.client.get(server_path(base, path)?);
+        if !token.is_empty() {
+            builder = builder.header("X-Plex-Token", token);
+        }
+        let response = builder.send().map_err(|_| Error::Network)?;
         let code = response.status().as_u16();
         if !(200..300).contains(&code) {
             return Err(if code == 401 || code == 403 {
@@ -238,10 +234,11 @@ impl Plex {
         String::from_utf8(bytes).map_err(|_| Error::ProtocolAt("lyrics text"))
     }
     pub(crate) fn probe_audio(&self, url: Url, token: &str) -> Result<(usize, String)> {
-        let response = self
-            .client
-            .get(url)
-            .header("X-Plex-Token", token)
+        let mut builder = self.client.get(url);
+        if !token.is_empty() {
+            builder = builder.header("X-Plex-Token", token);
+        }
+        let response = builder
             .header("Accept", "*/*")
             .header("Accept-Encoding", "identity")
             .send()
@@ -257,7 +254,8 @@ impl Plex {
             .split(';')
             .next()
             .unwrap_or("")
-            .to_string();
+            .trim()
+            .to_ascii_lowercase();
         if !mime.starts_with("audio/") {
             return Err(Error::Input(
                 "Server returned non-audio content for this track",
@@ -293,6 +291,15 @@ pub fn server_url(value: &str) -> Result<Url> {
 
 pub fn server_path(base: &Url, path: &str) -> Result<Url> {
     if !path.starts_with('/') || path.starts_with("//") || path.contains('\\') || path.contains('#')
+    {
+        return Err(Error::Input("Expected a server-relative Plex path"));
+    }
+    // Block dot segments before Url::join normalizes them away: /a/../b would
+    // otherwise silently become /b under the same origin.
+    let path_part = path.split(['?', '#']).next().unwrap_or(path);
+    if path_part
+        .split('/')
+        .any(|segment| segment == ".." || segment == ".")
     {
         return Err(Error::Input("Expected a server-relative Plex path"));
     }

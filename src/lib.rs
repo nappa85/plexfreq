@@ -1,8 +1,12 @@
 pub mod audio;
+mod bluetooth;
 pub mod cache;
+mod catalogue;
 mod daily;
+mod discovery;
 mod features;
 mod ffi;
+mod filters;
 pub mod history;
 pub mod lyrics;
 pub mod model;
@@ -11,6 +15,7 @@ pub mod plex;
 pub mod quality;
 pub mod queue;
 pub mod radio;
+mod refresh;
 pub mod runtime;
 pub mod store;
 
@@ -56,8 +61,8 @@ pub(crate) fn mutex_lock<T>(mutex: &std::sync::Mutex<T>) -> std::sync::MutexGuar
     mutex.lock().unwrap_or_else(|poison| poison.into_inner())
 }
 
-/// Shared atomic file write: temp file with 0600, fsync, rename. Used for
-/// cache index, offline snapshots and session state (session adds dir fsync).
+/// Shared atomic file write: temp file with 0600, fsync, rename, dir fsync.
+/// Used for cache index, offline snapshots and session state.
 pub(crate) fn atomic_write_bytes(path: &std::path::Path, bytes: &[u8]) -> Result<()> {
     use std::{
         fs::{self, OpenOptions},
@@ -79,6 +84,13 @@ pub(crate) fn atomic_write_bytes(path: &std::path::Path, bytes: &[u8]) -> Result
         file.write_all(bytes)?;
         file.sync_all()?;
         fs::rename(&temp, path)?;
+        // Ensure the rename itself is durable; a crash between rename and
+        // journal commit could otherwise lose the file.
+        if let Some(parent) = path.parent() {
+            if let Ok(dir) = fs::File::open(parent) {
+                let _ = dir.sync_all();
+            }
+        }
         Ok(())
     })();
     if result.is_err() {
@@ -95,7 +107,9 @@ pub(crate) fn atomic_write_json(
 }
 
 pub(crate) fn numeric(value: &str) -> Result<&str> {
-    if value.is_empty() || !value.bytes().all(|c| c.is_ascii_digit()) {
+    // Plex identifiers fit in u64 (max 20 decimal digits). Reject unbounded
+    // digit strings before they become huge URL paths or overflow parsers.
+    if value.is_empty() || value.len() > 20 || !value.bytes().all(|c| c.is_ascii_digit()) {
         Err(Error::Input("Expected a numeric Plex identifier"))
     } else {
         Ok(value)
@@ -106,11 +120,64 @@ pub(crate) fn numeric(value: &str) -> Result<&str> {
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Command {
     Status,
+    RefreshPolicy {
+        enabled: bool,
+        interval_hours: u32,
+    },
+    RefreshDownloads,
+    SmartRules {
+        key: String,
+    },
+    DiscoveryConfig {
+        section: String,
+        hidden: Vec<String>,
+        order: Vec<String>,
+    },
+    HubItems {
+        key: String,
+        #[serde(default)]
+        start: usize,
+    },
+    ListeningInsights {
+        days: u32,
+    },
+    SonicJourney {
+        section: String,
+        keys: Vec<String>,
+    },
+    FilterOptions {
+        section: String,
+        kind: String,
+        field: String,
+    },
+    FilteredBrowse {
+        section: String,
+        kind: String,
+        sort: String,
+        filters: filters::Music,
+        #[serde(default)]
+        start: usize,
+    },
+    SmartPlaylist {
+        action: String,
+        #[serde(default)]
+        key: String,
+        section: String,
+        #[serde(default)]
+        title: String,
+        sort: String,
+        limit: usize,
+        filters: filters::Music,
+    },
     QualityConfig {
         config: quality::Config,
     },
     TranscodedPlayback,
     ProbeQuality {
+        key: String,
+        kbps: u32,
+    },
+    ProbePlayback {
         key: String,
         kbps: u32,
     },
@@ -354,6 +421,11 @@ pub enum Command {
 }
 
 pub struct Core {
+    refresh: refresh::Scheduler,
+    planning_guard: Option<(std::sync::Arc<std::sync::atomic::AtomicU64>, u64)>,
+    offline_index: std::cell::RefCell<Option<catalogue::Index>>,
+    filter_schemas: std::cell::RefCell<std::collections::BTreeMap<String, Value>>,
+    catalogue_epoch: u64,
     dir: PathBuf,
     settings: store::Settings,
     plex: Plex,
@@ -470,10 +542,53 @@ impl Core {
         if settings.playback.queue.current.is_some() && settings.playback.occurrence.is_empty() {
             settings.playback.occurrence = uuid::Uuid::new_v4().to_string();
         }
+        // Older pins predate durable refresh recipes; retain their membership
+        // and give audio playlists the same opt-in refresh behavior as new plans.
+        let legacy: Vec<_> = settings
+            .download_groups
+            .keys()
+            .filter(|group| {
+                group.starts_with("playlist:") && !settings.download_plans.contains_key(*group)
+            })
+            .cloned()
+            .collect();
+        for group in legacy {
+            if let Some((kind, key)) = group.split_once(':') {
+                if numeric(key).is_ok() {
+                    settings.download_plans.insert(
+                        group.clone(),
+                        daily::DownloadPlan {
+                            kind: kind.into(),
+                            key: key.into(),
+                            minutes: 0,
+                            refreshed_at: history::now(),
+                        },
+                    );
+                }
+            }
+        }
         let queue = settings.playback.queue.clone();
         let radio = settings.playback.radio.clone();
         let resume_position = settings.playback.position;
         let manual_cache = settings.downloads.clone();
+        // Corrupt persisted cache config must not brick startup. Validate and
+        // fall back to defaults instead of propagating Cache::new's error.
+        if settings.cache.validate().is_err() {
+            settings.cache = cache::Config::default();
+            // Best-effort repair so the next launch starts clean; failures are
+            // non-fatal (in-memory fallback already applies).
+            let _ = store::save(&dir, &settings);
+        }
+        // Corrupt persisted audio/quality configs must not silently misbehave
+        // (e.g. headroom 999 muting output). Fall back to defaults.
+        if settings.audio.validate().is_err() {
+            settings.audio = audio::dsp::Config::default();
+            let _ = store::save(&dir, &settings);
+        }
+        if settings.quality.validate().is_err() {
+            settings.quality = quality::Config::default();
+            let _ = store::save(&dir, &settings);
+        }
         let cache = if downloads {
             cache::Cache::new(
                 dir.join("audio-cache"),
@@ -493,6 +608,11 @@ impl Core {
             .control(artwork.generation())
             .policy(settings.wifi_only, settings.downloads_paused);
         let core = Self {
+            refresh: refresh::Scheduler::default(),
+            planning_guard: None,
+            offline_index: std::cell::RefCell::new(None),
+            filter_schemas: std::cell::RefCell::new(std::collections::BTreeMap::new()),
+            catalogue_epoch: 0,
             network_wifi: false,
             network_online: false,
             playback_generation: settings.playback.generation,
@@ -539,10 +659,19 @@ impl Core {
         }
         server_url(&self.settings.server_url)
     }
-    fn page(&self, path: &str, mut params: Vec<(&str, String)>, start: usize) -> Result<Value> {
+    fn page(&self, path: &str, params: Vec<(&str, String)>, start: usize) -> Result<Value> {
+        self.page_sized(path, params, start, 100)
+    }
+    fn page_sized(
+        &self,
+        path: &str,
+        mut params: Vec<(&str, String)>,
+        start: usize,
+        size: usize,
+    ) -> Result<Value> {
         params.extend([
             ("X-Plex-Container-Start", start.to_string()),
-            ("X-Plex-Container-Size", "100".into()),
+            ("X-Plex-Container-Size", size.to_string()),
         ]);
         let (c, offline) = self.container_cached(path, &params)?;
         let items: Vec<Value> = c
@@ -551,15 +680,16 @@ impl Core {
             .filter(|i| matches!(i.kind.as_str(), "artist" | "album" | "track" | "playlist"))
             .map(|i| self.display_item(i))
             .collect();
-        let next = start + c.size;
+        let next = start.saturating_add(c.size);
         Ok(json!({"items": items, "start": start, "next": next,
-            "hasMore": c.total_size.map_or(c.size == 100, |total| next < total),"offline":offline}))
+            "hasMore": c.total_size.map_or(c.size >= size && size > 0, |total| next < total),"offline":offline}))
     }
     fn container_cached(
         &self,
         path: &str,
         params: &[(&str, String)],
     ) -> Result<(model::Container, bool)> {
+        self.check_planning()?;
         let ns = self.cache_namespace();
         if self.offline_mode {
             return self
@@ -963,6 +1093,10 @@ impl Core {
             .collect::<Vec<_>>());
         value["pinnedGroups"] = json!(self.settings.download_groups.keys().collect::<Vec<_>>());
         value["jobs"] = json!(self.download_rows_from_status(&value));
+        value["autoRefresh"] = json!(self.settings.refresh_policy.enabled);
+        value["refreshHours"] = json!(self.settings.refresh_policy.interval_hours);
+        value["refreshingGroup"] = json!(self.refresh.pending);
+        value["refreshError"] = json!(self.refresh.error);
         value
     }
     fn schedule_cache(&self) {
@@ -1332,6 +1466,7 @@ impl Core {
         settings.downloads.clear();
         settings.download_plans.clear();
         store::save(&self.dir, &settings)?;
+        self.refresh.reset();
         self.settings = settings;
         self.library
             .save(&self.cache_namespace(), "/library/sections", &[], &c);
@@ -1347,6 +1482,16 @@ impl Core {
         )
     }
     pub fn execute(&mut self, command: Command) -> Result<Value> {
+        let catalogue_change = matches!(
+            &command,
+            Command::Pin { .. }
+                | Command::DownloadAction { .. }
+                | Command::CacheTracks { .. }
+                | Command::ClearCache
+                | Command::Connect { .. }
+                | Command::SelectServer { .. }
+                | Command::Logout
+        );
         let persist = matches!(
             &command,
             Command::Play { .. }
@@ -1383,18 +1528,27 @@ impl Core {
             Command::Resume | Command::CachedPlayback | Command::TranscodedPlayback
         );
         let mut result = self.execute_inner(command)?;
-        if result.get("stream").is_some() {
+        if catalogue_change {
+            self.catalogue_epoch = self.catalogue_epoch.wrapping_add(1);
+        }
+        // An empty stream (e.g. ClearCache returns "") is not a playable plan
+        // and must not bump generations or reset occurrences.
+        let has_stream = result
+            .get("stream")
+            .and_then(|v| v.as_str())
+            .is_some_and(|s| !s.is_empty());
+        if has_stream {
             result["normalizationMode"] = json!(self.normalization_mode());
             result["albumNormalization"] = json!(self.album_normalization());
             self.playback_generation = self.playback_generation.wrapping_add(1);
             result["playbackGeneration"] = json!(self.playback_generation);
         }
-        if result.get("stream").is_some() && !resuming {
+        if has_stream && !resuming {
             self.resume_position = 0;
             self.settings.playback.occurrence = uuid::Uuid::new_v4().to_string();
             self.settings.playback.listened = 0;
         }
-        if result.get("stream").is_some() {
+        if has_stream {
             result["playbackOccurrence"] = json!(self.settings.playback.occurrence);
             result["resumeListened"] = json!(self.settings.playback.listened);
         }
@@ -1421,6 +1575,54 @@ impl Core {
     }
     fn execute_inner(&mut self, command: Command) -> Result<Value> {
         match command {
+            Command::ProbePlayback { key, kbps } => self.probe_playback(&key, kbps),
+            Command::SmartRules { key } => self.smart_rules(&key),
+            Command::DiscoveryConfig {
+                section,
+                hidden,
+                order,
+            } => self.discovery_config(&section, hidden, order),
+            Command::HubItems { key, start } => self.hub_items(&key, start),
+            Command::ListeningInsights { days } => self.listening_insights(days),
+            Command::SonicJourney { section, keys } => self.sonic_journey(&section, keys),
+            Command::FilterOptions {
+                section,
+                kind,
+                field,
+            } => self.filter_options(&section, &kind, &field),
+            Command::FilteredBrowse {
+                section,
+                kind,
+                sort,
+                filters,
+                start,
+            } => self.filtered_browse(&section, &kind, &sort, &filters, start),
+            Command::SmartPlaylist {
+                action,
+                key,
+                section,
+                title,
+                sort,
+                limit,
+                filters,
+            } => self.smart_playlist(&action, (&key, &section), &title, &sort, limit, &filters),
+            Command::RefreshPolicy {
+                enabled,
+                interval_hours,
+            } => {
+                let policy = refresh::Policy {
+                    enabled,
+                    interval_hours,
+                };
+                policy.validate()?;
+                self.settings.refresh_policy = policy;
+                self.refresh.cancel();
+                if self.writable {
+                    store::save(&self.dir, &self.settings)?;
+                }
+                Ok(json!({"cache":self.cache_status()}))
+            }
+            Command::RefreshDownloads => self.maintain_refresh(),
             Command::ProbeQuality { key, kbps } => self.probe_quality(&key, kbps),
             Command::DownloadStation {
                 key,
@@ -1479,6 +1681,9 @@ impl Core {
                 self.download_control().policy(wifi_only, paused);
                 self.settings.wifi_only = wifi_only;
                 self.settings.downloads_paused = paused;
+                if paused || wifi_only && !self.network_wifi {
+                    self.refresh.cancel();
+                }
                 self.cache.cancel();
                 self.artwork.cancel();
                 self.schedule_cache();
@@ -1494,8 +1699,14 @@ impl Core {
                     self.download_control().network(wifi);
                 }
                 let changed = wifi != self.network_wifi || online != self.network_online;
+                if online && !self.network_online {
+                    self.refresh.reconnect();
+                }
                 self.network_wifi = wifi;
                 self.network_online = online;
+                if !online || !self.downloads_allowed() {
+                    self.refresh.cancel();
+                }
                 if changed {
                     self.cache.cancel();
                     if !self.downloads_allowed() {
@@ -1524,6 +1735,7 @@ impl Core {
                 }
                 let group = format!("{kind}:{key}");
                 if enabled {
+                    self.refresh.cancel();
                     if !self.settings.cache.enabled {
                         return Err(Error::Input(
                             "Enable audio caching before pinning downloads",
@@ -1603,6 +1815,17 @@ impl Core {
                         .download_titles
                         .insert(format!("{kind}:{key}"), title);
                     self.settings.download_groups = groups;
+                    if kind == "playlist" {
+                        self.settings.download_plans.insert(
+                            group.clone(),
+                            daily::DownloadPlan {
+                                kind: kind.clone(),
+                                key: key.clone(),
+                                minutes: 0,
+                                refreshed_at: history::now(),
+                            },
+                        );
+                    }
                     self.manual_cache = plan;
                 } else {
                     self.settings.download_groups.remove(&group);
@@ -1642,6 +1865,7 @@ impl Core {
             Command::OfflineMode { enabled } => {
                 self.offline_mode = enabled;
                 if enabled {
+                    self.refresh.cancel();
                     self.cache.cancel();
                     self.artwork.cancel();
                 } else {
@@ -2044,13 +2268,18 @@ impl Core {
                     .and_then(|g| g["offset"].as_u64())
                     .ok_or(Error::Input("No artists indexed under that letter"))?
                     as usize;
-                let mut page = self.page(
+                let size = start
+                    .checked_add(100)
+                    .ok_or(Error::ProtocolAt("artist alphabet index"))?;
+                let mut page = self.page_sized(
                     &format!("/library/sections/{}/all", numeric(&section)?),
                     vec![("type", "8".into()), ("sort", "titleSort:asc".into())],
-                    start,
+                    0,
+                    size,
                 )?;
                 page["replaceItems"] = json!(true);
                 page["selectedLetter"] = json!(letter);
+                page["selectedIndex"] = json!(start);
                 Ok(page)
             }
             Command::Children { key, start } => {
@@ -2133,6 +2362,7 @@ impl Core {
                 Ok(json!({"queue": self.queue}))
             }
             Command::Logout => {
+                self.refresh.reset();
                 let settings = store::Settings {
                     client_identifier: self.settings.client_identifier.clone(),
                     ..Default::default()

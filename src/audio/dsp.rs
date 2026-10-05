@@ -92,16 +92,29 @@ impl Processor {
         let frequencies: [f32; 10] = [
             31., 62., 125., 250., 500., 1000., 2000., 4000., 8000., 16000.,
         ];
+        // Never trust persisted config: NaN/out-of-range headroom or EQ would
+        // poison every sample (NaN.clamp returns NaN) and be pushed to appsrc.
+        // Mirror Config::validate here so direct construction is safe.
+        let headroom_db =
+            if config.headroom_db.is_finite() && (0.0..=12.0).contains(&config.headroom_db) {
+                config.headroom_db
+            } else {
+                0.0
+            };
+        let eq: [f32; 10] = std::array::from_fn(|i| {
+            let g = config.eq[i];
+            if g.is_finite() {
+                g.clamp(-12.0, 12.0)
+            } else {
+                0.0
+            }
+        });
         Self {
             filters: std::array::from_fn(|i| {
-                Biquad::peak(
-                    rate as f32,
-                    frequencies[i].min(rate as f32 * 0.45),
-                    config.eq[i],
-                )
+                Biquad::peak(rate as f32, frequencies[i].min(rate as f32 * 0.45), eq[i])
             }),
-            eq_enabled: config.eq.iter().any(|g| *g != 0.),
-            headroom: 10f32.powf(-config.headroom_db / 20.),
+            eq_enabled: eq.iter().any(|g| *g != 0.),
+            headroom: 10f32.powf(-headroom_db / 20.),
         }
     }
     pub fn process(&mut self, pcm: &mut [f32], gain_db: f32, volume: f32) {

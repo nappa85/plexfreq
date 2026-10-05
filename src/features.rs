@@ -34,7 +34,7 @@ impl Core {
             && !self.settings.downloads_paused
             && (!self.settings.wifi_only || self.network_wifi)
     }
-    fn online_edit(&self) -> Result<()> {
+    pub(crate) fn online_edit(&self) -> Result<()> {
         if !self.writable {
             return Err(Error::Input(
                 "Playlist edits are disabled in read-only inspection",
@@ -383,7 +383,43 @@ impl Core {
         }
         let listened = listened.min(duration);
         self.settings.playback.listened = self.settings.playback.listened.max(listened);
+        let previously_qualified = self.settings.listens.iter().any(|listen| {
+            listen.occurrence == occurrence && listen.namespace == self.cache_namespace()
+        });
+        if crate::history::qualifies(listened, duration) {
+            if let Some(listen) = self
+                .settings
+                .listens
+                .iter_mut()
+                .find(|listen| listen.occurrence == occurrence)
+            {
+                listen.listened_ms = listen.listened_ms.max(listened);
+            } else if let Some(track) = self.queue.track() {
+                let artist = if track.original_title.is_empty() {
+                    track.grandparent_title.clone()
+                } else {
+                    track.original_title.clone()
+                };
+                let listen = crate::discovery::Listen {
+                    namespace: self.cache_namespace(),
+                    key: key.into(),
+                    occurrence: occurrence.into(),
+                    played_at: crate::history::now(),
+                    listened_ms: listened,
+                    title: track.title.clone(),
+                    artist,
+                    album: track.parent_title.clone(),
+                    artist_key: track.grandparent_rating_key.clone(),
+                    album_key: track.parent_rating_key.clone(),
+                };
+                if self.settings.listens.len() >= 10000 {
+                    self.settings.listens.remove(0);
+                }
+                self.settings.listens.push(listen);
+            }
+        }
         if crate::history::qualifies(listened, duration)
+            && !previously_qualified
             && !self
                 .settings
                 .history

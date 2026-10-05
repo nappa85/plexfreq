@@ -321,8 +321,16 @@
       <translation>選擇 · 1–10 · 藝人 · 專輯 · 混合播放</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>選擇 · 2–8 · 曲目 · 相似</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>選擇 · 30–480 · 電台 · 下載</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>選擇 · 7 · 30 · 90 · 歷史紀錄</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>選擇 · 播放清單 · 專輯 · 電台 · 下載</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>選擇 · 重新整理 · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>無效 · 解碼器 · 音訊</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>無效 · 搜尋</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>無效 · 篩選</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>無效 · 佇列 · 索引</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · 無法使用 · 藝人 · 電台</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · 已接收 · 無 · 相似 · 曲目 · 檢查 · 音樂庫 · 已使用 · 藝人 · 電台</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>佇列 · 曲目 · 有效 · 開始 · 索引</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>智慧 · 播放清單 · 篩選 · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>相似 · 限制 · 250 · 曲目</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>搜尋 · 設定</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>搜尋 · 設定</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>移動 · 向上</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>移動 · 向下</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>下載 · 管理</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>自動播放 · 重新整理 · 下載</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>重新整理 · 長度</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>重新整理 · 下載 · 正在載入</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>下載 · 管理</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>自動播放 · 重新整理 · 下載</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>重新整理 · 長度</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>重新整理 · 下載 · 正在載入</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>電台 · 下載 · 長度</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>搜尋 · 音樂庫</translation>
+      <source>Library filters</source>
+      <translation>音樂庫 · 篩選</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>連線</translation>
+      <source>Smart playlist</source>
+      <translation>智慧 · 播放清單</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>下載 · 管理</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>智慧 · 播放清單 · 篩選 · 唯讀</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>建立 · 播放清單 · 曲目 · 佇列</translation>
-    </message>
-    <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>播放 · 混合播放 · %1 · 來源</translation>
-    </message>
-    <message>
-      <source>Clear mix seeds</source>
-      <translation>清除 · 混合播放</translation>
-    </message>
-    <message>
-      <source>Downloaded music</source>
-      <translation>已下載</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>線上</translation>
-    </message>
-    <message>
-      <source>Browse saved library offline</source>
-      <translation>音樂庫 · 已儲存 · 離線</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>已儲存 · 專輯</translation>
-    </message>
-    <message>
-      <source>Download displayed tracks</source>
-      <translation>下載 · 曲目</translation>
-    </message>
-    <message>
-      <source>Stop radio</source>
-      <translation>停止 · 電台</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>音樂庫</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>佇列</translation>
-    </message>
-    <message>
-      <source>Playlists</source>
+      <source>Playlist name</source>
       <translation>播放清單</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>收藏 · ★ · 5</translation>
+      <source>Artists</source>
+      <translation>藝人</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>最近加入</translation>
+      <source>Albums</source>
+      <translation>專輯</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>最近播放</translation>
+      <source>Tracks</source>
+      <translation>曲目</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>向上</translation>
+      <source>Genre</source>
+      <translation>類型</translation>
     </message>
+    <message>
+      <source>Mood</source>
+      <translation>情緒</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>風格</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>標題 · 篩選</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>年份 · 開始</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>年份 · 限制</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>收藏 · 限制</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>播放 · 無</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>排序</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>限制 · 曲目</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>音樂庫 · 篩選</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>智慧 · 播放清單</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>智慧 · 播放清單 · 篩選 · 唯讀</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>播放清單</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>音樂庫</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>藝人</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>專輯</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>曲目</translation>
+    </message>
+    <message>
+      <source>Genre</source>
+      <translation>類型</translation>
+    </message>
+    <message>
+      <source>Mood</source>
+      <translation>情緒</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>風格</translation>
+    </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>標題 · 篩選</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>年份 · 開始</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>年份 · 限制</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>收藏 · 限制</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>播放 · 無</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>排序</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>限制 · 曲目</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>歷史紀錄 · 設定</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · 播放 · %2 · 歷史紀錄</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>歷史紀錄 · local · 播放 · 中繼資料</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · 歷史紀錄</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>藝人</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>專輯</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>曲目</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · 播放 · %2 · 歷史紀錄</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>歷史紀錄 · 設定</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · 播放 · %2 · 歷史紀錄</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>歷史紀錄 · local · 播放 · 中繼資料</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>長度</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · 歷史紀錄</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>音樂庫</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>藝人</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>專輯</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>曲目</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · 播放 · %2 · 歷史紀錄</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>向上 · 下一首</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · 曲目 · 就緒 · 離線</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>搜尋 · 藝人 · 專輯 · 曲目</translation>
+      <source>Library</source>
+      <translation>音樂庫</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>音樂庫</translation>
+      <source>Search</source>
+      <translation>搜尋</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>曲目</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>排序</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>標題</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>最近加入</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>年份</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>類型 · 專輯</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>搜尋 · 藝人 · 專輯 · 曲目</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>音樂庫</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>排序</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>加入 · Sonic · 來源</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>智慧 · 篩選 · 設定</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>連線 · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>已使用 · 連線 · 設定</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · 連線 · 設定</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>頻率 · 搜尋</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>連線</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>下載</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>管理</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>線上</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>離線 · 音樂庫</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>電台</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>停止 · 電台</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>搜尋 · 藝人 · 專輯 · 曲目</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>搜尋</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>播放清單</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>搜尋</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>搜尋 · 音樂庫</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>收藏 · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>最近加入</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>最近播放</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>向上</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>藝人</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>向上 · 下一首</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>音樂庫</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>佇列</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>已儲存 · 專輯</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>下載 · 曲目</translation>
+      <source>Artists</source>
+      <translation>藝人</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>標題</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>最近加入</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>年份</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>類型 · 專輯</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>新增 · 播放清單</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>混合播放</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>已下載</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>加入 · Sonic · 來源</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>智慧 · 篩選 · 設定</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>離線 · 音樂庫</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>設定</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>音樂庫</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>顯示全部</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>搜尋</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>音樂庫</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>播放清單</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>搜尋 · 設定</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>音樂庫 · 篩選</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>類型 · 專輯</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>建立 · 智慧 · 播放清單</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>建立 · 播放清單 · 曲目 · 佇列</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>下載 · 曲目</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>清除 · 混合播放</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>清除 · Sonic · 來源</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>停止 · 電台</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>佇列</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>已下載</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>已儲存 · 專輯</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>歷史紀錄 · 設定</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>收藏 · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>最近加入</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>最近播放</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>下載 · 管理</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>連線</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>向上</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>線上</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>音樂庫 · 已儲存 · 離線</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>播放 · 混合播放 · %1 · 來源</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · 混合播放 · %1 · 曲目</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>藝人</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>標題</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>最近加入</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>年份</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>最近播放</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>歷史紀錄 · 播放</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>隨機播放</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>篩選 · 音訊</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>搜尋</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>音訊 · 相似</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>收藏 · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>最近加入</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>最近播放</translation>
     </message>
     <message>
       <source>Albums</source>

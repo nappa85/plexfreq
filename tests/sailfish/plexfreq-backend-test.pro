@@ -1,6 +1,7 @@
 TARGET = plexfreq-backend-test
 CONFIG += c++11 testcase
-QT += core gui network qml quick testlib dbus
+DEFINES += SAILFISH
+QT += core gui network qml quick quick-private testlib dbus
 CONFIG += link_pkgconfig
 PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gio-2.0
 RESOURCES += tests/qt-backend-test.qrc app/translations.qrc

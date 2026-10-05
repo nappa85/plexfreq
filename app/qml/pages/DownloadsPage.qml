@@ -6,6 +6,12 @@ Page {
     SilicaListView {id:list;anchors.fill:parent;model:backend.cache.jobs || []
         header:Column {width:list.width;spacing:Theme.paddingSmall
             PageHeader {title:qsTr("Download manager")}
+            TextSwitch {text:qsTr("Automatically refresh download plans");checked:!!backend.cache.autoRefresh;onClicked:backend.command("refresh_policy",{enabled:checked,interval_hours:backend.cache.refreshHours || 6})}
+            ComboBox {width:parent.width;label:qsTr("Refresh interval");value:qsTr("%1 hours").arg(backend.cache.refreshHours || 6);visible:!!backend.cache.autoRefresh
+                menu:ContextMenu {Repeater {model:[1,6,12,24];MenuItem {text:qsTr("%1 hours").arg(modelData);onClicked:backend.command("refresh_policy",{enabled:true,interval_hours:modelData})}}}
+            }
+            Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;visible:!!backend.cache.refreshingGroup;text:qsTr("Refreshing download plans…");wrapMode:Text.Wrap;color:Theme.secondaryColor}
+            Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;text:backend.cache.refreshError || "";visible:text.length>0;wrapMode:Text.Wrap;color:Theme.errorColor}
             ComboBox {width:parent.width;label:qsTr("Radio download length");value:qsTr("%1 minutes").arg(music.downloadMinutes)
                 menu:ContextMenu {Repeater {model:[30,60,120,240,480];MenuItem {text:qsTr("%1 minutes").arg(modelData);onClicked:music.downloadMinutes=modelData}}}
             }

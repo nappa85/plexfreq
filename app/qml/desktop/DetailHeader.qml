@@ -1,6 +1,7 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
+import "../shared"
 
 Item {
     id: header
@@ -41,7 +42,7 @@ Item {
             textFormat: Text.PlainText; wrapMode: Text.Wrap; color: "#9eaabd"
             maximumLineCount: header.expanded ? 10000 : 6; elide: Text.ElideRight
         }
-        Button { text: header.expanded ? qsTr("Read less") : qsTr("Read more"); visible: description.truncated || header.expanded; onClicked: header.expanded = !header.expanded }
+        TextLink {text:header.expanded ? qsTr("Read less") : qsTr("Read more");pressedColor:"#edf0f5";minimumTouchHeight:28;visible:description.truncated || header.expanded;onClicked:header.expanded=!header.expanded}
         Label { text:qsTr("Similar artists"); visible:header.detail && header.detail.type==="artist"; font.pixelSize:20; color:"#ebad3d" }
         ListView {
             id:related; Layout.fillWidth:true; Layout.preferredHeight:visible ? 160 : 0

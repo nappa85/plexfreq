@@ -1,5 +1,6 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
+import "../shared"
 
 Column {
     id: header
@@ -53,7 +54,7 @@ Column {
         maximumLineCount: header.expanded ? 10000 : 6; elide: Text.ElideRight
         font.pixelSize: Theme.fontSizeSmall; color: Theme.secondaryColor
     }
-    Button { anchors.horizontalCenter: parent.horizontalCenter; text: header.expanded ? qsTr("Read less") : qsTr("Read more"); visible: description.truncated || header.expanded; onClicked: header.expanded = !header.expanded }
+    TextLink {x:Theme.horizontalPageMargin;text:header.expanded ? qsTr("Read less") : qsTr("Read more");fontSize:Theme.fontSizeExtraSmall;fontFamily:Theme.fontFamily;color:Theme.highlightColor;pressedColor:Theme.primaryColor;minimumTouchHeight:Theme.itemSizeExtraSmall;visible:description.truncated || header.expanded;onClicked:header.expanded=!header.expanded}
     SectionHeader { text:qsTr("Similar artists"); visible:header.detail && header.detail.type==="artist" }
     ListView {
         id:related

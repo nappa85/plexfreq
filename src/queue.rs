@@ -11,6 +11,8 @@ pub enum Repeat {
     One,
 }
 
+pub const MAX_QUEUE: usize = 10_000;
+
 #[derive(Default, Clone, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Queue {
@@ -26,7 +28,7 @@ impl Queue {
     pub fn validate(&self) -> Result<()> {
         let mut order = self.order.clone();
         order.sort_unstable();
-        if self.items.len() > 10000
+        if self.items.len() > MAX_QUEUE
             || self.items.iter().any(|i| i.kind != "track")
             || order != (0..self.items.len()).collect::<Vec<_>>()
             || self
@@ -49,7 +51,7 @@ impl Queue {
     }
     pub fn insert(&mut self, items: Vec<Item>, next: bool) -> Result<()> {
         if items.is_empty()
-            || self.items.len() + items.len() > 10000
+            || self.items.len() + items.len() > MAX_QUEUE
             || items.iter().any(|i| i.kind != "track")
         {
             return Err(Error::Input("Choose tracks for the queue (maximum 10000)"));
@@ -135,6 +137,8 @@ impl Queue {
         };
         // Never panic on corrupt persisted order: keep only addressable items
         // and clamp the playback slot. Worker threads must survive bad state.
+        // A dangling current (pointing outside items/order) must not be
+        // invented as a valid selection pointing at the wrong track.
         q.items = self
             .order
             .iter()
@@ -145,8 +149,26 @@ impl Queue {
             q.cursor = 0;
             q.order = Vec::new();
         } else {
-            q.cursor = self.cursor.min(q.items.len() - 1);
-            q.current = self.current.map(|_| q.cursor);
+            // Map the physical current index through the (filtered) old order
+            // so a corrupt cursor cannot invent a selection pointing at the
+            // wrong track. q.items preserves old order; its index of the
+            // current physical id is the correct new cursor.
+            let filtered: Vec<usize> = self
+                .order
+                .iter()
+                .filter(|i| self.items.get(**i).is_some())
+                .copied()
+                .collect();
+            let pos = self
+                .current
+                .and_then(|current| filtered.iter().position(|i| *i == current));
+            if let Some(pos) = pos {
+                q.cursor = pos.min(q.items.len() - 1);
+                q.current = Some(q.cursor);
+            } else {
+                q.cursor = self.cursor.min(q.items.len() - 1);
+                q.current = None;
+            }
             q.order = (0..q.items.len()).collect();
         }
         q
@@ -158,7 +180,10 @@ impl Queue {
             .ok_or(Error::Input("Invalid queue index"))
     }
     pub fn replace(&mut self, items: Vec<Item>, start: usize) -> Result<()> {
-        if start >= items.len() || items.len() > 10000 || items.iter().any(|i| i.kind != "track") {
+        if start >= items.len()
+            || items.len() > MAX_QUEUE
+            || items.iter().any(|i| i.kind != "track")
+        {
             return Err(Error::Input(
                 "Queue requires tracks and a valid start index",
             ));
@@ -230,7 +255,17 @@ impl Queue {
     }
 
     pub fn advance(&mut self, automatic: bool) -> Option<&Item> {
-        self.current?;
+        if self.current.is_none() {
+            // Natural end retains the last slot for previous(). Enabling
+            // repeat-all afterwards must allow a restart instead of staying
+            // stuck; both manual and automatic advancement wrap.
+            if self.repeat == Repeat::All && !self.order.is_empty() {
+                self.cursor = 0;
+                self.current = self.order.first().copied();
+                return self.track();
+            }
+            return None;
+        }
         if self.order.is_empty() {
             self.current = None;
             self.cursor = 0;
@@ -239,8 +274,8 @@ impl Queue {
         if automatic && self.repeat == Repeat::One {
             return self.track();
         }
-        if self.cursor + 1 < self.order.len() {
-            self.cursor += 1;
+        if self.cursor.saturating_add(1) < self.order.len() {
+            self.cursor = self.cursor.saturating_add(1);
         } else if self.repeat == Repeat::All {
             self.cursor = 0;
         } else {
@@ -272,15 +307,21 @@ impl Queue {
     }
 
     pub fn at_end(&self) -> bool {
-        self.current.is_some() && self.cursor + 1 >= self.order.len()
+        self.current.is_some() && self.cursor.saturating_add(1) >= self.order.len()
     }
     pub fn upcoming(&self, count: usize) -> Vec<Item> {
-        if self.current.is_none() {
-            return Vec::new();
-        }
+        // After natural end (current == None) newly enqueued tracks sit past
+        // the last audible slot. Returning [] here leaves them unreachable for
+        // prefetch and UI; list the suffix past the retained cursor instead.
+        // With no new tracks the suffix is empty, preserving old behavior.
+        let skip = if self.current.is_none() {
+            self.cursor.saturating_add(1)
+        } else {
+            self.cursor
+        };
         self.order
             .iter()
-            .skip(self.cursor)
+            .skip(skip)
             .take(count)
             .filter_map(|i| self.items.get(*i).cloned())
             .collect()
@@ -290,7 +331,7 @@ impl Queue {
         if items.is_empty() || items.iter().any(|i| i.kind != "track") {
             return Err(Error::Input("Radio returned no playable tracks"));
         }
-        if self.items.len() + items.len() > 10000 {
+        if self.items.len() + items.len() > MAX_QUEUE {
             return Err(Error::Input("Choose tracks for the queue (maximum 10000)"));
         }
         self.order

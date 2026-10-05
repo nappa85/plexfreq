@@ -66,6 +66,11 @@ implementation of a Plexamp-inspired client.
 - Optional autoplay and balanced multi-artist/album mixes.
 - Server-provided discovery hubs/stations, sonic-neighbor browsing and Sonic Adventure.
 - Duration-bounded radio/station/playlist downloads with persistent refreshable plans.
+- Opt-in scheduled/reconnect refresh and a normalized offline-search index.
+- Music filters and basic server-owned smart-playlist creation/rule editing.
+- Scoped discovery ordering/visibility, hub paging, local listening insights and
+  multi-waypoint Sonic Adventure.
+- Bluetooth audio disconnect auto-pause; reconnect does not resume playback.
 
 ## Desktop
 
@@ -73,6 +78,8 @@ Requires Rust stable, CMake, a C++ compiler and Qt **6.2+** Core, Gui, Qml, Quic
 QuickControls2 and DBus development/runtime modules, GStreamer core/base development
 packages, installed audio codecs and PulseAudio. Local FLAC fixtures also require
 the GStreamer Good plug-ins. This host has Qt 6.11.
+MP3/AAC fixtures additionally use LAME, FFmpeg and GStreamer libav. The Bluetooth
+signal test runs an isolated dbus-daemon, not the host Bluetooth service.
 Local checks also use Qt Test, Network and `dbus-run-session` for an isolated bus.
 Distribution package names vary. The same source builds on Linux distributions
 providing these dependencies; it is not a single universally portable binary.
@@ -115,6 +122,23 @@ Entry menus offer **Sonically similar**. For **Sonic Adventure**, select a track
 as the start, then choose **Sonic Adventure to this track** on the destination;
 the returned path can be browsed and played with Play all. Availability depends
 on the server's Sonic Analysis, not a locally invented recommendation graph.
+
+Use **Add sonic waypoint** on 2–8 tracks, then **Sonic journey** to join server
+paths through them (up to 250 entries). **Show all in this group** opens a hub's
+advertised endpoint with pagination. **Customize discovery** changes group visibility
+and order privately for the selected server/library.
+
+**Library filters** supports genre, mood, style, title, year range, rating and
+unplayed content. Choices/canonical scopes come from Plex; unavailable choices
+are disabled. **Create smart playlist** saves a server-owned track query. Basic
+existing rules can be edited; unsupported Boolean rules are shown read-only.
+
+**Listening insights** shows qualified counts and measured time with top artists,
+albums and tracks over 7/30/90 days or retained history. Tracking starts with this
+version, keeps the latest 10000 qualified occurrences and is credential-scoped;
+it is not the complete Plex account-history/Aural Fixations archive. Seeks and
+repeated checkpoints do not add plays. Bluetooth controls remain system/MPRIS-owned;
+tracked audio-accessory disconnect now pauses locally even during metadata work.
 
 ### Audio quality
 
@@ -205,6 +229,13 @@ previous plan. Plans survive restart; **Play downloaded tracks** follows their
 saved order using only completed files. Offline search/browsing merges saved
 pages, download plans and completed media, including inferred album/artist parents.
 This still does not crawl the complete server library automatically.
+
+Enable **Automatically refresh download plans** to refresh dynamic playlist/radio/
+station recipes after reconnect and at a 1/6/12/24-hour interval. Refresh honors
+pause/offline/Wi-Fi policy and runs on a separate Rust worker; stale source/recipe/
+credential results are discarded. Failed attempts back off 15 minutes and retain
+the old plan. Static album plans are not auto-refreshed. Search normalization/order
+is reused until snapshots, audio catalogue or plan metadata changes.
 
 Listening history uses measured heard time (half a track or four minutes), rather
 than seeking or preparing a queue. Normal remote playback reports timelines;

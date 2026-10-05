@@ -51,10 +51,15 @@ pub fn station_key(item: &Item, base: &Url) -> Result<Option<String>> {
     fn find(value: &Value) -> Option<&str> {
         match value {
             Value::Array(items) => items.iter().find_map(find),
-            Value::Object(fields) => fields
-                .get("key")
-                .and_then(Value::as_str)
-                .or_else(|| fields.values().find_map(find)),
+            Value::Object(fields) => {
+                // Prefer nested Playlist/Stations children over the container's
+                // own key: an outer object may carry an unrelated "key" while
+                // the real station lives in its Playlist array.
+                fields
+                    .values()
+                    .find_map(find)
+                    .or_else(|| fields.get("key").and_then(Value::as_str))
+            }
             _ => None,
         }
     }

@@ -321,8 +321,16 @@
       <translation>ಆಯ್ಕೆಮಾಡು · 1–10 · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಮಿಶ್ರಣ</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>ಆಯ್ಕೆಮಾಡು · 2–8 · ಹಾಡುಗಳು · ಹೋಲುವ</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>ಆಯ್ಕೆಮಾಡು · 30–480 · ರೇಡಿಯೋ · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>ಆಯ್ಕೆಮಾಡು · 7 · 30 · 90 · ಇತಿಹಾಸ</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>ಆಯ್ಕೆಮಾಡು · ಪ್ಲೇಪಟ್ಟಿ · ಆಲ್ಬಮ್ · ರೇಡಿಯೋ · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>ಆಯ್ಕೆಮಾಡು · ರಿಫ್ರೆಶ್‌ಮಾಡು · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>ಅಮಾನ್ಯ · ಡಿಕೋಡರ್ · ಆಡಿಯೋ</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>ಅಮಾನ್ಯ · ಹುಡುಕು</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>ಅಮಾನ್ಯ · ಫಿಲ್ಟರ್</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>ಅಮಾನ್ಯ · ಸರದಿ · ಸೂಚ್ಯಂಕ</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · ಲಭ್ಯವಿಲ್ಲ · ಕಲಾವಿದ · ರೇಡಿಯೋ</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · ಸ್ವೀಕರಿಸಲಾಗಿದೆ · ಯಾವುದೂ ಇಲ್ಲ · ಹೋಲುವ · ಹಾಡು · ಪರಿಶೀಲಿಸು · ಗ್ರಂಥಾಲಯ · ಬಳಸಲಾಗಿದೆ · ಕಲಾವಿದ · ರೇಡಿಯೋ</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>ಸರದಿ · ಹಾಡುಗಳು · ಮಾನ್ಯ · ಆರಂಭಿಸು · ಸೂಚ್ಯಂಕ</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿ · ಫಿಲ್ಟರ್ · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>ಹೋಲುವ · ಮಿತಿ · 250 · ಹಾಡುಗಳು</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ಹುಡುಕು · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ಹುಡುಕು · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>ಸ್ಥಳಾಂತರಿಸು · ಮೇಲೆ</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>ಸ್ಥಳಾಂತರಿಸು · ಕೆಳಗೆ</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ನಿರ್ವಹಣೆ</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>ಸ್ವಯಂ ಪ್ಲೇ · ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಅವಧಿ</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ನಿರ್ವಹಣೆ</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>ಸ್ವಯಂ ಪ್ಲೇ · ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಅವಧಿ</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>ರೇಡಿಯೋ · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಅವಧಿ</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>ಹುಡುಕು · ಗ್ರಂಥಾಲಯ</translation>
+      <source>Library filters</source>
+      <translation>ಗ್ರಂಥಾಲಯ · ಫಿಲ್ಟರ್</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>ಸಂಪರ್ಕ</translation>
+      <source>Smart playlist</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ನಿರ್ವಹಣೆ</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿಗಳು · ಫಿಲ್ಟರ್ · ಓದಲು ಮಾತ್ರ</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>ರಚಿಸು · ಪ್ಲೇಪಟ್ಟಿ · ಹಾಡುಗಳು · ಸರದಿ</translation>
+      <source>Playlist name</source>
+      <translation>ಪ್ಲೇಪಟ್ಟಿ</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>ಪ್ಲೇಮಾಡು · ಮಿಶ್ರಣ · %1 · ಮೂಲ</translation>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>ತೆರವುಗೊಳಿಸು · ಮಿಶ್ರಣ</translation>
+      <source>Albums</source>
+      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
+      <source>Tracks</source>
+      <translation>ಹಾಡುಗಳು</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>ಆನ್‌ಲೈನ್</translation>
+      <source>Genre</source>
+      <translation>ಪ್ರಕಾರ</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>ಗ್ರಂಥಾಲಯ · ಉಳಿಸಲಾಗಿದೆ · ಆಫ್‌ಲೈನ್</translation>
+      <source>Mood</source>
+      <translation>ಮನೋಭಾವ</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>ಉಳಿಸಲಾಗಿದೆ · ಆಲ್ಬಮ್‌ಗಳು</translation>
+      <source>Style</source>
+      <translation>ಶೈಲಿ</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ನಿಲ್ಲಿಸು · ರೇಡಿಯೋ</translation>
+      <source>Title contains</source>
+      <translation>ಶೀರ್ಷಿಕೆ · ಫಿಲ್ಟರ್</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>ವರ್ಷ · ಆರಂಭಿಸು</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>ವರ್ಷ · ಮಿತಿ</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ಮೆಚ್ಚಿನವು · ಮಿತಿ</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ಪ್ಲೇಮಾಡು · ಯಾವುದೂ ಇಲ್ಲ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ವಿಂಗಡಿಸು</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>ಮಿತಿ · ಹಾಡುಗಳು</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>ಗ್ರಂಥಾಲಯ · ಫಿಲ್ಟರ್</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿಗಳು · ಫಿಲ್ಟರ್ · ಓದಲು ಮಾತ್ರ</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>ಪ್ಲೇಪಟ್ಟಿ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>ಗ್ರಂಥಾಲಯ</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>ಸರದಿ</translation>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
+      <source>Albums</source>
+      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ಮೆಚ್ಚಿನವು · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>ಹಾಡುಗಳು</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+      <source>Genre</source>
+      <translation>ಪ್ರಕಾರ</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
+      <source>Mood</source>
+      <translation>ಮನೋಭಾವ</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>ಮೇಲೆ</translation>
+      <source>Style</source>
+      <translation>ಶೈಲಿ</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>ಶೀರ್ಷಿಕೆ · ಫಿಲ್ಟರ್</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>ವರ್ಷ · ಆರಂಭಿಸು</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>ವರ್ಷ · ಮಿತಿ</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ಮೆಚ್ಚಿನವು · ಮಿತಿ</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ಪ್ಲೇಮಾಡು · ಯಾವುದೂ ಇಲ್ಲ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ವಿಂಗಡಿಸು</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>ಮಿತಿ · ಹಾಡುಗಳು</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ಇತಿಹಾಸ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ಪ್ಲೇಮಾಡು · %2 · ಇತಿಹಾಸ</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ಇತಿಹಾಸ · local · ಪ್ಲೇಮಾಡು · ಮೆಟಾಡೇಟಾ</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ಇತಿಹಾಸ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ಪ್ಲೇಮಾಡು · %2 · ಇತಿಹಾಸ</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ಇತಿಹಾಸ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ಪ್ಲೇಮಾಡು · %2 · ಇತಿಹಾಸ</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ಇತಿಹಾಸ · local · ಪ್ಲೇಮಾಡು · ಮೆಟಾಡೇಟಾ</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>ಅವಧಿ</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ಇತಿಹಾಸ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ಪ್ಲೇಮಾಡು · %2 · ಇತಿಹಾಸ</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>ಮೇಲೆ · ಮುಂದಿನದು</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · ಹಾಡುಗಳು · ಸಿದ್ಧ · ಆಫ್‌ಲೈನ್</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>ಹುಡುಕು · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+      <source>Library</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>ಗ್ರಂಥಾಲಯ</translation>
+      <source>Search</source>
+      <translation>ಹುಡುಕು</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>ಹಾಡುಗಳು</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>ವಿಂಗಡಿಸು</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>ಶೀರ್ಷಿಕೆ</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>ವರ್ಷ</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>ವಿಧಗಳು · ಆಲ್ಬಮ್‌ಗಳು</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>ಹುಡುಕು · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ವಿಂಗಡಿಸು</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ಸೇರಿಸು · Sonic · ಮೂಲ</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಫಿಲ್ಟರ್ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>ಸಂಪರ್ಕಿಸು · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>ಬಳಸಲಾಗಿದೆ · ಸಂಪರ್ಕ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · ಸಂಪರ್ಕ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>ಆವರ್ತನ · ಹುಡುಕು</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>ಸಂಪರ್ಕಿಸು</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>ನಿರ್ವಹಣೆ</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ಆನ್‌ಲೈನ್</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>ಆಫ್‌ಲೈನ್ · ಗ್ರಂಥಾಲಯ</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>ರೇಡಿಯೋ</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ನಿಲ್ಲಿಸು · ರೇಡಿಯೋ</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>ಹುಡುಕು · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಹಾಡುಗಳು</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>ಹುಡುಕು</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>ಹುಡುಕು</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>ಹುಡುಕು · ಗ್ರಂಥಾಲಯ</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ಮೆಚ್ಚಿನವು · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>ಮೇಲೆ</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>ಕಲಾವಿದರು</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>ಮೇಲೆ · ಮುಂದಿನದು</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>ಗ್ರಂಥಾಲಯ</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>ಸರದಿ</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>ಉಳಿಸಲಾಗಿದೆ · ಆಲ್ಬಮ್‌ಗಳು</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>ಶೀರ್ಷಿಕೆ</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>ವರ್ಷ</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>ವಿಧಗಳು · ಆಲ್ಬಮ್</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>ಹೊಸ · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>ಮಿಶ್ರಣ</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ಸೇರಿಸು · Sonic · ಮೂಲ</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>ಸ್ಮಾರ್ಟ್ · ಫಿಲ್ಟರ್ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>ಆಫ್‌ಲೈನ್ · ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>ಎಲ್ಲವನ್ನೂ ತೋರಿಸಿ</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>ಹುಡುಕು</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ಹುಡುಕು · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>ಗ್ರಂಥಾಲಯ · ಫಿಲ್ಟರ್</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>ವಿಧಗಳು · ಆಲ್ಬಮ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>ರಚಿಸು · ಸ್ಮಾರ್ಟ್ · ಪ್ಲೇಪಟ್ಟಿಗಳು</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>ರಚಿಸು · ಪ್ಲೇಪಟ್ಟಿ · ಹಾಡುಗಳು · ಸರದಿ</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>ತೆರವುಗೊಳಿಸು · ಮಿಶ್ರಣ</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>ತೆರವುಗೊಳಿಸು · Sonic · ಮೂಲ</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>ನಿಲ್ಲಿಸು · ರೇಡಿಯೋ</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>ಸರದಿ</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>ಉಳಿಸಲಾಗಿದೆ · ಆಲ್ಬಮ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>ಇತಿಹಾಸ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>ಮೆಚ್ಚಿನವು · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ನಿರ್ವಹಣೆ</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>ಸಂಪರ್ಕ</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>ಮೇಲೆ</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ಆನ್‌ಲೈನ್</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>ಗ್ರಂಥಾಲಯ · ಉಳಿಸಲಾಗಿದೆ · ಆಫ್‌ಲೈನ್</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>ಪ್ಲೇಮಾಡು · ಮಿಶ್ರಣ · %1 · ಮೂಲ</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · ಮಿಶ್ರಣ · %1 · ಹಾಡುಗಳು</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>ಕಲಾವಿದರು</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>ಶೀರ್ಷಿಕೆ</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>ವರ್ಷ</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>ಇತಿಹಾಸ · ಪ್ಲೇಮಾಡು</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>ಯಾದೃಚ್ಛಿಕ</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>ಫಿಲ್ಟರ್ · ಆಡಿಯೋ</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>ಹುಡುಕು</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>ಆಡಿಯೋ · ಹೋಲುವ</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>ಮೆಚ್ಚಿನವು · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
     </message>
     <message>
       <source>Albums</source>

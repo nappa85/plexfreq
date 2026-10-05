@@ -321,8 +321,16 @@
       <translation>ਚੁਣੋ · 1–10 · ਕਲਾਕਾਰ · ਐਲਬਮਾਂ · ਮਿਸ਼ਰਣ</translation>
     </message>
     <message>
+      <source>Choose 2–8 tracks for a sonic journey</source>
+      <translation>ਚੁਣੋ · 2–8 · ਗੀਤ · ਮਿਲਦਾ-ਜੁਲਦਾ</translation>
+    </message>
+    <message>
       <source>Choose 30–480 minutes for a radio download</source>
       <translation>ਚੁਣੋ · 30–480 · ਰੇਡੀਓ · ਡਾਊਨਲੋਡ</translation>
+    </message>
+    <message>
+      <source>Choose 7, 30, 90 days or all listening history</source>
+      <translation>ਚੁਣੋ · 7 · 30 · 90 · ਇਤਿਹਾਸ</translation>
     </message>
     <message>
       <source>Choose a music item</source>
@@ -335,6 +343,10 @@
     <message>
       <source>Choose a playlist, album or radio download</source>
       <translation>ਚੁਣੋ · ਪਲੇਲਿਸਟ · ਐਲਬਮ · ਰੇਡੀਓ · ਡਾਊਨਲੋਡ</translation>
+    </message>
+    <message>
+      <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
+      <translation>ਚੁਣੋ · ਤਾਜ਼ਾ ਕਰੋ · 1 · 6 · 12 · 24</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
@@ -445,6 +457,14 @@
       <translation>ਅਵੈਧ · ਡੀਕੋਡਰ · ਆਡੀਓ</translation>
     </message>
     <message>
+      <source>Invalid discovery layout</source>
+      <translation>ਅਵੈਧ · ਖੋਜ</translation>
+    </message>
+    <message>
+      <source>Invalid music filter values</source>
+      <translation>ਅਵੈਧ · ਫ਼ਿਲਟਰ</translation>
+    </message>
+    <message>
       <source>Invalid queue index</source>
       <translation>ਅਵੈਧ · ਕਤਾਰ · ਸੂਚਕ</translation>
     </message>
@@ -533,6 +553,10 @@
       <translation>Plex · ਉਪਲਬਧ ਨਹੀਂ · ਕਲਾਕਾਰ · ਰੇਡੀਓ</translation>
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex · ਮਿਲਿਆ · ਕੋਈ ਨਹੀਂ · ਮਿਲਦਾ-ਜੁਲਦਾ · ਗੀਤ · ਜਾਂਚੋ · ਲਾਇਬ੍ਰੇਰੀ · ਵਰਤਿਆ · ਕਲਾਕਾਰ · ਰੇਡੀਓ</translation>
+    </message>
+    <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>ਕਤਾਰ · ਗੀਤ · ਵੈਧ · ਸ਼ੁਰੂ ਕਰੋ · ਸੂਚਕ</translation>
     </message>
@@ -595,6 +619,10 @@
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
       <translation>ਸਮਾਰਟ · ਪਲੇਲਿਸਟ · ਫ਼ਿਲਟਰ · Plex</translation>
+    </message>
+    <message>
+      <source>Sonic journey exceeds 250 tracks</source>
+      <translation>ਮਿਲਦਾ-ਜੁਲਦਾ · ਹੱਦ · 250 · ਗੀਤ</translation>
     </message>
     <message>
       <source>Start login first</source>
@@ -805,10 +833,48 @@
     </message>
   </context>
   <context>
+    <name>DiscoverySettings</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ਖੋਜ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+  </context>
+  <context>
+    <name>DiscoverySettingsPage</name>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ਖੋਜ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>Move up</source>
+      <translation>ਖਿਸਕਾਓ · ਉੱਪਰ</translation>
+    </message>
+    <message>
+      <source>Move down</source>
+      <translation>ਖਿਸਕਾਓ · ਹੇਠਾਂ</translation>
+    </message>
+  </context>
+  <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
       <translation>ਡਾਊਨਲੋਡ · ਪ੍ਰਬੰਧਨ</translation>
+    </message>
+    <message>
+      <source>Automatically refresh download plans</source>
+      <translation>ਆਪੇ ਚਲਾਓ · ਤਾਜ਼ਾ ਕਰੋ · ਡਾਊਨਲੋਡ</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ਤਾਜ਼ਾ ਕਰੋ · ਮਿਆਦ</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ਤਾਜ਼ਾ ਕਰੋ · ਡਾਊਨਲੋਡ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
     </message>
     <message>
       <source>Radio download length</source>
@@ -886,6 +952,22 @@
       <translation>ਡਾਊਨਲੋਡ · ਪ੍ਰਬੰਧਨ</translation>
     </message>
     <message>
+      <source>Automatically refresh download plans</source>
+      <translation>ਆਪੇ ਚਲਾਓ · ਤਾਜ਼ਾ ਕਰੋ · ਡਾਊਨਲੋਡ</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ਤਾਜ਼ਾ ਕਰੋ · ਮਿਆਦ</translation>
+    </message>
+    <message>
+      <source>%1 hours</source>
+      <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refreshing download plans…</source>
+      <translation>ਤਾਜ਼ਾ ਕਰੋ · ਡਾਊਨਲੋਡ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
+    </message>
+    <message>
       <source>Radio download length</source>
       <translation>ਰੇਡੀਓ · ਡਾਊਨਲੋਡ · ਮਿਆਦ</translation>
     </message>
@@ -959,83 +1041,247 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
+    <name>Filters</name>
     <message>
-      <source>Discovery home</source>
-      <translation>ਖੋਜ · ਲਾਇਬ੍ਰੇਰੀ</translation>
+      <source>Library filters</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ · ਫ਼ਿਲਟਰ</translation>
     </message>
     <message>
-      <source>Connection</source>
-      <translation>ਕਨੈਕਸ਼ਨ</translation>
+      <source>Smart playlist</source>
+      <translation>ਸਮਾਰਟ · ਪਲੇਲਿਸਟਾਂ</translation>
     </message>
     <message>
-      <source>Download manager</source>
-      <translation>ਡਾਊਨਲੋਡ · ਪ੍ਰਬੰਧਨ</translation>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>ਸਮਾਰਟ · ਪਲੇਲਿਸਟਾਂ · ਫ਼ਿਲਟਰ · ਸਿਰਫ਼ ਪੜ੍ਹਨ ਲਈ</translation>
     </message>
     <message>
-      <source>Create playlist from tracks/queue</source>
-      <translation>ਬਣਾਓ · ਪਲੇਲਿਸਟ · ਗੀਤ · ਕਤਾਰ</translation>
+      <source>Playlist name</source>
+      <translation>ਪਲੇਲਿਸਟ</translation>
     </message>
     <message>
-      <source>Play mix (%1 seeds)</source>
-      <translation>ਚਲਾਓ · ਮਿਸ਼ਰਣ · %1 · ਸਰੋਤ</translation>
+      <source>Artists</source>
+      <translation>ਕਲਾਕਾਰ</translation>
     </message>
     <message>
-      <source>Clear mix seeds</source>
-      <translation>ਸਾਫ਼ ਕਰੋ · ਮਿਸ਼ਰਣ</translation>
+      <source>Albums</source>
+      <translation>ਐਲਬਮਾਂ</translation>
     </message>
     <message>
-      <source>Downloaded music</source>
-      <translation>ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
+      <source>Tracks</source>
+      <translation>ਗੀਤ</translation>
     </message>
     <message>
-      <source>Go online</source>
-      <translation>ਆਨਲਾਈਨ</translation>
+      <source>Genre</source>
+      <translation>ਕਿਸਮ</translation>
     </message>
     <message>
-      <source>Browse saved library offline</source>
-      <translation>ਲਾਇਬ੍ਰੇਰੀ · ਸੰਭਾਲਿਆ · ਆਫ਼ਲਾਈਨ</translation>
+      <source>Mood</source>
+      <translation>ਮਨੋਭਾਵ</translation>
     </message>
     <message>
-      <source>Saved albums</source>
-      <translation>ਸੰਭਾਲਿਆ · ਐਲਬਮਾਂ</translation>
+      <source>Style</source>
+      <translation>ਸ਼ੈਲੀ</translation>
     </message>
     <message>
-      <source>Download displayed tracks</source>
-      <translation>ਡਾਊਨਲੋਡ · ਗੀਤ</translation>
+      <source>Any</source>
+      <translation>all</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ਬੰਦ ਕਰੋ · ਰੇਡੀਓ</translation>
+      <source>Title contains</source>
+      <translation>ਸਿਰਲੇਖ · ਫ਼ਿਲਟਰ</translation>
     </message>
     <message>
-      <source>Library</source>
+      <source>Year from</source>
+      <translation>ਸਾਲ · ਸ਼ੁਰੂ ਕਰੋ</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>ਸਾਲ · ਹੱਦ</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ਪਸੰਦੀਦਾ · ਹੱਦ</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ਚਲਾਓ · ਕੋਈ ਨਹੀਂ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ਤਰਤੀਬ ਦਿਓ</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>ਹੱਦ · ਗੀਤ</translation>
+    </message>
+  </context>
+  <context>
+    <name>FiltersDialog</name>
+    <message>
+      <source>Library filters</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ · ਫ਼ਿਲਟਰ</translation>
+    </message>
+    <message>
+      <source>Smart playlist</source>
+      <translation>ਸਮਾਰਟ · ਪਲੇਲਿਸਟਾਂ</translation>
+    </message>
+    <message>
+      <source>These smart-playlist rules cannot be represented by this editor.</source>
+      <translation>ਸਮਾਰਟ · ਪਲੇਲਿਸਟਾਂ · ਫ਼ਿਲਟਰ · ਸਿਰਫ਼ ਪੜ੍ਹਨ ਲਈ</translation>
+    </message>
+    <message>
+      <source>Playlist name</source>
+      <translation>ਪਲੇਲਿਸਟ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
       <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
     </message>
     <message>
-      <source>Queue</source>
-      <translation>ਕਤਾਰ</translation>
+      <source>Artists</source>
+      <translation>ਕਲਾਕਾਰ</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ਪਲੇਲਿਸਟਾਂ</translation>
+      <source>Albums</source>
+      <translation>ਐਲਬਮਾਂ</translation>
     </message>
     <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ਪਸੰਦੀਦਾ · ★ · 5</translation>
+      <source>Tracks</source>
+      <translation>ਗੀਤ</translation>
     </message>
     <message>
-      <source>Recently added</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
+      <source>Genre</source>
+      <translation>ਕਿਸਮ</translation>
     </message>
     <message>
-      <source>Recently played</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਚਲਾਇਆ</translation>
+      <source>Mood</source>
+      <translation>ਮਨੋਭਾਵ</translation>
     </message>
     <message>
-      <source>Back</source>
-      <translation>ਉੱਪਰ</translation>
+      <source>Style</source>
+      <translation>ਸ਼ੈਲੀ</translation>
     </message>
+    <message>
+      <source>Any</source>
+      <translation>all</translation>
+    </message>
+    <message>
+      <source>Title contains</source>
+      <translation>ਸਿਰਲੇਖ · ਫ਼ਿਲਟਰ</translation>
+    </message>
+    <message>
+      <source>Year from</source>
+      <translation>ਸਾਲ · ਸ਼ੁਰੂ ਕਰੋ</translation>
+    </message>
+    <message>
+      <source>Year to</source>
+      <translation>ਸਾਲ · ਹੱਦ</translation>
+    </message>
+    <message>
+      <source>Minimum rating</source>
+      <translation>ਪਸੰਦੀਦਾ · ਹੱਦ</translation>
+    </message>
+    <message>
+      <source>Unplayed only</source>
+      <translation>ਚਲਾਓ · ਕੋਈ ਨਹੀਂ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ਤਰਤੀਬ ਦਿਓ</translation>
+    </message>
+    <message>
+      <source>Maximum tracks</source>
+      <translation>ਹੱਦ · ਗੀਤ</translation>
+    </message>
+  </context>
+  <context>
+    <name>Insights</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ਇਤਿਹਾਸ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ਚਲਾਓ · %2 · ਇਤਿਹਾਸ</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ਇਤਿਹਾਸ · local · ਚਲਾਓ · ਮੈਟਾਡਾਟਾ</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ਇਤਿਹਾਸ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>ਕਲਾਕਾਰ</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ਐਲਬਮਾਂ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ਗੀਤ</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ਚਲਾਓ · %2 · ਇਤਿਹਾਸ</translation>
+    </message>
+  </context>
+  <context>
+    <name>InsightsPage</name>
+    <message>
+      <source>Listening insights</source>
+      <translation>ਇਤਿਹਾਸ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>%1 qualified plays · %2 listened</source>
+      <translation>%1 · ਚਲਾਓ · %2 · ਇਤਿਹਾਸ</translation>
+    </message>
+    <message>
+      <source>Based on locally measured qualified plays since insights tracking began.</source>
+      <translation>ਇਤਿਹਾਸ · local · ਚਲਾਓ · ਮੈਟਾਡਾਟਾ</translation>
+    </message>
+    <message>
+      <source>Period</source>
+      <translation>ਮਿਆਦ</translation>
+    </message>
+    <message>
+      <source>%1 days</source>
+      <translation>%1 · d</translation>
+    </message>
+    <message>
+      <source>All history</source>
+      <translation>all · ਇਤਿਹਾਸ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>ਕਲਾਕਾਰ</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ਐਲਬਮਾਂ</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ਗੀਤ</translation>
+    </message>
+    <message>
+      <source>%1 plays · %2 listened</source>
+      <translation>%1 · ਚਲਾਓ · %2 · ਇਤਿਹਾਸ</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
     <message>
       <source>Up next</source>
       <translation>ਉੱਪਰ · ਅਗਲਾ</translation>
@@ -1057,12 +1303,12 @@
       <translation>%1 · ਗੀਤ · ਤਿਆਰ · ਆਫ਼ਲਾਈਨ</translation>
     </message>
     <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>ਖੋਜ · ਕਲਾਕਾਰ · ਐਲਬਮਾਂ · ਗੀਤ</translation>
+      <source>Library</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
     </message>
     <message>
-      <source>Browse</source>
-      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
+      <source>Search</source>
+      <translation>ਖੋਜ</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1077,20 +1323,36 @@
       <translation>ਗੀਤ</translation>
     </message>
     <message>
-      <source>Sort</source>
-      <translation>ਤਰਤੀਬ ਦਿਓ</translation>
-    </message>
-    <message>
       <source>Title</source>
       <translation>ਸਿਰਲੇਖ</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
     </message>
     <message>
       <source>Year</source>
       <translation>ਸਾਲ</translation>
     </message>
     <message>
-      <source>Group albums by type</source>
-      <translation>ਕਿਸਮਾਂ · ਐਲਬਮਾਂ</translation>
+      <source>Search artists, albums and tracks</source>
+      <translation>ਖੋਜ · ਕਲਾਕਾਰ · ਐਲਬਮਾਂ · ਗੀਤ</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ਤਰਤੀਬ ਦਿਓ</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ਸ਼ਾਮਲ ਕਰੋ · Sonic · ਸਰੋਤ</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>ਸਮਾਰਟ · ਫ਼ਿਲਟਰ · ਸੈਟਿੰਗਾਂ</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1209,8 +1471,8 @@
       <translation>ਜੋੜੋ · Plex</translation>
     </message>
     <message>
-      <source>Use the pull-down menu for connection settings</source>
-      <translation>ਵਰਤਿਆ · ਕਨੈਕਸ਼ਨ · ਸੈਟਿੰਗਾਂ</translation>
+      <source>Use the pull-up menu for connection settings</source>
+      <translation>↑ · ਕਨੈਕਸ਼ਨ · ਸੈਟਿੰਗਾਂ</translation>
     </message>
     <message>
       <source>Nothing playing</source>
@@ -1226,26 +1488,6 @@
     <message>
       <source>Find your frequency.</source>
       <translation>ਆਵ੍ਰਿੱਤੀ · ਖੋਜ</translation>
-    </message>
-    <message>
-      <source>Connect</source>
-      <translation>ਜੋੜੋ</translation>
-    </message>
-    <message>
-      <source>Downloads</source>
-      <translation>ਡਾਊਨਲੋਡ</translation>
-    </message>
-    <message>
-      <source>Manage</source>
-      <translation>ਪ੍ਰਬੰਧਨ</translation>
-    </message>
-    <message>
-      <source>Go online</source>
-      <translation>ਆਨਲਾਈਨ</translation>
-    </message>
-    <message>
-      <source>Offline library</source>
-      <translation>ਆਫ਼ਲਾਈਨ · ਲਾਇਬ੍ਰੇਰੀ</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1264,10 +1506,6 @@
       <translation>ਰੇਡੀਓ</translation>
     </message>
     <message>
-      <source>Stop radio</source>
-      <translation>ਬੰਦ ਕਰੋ · ਰੇਡੀਓ</translation>
-    </message>
-    <message>
       <source>Search artists, albums and tracks</source>
       <translation>ਖੋਜ · ਕਲਾਕਾਰ · ਐਲਬਮਾਂ · ਗੀਤ</translation>
     </message>
@@ -1276,56 +1514,12 @@
       <translation>ਖੋਜ</translation>
     </message>
     <message>
-      <source>Playlists</source>
-      <translation>ਪਲੇਲਿਸਟਾਂ</translation>
-    </message>
-    <message>
-      <source>Discover</source>
-      <translation>ਖੋਜ</translation>
-    </message>
-    <message>
-      <source>Discovery home</source>
-      <translation>ਖੋਜ · ਲਾਇਬ੍ਰੇਰੀ</translation>
-    </message>
-    <message>
-      <source>Favorites · 5 stars</source>
-      <translation>ਪਸੰਦੀਦਾ · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਚਲਾਇਆ</translation>
-    </message>
-    <message>
-      <source>Back</source>
-      <translation>ਉੱਪਰ</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>ਕਲਾਕਾਰ</translation>
-    </message>
-    <message>
       <source>Up next</source>
       <translation>ਉੱਪਰ · ਅਗਲਾ</translation>
     </message>
     <message>
-      <source>Library</source>
-      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
-    </message>
-    <message>
-      <source>Queue</source>
-      <translation>ਕਤਾਰ</translation>
-    </message>
-    <message>
-      <source>Saved albums</source>
-      <translation>ਸੰਭਾਲਿਆ · ਐਲਬਮਾਂ</translation>
-    </message>
-    <message>
-      <source>Download tracks</source>
-      <translation>ਡਾਊਨਲੋਡ · ਗੀਤ</translation>
+      <source>Artists</source>
+      <translation>ਕਲਾਕਾਰ</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1340,20 +1534,12 @@
       <translation>ਸਿਰਲੇਖ</translation>
     </message>
     <message>
+      <source>Recently added</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
+    </message>
+    <message>
       <source>Year</source>
       <translation>ਸਾਲ</translation>
-    </message>
-    <message>
-      <source>Group album types</source>
-      <translation>ਕਿਸਮਾਂ · ਐਲਬਮ</translation>
-    </message>
-    <message>
-      <source>New playlist</source>
-      <translation>ਨਵਾਂ · ਪਲੇਲਿਸਟ</translation>
-    </message>
-    <message>
-      <source>Mix</source>
-      <translation>ਮਿਸ਼ਰਣ</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1366,6 +1552,14 @@
     <message>
       <source>Downloaded</source>
       <translation>ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
+    </message>
+    <message>
+      <source>Add sonic waypoint</source>
+      <translation>ਸ਼ਾਮਲ ਕਰੋ · Sonic · ਸਰੋਤ</translation>
+    </message>
+    <message>
+      <source>Edit smart filters</source>
+      <translation>ਸਮਾਰਟ · ਫ਼ਿਲਟਰ · ਸੈਟਿੰਗਾਂ</translation>
     </message>
     <message>
       <source>Sonically similar</source>
@@ -1569,6 +1763,129 @@
     </message>
   </context>
   <context>
+    <name>Navigation</name>
+    <message>
+      <source>Offline library</source>
+      <translation>ਆਫ਼ਲਾਈਨ · ਲਾਇਬ੍ਰੇਰੀ</translation>
+    </message>
+    <message>
+      <source>Page actions</source>
+      <translation>ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>More destinations</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
+    </message>
+    <message>
+      <source>Show all</source>
+      <translation>ਸਭ ਦਿਖਾਓ</translation>
+    </message>
+    <message>
+      <source>Discover</source>
+      <translation>ਖੋਜ</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ</translation>
+    </message>
+    <message>
+      <source>Playlists</source>
+      <translation>ਪਲੇਲਿਸਟਾਂ</translation>
+    </message>
+    <message>
+      <source>Customize discovery</source>
+      <translation>ਖੋਜ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>Library filters</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ · ਫ਼ਿਲਟਰ</translation>
+    </message>
+    <message>
+      <source>Group albums by type</source>
+      <translation>ਕਿਸਮਾਂ · ਐਲਬਮਾਂ</translation>
+    </message>
+    <message>
+      <source>Create smart playlist</source>
+      <translation>ਬਣਾਓ · ਸਮਾਰਟ · ਪਲੇਲਿਸਟਾਂ</translation>
+    </message>
+    <message>
+      <source>Create playlist from tracks/queue</source>
+      <translation>ਬਣਾਓ · ਪਲੇਲਿਸਟ · ਗੀਤ · ਕਤਾਰ</translation>
+    </message>
+    <message>
+      <source>Download displayed tracks</source>
+      <translation>ਡਾਊਨਲੋਡ · ਗੀਤ</translation>
+    </message>
+    <message>
+      <source>Clear mix seeds</source>
+      <translation>ਸਾਫ਼ ਕਰੋ · ਮਿਸ਼ਰਣ</translation>
+    </message>
+    <message>
+      <source>Clear sonic waypoints</source>
+      <translation>ਸਾਫ਼ ਕਰੋ · Sonic · ਸਰੋਤ</translation>
+    </message>
+    <message>
+      <source>Stop radio</source>
+      <translation>ਬੰਦ ਕਰੋ · ਰੇਡੀਓ</translation>
+    </message>
+    <message>
+      <source>Queue</source>
+      <translation>ਕਤਾਰ</translation>
+    </message>
+    <message>
+      <source>Downloaded music</source>
+      <translation>ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
+    </message>
+    <message>
+      <source>Saved albums</source>
+      <translation>ਸੰਭਾਲਿਆ · ਐਲਬਮਾਂ</translation>
+    </message>
+    <message>
+      <source>Listening insights</source>
+      <translation>ਇਤਿਹਾਸ · ਸੈਟਿੰਗਾਂ</translation>
+    </message>
+    <message>
+      <source>Favorites · 5 stars</source>
+      <translation>ਪਸੰਦੀਦਾ · ★ · 5</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਚਲਾਇਆ</translation>
+    </message>
+    <message>
+      <source>Download manager</source>
+      <translation>ਡਾਊਨਲੋਡ · ਪ੍ਰਬੰਧਨ</translation>
+    </message>
+    <message>
+      <source>Connection</source>
+      <translation>ਕਨੈਕਸ਼ਨ</translation>
+    </message>
+    <message>
+      <source>Back</source>
+      <translation>ਉੱਪਰ</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ਆਨਲਾਈਨ</translation>
+    </message>
+    <message>
+      <source>Browse saved library offline</source>
+      <translation>ਲਾਇਬ੍ਰੇਰੀ · ਸੰਭਾਲਿਆ · ਆਫ਼ਲਾਈਨ</translation>
+    </message>
+    <message>
+      <source>Play mix (%1 seeds)</source>
+      <translation>ਚਲਾਓ · ਮਿਸ਼ਰਣ · %1 · ਸਰੋਤ</translation>
+    </message>
+    <message>
+      <source>Sonic journey (%1 tracks)</source>
+      <translation>Sonic · ਮਿਸ਼ਰਣ · %1 · ਗੀਤ</translation>
+    </message>
+  </context>
+  <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
@@ -1714,6 +2031,38 @@
       <translation>ਕਲਾਕਾਰ</translation>
     </message>
     <message>
+      <source>Title</source>
+      <translation>ਸਿਰਲੇਖ</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>ਸਾਲ</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਚਲਾਇਆ</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>ਇਤਿਹਾਸ · ਚਲਾਓ</translation>
+    </message>
+    <message>
+      <source>Shuffle</source>
+      <translation>ਰਲਾਓ</translation>
+    </message>
+    <message>
+      <source>Filtered music</source>
+      <translation>ਫ਼ਿਲਟਰ · ਆਡੀਓ</translation>
+    </message>
+    <message>
+      <source>Sonic Adventure</source>
+      <translation>Sonic · Adventure</translation>
+    </message>
+    <message>
       <source>Discover</source>
       <translation>ਖੋਜ</translation>
     </message>
@@ -1730,20 +2079,8 @@
       <translation>ਆਡੀਓ · ਮਿਲਦਾ-ਜੁਲਦਾ</translation>
     </message>
     <message>
-      <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
-    </message>
-    <message>
       <source>Favorites · 5 stars</source>
       <translation>ਪਸੰਦੀਦਾ · ★ · 5</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਜੋੜਿਆ</translation>
-    </message>
-    <message>
-      <source>Recently played</source>
-      <translation>ਹਾਲ ਹੀ ਵਿੱਚ ਚਲਾਇਆ</translation>
     </message>
     <message>
       <source>Albums</source>
