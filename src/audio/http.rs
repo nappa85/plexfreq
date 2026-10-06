@@ -73,6 +73,14 @@ struct Representation {
     total: Option<u64>,
     started: bool,
 }
+fn retryable(
+    representation: &Representation,
+    offset: u64,
+    progressive: bool,
+    failures: u32,
+) -> bool {
+    !progressive && failures < 3 && (offset == 0 || representation.validator.is_some())
+}
 impl Representation {
     fn layout(
         &mut self,
@@ -108,6 +116,7 @@ impl Representation {
         };
         if self.started
             && (self.total.zip(total).is_some_and(|(old, new)| old != new)
+                || offset > 0 && self.validator.is_some() && validator != self.validator
                 || self
                     .validator
                     .as_ref()
@@ -165,8 +174,18 @@ impl Reader {
                 // streaming failure instead of silently following.
                 let client=match reqwest::Client::builder().connect_timeout(Duration::from_secs(5)).read_timeout(Duration::from_secs(10)).redirect(reqwest::redirect::Policy::none()).build(){Ok(client)=>client,Err(_)=>{gst::element_error!(output,gst::ResourceError::Failed,["Audio streaming failed"]);return;}};
                 let mut representation = Representation::default();
-                loop {
-                    let Some(offset)=*changed.borrow_and_update() else{return;};
+                let mut retry_offset = None;
+                let mut failures: u32 = 0;
+                'requests: loop {
+                    if retry_offset.is_some() {
+                        tokio::select! {
+                            _ = changed.changed() => { retry_offset = None; failures = 0; continue; },
+                            _ = tokio::time::sleep(Duration::from_secs(1 << failures.saturating_sub(1))) => {},
+                        }
+                    } else {
+                        failures = 0;
+                    }
+                    let Some(offset)=retry_offset.take().or(*changed.borrow_and_update()) else{return;};
                     let mut request_builder=client.get(&uri).header("Accept-Encoding", "identity");
                     if !progressive {request_builder=request_builder.header("Range",format!("bytes={offset}-"));}
                     if let Some(validator) = representation.validator.as_deref() {
@@ -177,10 +196,19 @@ impl Reader {
                     }
                     let request=request_builder;
                     let response=tokio::select!{_=changed.changed()=>continue,response=request.send()=>response};
-                    let mut response=match response {Ok(r) if r.status().is_success()=>r,_=>{gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;}};
+                    let mut response=match response {
+                        Ok(r) if r.status().is_success()=>r,
+                        response if (response.is_err() || response.as_ref().is_ok_and(|r| r.status().is_server_error())) && retryable(&representation, offset, progressive, failures) => {
+                            failures += 1;
+                            retry_offset = Some(offset);
+                            eprintln!("PlexFreq audio stream interrupted; retry {failures}/3");
+                            continue;
+                        },
+                        _=>{gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;}
+                    };
                     let Some((mut skip, total, expected)) = representation.layout(response.status(), response.headers(), offset) else {gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;};
                     if let Some(total)=total{output.set_size(total.min(i64::MAX as u64) as i64);}
-                    let mut interrupted=false;let mut received=0u64;
+                    let mut interrupted=false;let mut received=0u64;let mut delivered=0u64;
                     loop {
                         let chunk=tokio::select!{_=changed.changed()=>{interrupted=true;break;},chunk=response.chunk()=>chunk};
                         match chunk {
@@ -188,10 +216,19 @@ impl Reader {
                                 received=received.saturating_add(bytes.len() as u64);
                                 if expected.is_some_and(|n|received>n){gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;}
                                 let ignore=skip.min(bytes.len() as u64) as usize;skip-=ignore as u64;if ignore==bytes.len(){continue;}
-                                for chunk in bytes[ignore..].chunks(64*1024){if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}}
+                                for chunk in bytes[ignore..].chunks(64*1024){if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}delivered+=chunk.len() as u64;}
                             },
-                            Ok(None)=>{if skip>0 || expected.is_some_and(|n|received!=n){gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;}let _=output.end_of_stream();break;},
-                            Err(_)=>{gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;},
+                            Ok(None) if skip == 0 && expected.is_none_or(|n|received==n)=>{let _=output.end_of_stream();break;},
+                            _=>{
+                                let resume = offset + delivered;
+                                if retryable(&representation, resume, progressive, failures) {
+                                    failures += 1;
+                                    retry_offset = Some(resume);
+                                    eprintln!("PlexFreq audio stream interrupted; retry {failures}/3");
+                                    continue 'requests;
+                                }
+                                gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;
+                            },
                         }
                     }
                     if !interrupted && changed.changed().await.is_err(){return;}
@@ -225,7 +262,92 @@ impl Drop for Reader {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gst::prelude::*;
     use reqwest::{header::HeaderMap, StatusCode};
+
+    #[test]
+    fn recovery_is_bounded_and_requires_a_validated_original() {
+        let mut representation = Representation::default();
+        assert!(retryable(&representation, 0, false, 0));
+        assert!(!retryable(&representation, 1, false, 0));
+        representation.validator = Some("\"fixture\"".into());
+        assert!(retryable(&representation, 1, false, 2));
+        assert!(!retryable(&representation, 1, false, 3));
+        assert!(!retryable(&representation, 1, true, 0));
+    }
+
+    #[test]
+    fn interrupted_original_stream_resumes_without_duplicate_bytes() {
+        use std::io::{Read, Write};
+        gst::init().unwrap();
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            for offset in [0, 65536] {
+                let until = std::time::Instant::now() + Duration::from_secs(5);
+                let mut stream = loop {
+                    match listener.accept() {
+                        Ok((stream, _)) => break stream,
+                        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                            assert!(std::time::Instant::now() < until, "No resumed request");
+                            thread::sleep(Duration::from_millis(5));
+                        }
+                        Err(error) => panic!("{error}"),
+                    }
+                };
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    stream.read_exact(&mut byte).unwrap();
+                    request.push(byte[0]);
+                }
+                let request = String::from_utf8(request).unwrap().to_lowercase();
+                assert!(request.contains(&format!("range: bytes={offset}-")));
+                if offset > 0 {
+                    assert!(request.contains("if-range: \"fixture\""));
+                }
+                write!(stream, "HTTP/1.1 206 Partial Content\r\nContent-Length: {}\r\nContent-Range: bytes {}-131071/131072\r\nETag: \"fixture\"\r\nConnection: close\r\n\r\n", 131072-offset, offset).unwrap();
+                // First response ends early; the second completes the same bytes.
+                stream
+                    .write_all(&vec![if offset == 0 { 1 } else { 2 }; 65536])
+                    .unwrap();
+            }
+        });
+        let pipeline = gst::Pipeline::new();
+        let source = app::AppSrc::builder().format(gst::Format::Bytes).build();
+        let sink = app::AppSink::builder().sync(false).build();
+        pipeline
+            .add_many([source.upcast_ref::<gst::Element>(), sink.upcast_ref()])
+            .unwrap();
+        source.link(&sink).unwrap();
+        let reader = Reader::new(
+            &source,
+            format!("http://{address}/audio"),
+            String::new(),
+            SessionCloser::new().unwrap(),
+        )
+        .unwrap();
+        pipeline.set_state(gst::State::Playing).unwrap();
+        let mut bytes = Vec::new();
+        let until = std::time::Instant::now() + Duration::from_secs(5);
+        while bytes.len() < 131072 && std::time::Instant::now() < until {
+            if let Some(sample) = sink.try_pull_sample(gst::ClockTime::from_mseconds(100)) {
+                bytes
+                    .extend_from_slice(sample.buffer().unwrap().map_readable().unwrap().as_slice());
+            }
+        }
+        reader.stop();
+        pipeline.set_state(gst::State::Null).unwrap();
+        drop(reader);
+        server.join().unwrap();
+        assert_eq!(bytes.len(), 131072);
+        assert!(bytes[..65536].iter().all(|&v| v == 1));
+        assert!(bytes[65536..].iter().all(|&v| v == 2));
+    }
 
     fn headers(etag: Option<&str>, range: Option<&str>, length: &str) -> HeaderMap {
         let mut headers = HeaderMap::new();

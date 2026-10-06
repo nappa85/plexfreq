@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
+#include <QIcon>
 #include <QWindow>
 #include <QDir>
 #include <qqml.h>
@@ -26,8 +27,13 @@ static void installPersistentLogging() {
     if (!qgetenv("PLEXFREQ_STATE_DIR").isEmpty()) return;
     const QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (documents.isEmpty()) return;
-    const QString directory = QDir(documents).absoluteFilePath(QStringLiteral("PlexFreq"));
-    if (!QDir().mkpath(directory)) return;
+    QString directory = QDir(documents).absoluteFilePath(QStringLiteral("PlexFreq"));
+    if (!QDir().mkpath(directory)) {
+        // Documents is not writable under the app's existing Sailjail permissions.
+        directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+            + QStringLiteral("/logs");
+        if (!QDir().mkpath(directory)) return;
+    }
     QFile::setPermissions(directory, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
     const QString path = QDir(directory).absoluteFilePath(
         QStringLiteral("plexfreq-%1.log").arg(QDate::currentDate().toString(QStringLiteral("yyyy-MM-dd"))));
@@ -52,6 +58,7 @@ int main(int argc, char *argv[]) {
     application->setOrganizationName("org.plexfreq");
     application->setApplicationName("harbour-plexfreq");
     application->setApplicationVersion("0.1.0");
+    application->setWindowIcon(QIcon(QStringLiteral(":/icons/plexfreq.png")));
 #ifdef SAILFISH
     installPersistentLogging();
 #endif

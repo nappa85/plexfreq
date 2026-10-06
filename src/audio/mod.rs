@@ -17,9 +17,10 @@ const CHANNELS: usize = 2;
 const BLOCK: usize = 512;
 /// Maximum crossfade tail: 12s at 48kHz stereo.
 const MAX_TAIL_FRAMES: usize = RATE as usize * 12;
-/// Appsrc queue cap (~0.25s of F32 stereo) and backpressure watermark (~0.2s).
-const OUTPUT_MAX_BYTES: u64 = RATE as u64 * 8 / 4;
-const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * 8 / 5;
+/// Bounded PCM headroom for scheduler contention (0.75s cap / 0.5s watermark).
+const OUTPUT_MAX_BYTES: u64 = RATE as u64 * 8 * 3 / 4;
+const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * 8 / 2;
+const DECODE_AHEAD_FRAMES: usize = RATE as usize * 2;
 
 fn lock_state(state: &Arc<Mutex<Snapshot>>) -> std::sync::MutexGuard<'_, Snapshot> {
     crate::mutex_lock(state)
@@ -287,7 +288,7 @@ impl Decoder {
                     app::AppStreamType::Seekable
                 })
                 .block(true)
-                .max_bytes(512 * 1024)
+                .max_bytes(4 * 1024 * 1024)
                 .build();
             pipeline
                 .add_many([input.upcast_ref(), &decoder])
@@ -474,6 +475,10 @@ impl Output {
             Sink::Pulse => {
                 let sink = element("pulsesink")?;
                 sink.set_property("client-name", "PlexFreq");
+                // Microseconds: tolerate competing notification/UI work without
+                // requesting low-latency playback from the shared audio server.
+                sink.set_property("buffer-time", 300_000i64);
+                sink.set_property("latency-time", 20_000i64);
                 sink.set_property(
                     "stream-properties",
                     pulse_properties(
@@ -529,6 +534,35 @@ impl Output {
         self.pipeline
             .set_state(state)
             .map_err(|_| Error::Input("Audio output is unavailable"))?;
+        Ok(())
+    }
+    fn service(&mut self, desired: bool) -> Result<()> {
+        let bus = self
+            .pipeline
+            .bus()
+            .ok_or(Error::Input("Audio output is unavailable"))?;
+        while let Some(message) = bus.pop() {
+            match message.view() {
+                gst::MessageView::Error(error) => {
+                    eprintln!(
+                        "PlexFreq audio output error: {}; debug: {}",
+                        error.error(),
+                        error.debug().as_deref().unwrap_or("unavailable")
+                    );
+                    return Err(Error::Input("Audio output is unavailable"));
+                }
+                gst::MessageView::Eos(_) => self.eof = true,
+                gst::MessageView::ClockLost(_) if desired => {
+                    eprintln!("PlexFreq audio output clock lost; selecting a new clock");
+                    self.state(gst::State::Paused)?;
+                    self.state(gst::State::Playing)?;
+                }
+                gst::MessageView::Latency(_) => {
+                    let _ = self.pipeline.recalculate_latency();
+                }
+                _ => {}
+            }
+        }
         Ok(())
     }
     fn push(&mut self, pcm: &[f32]) -> Result<()> {
@@ -686,7 +720,14 @@ impl Actor {
                     self.next = None;
                 }
             }
-            Control::Play => self.desired = true,
+            Control::Play => {
+                self.desired = true;
+                // A paused, full appsrc cannot drain. Resume before pump's
+                // backpressure check, which otherwise prevents this forever.
+                if let Some(out) = &self.output {
+                    out.state(gst::State::Playing)?;
+                }
+            }
             Control::Pause => {
                 self.desired = false;
                 if let Some(out) = &self.output {
@@ -766,7 +807,7 @@ impl Actor {
             _ => eff_tail,
         };
         if let Some(next) = &mut self.next {
-            if next.fill(tail.max(BLOCK * 2)).is_err() {
+            if next.fill(tail.max(DECODE_AHEAD_FRAMES)).is_err() {
                 let id = next.source.id;
                 let _ = self.events.send(Event::Error {
                     id,
@@ -778,30 +819,14 @@ impl Actor {
         let Some(current) = &mut self.current else {
             return Ok(());
         };
-        current.fill(tail + BLOCK * 4)?;
+        current.fill(tail + DECODE_AHEAD_FRAMES)?;
         if let Some(segment) = self.segments.back_mut() {
             segment.source.duration = current.source.duration;
         }
         let Some(output) = &mut self.output else {
             return Ok(());
         };
-        let Some(bus) = output.pipeline.bus() else {
-            return Err(Error::Input("Audio output is unavailable"));
-        };
-        while let Some(message) = bus.pop() {
-            match message.view() {
-                gst::MessageView::Error(error) => {
-                    eprintln!(
-                        "PlexFreq audio output error: {}; debug: {}",
-                        error.error(),
-                        error.debug().as_deref().unwrap_or("unavailable")
-                    );
-                    return Err(Error::Input("Audio output is unavailable"));
-                }
-                gst::MessageView::Eos(_) => output.eof = true,
-                _ => {}
-            }
-        }
+        output.service(self.desired)?;
         if !self.desired {
             return Ok(());
         };
@@ -993,12 +1018,24 @@ impl Actor {
                     Err(_) => self.error("Audio playback failed"),
                 }
             }
-            if let Err(error) = self.pump() {
-                let message = match error {
-                    Error::Input(message) => message,
-                    _ => "Audio playback failed",
-                };
-                self.error(message);
+            // Catch up after a delayed wake rather than supplying only 10.7ms
+            // of PCM per tick. Bound each batch so transport remains responsive.
+            for _ in 0..8 {
+                if let Err(error) = self.pump() {
+                    let message = match error {
+                        Error::Input(message) => message,
+                        _ => "Audio playback failed",
+                    };
+                    self.error(message);
+                    break;
+                }
+                if !self.desired
+                    || self.output.as_ref().is_none_or(|out| {
+                        out.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES
+                    })
+                {
+                    break;
+                }
             }
             self.publish();
             // Idle/paused actors wake on commands rather than spinning at 200 Hz.
@@ -1019,6 +1056,67 @@ impl Actor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn clock_loss_restarts_output_only_with_play_intent() {
+        gst::init().unwrap();
+        let mut output = Output::new(Sink::Fake, Arc::new(Mutex::new(Vec::new()))).unwrap();
+        output.state(gst::State::Paused).unwrap();
+        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        for desired in [false, true] {
+            output
+                .pipeline
+                .bus()
+                .unwrap()
+                .post(
+                    gst::message::ClockLost::builder(&gst::SystemClock::obtain())
+                        .src(&output.pipeline)
+                        .build(),
+                )
+                .unwrap();
+            output.service(desired).unwrap();
+            let (_, _, pending) = output.pipeline.state(gst::ClockTime::from_mseconds(100));
+            if desired {
+                assert!(
+                    output.pipeline.current_state() == gst::State::Playing
+                        || pending == gst::State::Playing
+                );
+            } else {
+                assert_ne!(output.pipeline.current_state(), gst::State::Playing);
+                assert_ne!(pending, gst::State::Playing);
+            }
+        }
+    }
+    #[test]
+    fn play_releases_a_paused_output_with_a_full_queue() {
+        gst::init().unwrap();
+        let state = Arc::new(Mutex::new(Snapshot::default()));
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let (events, _) = mpsc::channel();
+        let mut actor = Actor::new(
+            Sink::Fake,
+            state,
+            capture.clone(),
+            events,
+            http::SessionCloser::new().unwrap(),
+        );
+        let mut output = Output::new(Sink::Fake, capture).unwrap();
+        output.state(gst::State::Paused).unwrap();
+        // Pause with more PCM queued than pump's backpressure watermark.
+        for _ in 0..(OUTPUT_MAX_BYTES as usize / (BLOCK * 8) + 2) {
+            output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        }
+        assert!(output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES);
+        actor.output = Some(output);
+        actor.control(Control::Play).unwrap();
+        let until = std::time::Instant::now() + Duration::from_secs(2);
+        while actor.output.as_ref().unwrap().pipeline.current_state() != gst::State::Playing {
+            assert!(
+                std::time::Instant::now() < until,
+                "Play left a full output paused"
+            );
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
     #[test]
     fn native_volume_policy_roles_are_platform_specific() {
         gst::init().unwrap();

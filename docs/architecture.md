@@ -1,5 +1,25 @@
 # Architecture
 
+## Car-trip playback resilience and branding (2026-10-06)
+
+Play explicitly resumes the Rust output pipeline before applying PCM backpressure,
+so a full paused queue can drain without reloading the track. Output bus handling
+recovers CLOCK_LOST through PAUSED/PLAYING only while play is desired and services
+LATENCY recalculation. Bluetooth reconnection itself still does not request play.
+
+Output appsrc retains at most about 0.75 s of PCM (0.5 s scheduling watermark),
+with bounded eight-block actor batches to recover from delayed wakes. PulseAudio
+requests 300 ms buffering and 20 ms latency. Each current/successor decoder retains
+two seconds of PCM plus its crossfade tail; HTTP input holds up to 4 MiB each.
+Original-stream HTTP retries are cancellable and bounded to three (1/2/4 s), resume
+only delivered bytes and require matching validators at nonzero offsets. They do
+not turn unfinished cache files into playable files or byte-resume transcodes.
+
+Sailfish daily diagnostics fall back from Documents/PlexFreq to
+`<AppDataLocation>/logs` if the Documents directory is unavailable in the sandbox.
+Generated PNG launcher assets and an embedded Qt icon derive from root `logo.png`;
+the regeneration tool is `tools/build-icons.py`. Rust retains all transport policy.
+
 Shared TextLink.qml renders compact underlined Show all and Read more/less actions
 on both platforms. Native adapters supply font/color and minimum touch height;
 the shared component handles mouse, keyboard and accessibility activation.

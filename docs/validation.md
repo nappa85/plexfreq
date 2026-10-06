@@ -1,5 +1,27 @@
 # Validation record
 
+## Car-trip recovery / logo — 2026-10-06
+
+| Check | Actual result |
+| --- | --- |
+| Full paused-output regression before fix | Failed: Play left a full output paused |
+| Truncated original-stream regression before fix | Failed: no resumed request |
+| Final full-queue / clock-loss / HTTP recovery tests | Passed, including no duplicate/lost bytes, If-Range and retry limits |
+| Final `./tools/check.sh` | Passed: 144 Rust tests, fmt/Clippy, 39 locales / 549 messages, CTest 2/2 (14.80s) |
+| First Sailfish packaging attempt | Failed: RPM manifest still named the old SVG; corrected to PNG |
+| Final `./tools/build-sailfish.sh` / `./tools/build-device-tests.sh` | Passed: Qt5.6/aarch64 GNU, app/RPM/rootless and fixture; existing lint warnings only |
+| Read-only phone cache inspection | 29 usable scoped entries, 510 MiB, completed matches for all 15 saved queue tracks, no partials; cache enabled/ahead=5 |
+| Phone `protocolAndNativeAudio`, isolated D-Bus, real PulseAudio | Passed: 3 QtTest entries, no skips/failures; SSH command exit 0 |
+| Phone rootless production smoke / unavailable-Documents logging | Passed: isolated HOME/data, fallback log mode 0600 and startup marker, exit 0 |
+| Phone update artifact | New RPM copied to `~/Downloads/harbour-plexfreq-0.1.0-1.aarch64.rpm`; installed application not replaced |
+| `git diff --check` | Passed |
+
+Phone fixture uses synthetic loopback media and temporary state; temporary transfer,
+fixture and smoke directories were removed. Tests do not reproduce accessory
+disconnects, concurrent notification sounds or sustained trip stutter. No trip log
+was available, and the cache snapshot is post-trip. Installed RPM update and physical
+car retest are pending; no hardware fix claim is based on package compilation.
+
 ## Persistent Sailfish diagnostics — 2026-10-06
 
 | Check | Actual result |

@@ -32,7 +32,7 @@ strip --strip-unneeded harbour-plexfreq
 %{_bindir}/%{name}
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+%{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
 * Fri Oct 02 2026 PlexFreq contributors - 0.1.0-1

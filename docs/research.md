@@ -1,5 +1,44 @@
 # Research log
 
+## Car-trip recovery, scheduling and application logo — 2026-10-06
+
+- Reproduced a paused/full-output deadlock locally: `Control::Play` only set intent,
+  while pump returned at the appsrc watermark before setting PLAYING. The new
+  full-queue regression failed before the fix. Play now resumes output immediately,
+  retaining queued PCM, occurrence and mid-song position.
+- Consulted GStreamer appsrc queue/backpressure documentation and its clock guide:
+  https://gstreamer.freedesktop.org/documentation/app/appsrc.html
+  https://gstreamer.freedesktop.org/documentation/application-development/advanced/clocks.html
+  CLOCK_LOST requires PAUSED → PLAYING to select a new clock; output now does this
+  only with play intent. LATENCY messages recalculate pipeline latency.
+- Consulted AudioBaseSink's buffer-time/latency-time surface:
+  https://gstreamer.freedesktop.org/documentation/audio/gstaudiobasesink.html
+  PCM output now has a bounded 0.75-second cap / 0.5-second watermark, with up to
+  eight 512-frame blocks per actor wake to catch up after scheduling delays.
+  PulseAudio requests 300 ms buffer / 20 ms latency. Decoders retain two seconds
+  of PCM each, plus any crossfade tail; remote input cap is 4 MiB per decoder.
+  These are resilience changes, not a measured cure for notification/car stutter.
+- Original HTTP streams now recover from connection/read failures and 5xx responses
+  with at most three retries (1/2/4-second delays). Nonzero offsets require a retained
+  strong ETag or Last-Modified validator; resumed responses must match it. The
+  loopback test deliberately truncates a response and verifies exact resumed bytes
+  and If-Range. It failed before recovery was added. Progressive transcodes retain
+  their existing fresh-session/time-offset fallback rather than byte resumption.
+- Read-only SSH inspection found a normally installed Sailjail app, cache enabled
+  (512 MiB, ahead=5), no Wi-Fi-only/pause restriction, and original quality settings.
+  Cache held 29 usable credential-scoped entries (510 MiB), with completed matches
+  for all 15 saved queue tracks. No partials or retained trip log were found. This
+  is a post-trip snapshot, not proof of cache availability at the failure time.
+- Documents is outside the app's declared sandbox permissions. Logging now falls
+  back to AppDataLocation/logs when the Documents directory cannot be created. A
+  phone smoke with isolated HOME and an intentionally unavailable Documents path
+  verified fallback creation, startup marker and mode 0600. No trip root cause can
+  be assigned without the next occurrence's diagnostics.
+- Root `logo.png` supplies generated 172/512 px PNGs, the Sailfish launcher, desktop
+  launcher and embedded Qt window icon. `tools/build-icons.py` regenerates them
+  using Pillow. Updated RPM was copied to the phone's Downloads; installation and
+  a repeat car trip remain user checks. Synthetic phone PulseAudio transport passed.
+
 ## Persistent Sailfish diagnostics — 2026-10-06
 
 - The installed app displayed `Audio decoding or streaming failed`, but its generic

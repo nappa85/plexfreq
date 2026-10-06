@@ -1,5 +1,15 @@
 # Development roadmap
 
+Car-trip follow-up (2026-10-06): reproduced/fixed full-output pause/resume deadlock;
+added output clock-loss recovery, larger bounded input/PCM headroom, catch-up batches
+and validated original-stream retries. Root logo now supplies PNG launcher/window
+icons. All 144 Rust tests, desktop gates, Sailfish package/fixture builds, phone
+synthetic real-PulseAudio transport and private fallback-log smoke pass. New RPM is
+in the phone's Downloads, awaiting user installation. Next: repeat a car stop/resume,
+notification overlap and sustained trip; inspect retained diagnostics if playback
+fails again. Post-trip cache had all 15 saved queue tracks, so cache exhaustion is
+not established as the cause of the reported stop.
+
 Sailfish builds now retain private diagnostics in one dated
 `~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log` file per day, including underlying
 GStreamer decoder/output errors. The previously failing cached FLAC is structurally
