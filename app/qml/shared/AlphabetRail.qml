@@ -7,6 +7,8 @@ Item {
     property color highlightColor: "#ebad3d"
     property real fontSize: 16
     property string selected: ""
+    property string current: ""
+    property bool touching: false
     property real minimumTouchWidth: 44
     Accessible.role: Accessible.List
     Accessible.name: "Alphabet"
@@ -23,16 +25,17 @@ Item {
             model:rail.groups
             Text {
                 width:rail.width; height:rail.groups.length ? rail.height/rail.groups.length : 0
-                text:modelData.letter; color:text===rail.selected ? rail.highlightColor : rail.color
-                font.pixelSize:Math.min(rail.fontSize,height*0.78); font.bold:text===rail.selected
+                text:modelData.letter; color:text===(rail.touching ? rail.selected : rail.current) ? rail.highlightColor : rail.color
+                font.pixelSize:Math.min(rail.fontSize,height*0.78); font.bold:text===(rail.touching ? rail.selected : rail.current)
                 horizontalAlignment:Text.AlignHCenter; verticalAlignment:Text.AlignVCenter
             }
         }
     }
     MouseArea {
         anchors.fill:parent
-        onPressed:rail.selectAt(mouse.y)
+        onPressed:{rail.touching=true;rail.selectAt(mouse.y)}
         onPositionChanged:if (pressed) rail.selectAt(mouse.y)
-        onReleased:if (rail.selected) rail.chosen(rail.selected)
+        onReleased:{rail.touching=false;if(rail.selected)rail.chosen(rail.selected)}
+        onCanceled:rail.touching=false
     }
 }

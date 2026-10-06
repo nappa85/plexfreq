@@ -107,21 +107,47 @@ ApplicationWindow {
         RowLayout {
         Layout.fillWidth:true; Layout.fillHeight:true
         ListView {
-            id: list; Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 5
-            model: session.artistBrowse ? null : session.rows
+            id:list;objectName:"libraryList";Layout.fillWidth:true;Layout.fillHeight:true;clip:true;spacing:5
+            model: session.gridBrowse ? null : session.rows
+            property real gridContentY: 0
+            property bool restoreGridContentY: false
+            property int pendingArtistIndex: -1
+            property string activeArtistLetter: ""
             function checkMore() { session.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
             function positionArtist(index) {
-                Qt.callLater(function() {
-                    if (!footerItem || artistGrid.columns < 1) return
-                    var target=footerItem.y+Math.floor(index/artistGrid.columns)*artistGrid.cellHeight
-                    contentY=Math.max(originY,Math.min(target,Math.max(originY,contentHeight-height)))
-                })
+                pendingArtistIndex=index
+                Qt.callLater(tryPositionArtist)
             }
-            onContentYChanged:moreTimer.restart()
+            function tryPositionArtist() {
+                var grid=footerItem ? footerItem.grid : null
+                if(pendingArtistIndex<0 || !grid || grid.columns<1 || grid.cellHeight<=0)return
+                if(pendingArtistIndex>=grid.count && backend.state.hasMore)return
+                if(grid.height>height && contentHeight<=height)return
+                var target=Math.min(pendingArtistIndex,Math.max(0,grid.count-1))
+                var point=grid.mapToItem(contentItem,0,Math.floor(target/grid.columns)*grid.cellHeight)
+                contentY=Math.max(originY,Math.min(point.y,Math.max(originY,contentHeight-height)))
+                pendingArtistIndex=-1
+                updateArtistLetter()
+            }
+            function updateArtistLetter() {
+                var grid=footerItem ? footerItem.grid : null
+                if(!session.artistBrowse || !session.alphabet.length || !grid || grid.count===0){activeArtistLetter="";return}
+                var localY=grid.mapFromItem(list,0,0).y
+                var first=Math.max(0,Math.min(grid.count-1,Math.floor(Math.max(0,localY)/grid.cellHeight)*grid.columns))
+                var letter=session.alphabet[0].letter
+                for(var i=0;i<session.alphabet.length;i++)if(session.alphabet[i].offset<=first)letter=session.alphabet[i].letter;else break
+                activeArtistLetter=letter
+            }
+            function retainGridPosition() {
+                if(!restoreGridContentY)return
+                Qt.callLater(function(){contentY=Math.max(originY,Math.min(gridContentY,Math.max(originY,contentHeight-height)));restoreGridContentY=false})
+            }
+            onContentYChanged:{moreTimer.restart();updateArtistLetter()}
+            onContentHeightChanged:Qt.callLater(tryPositionArtist)
             onCountChanged:moreTimer.restart()
             onHeightChanged:moreTimer.restart()
             Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
+            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(session.gridBrowse){list.gridContentY=list.contentY;list.restoreGridContentY=true}moreTimer.restart()} }
             ScrollBar.vertical: ScrollBar {}
             section.property:session.homeView ? "groupTitle" : session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
             section.delegate:RowLayout {
@@ -136,9 +162,13 @@ ApplicationWindow {
             }
             delegate: ItemDelegate {
                 property var itemData:entry
-                width: list.width; height: 76; enabled: !backend.busy
-                onClicked: session.activate(itemData, index)
-                contentItem: RowLayout {
+                property bool discoveryGridItem:session.homeView && !!itemData.discoveryGrid
+                property var discoveryCards:discoveryGridItem ? session.discoveryGridItems(session.items,index) : []
+                objectName:discoveryCards.length ? "discoverySectionHost" : ""
+                width:list.width;height:discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+12 : 0) : 76;enabled:!discoveryGridItem && !backend.busy;clip:discoveryGridItem
+                onClicked:if(!discoveryGridItem)session.activate(itemData,index)
+                contentItem:Item {
+                RowLayout {anchors.fill:parent;visible:!discoveryGridItem
                     Rectangle {
                         Layout.preferredWidth: 62; Layout.preferredHeight: 62; radius: 8; color: "#253040"
                         Label { anchors.centerIn: parent; text: "♪"; color: "#ebad3d"; font.pixelSize: 30 }
@@ -179,14 +209,42 @@ ApplicationWindow {
                         }
                     }
                 }
+                GridView {
+                    id:discoveryGrid;objectName:visible ? "discoverySectionGrid" : "";anchors.left:parent.left;anchors.right:parent.right;anchors.top:parent.top;height:discoveryCards.length ? Math.ceil(discoveryCards.length/columns)*cellHeight : 0;visible:discoveryCards.length>0;interactive:false;model:discoveryCards;clip:true
+                    property int columns:Math.max(1,Math.floor(width/170));cellWidth:width/columns;cellHeight:180
+                    delegate:ItemDelegate {
+                        property var card:modelData.entry
+                        width:discoveryGrid.cellWidth;height:discoveryGrid.cellHeight;enabled:!backend.busy
+                        onClicked:session.activate(card,modelData.sourceIndex)
+                        contentItem:Column {spacing:8
+                            Image {x:8;width:parent.width-16;height:136;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                            Label {x:8;width:parent.width-16;text:card.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
+                        }
+                        Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:cardMenu.open()
+                            Menu {id:cardMenu
+                                MenuItem {text:qsTr("Play next");visible:card.type==="track" || card.type==="album";onTriggered:session.enqueue(card,true)}
+                                MenuItem {text:qsTr("Add to queue");visible:card.type==="track" || card.type==="album";onTriggered:session.enqueue(card,false)}
+                                MenuItem {text:qsTr("Add to playlist");visible:card.type==="track" || card.type==="album";enabled:!backend.state.offlineMode;onTriggered:session.playlistEditor("add",card)}
+                                MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(card);onTriggered:session.sonicNeighbors(card)}
+                                MenuItem {text:card.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:card.type==="track";onTriggered:session.favorite(card)}
+                            }
+                        }
+                    }
+                }
+                }
             }
             footer: Item {
                 width:list.width
+                property alias grid:artistGrid
+                property int gridCount:artistGrid.count
                 property int pagingHeight:!session.showQueue && backend.state.hasMore ? 44 : 0
                 height:artistGrid.height+pagingHeight
                 GridView {
-                    id:artistGrid;width:parent.width;height:visible ? Math.ceil(count/columns)*cellHeight : 0
-                    visible:session.artistBrowse;model:visible ? session.rows : null;interactive:false
+                    id:artistGrid;objectName:"routeGrid";width:parent.width;height:visible ? Math.ceil(count/columns)*cellHeight : 0
+                    visible:session.gridBrowse;model:visible ? session.rows : null;interactive:false
+                    onCountChanged:{list.retainGridPosition();list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                    onColumnsChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                    onHeightChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
                     property int columns:Math.max(1,Math.floor(width/170))
                     cellWidth:width/columns;cellHeight:180
                     delegate:ItemDelegate {
@@ -200,10 +258,14 @@ ApplicationWindow {
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:artistMenu.open()
                             Menu {id:artistMenu
-                                MenuItem {text:qsTr("Sonically similar");onTriggered:session.sonicNeighbors(itemData)}
-                                MenuItem {text:qsTr("Start sonic adventure here");onTriggered:session.adventureStart=itemData}
-                                MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
-                                MenuItem {text:qsTr("Add as mix seed");onTriggered:session.addMixSeed(itemData)}
+                                MenuItem {text:qsTr("Play next");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.enqueue(itemData,true)}
+                                MenuItem {text:qsTr("Add to queue");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.enqueue(itemData,false)}
+                                MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onTriggered:session.playlistEditor("add",itemData)}
+                                MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(itemData);onTriggered:session.sonicNeighbors(itemData)}
+                                MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onTriggered:session.adventureStart=itemData}
+                                MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);visible:session.canRadio(itemData);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
+                                MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onTriggered:session.addMixSeed(itemData)}
+                                MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onTriggered:session.favorite(itemData)}
                             }
                         }
                     }
@@ -215,13 +277,13 @@ ApplicationWindow {
                 }
             }
             Label {
-                anchors.centerIn: parent; visible: (session.artistBrowse ? artistGrid.count===0 : list.count===0) && !backend.busy
+                anchors.centerIn: parent; visible: (session.gridBrowse ? (!list.footerItem || list.footerItem.gridCount===0) : list.count===0) && !backend.busy
                 text: backend.state.serverUrl ? qsTr("No music found.") : qsTr("Connect to your Plex music server to start listening.")
                 color: "#9eaabd"; width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
             }
         }
         Connections {target:session;onArtistJumped:list.positionArtist(index)}
-        AlphabetRail { groups:session.alphabet; visible:session.artistBrowse && groups.length>0; Layout.preferredWidth:Math.max(44,implicitWidth); Layout.fillHeight:true; color:"#9eaabd"; highlightColor:"#ebad3d"; fontSize:16; onChosen:session.jump(letter) }
+        AlphabetRail {objectName:"libraryAlphabet";groups:session.alphabet;current:list.activeArtistLetter;visible:session.artistBrowse && groups.length>0;Layout.preferredWidth:Math.max(44,implicitWidth);Layout.fillHeight:true;color:"#9eaabd";highlightColor:"#ebad3d";fontSize:16;onChosen:session.jump(letter)}
         }
         Rectangle { Layout.fillWidth: true; height: 1; color: "#303c4c" }
         RowLayout {

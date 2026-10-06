@@ -1,5 +1,35 @@
 # Development roadmap
 
+Sailfish builds now retain private diagnostics in one dated
+`~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log` file per day, including underlying
+GStreamer decoder/output errors. The previously failing cached FLAC is structurally
+complete and decodes on the host; installed-phone reproduction remains next.
+
+Automatic artist-station continuation now reports each naturally completed server
+occurrence with `continuing=1` before successor preparation/end-of-window refill.
+Strict local protocol, full host gates and Qt5/Sailfish builds pass; terminal refill
+errors are visible instead of silently stopping. Real long-session Plex/device
+confirmation remains.
+
+Library now displays its first artist page immediately and fills the remaining
+artists through automatic background page requests. Alphabet shortcuts wait for an
+unloaded target while that fill proceeds. Discover recent-grid hosts clip their cards
+and reserve bottom spacing before the next section. Host and Qt5 build gates pass;
+real-device timing/visual confirmation remains user-led.
+
+Discover home now renders the server's Recently added and Recently played hubs as
+card grids while preserving all other hub rows, section headings and Show all links.
+The verified PMS identifiers use numeric section suffixes. Library alphabet taps
+position the complete artist grid reliably, and the highlighted letter follows
+forward/reverse scrolling. Host, SDK production and Qt5 fixture builds pass; phone
+runtime/gesture confirmation remains user-led.
+
+Library title-sorted artist browse fills all artists through bounded backend pages,
+and alphabet shortcuts position it locally without a replacement request. Recently
+added and recently played use the same card grid on both shells, with retained scroll
+position during incremental paging. Full host checks pass; physical-phone visual/
+gesture confirmation remains user-led.
+
 Show all and Read more/less now use shared lightweight text links. Italian phone
 launch corrected by reading the configured locale when SSH omits language variables;
 actual fallback test and production startup pass. Latest app deployed/raised on phone

@@ -58,6 +58,14 @@ Item {
         }
         return target
     }
+    function discoveryGridItems(entries,index) {
+        if(!entries || index<0 || index>=entries.length || !entries[index].discoveryGrid)return []
+        var identifier=entries[index].hubIdentifier
+        if(index>0 && entries[index-1].hubIdentifier===identifier)return []
+        var result=[]
+        for(var i=index;i<entries.length && entries[i].hubIdentifier===identifier;i++)result.push({entry:entries[i],sourceIndex:i})
+        return result
+    }
     function addJourneyTrack(item) {if(item && item.type==="track" && journeyTracks.length<8)journeyTracks=journeyTracks.concat([item])}
     function journey() {if(journeyTracks.length>=2)load("sonic_journey",{section:section,keys:journeyTracks.map(function(i){return i.ratingKey})},qsTr("Sonic Adventure"),true)}
     property int downloadMinutes:60
@@ -138,6 +146,7 @@ Item {
     property var playlist: !showQueue && route && route.seed && route.seed.type === "playlist" ? route.seed : null
     property var rows: showQueue ? backend.queueModel : backend.itemsModel
     property bool artistBrowse: !showQueue && route && route.op === "browse" && browseKind==="artist" && browseSort==="title"
+    property bool gridBrowse: artistBrowse || (!showQueue && route && route.op === "collection" && (route.args.view === "added" || route.args.view === "played"))
     property var alphabet: artistBrowse && query.length === 0 && backend.state.alphabetSection === section ? backend.state.alphabet || [] : []
     signal navigate(string kind, string key)
     signal resetView()
@@ -186,10 +195,7 @@ Item {
     }
     function jump(letter) {
         if (backend.busy || !section) return
-        searchTimer.stop(); searchPending = false; query = ""; history = []
-        route = {op:"browse", args:{section:section, kind:"artist", query:"", start:0}, title:qsTr("Artists"), seed:null}
-        heading = qsTr("Artists"); showQueue = false; failedPageStart = -1; requestedPageStart = -1
-        backend.command("jump_artist", {section:section, letter:letter})
+        for(var i=0;i<alphabet.length;i++)if(alphabet[i].letter===letter){artistJumped(alphabet[i].offset || 0);return}
     }
     function activate(item, index) {
         if (!item || backend.busy || searchPending) return
@@ -309,6 +315,7 @@ Item {
                 if (ok && op === "browse" && query.length === 0 && indexedSection !== section) {
                     indexedSection = section; backend.command("alphabet", {section:section})
                 }
+                if(ok && op==="browse" && artistBrowse && query.length===0 && backend.state.hasMore)Qt.callLater(more)
             }
             if(op==="playlist_edit" && ok) {
                 if(playlist && data.playlistChanged===playlist.ratingKey && !data.playlistDeleted)load("playlist_items",{key:playlist.ratingKey,start:0},heading,false,playlist)

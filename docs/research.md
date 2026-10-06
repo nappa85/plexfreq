@@ -1,5 +1,100 @@
 # Research log
 
+## Persistent Sailfish diagnostics — 2026-10-06
+
+- The installed app displayed `Audio decoding or streaming failed`, but its generic
+  runtime event discarded the GStreamer bus detail. Earlier rootless launches also
+  redirected stdout/stderr to `/dev/null`; the unprivileged developer account cannot
+  read the phone's system journal. Consequently the original failure had no retained
+  diagnostic record.
+- The saved occurrence was a complete 32,124,284-byte FLAC at 16-bit/44.1 kHz/stereo.
+  Its cache size matched Plex metadata, its FLAC marker was valid, and host ffmpeg
+  decoded all 250.68 seconds without error. The phone contains FLAC and typefind
+  plugins. This rules out truncation/basic format support but not phone pipeline,
+  plugin-state or output errors.
+- Sailfish startup now privately appends framework/application output to one dated
+  `~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log` file per local calendar day. Rust
+  records the actual decoder and output GStreamer bus details. The remote decoder
+  receives appsrc bytes rather than credential-bearing URLs; isolated test state
+  suppresses persistent user logging.
+
+## Natural station-radio continuation — 2026-10-06
+
+- A reported station stopped after its initial server window. The existing queue
+  policy did attempt a refill, but native `Transition`/`End` handling no longer sent
+  the documented completed-track timeline first. PMS play queues advance through
+  timelines (official PMS API source already recorded under Streaming and radio),
+  so a speculative final-track refill could return no new occurrences and the
+  end-of-stream retry repeated the same stale server state.
+- Native station completion now sends the actual occurrence as `stopped` with
+  `continuing=1` before committing/preparing the successor or retrying the refill.
+  This is limited to server station radio; sonic radio has no playQueue occurrence
+  identity. A terminal radio refill error is now published instead of being silently
+  discarded. The queue/refill policy and automatic evolution remain Rust-owned.
+- The loopback regression requires the completion timeline, including queue and
+  occurrence IDs, before serving the next station window. No live timeline was sent:
+  doing so without listening would create false server history.
+
+## Nonblocking artist fill and bounded discovery grids — 2026-10-06
+
+- Follow-up reported slow Library entry and recent-grid cards painting into the next
+  heading. Waiting for all server pages in one foreground command caused the delay.
+  Artist browse now publishes the first 100-item page immediately, then Session
+  automatically requests each remaining page. Runtime classifies nonzero starts as
+  background work and EntryModel appends them without replacement.
+- Alphabet metadata can arrive before the target artist page. A pending shortcut is
+  therefore retained while `hasMore` is true and retried on every grid count/geometry
+  change; it is cleared only once the target exists (or loading is complete). Scroll
+  position retention remains active while background pages enlarge the footer.
+- Discover section hosts now reserve explicit grid height plus bottom separation and
+  clip both host and nested grid. The desktop regression verifies host clipping and
+  that its height exceeds the card grid by the intended gap, preventing cards from
+  painting over the following section header.
+
+## Discover-home recent grids and synchronized alphabet — 2026-10-06
+
+- Follow-up clarified that the requested grids belong inside Discover home, not
+  only on the standalone Recently added/played pages. Discovery is a flattened
+  model, so both shells now keep the existing section headers/Show all links and
+  replace only the first row of a marked contiguous hub with a bounded nested grid;
+  the remaining rows in that hub collapse. Other discovery hubs remain list rows.
+- A local read-only PMS check established the actual identifiers as
+  `music.recent.added.<section>` and `music.recent.played.<section>`. Rust validates
+  the numeric suffix and marks only those hubs for grid presentation; the check
+  found 24 marked cards across the two hubs. It reported identifiers/counts only,
+  without titles, URLs, payloads or credentials. Explicit older identifier forms
+  remain accepted for server-version compatibility.
+- Alphabet selection had become a one-shot layout calculation against a GridView
+  ID scoped inside a footer component. At runtime that ID was unavailable to the
+  outer ListView function, and even the earlier direct footer calculation could run
+  before geometry settled. The footer now exposes its grid explicitly; pending
+  jumps retry on count/column/height/content geometry changes and map coordinates
+  through the actual item hierarchy.
+- The alphabet rail separates touch preview from its current scroll-derived letter.
+  Each shell maps the viewport into the artist grid, finds the first card in the
+  visible row and selects the final server alphabet offset not greater than that
+  index. Desktop integration checks cover A → B jump and B → A reverse scrolling.
+
+## Complete artist grid and discovery collection grids — 2026-10-05
+
+- User reported that the Library artist grid returned to the top while paging or
+  selecting an alphabet shortcut, and requested grid presentation for Recently
+  added/played. Inspection showed the grid was a fully expanded, noninteractive
+  footer inside a separate ListView; changing its height made the outer scroll
+  geometry unstable even though EntryModel correctly emitted row insertions.
+- The existing Plex container start/size contract and local `artist_albums` paging
+  loop were initially reused to publish one complete foreground result. This was
+  superseded on 2026-10-06 by immediate first-page publication and automatic
+  background append, retaining bounded 100-item requests without blocking entry.
+- Alphabet offsets already describe indexes in the complete server-sorted artist
+  model. The rail now positions that model locally instead of replacing it through
+  another request. Recently added albums and recently played tracks select the same
+  responsive card grid on both shells; their paging retains the outer scroll offset
+  while the footer grows. Favorites intentionally remains a list.
+- No new endpoint or external API assumption was introduced. Sources consulted were
+  the existing repository Plex paging/index fixtures and the previously documented
+  container start/size and firstCharacter behavior below.
+
 ## Artist grids and reversible alphabet jumps — 2026-10-05
 
 - User reported that full-width artist rows wasted horizontal space and that an

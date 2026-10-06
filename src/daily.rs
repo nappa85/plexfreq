@@ -632,6 +632,21 @@ impl Core {
             .filter(|hub| !layout.hidden.contains(&hub.hub_identifier))
             .take(24)
         {
+            let recent = hub
+                .hub_identifier
+                .strip_prefix("music.recent.added.")
+                .or_else(|| hub.hub_identifier.strip_prefix("music.recent.played."));
+            let grid = recent.is_some_and(|section| crate::numeric(section).is_ok())
+                || matches!(
+                    hub.hub_identifier.as_str(),
+                    "music.recentlyAdded"
+                        | "music.recentlyAddedAlbums"
+                        | "music.recentlyPlayed"
+                        | "music.recentlyPlayedAlbums"
+                        | "music.recentlyPlayedTracks"
+                        | "home.recentlyAdded"
+                        | "home.recentlyPlayed"
+                );
             for item in hub.items.into_iter().take(12) {
                 let station = item.kind == "playlist"
                     && item.radio
@@ -650,6 +665,7 @@ impl Core {
                 value["hubIdentifier"] = json!(hub.hub_identifier);
                 value["hubKey"] = json!(hub.key);
                 value["hubMore"] = json!(hub.more);
+                value["discoveryGrid"] = json!(grid);
                 items.push(value);
             }
         }

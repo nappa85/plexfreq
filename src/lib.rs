@@ -1129,6 +1129,18 @@ impl Core {
     fn radio_summary(&self) -> Value {
         self.radio.as_ref().map_or(Value::Null, Radio::summary)
     }
+    pub(crate) fn radio_active(&self) -> bool {
+        self.radio.is_some()
+    }
+    pub(crate) fn station_radio_active(&self) -> bool {
+        matches!(
+            &self.radio,
+            Some(Radio {
+                source: Source::Station { .. },
+                ..
+            })
+        )
+    }
 
     fn album_tracks(&self, album: &Item) -> Result<Vec<Item>> {
         let id = numeric(&album.rating_key)?;
@@ -1336,7 +1348,13 @@ impl Core {
     fn next(&mut self, automatic: bool) -> Result<Value> {
         let previous_queue = self.queue.clone();
         let previous_radio = self.radio.clone();
-        let result = self.advance_next(automatic, true);
+        let result = (|| {
+            if automatic && self.station_radio_active() {
+                let duration = self.queue.track().map(|track| track.duration).unwrap_or(0);
+                self.timeline("stopped".into(), duration, duration, true)?;
+            }
+            self.advance_next(automatic, true)
+        })();
         if result.is_err() {
             self.queue = previous_queue;
             self.radio = previous_radio;

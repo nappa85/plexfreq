@@ -48,23 +48,52 @@ Page {
     }
     SilicaListView {
         id: list; objectName:"libraryList"; anchors.fill: parent; anchors.bottomMargin: player.height; clip: true
-        model: pageView.artistBrowse ? null : pageView.rows
+        model: pageView.gridBrowse ? null : pageView.rows
+        property real gridContentY: 0
+        property bool restoreGridContentY: false
+        property int pendingArtistIndex: -1
+        property string activeArtistLetter: ""
         // Keep header and rows in one scrolling plane, avoiding transparent
         // PullBackHeader overlap when reversing direction on Qt5.6 Silica.
         headerPositioning:ListView.InlineHeader
         function checkMore() { if (page.status===PageStatus.Active) music.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
         function positionArtist(index) {
+            pendingArtistIndex=index
+            Qt.callLater(tryPositionArtist)
+        }
+        function tryPositionArtist() {
+            var grid=footerItem ? footerItem.grid : null
+            if(pendingArtistIndex<0 || !grid || grid.columns<1 || grid.cellHeight<=0)return
+            if(pendingArtistIndex>=grid.count && pageView.hasMore)return
+            if(grid.height>height && contentHeight<=height)return
+            var target=Math.min(pendingArtistIndex,Math.max(0,grid.count-1))
+            var point=grid.mapToItem(contentItem,0,Math.floor(target/grid.columns)*grid.cellHeight)
+            contentY=Math.max(originY,Math.min(point.y,Math.max(originY,contentHeight-height)))
+            pendingArtistIndex=-1
+            updateArtistLetter()
+        }
+        function updateArtistLetter() {
+            var grid=footerItem ? footerItem.grid : null
+            if(!pageView.artistBrowse || !pageView.alphabet.length || !grid || grid.count===0){activeArtistLetter="";return}
+            var localY=grid.mapFromItem(list,0,alphabet.y).y
+            var first=Math.max(0,Math.min(grid.count-1,Math.floor(Math.max(0,localY)/grid.cellHeight)*grid.columns))
+            var letter=pageView.alphabet[0].letter
+            for(var i=0;i<pageView.alphabet.length;i++)if(pageView.alphabet[i].offset<=first)letter=pageView.alphabet[i].letter;else break
+            activeArtistLetter=letter
+        }
+        function retainGridPosition() {
+            if (!restoreGridContentY) return
             Qt.callLater(function() {
-                if (!footerItem || artistGrid.columns < 1) return
-                var target = footerItem.y + Math.floor(index / artistGrid.columns) * artistGrid.cellHeight
-                contentY = Math.max(originY, Math.min(target, Math.max(originY, contentHeight - height)))
+                contentY = Math.max(originY, Math.min(gridContentY, Math.max(originY, contentHeight - height)))
+                restoreGridContentY = false
             })
         }
-        onContentYChanged:moreTimer.restart()
+        onContentYChanged:{moreTimer.restart();updateArtistLetter()}
+        onContentHeightChanged:Qt.callLater(tryPositionArtist)
         onCountChanged:moreTimer.restart()
         onHeightChanged:moreTimer.restart()
         Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
+        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(pageView.gridBrowse){list.gridContentY=list.contentY;list.restoreGridContentY=true}moreTimer.restart()} }
         PullDownMenu {
             Repeater {
                 model:navigation.pageActions
@@ -166,9 +195,13 @@ Page {
         }
         delegate: ListItem {
             property var itemData: entry
+            property bool discoveryGridItem:pageView.homeView && !!itemData.discoveryGrid
+            property var discoveryCards:discoveryGridItem ? music.discoveryGridItems(pageView.items,index) : []
+            objectName:discoveryCards.length ? "discoverySectionHost" : ""
             width: list.width - (alphabet.visible ? alphabet.width : 0)
-            contentHeight: Math.max(Theme.itemSizeMedium, rowDetails.height + 2 * Theme.paddingSmall, radioAction.height + 2 * Theme.paddingSmall)
-            enabled: !backend.busy && page.status === PageStatus.Active
+            contentHeight:discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+Theme.paddingMedium : 0) : Math.max(Theme.itemSizeMedium, rowDetails.height + 2 * Theme.paddingSmall, radioAction.height + 2 * Theme.paddingSmall)
+            clip:discoveryGridItem
+            enabled: !discoveryGridItem && !backend.busy && page.status === PageStatus.Active
             menu: ContextMenu {
                 MenuItem {text:qsTr("Add sonic waypoint");visible:itemData.type==="track";enabled:music.journeyTracks.length<8;onClicked:music.addJourneyTrack(itemData)}
                 MenuItem {text:qsTr("Edit smart filters");visible:itemData.type==="playlist" && !!itemData.smart && !itemData.station;enabled:!backend.state.offlineMode;onClicked:music.editFilters("update",itemData)}
@@ -193,14 +226,15 @@ Page {
                 MenuItem {text:qsTr("Move down"); visible:music.showQueue; enabled:index+1<backend.state.queue.items.length; onClicked:music.moveQueue(index,index+1)}
                 MenuItem {text:qsTr("Remove from queue"); visible:music.showQueue; onClicked:backend.command("queue_remove",{index:index})}
             }
-            onClicked: music.activate(itemData, index)
+            onClicked:if(!discoveryGridItem)music.activate(itemData,index)
             Image {
                 id: art; x: Theme.horizontalPageMargin; anchors.verticalCenter: parent.verticalCenter
                 height: Math.max(0, Math.min(Theme.iconSizeLarge, parent.height - 2 * Theme.paddingSmall)); width: height
-                source: itemData.artwork || ""; asynchronous: true; fillMode: Image.PreserveAspectCrop
+                visible:!discoveryGridItem;source: itemData.artwork || ""; asynchronous: true; fillMode: Image.PreserveAspectCrop
             }
             Column {
                 id: rowDetails
+                visible:!discoveryGridItem
                 anchors.left: art.right; anchors.leftMargin: Theme.paddingMedium; anchors.right: radioAction.visible ? radioAction.left : parent.right
                 anchors.rightMargin: Theme.paddingMedium; anchors.verticalCenter: parent.verticalCenter
                 Label { width: parent.width; text: itemData.title; truncationMode: TruncationMode.Fade }
@@ -210,20 +244,47 @@ Page {
                 id: radioAction
                 anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                actionName: music.radioActionText(itemData); visible: !pageView.artistBrowse && music.canRadio(itemData); enabled: !backend.busy
+                actionName: music.radioActionText(itemData); visible: !discoveryGridItem && !pageView.artistBrowse && music.canRadio(itemData); enabled: !backend.busy
                 onClicked: music.startRadio(itemData)
+            }
+            GridView {
+                id:discoveryGrid;objectName:visible ? "discoverySectionGrid" : "";anchors.left:parent.left;anchors.right:parent.right;height:discoveryCards.length ? Math.ceil(discoveryCards.length/columns)*cellHeight : 0;clip:true
+                visible:discoveryCards.length>0;interactive:false;model:discoveryCards
+                property int columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
+                cellWidth:width/columns;cellHeight:cellWidth+Theme.itemSizeSmall
+                delegate:ListItem {
+                    property var card:modelData.entry
+                    width:discoveryGrid.cellWidth;height:discoveryGrid.cellHeight;contentHeight:height;enabled:!backend.busy && page.status===PageStatus.Active
+                    onClicked:music.activate(card,modelData.sourceIndex)
+                    menu:ContextMenu {
+                        MenuItem {text:qsTr("Play next");visible:card.type==="track" || card.type==="album";onClicked:music.enqueue(card,true)}
+                        MenuItem {text:qsTr("Add to queue");visible:card.type==="track" || card.type==="album";onClicked:music.enqueue(card,false)}
+                        MenuItem {text:qsTr("Add to playlist");visible:card.type==="track" || card.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("add",card)}
+                        MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(card);onClicked:music.sonicNeighbors(card)}
+                        MenuItem {text:card.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:card.type==="track";onClicked:music.favorite(card)}
+                    }
+                    Column {anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
+                        Image {width:parent.width;height:width;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                        Label {width:parent.width;text:card.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:Theme.highlightColor;font.pixelSize:Theme.fontSizeSmall;horizontalAlignment:Text.AlignHCenter}
+                    }
+                }
             }
         }
         footer: Item {
             width:list.width
+            property alias grid:artistGrid
+            property int gridCount:artistGrid.count
             property int pagingHeight:!pageView.showQueue && pageView.hasMore ? Theme.itemSizeSmall : 0
             height:artistGrid.height+pagingHeight
             GridView {
-                id:artistGrid
+                id:artistGrid;objectName:"routeGrid"
                 width:parent.width-(alphabet.visible ? alphabet.width : 0)
                 height:visible ? Math.ceil(count/columns)*cellHeight : 0
-                visible:pageView.artistBrowse
+                visible:pageView.gridBrowse
                 model:visible ? pageView.rows : null
+                onCountChanged:{list.retainGridPosition();list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                onColumnsChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                onHeightChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
                 interactive:false
                 property int columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
                 cellWidth:width/columns
@@ -234,10 +295,14 @@ Page {
                     enabled:!backend.busy && page.status===PageStatus.Active
                     onClicked:music.activate(itemData,index)
                     menu:ContextMenu {
-                        MenuItem {text:qsTr("Sonically similar");onClicked:music.sonicNeighbors(itemData)}
-                        MenuItem {text:qsTr("Start sonic adventure here");onClicked:music.adventureStart=itemData}
-                        MenuItem {text:qsTr("Download radio · %1 minutes").arg(music.downloadMinutes);enabled:!backend.state.offlineMode;onClicked:music.downloadRadio(itemData)}
-                        MenuItem {text:qsTr("Add as mix seed");onClicked:music.addMixSeed(itemData)}
+                        MenuItem {text:qsTr("Play next");visible:itemData.type==="track" || itemData.type==="album";onClicked:music.enqueue(itemData,true)}
+                        MenuItem {text:qsTr("Add to queue");visible:itemData.type==="track" || itemData.type==="album";onClicked:music.enqueue(itemData,false)}
+                        MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("add",itemData)}
+                        MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(itemData);onClicked:music.sonicNeighbors(itemData)}
+                        MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onClicked:music.adventureStart=itemData}
+                        MenuItem {text:qsTr("Download radio · %1 minutes").arg(music.downloadMinutes);visible:music.canRadio(itemData);enabled:!backend.state.offlineMode;onClicked:music.downloadRadio(itemData)}
+                        MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onClicked:music.addMixSeed(itemData)}
+                        MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onClicked:music.favorite(itemData)}
                     }
                     Column {
                         anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
@@ -252,7 +317,7 @@ Page {
                 Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:pageView.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:music.retryMore() }
             }
         }
-        ViewPlaceholder { enabled: (pageView.artistBrowse ? artistGrid.count===0 : list.count===0) && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to Plex"); hintText: qsTr("Use the pull-up menu for connection settings") }
+        ViewPlaceholder { enabled: (pageView.gridBrowse ? (!list.footerItem || list.footerItem.gridCount===0) : list.count===0) && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to Plex"); hintText: qsTr("Use the pull-up menu for connection settings") }
         VerticalScrollDecorator {}
     AlphabetRail {
         id:alphabet; objectName:"libraryAlphabet"; parent:list; groups:pageView.alphabet
@@ -261,6 +326,7 @@ Page {
         y:Math.max(0,list.headerItem ? list.headerItem.y + list.headerItem.height - list.contentY : 0) + Theme.paddingSmall
         height:Math.max(0,list.height-y-Theme.paddingMedium)
         width:Math.max(Theme.itemSizeExtraSmall,minimumTouchWidth); fontSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor; highlightColor:Theme.highlightColor
+        current:list.activeArtistLetter
         onChosen:music.jump(letter)
     }
     }

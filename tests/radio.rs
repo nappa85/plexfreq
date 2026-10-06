@@ -7,7 +7,7 @@ use std::{
 };
 
 fn track(key: &str, queue_id: Option<u64>) -> Value {
-    json!({"ratingKey":key,"key":format!("/library/metadata/{key}"),"type":"track","title":"Fixture track","musicAnalysisVersion":1,"playQueueItemID":queue_id,"Media":[{"Part":[{"key":format!("/library/parts/{key}/audio.flac")}]}]})
+    json!({"ratingKey":key,"key":format!("/library/metadata/{key}"),"type":"track","title":"Fixture track","duration":10000,"musicAnalysisVersion":1,"playQueueItemID":queue_id,"Media":[{"Part":[{"key":format!("/library/parts/{key}/audio.flac")}]}]})
 }
 
 type Response = (
@@ -82,6 +82,8 @@ fn artist_station_uses_advertised_key_continues_by_queue_item_id_and_reports_tim
         ("GET","/library/metadata/42",vec![("includeStations","1")],json!({"MediaContainer":{"Metadata":[{"ratingKey":"42","type":"artist","title":"Fixture artist","Stations":{"size":1,"Metadata":[{"key":"/library/metadata/42/station/example?type=10","radio":true,"playlistType":"audio"}]}}]}})),
         ("GET","/identity",vec![],json!({"MediaContainer":{"machineIdentifier":"test-server"}})),
         ("POST","/playQueues",vec![("type","audio"),("continuous","1"),("uri","server://test-server/com.plexapp.plugins.library/library/metadata/42/station/example?type=10")],json!({"MediaContainer":{"playQueueID":50,"playQueueSelectedItemID":101,"Metadata":[track("1",Some(101)),track("2",Some(102))]}})),
+        ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","101"),("state","stopped"),("time","10000"),("duration","10000"),("continuing","1")],json!({"MediaContainer":{"size":0}})),
+        ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","102"),("state","stopped"),("time","10000"),("duration","10000"),("continuing","1")],json!({"MediaContainer":{"size":0}})),
         ("GET","/playQueues/50",vec![("center","102"),("includeBefore","0"),("includeAfter","1")],json!({"MediaContainer":{"playQueueID":50,"Metadata":[track("2",Some(102)),track("1",Some(103))]}})),
         ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","103"),("state","playing"),("time","2500")],json!({"MediaContainer":{"size":0}})),
     ]);

@@ -18,6 +18,7 @@ Item {
     property bool showQueue: frozen ? !!saved.showQueue : (music ? !!music.showQueue : false)
     property bool homeView: frozen ? !!saved.homeView : (music ? !!music.homeView : false)
     property bool artistBrowse: frozen ? !!saved.artistBrowse : (music ? !!music.artistBrowse : false)
+    property bool gridBrowse: frozen ? !!saved.gridBrowse : (music ? !!music.gridBrowse : false)
     property var alphabet: frozen ? saved.alphabet || [] : (music ? music.alphabet || [] : [])
     property var route: frozen ? saved.route : (music ? music.route : null)
     property string query: frozen ? saved.query || "" : (music ? music.query || "" : "")
@@ -35,7 +36,7 @@ Item {
     function freeze() {
         if (frozen) return
         saved = {heading:heading,detail:detail,playlist:playlist,items:items,
-            showQueue:showQueue,homeView:homeView,artistBrowse:artistBrowse,
+            showQueue:showQueue,homeView:homeView,artistBrowse:artistBrowse,gridBrowse:gridBrowse,
             alphabet:alphabet,route:route,query:query,similarArtists:similarArtists,
             similarState:similarState,canGoBack:canGoBack,busy:busy,
             loadingMore:loadingMore,hasMore:hasMore,offline:offline,error:error,

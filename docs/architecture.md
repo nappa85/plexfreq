@@ -3,6 +3,25 @@
 Shared TextLink.qml renders compact underlined Show all and Read more/less actions
 on both platforms. Native adapters supply font/color and minimum touch height;
 the shared component handles mouse, keyboard and accessibility activation.
+
+Unfiltered title-sorted artist browse publishes its first bounded 100-item Plex page
+immediately. Session then requests subsequent pages automatically; runtime marks
+their nonzero offsets as background work and EntryModel appends them. The alphabet
+rail uses server offsets without issuing replacement requests. A shortcut beyond
+the loaded prefix remains pending until its page arrives. The rail's current letter
+follows the first card in the visible row; touch selection is a temporary preview.
+Footer grid access is explicit because QML IDs inside the footer component are not
+in the outer ListView's runtime scope.
+
+Rust marks verified `music.recent.added.<section>` and
+`music.recent.played.<section>` discovery hubs after validating the numeric suffix.
+Both shells retain the flattened outer model, section header and Show all action;
+the first item in either contiguous hub hosts a noninteractive nested card grid and
+the remaining duplicate outer rows collapse. Grid and host both clip; the host adds
+bottom separation after the measured card rows so the next section cannot overlap.
+Other Discover hubs remain rows.
+Standalone added/played collection routes also use the route grid and now participate
+in runtime listing append semantics. Favorites remains a list.
 Sailfish's thin translation adapter falls back to read-only `/etc/locale.conf`
 LC_MESSAGES/LANG when the launcher supplies no locale environment. Explicit
 PLEXFREQ_LANGUAGE or environment locale retains precedence; codeset suffixes are
@@ -246,8 +265,10 @@ The QThread's `run()` initializes, calls and frees Rust. Inputs and outputs are
 copied byte arrays; no borrowed pointer crosses a thread. Every returned Rust
 string is freed by Rust. C ABI catches unwinds so no panic unwinds into C++.
 Shutdown waits for the bounded request to finish and discards pending requests.
-Large-library requests are paged, not unbounded GUI-blocking loads. UI disables
-request-producing actions while a command is pending.
+Large-library requests use bounded server pages. Artist browse displays page one,
+then fills automatically through background page requests; other large views remain
+scroll-triggered incremental pages. UI disables foreground request-producing actions
+while a command is pending.
 
 ## Extension boundaries
 
@@ -300,11 +321,21 @@ unsupported seed or failed continuation retains the previous track/queue.
   clears playback. Responses include a small `radio` summary (kind/title/source).
 - Qt reports its actual station state/time through `timeline`. Rust supplies the
   server queue/occurrence fields and owns the HTTP request. A ten-second native
-  timer drives periodic reporting; no QML HTTP/media policy was added.
+  timer drives periodic reporting. Native transition/end events report the completed
+  station occurrence as stopped with `continuing=1` before successor preparation or
+  an end-of-window refill; terminal automatic refill failures are surfaced rather
+  than silently parking playback. No QML HTTP/media policy was added.
 
 Only the selected track's media is handed to Qt. Queue/radio preparation fetches
 metadata, not audio. There is no offline cache; sequential Qt playback still does
 not guarantee gapless transitions. Radio continuation can incur network latency.
+
+Installed Sailfish launches append stdout/stderr diagnostics to the private
+daily file `~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log`. Isolated-state smoke tests
+do not write this user log. Decoder and output bus errors include GStreamer's
+underlying error/debug text while the user-facing response stays stable and
+translated. Remote media credentials do not enter GStreamer URIs because Rust
+supplies those bytes through appsrc.
 
 ## Artist-first navigation and detail models
 
@@ -386,14 +417,12 @@ append. Shared Session deduplicates pending page starts, debounces artist search
 and snapshots detail metadata independently of generic list/state updates.
 
 Rust `alphabet(section)` reads/caches server firstCharacter groups with artist
-type/titleSort ordering. `jump_artist(section,letter)` validates the returned
-label and fetches from the beginning through that offset plus one normal page,
-replacing the current items and returning the selected index. Session forwards
-that index as presentation intent so each shell positions its existing scroll plane;
-earlier artists therefore remain available above the selected letter. The alphabet
-rail uses those groups; filtered searches hide it. Normal scrolling starts the next
-server-returned page at 75% without resetting the current list. Artist browse items
-use responsive artwork/title grids in both shells; other item types retain rows.
+type/titleSort ordering. Session uses those offsets against the incrementally filled
+artist model, retaining a target until enough background pages have arrived.
+The legacy `jump_artist` command remains protocol-covered but normal UI shortcuts no
+longer replace the model. Filtered searches hide the rail. Recently added albums and
+recently played tracks share the responsive artwork/title grid; their normal paging
+starts at 75% and preserves the outer scroll offset while cards are appended.
 
 ## Similar-artist navigation
 

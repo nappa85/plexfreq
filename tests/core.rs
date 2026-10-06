@@ -426,6 +426,43 @@ fn artist_alphabet_offsets_jump_to_server_sorted_page_and_search_is_encoded() {
 }
 
 #[test]
+fn unfiltered_artist_browse_returns_first_page_for_background_loading() {
+    let (url, task) = server(vec![
+        (
+            "GET /library/sections",
+            json!({"MediaContainer":{"Directory":[]}}),
+        ),
+        (
+            "X-Plex-Container-Start=0",
+            json!({"MediaContainer":{"size":2,"totalSize":3,"Metadata":[
+                {"ratingKey":"10","type":"artist","title":"A"},
+                {"ratingKey":"20","type":"artist","title":"B"}
+            ]}}),
+        ),
+    ]);
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    core.execute(Command::Connect {
+        url,
+        token: "fixture".into(),
+    })
+    .unwrap();
+    let page = core
+        .execute(Command::Browse {
+            section: "1".into(),
+            kind: "artist".into(),
+            query: String::new(),
+            start: 0,
+        })
+        .unwrap();
+    assert_eq!(page["items"].as_array().unwrap().len(), 2);
+    assert_eq!(page["items"][1]["title"], "B");
+    assert_eq!(page["hasMore"], true);
+    assert_eq!(page["next"], 2);
+    task.join().unwrap();
+}
+
+#[test]
 fn similar_artists_are_filtered_deduplicated_and_keep_library_list_separate() {
     let (url, task) = server(vec![
         (

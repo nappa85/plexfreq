@@ -235,7 +235,12 @@ fn discovery_home_retains_server_groups_and_filters_non_music() {
         if r.starts_with("GET /hubs/sections/1?") {
             assert!(r.contains("includeMyMixes=1"));
             assert!(r.contains("includeStations=1"));
-            return json!({"MediaContainer":{"Hub":[{"title":"Heavy rotation","hubIdentifier":"music.rotation","Metadata":[track("1"),{"ratingKey":"9","type":"movie","title":"Wrong"}]},{"title":"On this day","Metadata":[{"ratingKey":"20","type":"album","title":"Anniversary"}]}]}});
+            return json!({"MediaContainer":{"Hub":[
+                {"title":"Heavy rotation","hubIdentifier":"music.rotation","Metadata":[track("1"),{"ratingKey":"9","type":"movie","title":"Wrong"}]},
+                {"title":"Localized added title","hubIdentifier":"music.recent.added.1","Metadata":[{"ratingKey":"20","type":"album","title":"New"}]},
+                {"title":"Localized played title","hubIdentifier":"music.recent.played.1","Metadata":[track("2")]},
+                {"title":"Recently Added","hubIdentifier":"music.similarAlbums","Metadata":[{"ratingKey":"30","type":"album","title":"Not a recent hub"}]}
+            ]}});
         }
         empty()
     });
@@ -243,8 +248,12 @@ fn discovery_home_retains_server_groups_and_filters_non_music() {
     let mut core = Core::new(dir.path().into()).unwrap();
     connect(&mut core, &server);
     let home = call(&mut core, json!({"op":"discovery_home","section":"1"})).unwrap();
-    assert_eq!(home["items"].as_array().unwrap().len(), 2);
+    assert_eq!(home["items"].as_array().unwrap().len(), 4);
     assert_eq!(home["items"][0]["discoveryGroup"], "Heavy rotation");
+    assert_eq!(home["items"][0]["discoveryGrid"], false);
+    assert_eq!(home["items"][1]["discoveryGrid"], true);
+    assert_eq!(home["items"][2]["discoveryGrid"], true);
+    assert_eq!(home["items"][3]["discoveryGrid"], false);
     call(&mut core, json!({"op":"offline_mode","enabled":true})).unwrap();
     drop(server);
     assert_eq!(

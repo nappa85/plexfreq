@@ -1,5 +1,81 @@
 # Validation record
 
+## Persistent Sailfish diagnostics — 2026-10-06
+
+| Check | Actual result |
+| --- | --- |
+| Existing installed-run diagnostics | No retained app log; user journal unavailable without privilege |
+| Saved failing media structure | Complete-size FLAC, valid marker, 16-bit/44.1 kHz/stereo |
+| Host full-file decode | Passed: all 250.68 seconds decoded with no ffmpeg error |
+| Phone codec files | FLAC decoder and typefind GStreamer plugins present |
+| Full `./tools/check.sh` | Passed: all 140 Rust tests, fmt/Clippy, 39 locales / 549 messages, CTest 2/2 (15.37s) |
+| Sailfish production build | Passed: Qt5.6/aarch64 GNU app, RPM and rootless bundle; existing no-url-tag warning only |
+| Phone isolated-home log smoke | Passed: `plexfreq-2026-10-06.log`, mode 0600, startup marker present; temporary state only |
+
+The media inspection did not expose titles, identifiers, URLs or credentials and the
+temporary host copy was removed. It does not reproduce the failure in the phone's
+GStreamer pipeline. Host/SDK gates and isolated phone log creation pass; installation
+and a failing-track reproduction are still required before assigning a root cause.
+
+## Natural station-radio continuation — 2026-10-06
+
+| Check | Actual result |
+| --- | --- |
+| Station ordering regression | Passed: completed occurrence timeline (`stopped`, `continuing=1`, queue/item IDs) is required before the next window request |
+| Focused `cargo test --test radio` | Passed: 6/6 |
+| Full `./tools/check.sh` | Passed: all 140 Rust tests, fmt/Clippy, 39 locales / 549 messages, CTest 2/2 (14.86s) |
+| Sailfish production / fixture builds | Passed against Qt5.6/aarch64 GNU; RPM and rootless bundle produced, existing package warnings only |
+| `git diff --check` | Passed |
+
+The regression validates the HTTP lifecycle against a strict loopback server. It
+does not claim a real long-running station session: no live Plex timeline was sent,
+because synthetic completion would incorrectly record playback. Physical-device
+continuation remains an interactive confirmation after deployment.
+
+## Background artist fill / discovery bounds — 2026-10-06
+
+| Check | Actual result |
+| --- | --- |
+| Core first-page regression | Passed: first two fixture artists return immediately with `next=2`, `hasMore=true` |
+| Shared background controller | Passed: successful initial browse automatically submits page start 100 |
+| Discover host bounds | Passed: production desktop host/grid both clip and host reserves 12 px below grid |
+| Full `./tools/check.sh` | Passed: all 140 Rust tests, fmt/Clippy, 39 locales / 549 messages, CTest 2/2 (14.60s) |
+| Sailfish production / fixture builds | Passed against Qt5.6/aarch64 GNU; existing package warnings only |
+
+These checks establish immediate-page protocol, automatic background dispatch and
+desktop geometry constraints. They do not measure real-server time-to-first-paint or
+physical-phone rendering; no additional live Plex or phone run was performed.
+
+## Discover-home grids / active alphabet — 2026-10-06
+
+| Check | Actual result |
+| --- | --- |
+| Synthetic hub classification | Passed: localized titles with verified added/played identifiers are grids; misleading title/type hub remains a list |
+| Mixed Discover desktop component | Passed: production Main instantiates the recent section grid while retaining the outer route |
+| Desktop alphabet geometry | Passed: B shortcut moves `contentY` and highlights B; scrolling to origin highlights A |
+| Read-only configured PMS identifiers | Passed: `music.recent.added.3` / `music.recent.played.3`, 24 marked cards; identifiers/counts only |
+| Full `./tools/check.sh` | Passed: all 140 Rust tests, fmt/Clippy, 39 locales / 549 messages, CTest 2/2 (14.90s) |
+| Sailfish production build | Passed: Qt5.6/aarch64 GNU app, RPM and rootless bundle; 0 errors, existing no-url-tag warning |
+| Sailfish fixture build | Passed against Qt5.6; 0 errors, existing fixture warnings |
+
+The SDK and fixture builds establish Qt5.6 compatibility, not physical-device
+rendering. No phone deployment/runtime test was performed. The read-only PMS check
+fetched discovery metadata only and did not download artwork/audio or mutate Plex.
+
+## Complete artist/discovery grids — 2026-10-05
+
+| Check | Actual result |
+| --- | --- |
+| Multi-page artist aggregation regression | Passed: two server pages combine in order into one result with `hasMore=false` |
+| Shared controller grid policy | Passed: added/played select grid, favorites remains list |
+| Alphabet controller regression | Passed: emits offset 30 locally with no additional backend command |
+| Full `./tools/check.sh` | Passed: all 140 Rust tests, fmt/Clippy, translations, desktop build and CTest 2/2 (14.36s) |
+| Translation catalogues | Passed: 39 locales / 549 messages; no new user-facing string |
+
+Desktop QML smoke verifies that the production components load, but is not a visual
+or gesture test. No SDK package, live Plex, or physical-phone run was performed in
+this change; real-device card sizing and scroll feel remain interactive checks.
+
 ## Artist grids and reversible alphabet jumps — 2026-10-05
 
 | Check | Actual result |

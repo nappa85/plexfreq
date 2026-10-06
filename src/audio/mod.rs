@@ -350,13 +350,19 @@ impl Decoder {
         })
     }
     fn fill(&mut self, frames: usize) -> Result<()> {
-        if self
+        if let Some(message) = self
             .pipeline
             .bus()
             .ok_or(Error::Input("Audio decoding or streaming failed"))?
             .pop_filtered(&[gst::MessageType::Error])
-            .is_some()
         {
+            if let gst::MessageView::Error(error) = message.view() {
+                eprintln!(
+                    "PlexFreq audio decoder error: {}; debug: {}",
+                    error.error(),
+                    error.debug().as_deref().unwrap_or("unavailable")
+                );
+            }
             return Err(Error::Input("Audio decoding or streaming failed"));
         }
         if let Some(duration) = self
@@ -784,8 +790,13 @@ impl Actor {
         };
         while let Some(message) = bus.pop() {
             match message.view() {
-                gst::MessageView::Error(_) => {
-                    return Err(Error::Input("Audio output is unavailable"))
+                gst::MessageView::Error(error) => {
+                    eprintln!(
+                        "PlexFreq audio output error: {}; debug: {}",
+                        error.error(),
+                        error.debug().as_deref().unwrap_or("unavailable")
+                    );
+                    return Err(Error::Input("Audio output is unavailable"));
                 }
                 gst::MessageView::Eos(_) => output.eof = true,
                 _ => {}

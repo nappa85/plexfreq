@@ -291,6 +291,7 @@ fn is_listing(op: &str) -> bool {
         op,
         "browse"
             | "filtered_browse"
+            | "collection"
             | "hub_items"
             | "sonic_journey"
             | "discovery_home"
@@ -507,6 +508,14 @@ fn worker(
                     listened,
                     position,
                 } => {
+                    if core.station_radio_active() {
+                        let _ = core.execute(Command::Timeline {
+                            state: "stopped".into(),
+                            position,
+                            duration: position,
+                            continuing: true,
+                        });
+                    }
                     let _ = record(&mut core, old, current, position, listened, position);
                     if let Some((id, next)) = prepared.take() {
                         if id == new {
@@ -524,13 +533,26 @@ fn worker(
                     listened,
                     position,
                 } => {
+                    let radio = core.radio_active();
                     let _ = record(&mut core, id, current, position, listened, position);
-                    if let Ok(data) = core.execute(Command::Next { automatic: true }) {
-                        let _ =
-                            start_plan(&data, &shared, &engine, &mut serial, &mut current, false);
-                        shared.merge(&data);
-                        let _ = events.send(update(visible_plan(&data)));
-                        prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                    match core.execute(Command::Next { automatic: true }) {
+                        Ok(data) => {
+                            let _ = start_plan(
+                                &data,
+                                &shared,
+                                &engine,
+                                &mut serial,
+                                &mut current,
+                                false,
+                            );
+                            shared.merge(&data);
+                            let _ = events.send(update(visible_plan(&data)));
+                            prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                        }
+                        Err(error) if radio => {
+                            let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}));
+                        }
+                        Err(_) => {}
                     }
                 }
                 Event::Error { id, message } => {
