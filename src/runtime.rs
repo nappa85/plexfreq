@@ -60,6 +60,17 @@ impl Shared {
             return Err(Error::Input("Invalid request data"));
         }
         if op.starts_with("audio_") && op != "audio_config" {
+            if matches!(
+                op,
+                "audio_pause"
+                    | "audio_stop"
+                    | "audio_seek"
+                    | "audio_volume"
+                    | "audio_play"
+                    | "audio_toggle"
+            ) {
+                crate::diagnostics::event(format_args!("transport request op={op}"));
+            }
             let handle = self
                 .audio
                 .lock()
@@ -655,6 +666,7 @@ fn worker(
                     | "queue_remove"
             );
             if transport {
+                crate::diagnostics::event(format_args!("core transport begin op={op}"));
                 let snapshot = engine.handle.snapshot();
                 let _ = record(
                     &mut core,
@@ -665,6 +677,7 @@ fn worker(
                     snapshot.duration,
                 );
             }
+            let command_started = Instant::now();
             let result = if op == "audio_config" {
                 serde_json::from_value::<audio::dsp::Config>(input["config"].clone())
                     .map_err(Error::from)
@@ -678,6 +691,13 @@ fn worker(
                     .map_err(Error::from)
                     .and_then(|command| core.execute(command))
             };
+            if transport {
+                crate::diagnostics::event(format_args!(
+                    "core transport complete op={op} success={} elapsed_ms={}",
+                    result.is_ok(),
+                    command_started.elapsed().as_millis()
+                ));
+            }
             let mut response = match result {
                 Ok(mut data) => {
                     let discarded = (is_listing(op) || op == "similar_artists")

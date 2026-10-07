@@ -7,6 +7,9 @@ extern "C" {
 typedef struct Core Core;
 typedef struct Runtime Runtime;
 typedef struct DownloadControl DownloadControl;
+typedef struct DiagnosticLog DiagnosticLog;
+DiagnosticLog *pf_log_new(const char *directory);
+void pf_log_free(DiagnosticLog *log);
 Runtime *pf_runtime_new(const char *state_dir);
 char *pf_runtime_submit(Runtime *runtime,const char *request);
 char *pf_runtime_poll(Runtime *runtime);

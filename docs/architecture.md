@@ -1,5 +1,44 @@
 # Architecture
 
+## Rotating multi-day diagnostics (2026-10-07)
+
+Rust `diagnostics.rs` captures framework and Rust stdout/stderr through a process
+pipe, assembles bounded lines, redacts URLs/token assignments, and writes each record
+to its current local calendar date. Timestamps include UTC offset, monotonic elapsed
+time and PID. Rotation runs independently of Qt event delivery. The Qt adapter
+selects Documents/PlexFreq or the existing AppData/logs fallback and owns one opaque
+log handle until backend and application teardown have completed. Shutdown restores
+stdout/stderr and joins the reader after draining queued records.
+
+Seven log dates are retained, with an 8 MiB active file and one 8 MiB backup per
+date (about 112 MiB maximum under normal operation). An oversized unterminated line
+is discarded through its newline, keeping memory bounded without persisting split
+secrets. Isolated-state tests do not enable persistent user logging.
+
+Audio diagnostics log controls, source class/resume, pipeline state/warnings,
+clock/latency events, HTTP status/offset/bytes, audible transitions and PCM queue
+levels. Snapshots and a two-second no-position-progress detector report stall and
+recovery without changing transport policy. Active heartbeats are ten seconds;
+idle heartbeats sixty. Repeated decoder/output warnings are sampled after their
+first ten occurrences while total warning/QoS counts remain in snapshots.
+
+A separate Rust platform worker observes BlueZ transport counts, load and whitelisted
+PulseAudio stream/sink fields. Read-only pactl queries are capped at two seconds and
+256 KiB; unavailable/denied snapshots are logged. These queries never run on audio
+or GUI actors and do not alter routing, pairing or services. Sampling wakes early
+on playback-state changes. Normally installed sandbox access is a separate runtime
+check; the app logs its own pipeline diagnostics even if pactl access is unavailable.
+
+## Overnight diagnostic scope (2026-10-07)
+
+Persistent Sailfish logging opens the dated file once at application startup.
+An app retained overnight continues writing to that startup-date file; there is
+no midnight rotation in the investigated build (superseded above). Output bus errors/clock loss and HTTP retries
+are logged, but downstream Bluetooth starvation without a bus error is not
+positively identified by these records. The OS owns Bluetooth transport/routing;
+PlexFreq's observer only applies disconnect pause policy. A default PulseAudio
+sink is not necessarily the route of the existing PlexFreq stream.
+
 ## Car-trip playback resilience and branding (2026-10-06)
 
 Play explicitly resumes the Rust output pipeline before applying PCM backpressure,

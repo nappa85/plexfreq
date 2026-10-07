@@ -1,5 +1,85 @@
 # Research log
 
+## Multi-day rotating diagnostics — 2026-10-07
+
+- User requests current-calendar-date logs for an app retained in the background
+  for days, plus enough retained context to investigate the next stutter without
+  successive diagnostic builds. `src/diagnostics.rs` now owns stdout/stderr capture,
+  line assembly, local timestamps/UTC offsets, monotonic elapsed time, rotation and
+  worker shutdown through an opaque C ABI. Qt only selects the writable directory
+  and holds the handle until after backend/application teardown.
+- A Rust reader selects the local date for each completed diagnostic record;
+  rotation does not depend on a GUI timer or restarting the app. Temporary-state
+  production tests remain excluded. Lines are timestamped and PID-tagged. Complete
+  HTTP/file URLs and token/authorization assignments are removed before persistence;
+  oversized records are discarded through their newline rather than splitting secrets.
+  Each date has an 8 MiB active file and one 8 MiB backup; seven dates are retained.
+- Playback diagnostics record transport controls, source class (local/remote), resume
+  offsets, audible transitions/end, decoder/output pipeline states and warnings,
+  output clock changes/latency recalculation, warning/QoS counts, HTTP request status,
+  byte offsets/EOF and aggregate receive/input-queue progress. Actor snapshots include
+  intent, playing/buffering, position/heard-time, output frame/queue levels, decoder
+  PCM/EOF and successor PCM. Two-second no-progress reports and recovery are retained;
+  active snapshots repeat at ten seconds, idle snapshots at sixty seconds. Actor
+  iterations delayed by more than a second are recorded.
+- An independent platform diagnostic worker captures read-only BlueZ audio/transport
+  counts and PulseAudio stream route/cork/mute/volume/latency plus sink state/type,
+  and system load. It samples every ten seconds during playback and sixty while
+  idle, waking early on playback-state changes. `pactl` children have a two-second
+  deadline and 256 KiB output cap; only whitelisted technical fields are persisted,
+  not device descriptions, media titles/URLs or other applications' properties.
+  Missing tools/permissions/timeouts are explicitly recorded. Network changes and
+  Bluetooth disconnect auto-pause outcomes are also logged. No routing writes.
+- Sources consulted: POSIX/Linux pipe and close-on-exec behavior
+  https://man7.org/linux/man-pages/man2/pipe.2.html;
+  GStreamer PulseAudio properties/inspection
+  https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesink.html;
+  `pactl list` documentation https://man.archlinux.org/man/pactl.1.en;
+  previously recorded BlueZ MediaTransport1 docs. The freedesktop PulseAudio CLI
+  documentation URL returned HTTP 418; it was not used as API evidence.
+- Actual checks: all 150 Rust tests, fmt/Clippy, 39 locales/549 messages and desktop
+  CTest 2/2 pass (18.64s). Initial SDK compile hit its 240s tool deadline; retry with
+  600s completed (Rust 4m41s), production RPM/rootless and Qt5.6 fixture builds pass.
+  Isolated-home phone smoke exits 0: all 21 log lines timestamped, current date,
+  fallback mode 0600, startup/shutdown and audio/platform/Pulse/BlueZ records present.
+  Synthetic real-PulseAudio phone transport passes 3 QtTest entries with exit 0.
+- New RPM copied to phone Downloads; temporary smoke/fixture/bundle directory removed.
+  Installed app replacement and normally installed sandbox access to the optional
+  `pactl` snapshots remain user checks. Midnight/backwards-clock behavior was tested
+  with synthetic dates locally; no phone time or Bluetooth service was changed.
+
+## Overnight car resume / Bluetooth restart — 2026-10-07
+
+- User confirms yesterday's RPM was installed. This morning's resume produced
+  roughly one second of music followed by a minute of silence; another Bluetooth
+  application also malfunctioned. User restarting Bluetooth restored playback.
+- Read-only SSH succeeded after two initial No route to host attempts. The sole
+  observed PlexFreq process (PID 23273) executes `/usr/bin/harbour-plexfreq`.
+  Both stdout/stderr still target the fallback `plexfreq-2026-10-06.log`, whose
+  startup marker is 17:15:09 yesterday. Its nine lines contain vendor graphics
+  startup diagnostics only: no recorded audio error, clock loss or HTTP retry.
+  Inspection of `app/src/main.cpp` confirms the log date is selected at startup,
+  not rotated at midnight; an overnight run must be inspected in yesterday's file.
+- Bluetooth service reports running since 08:12:15 CEST today. Current BlueZ
+  snapshot has one adapter, seven Device1 objects and no MediaTransport1 objects.
+  PlexFreq's PulseAudio stream is corked, float32 stereo 48 kHz, x-maemo role,
+  routed to `sink.deep_buffer`. The default `sink.null` is not its stream route.
+- OBEX failed yesterday at 07:55:18, before the reported incident; this is not
+  evidence that OBEX caused audio stutter. Load average was about 14, but a two-second
+  process CPU sample showed no CPU saturation (PlexFreq about 3%). Twelve observed
+  D-state tasks were vendor/kernel tasks; the high load alone is not an app diagnosis.
+- System and user journals are inaccessible to this unprivileged account. There
+  is no retained failing-transport snapshot. Cross-app symptoms and recovery after
+  restart favor shared Bluetooth/audio-stack trouble, but do not identify BlueZ,
+  PulseAudio, Android bridge, controller or car as the failing component. Absence
+  of GStreamer errors does not exclude a blocked downstream output transport.
+- Consulted existing output bus/backpressure handling in `src/audio/mod.rs`,
+  disconnect policy in `src/bluetooth.rs`, and upstream MediaTransport1 state docs:
+  https://raw.githubusercontent.com/bluez/bluez/master/doc/org.bluez.MediaTransport.rst
+  Next occurrence needs a read-only connected/failing snapshot before recovery,
+  including stream cork/routing/latency, transport state and whether track position
+  advances during silence. No audio playback or system-service change was initiated.
+
 ## Car-trip recovery, scheduling and application logo — 2026-10-06
 
 - Reproduced a paused/full-output deadlock locally: `Control::Play` only set intent,

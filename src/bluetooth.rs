@@ -1,10 +1,13 @@
 //! Rootless audio-accessory disconnect policy, independent of the metadata actor.
 use std::collections::BTreeSet;
 
-#[derive(Default)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub(crate) struct Facts {
     pub connected: BTreeSet<String>,
     pub active: BTreeSet<String>,
+    pub idle_transports: usize,
+    pub pending_transports: usize,
+    pub active_transports: usize,
 }
 #[derive(Default)]
 pub(crate) struct PausePolicy {
@@ -47,6 +50,7 @@ mod tests {
         Some(Facts {
             connected: connected.iter().map(|s| s.to_string()).collect(),
             active: active.iter().map(|s| s.to_string()).collect(),
+            ..Default::default()
         })
     }
     #[test]

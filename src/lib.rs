@@ -3,6 +3,7 @@ mod bluetooth;
 pub mod cache;
 mod catalogue;
 mod daily;
+mod diagnostics;
 mod discovery;
 mod features;
 mod ffi;

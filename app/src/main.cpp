@@ -1,55 +1,44 @@
 #include "backend.h"
 #include "i18n.h"
+#include "plexfreq_core.h"
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QStandardPaths>
 #include <QTimer>
-#include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
 #include <QIcon>
 #include <QWindow>
 #include <QDir>
 #include <qqml.h>
-#include <cstdio>
 #include <memory>
 #ifdef SAILFISH
 #include <sailfishapp.h>
 #include <QQuickView>
-#include <fcntl.h>
-#include <unistd.h>
 #else
 #include <QQmlApplicationEngine>
 #endif
 
 #ifdef SAILFISH
-static void installPersistentLogging() {
-    if (!qgetenv("PLEXFREQ_STATE_DIR").isEmpty()) return;
+static DiagnosticLog *installPersistentLogging() {
+    if (!qgetenv("PLEXFREQ_STATE_DIR").isEmpty()) return nullptr;
     const QString documents = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    if (documents.isEmpty()) return;
+    if (documents.isEmpty()) return nullptr;
     QString directory = QDir(documents).absoluteFilePath(QStringLiteral("PlexFreq"));
     if (!QDir().mkpath(directory)) {
         // Documents is not writable under the app's existing Sailjail permissions.
         directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
             + QStringLiteral("/logs");
-        if (!QDir().mkpath(directory)) return;
+        if (!QDir().mkpath(directory)) return nullptr;
     }
-    QFile::setPermissions(directory, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
-    const QString path = QDir(directory).absoluteFilePath(
-        QStringLiteral("plexfreq-%1.log").arg(QDate::currentDate().toString(QStringLiteral("yyyy-MM-dd"))));
-    const QByteArray nativePath = QFile::encodeName(path);
-    const int descriptor = ::open(nativePath.constData(), O_WRONLY | O_CREAT | O_APPEND, 0600);
-    if (descriptor < 0) return;
-    ::dup2(descriptor, STDOUT_FILENO);
-    ::dup2(descriptor, STDERR_FILENO);
-    ::close(descriptor);
-    std::fprintf(stderr, "\n=== PlexFreq %s started ===\n", qPrintable(QDateTime::currentDateTime().toString(Qt::ISODate)));
-    std::fflush(stderr);
+    const QByteArray nativePath = QFile::encodeName(directory);
+    return pf_log_new(nativePath.constData());
 }
 #endif
 
 int main(int argc, char *argv[]) {
 #ifdef SAILFISH
+    std::unique_ptr<DiagnosticLog, decltype(&pf_log_free)> diagnostics(nullptr, &pf_log_free);
     QGuiApplication *application = SailfishApp::application(argc, argv);
 #else
     QGuiApplication *application = new QGuiApplication(argc, argv);
@@ -60,7 +49,7 @@ int main(int argc, char *argv[]) {
     application->setApplicationVersion("0.1.0");
     application->setWindowIcon(QIcon(QStringLiteral(":/icons/plexfreq.png")));
 #ifdef SAILFISH
-    installPersistentLogging();
+    diagnostics.reset(installPersistentLogging());
 #endif
     qmlRegisterType<EntryModel>("PlexFreq",1,0,"EntryModel");
     installTranslations(application);

@@ -9,7 +9,7 @@ use std::{
     collections::VecDeque,
     sync::{mpsc, Arc, Mutex},
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 pub const RATE: u32 = 48000;
@@ -270,9 +270,21 @@ struct Decoder {
     eof: bool,
     seek: Option<u64>,
     frames: u64,
+    warnings: u64,
 }
 impl Decoder {
     fn new(source: Source, closer: &http::SessionCloser) -> Result<Self> {
+        crate::diagnostics::event(format_args!(
+            "decoder create occurrence={} source={} resume_ms={} duration_ms={}",
+            source.id,
+            if source.url.starts_with("file:") {
+                "cache/local"
+            } else {
+                "remote"
+            },
+            source.resume,
+            source.duration
+        ));
         let (uri, token) = safe_uri(&source.url)?;
         let (uri, transcoded) = crate::quality::with_offset(&uri, source.resume)?;
         let pipeline = gst::Pipeline::new();
@@ -348,23 +360,55 @@ impl Decoder {
             eof: false,
             seek,
             frames: 0,
+            warnings: 0,
         })
     }
     fn fill(&mut self, frames: usize) -> Result<()> {
-        if let Some(message) = self
+        let bus = self
             .pipeline
             .bus()
-            .ok_or(Error::Input("Audio decoding or streaming failed"))?
-            .pop_filtered(&[gst::MessageType::Error])
-        {
-            if let gst::MessageView::Error(error) = message.view() {
-                eprintln!(
-                    "PlexFreq audio decoder error: {}; debug: {}",
-                    error.error(),
-                    error.debug().as_deref().unwrap_or("unavailable")
-                );
+            .ok_or(Error::Input("Audio decoding or streaming failed"))?;
+        while let Some(message) = bus.pop() {
+            match message.view() {
+                gst::MessageView::Error(error) => {
+                    eprintln!(
+                        "PlexFreq audio decoder error occurrence={}: {}; debug: {}",
+                        self.source.id,
+                        error.error(),
+                        error.debug().as_deref().unwrap_or("unavailable")
+                    );
+                    return Err(Error::Input("Audio decoding or streaming failed"));
+                }
+                gst::MessageView::Warning(warning) => {
+                    self.warnings += 1;
+                    if self.warnings <= 10 || self.warnings.is_power_of_two() {
+                        crate::diagnostics::event(format_args!(
+                            "decoder warning occurrence={} count={}: {}; debug={}",
+                            self.source.id,
+                            self.warnings,
+                            warning.error(),
+                            warning.debug().as_deref().unwrap_or("unavailable")
+                        ));
+                    }
+                }
+                gst::MessageView::Buffering(buffering) => crate::diagnostics::event(format_args!(
+                    "decoder buffering occurrence={} percent={}",
+                    self.source.id,
+                    buffering.percent()
+                )),
+                gst::MessageView::StateChanged(state)
+                    if message.src() == Some(self.pipeline.upcast_ref()) =>
+                {
+                    crate::diagnostics::event(format_args!(
+                        "decoder state occurrence={} {:?}->{:?} pending={:?}",
+                        self.source.id,
+                        state.old(),
+                        state.current(),
+                        state.pending()
+                    ))
+                }
+                _ => {}
             }
-            return Err(Error::Input("Audio decoding or streaming failed"));
         }
         if let Some(duration) = self
             .pipeline
@@ -461,6 +505,8 @@ struct Output {
     source: app::AppSrc,
     frames: u64,
     eof: bool,
+    warnings: u64,
+    qos: u64,
 }
 impl Output {
     fn new(mode: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Result<Self> {
@@ -528,6 +574,8 @@ impl Output {
             source,
             frames: 0,
             eof: false,
+            warnings: 0,
+            qos: 0,
         })
     }
     fn state(&self, state: gst::State) -> Result<()> {
@@ -552,13 +600,42 @@ impl Output {
                     return Err(Error::Input("Audio output is unavailable"));
                 }
                 gst::MessageView::Eos(_) => self.eof = true,
+                gst::MessageView::Warning(warning) => {
+                    self.warnings += 1;
+                    if self.warnings <= 10 || self.warnings.is_power_of_two() {
+                        crate::diagnostics::event(format_args!(
+                            "output warning count={}: {}; debug={}",
+                            self.warnings,
+                            warning.error(),
+                            warning.debug().as_deref().unwrap_or("unavailable")
+                        ));
+                    }
+                }
+                gst::MessageView::Qos(_) => self.qos += 1,
+                gst::MessageView::StateChanged(state)
+                    if message.src() == Some(self.pipeline.upcast_ref()) =>
+                {
+                    crate::diagnostics::event(format_args!(
+                        "output state {:?}->{:?} pending={:?}",
+                        state.old(),
+                        state.current(),
+                        state.pending()
+                    ))
+                }
+                gst::MessageView::NewClock(_) => {
+                    crate::diagnostics::event(format_args!("output selected new clock"))
+                }
                 gst::MessageView::ClockLost(_) if desired => {
                     eprintln!("PlexFreq audio output clock lost; selecting a new clock");
                     self.state(gst::State::Paused)?;
                     self.state(gst::State::Playing)?;
                 }
                 gst::MessageView::Latency(_) => {
-                    let _ = self.pipeline.recalculate_latency();
+                    let result = self.pipeline.recalculate_latency();
+                    crate::diagnostics::event(format_args!(
+                        "output latency recalculation success={}",
+                        result.is_ok()
+                    ));
                 }
                 _ => {}
             }
@@ -646,6 +723,69 @@ struct Actor {
     processor: dsp::Processor,
     ended: bool,
     fade: Option<(usize, usize)>,
+    diagnostics: ProgressDiagnostics,
+}
+struct ProgressDiagnostics {
+    sampled: Instant,
+    reported: Instant,
+    progressed: Instant,
+    previous: Option<(u64, bool, bool, bool, u64)>,
+    stalled: bool,
+}
+impl ProgressDiagnostics {
+    fn new() -> Self {
+        let now = Instant::now();
+        Self {
+            sampled: now,
+            reported: now,
+            progressed: now,
+            previous: None,
+            stalled: false,
+        }
+    }
+    fn observe(&mut self, now: Instant, state: &Snapshot, desired: bool) -> Option<&'static str> {
+        if self.previous.is_some() && now.duration_since(self.sampled) < Duration::from_secs(1) {
+            return None;
+        }
+        self.sampled = now;
+        let key = (
+            state.id,
+            desired,
+            state.playing,
+            state.buffering,
+            state.position,
+        );
+        let changed = self
+            .previous
+            .is_none_or(|old| (old.0, old.1, old.2, old.3) != (key.0, key.1, key.2, key.3));
+        if changed || self.previous.is_none_or(|old| old.4 != state.position) || !desired {
+            self.progressed = now;
+        }
+        self.previous = Some(key);
+        let stalled = desired
+            && state.loaded
+            && now.duration_since(self.progressed) >= Duration::from_secs(2);
+        let reason = if stalled != self.stalled {
+            Some(if stalled {
+                "stalled"
+            } else {
+                "progress-restored"
+            })
+        } else if changed {
+            Some("state-change")
+        } else if now.duration_since(self.reported)
+            >= Duration::from_secs(if desired { 10 } else { 60 })
+        {
+            Some("heartbeat")
+        } else {
+            None
+        };
+        self.stalled = stalled;
+        if reason.is_some() {
+            self.reported = now;
+        }
+        reason
+    }
 }
 impl Actor {
     fn new(
@@ -673,6 +813,7 @@ impl Actor {
             config,
             ended: false,
             fade: None,
+            diagnostics: ProgressDiagnostics::new(),
         }
     }
     fn load(&mut self, source: Source, paused: bool) -> Result<()> {
@@ -702,6 +843,10 @@ impl Actor {
         match control {
             Control::Load(source, paused) => self.load(source, paused)?,
             Control::Prepare(source) => {
+                crate::diagnostics::event(format_args!(
+                    "audio prepare occurrence={:?}",
+                    source.as_ref().map(|s| s.id)
+                ));
                 if let Some(next) = source {
                     let id = next.id;
                     match Decoder::new(next, &self.closer) {
@@ -721,6 +866,10 @@ impl Actor {
                 }
             }
             Control::Play => {
+                crate::diagnostics::event(format_args!(
+                    "audio control play occurrence={}",
+                    self.intent
+                ));
                 self.desired = true;
                 // A paused, full appsrc cannot drain. Resume before pump's
                 // backpressure check, which otherwise prevents this forever.
@@ -729,12 +878,20 @@ impl Actor {
                 }
             }
             Control::Pause => {
+                crate::diagnostics::event(format_args!(
+                    "audio control pause occurrence={}",
+                    self.intent
+                ));
                 self.desired = false;
                 if let Some(out) = &self.output {
                     out.state(gst::State::Paused)?;
                 }
             }
             Control::Stop => {
+                crate::diagnostics::event(format_args!(
+                    "audio control stop occurrence={}",
+                    self.intent
+                ));
                 self.desired = false;
                 self.current = None;
                 self.next = None;
@@ -743,6 +900,10 @@ impl Actor {
                 lock_state(&self.state).position = 0;
             }
             Control::Seek(position) => {
+                crate::diagnostics::event(format_args!(
+                    "audio control seek occurrence={} position_ms={position}",
+                    self.intent
+                ));
                 if let Some(segment) = self.segments.front() {
                     let mut source = segment.source.clone();
                     // Duration may still be unknown (0) while the decoder
@@ -757,8 +918,12 @@ impl Actor {
                     let _ = self.events.send(Event::Seeked(position));
                 }
             }
-            Control::Volume(volume) => self.volume = volume as f32,
+            Control::Volume(volume) => {
+                crate::diagnostics::event(format_args!("audio volume={volume:.3}"));
+                self.volume = volume as f32;
+            }
             Control::Configure(config) => {
+                crate::diagnostics::event(format_args!("audio DSP configuration changed"));
                 self.processor = dsp::Processor::new(RATE, &config);
                 self.config = config;
             }
@@ -768,6 +933,7 @@ impl Actor {
     }
     fn error(&mut self, message: &'static str) {
         let id = self.current.as_ref().map_or(self.intent, |d| d.source.id);
+        crate::diagnostics::event(format_args!("audio actor error occurrence={id}: {message}"));
         self.desired = false;
         self.current = None;
         self.next = None;
@@ -973,6 +1139,10 @@ impl Actor {
                     listened: heard,
                     position: old.source.duration,
                 });
+                crate::diagnostics::event(format_args!(
+                    "audio audible transition old={} new={} heard_ms={heard}",
+                    old.source.id, new.source.id
+                ));
             }
         }
         let Some(segment) = self.segments.front() else {
@@ -983,6 +1153,10 @@ impl Actor {
         let listened = segment.source.listened + frames * 1000 / RATE as u64;
         let eos = output.eof && self.desired;
         if eos {
+            crate::diagnostics::event(format_args!(
+                "audio natural end occurrence={} position_ms={media} heard_ms={listened}",
+                segment.source.id
+            ));
             self.desired = false;
             let _ = self.events.send(Event::End {
                 id: segment.source.id,
@@ -1010,7 +1184,16 @@ impl Actor {
         };
     }
     fn run(mut self, receiver: mpsc::Receiver<Control>) {
+        let mut previous_wake = Instant::now();
         loop {
+            let now = Instant::now();
+            let wake_ms = now.duration_since(previous_wake).as_millis();
+            if self.desired && wake_ms > 1000 {
+                crate::diagnostics::event(format_args!(
+                    "audio actor delayed iteration elapsed_ms={wake_ms}"
+                ));
+            }
+            previous_wake = now;
             while let Ok(control) = receiver.try_recv() {
                 match self.control(control) {
                     Ok(false) => return,
@@ -1038,6 +1221,7 @@ impl Actor {
                 }
             }
             self.publish();
+            self.diagnose();
             // Idle/paused actors wake on commands rather than spinning at 200 Hz.
             let wait = Duration::from_millis(if self.desired { 5 } else { 100 });
             match receiver.recv_timeout(wait) {
@@ -1051,11 +1235,74 @@ impl Actor {
             }
         }
     }
+    fn diagnose(&mut self) {
+        if !crate::diagnostics::enabled() {
+            return;
+        }
+        let state = lock_state(&self.state).clone();
+        let now = Instant::now();
+        let Some(reason) = self.diagnostics.observe(now, &state, self.desired) else {
+            return;
+        };
+        let out = self.output.as_ref();
+        let decoder = self.current.as_ref();
+        crate::diagnostics::event(format_args!(
+            "audio snapshot reason={reason} occurrence={} desired={} playing={} buffering={} position_ms={} heard_ms={} no_progress_ms={} pipeline={:?} output_frames={} output_queue_bytes={} output_eof={} decoder_pcm_frames={} decoder_eof={} decoder_warnings={} http_received_and_queue_bytes={:?} next_pcm_frames={} output_warnings={} qos={}",
+            state.id, self.desired, state.playing, state.buffering, state.position, state.listened,
+            now.duration_since(self.diagnostics.progressed).as_millis(), out.map(|o| o.pipeline.current_state()),
+            out.map_or(0, |o| o.frames), out.map_or(0, |o| o.source.current_level_bytes()), out.is_some_and(|o| o.eof),
+            decoder.map_or(0, Decoder::remaining), decoder.is_some_and(|d| d.eof), decoder.map_or(0, |d| d.warnings),
+            decoder.and_then(|d| d.http.as_ref().map(http::Reader::diagnostics)), self.next.as_ref().map_or(0, Decoder::remaining),
+            out.map_or(0, |o| o.warnings), out.map_or(0, |o| o.qos)
+        ));
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn diagnostics_distinguish_stall_recovery_pause_and_heartbeat() {
+        let mut monitor = ProgressDiagnostics::new();
+        let now = monitor.sampled;
+        let mut state = Snapshot {
+            id: 1,
+            loaded: true,
+            playing: true,
+            ..Default::default()
+        };
+        assert_eq!(monitor.observe(now, &state, true), Some("state-change"));
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(1), &state, true),
+            None
+        );
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(2), &state, true),
+            Some("stalled")
+        );
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(3), &state, true),
+            None
+        );
+        state.position = 1000;
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(4), &state, true),
+            Some("progress-restored")
+        );
+        state.playing = false;
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(5), &state, false),
+            Some("state-change")
+        );
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(10), &state, false),
+            None
+        );
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(65), &state, false),
+            Some("heartbeat")
+        );
+    }
     #[test]
     fn clock_loss_restarts_output_only_with_play_intent() {
         gst::init().unwrap();

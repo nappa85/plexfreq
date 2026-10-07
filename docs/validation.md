@@ -1,5 +1,55 @@
 # Validation record
 
+## Current-date rotation / expanded diagnostics — 2026-10-07
+
+| Check | Actual result |
+| --- | --- |
+| Synthetic midnight / backwards-clock rotation | Passed: records appended to their supplied calendar dates without a restart |
+| Private modes / URL and token redaction | Passed: directory 0700, logs 0600, complete URLs/token/header values removed |
+| Pipe fragmentation / oversized records / partial final line | Passed: split URL/token reassembled before redaction, oversized tail discarded, final line drained |
+| Actual fd capture / restoration / shutdown in isolated child | Passed: stdout/stderr captured, shutdown retained, original stderr restored |
+| Size rollover / seven-date retention | Passed: active/backup logs bounded and old dates removed |
+| Stall / recovery / pause / heartbeat classifier | Passed: two-second no-progress report, recovery, no idle false stall |
+| PulseAudio field whitelist | Passed: route/cork retained, private titles/URLs/device descriptions and unrelated client properties excluded |
+| Full `./tools/check.sh` | Passed: 150 Rust tests, fmt/Clippy, 39 locales/549 messages, CTest 2/2 (18.64s) |
+| Initial Sailfish build | Tool timeout after 240s during Rust compile; no success claimed |
+| Final `./tools/build-sailfish.sh` / `./tools/build-device-tests.sh` | Passed with longer production timeout; Qt5.6/aarch64 GNU RPM/rootless and fixture; existing lint warnings only |
+| Isolated-home phone production logging smoke | Exit 0; Oct 7 filename, mode 0600, all 21 lines timestamped; startup/shutdown, audio, load, BlueZ and PulseAudio stream/route records present |
+| Phone `protocolAndNativeAudio`, isolated D-Bus, real PulseAudio | Passed: 3 QtTest entries, no failures/skips, process exit 0 |
+| Phone delivery | New RPM in Downloads, 4626020 bytes, SHA256 `cb6b7fc5291e71c6c7bec2645e4d69736b415ebe80bbf46af840d56282926109` |
+| `git diff --check` | Passed |
+
+Local tests precede live phone checks. The phone smoke used temporary HOME/data and
+an unavailable Documents path to verify the fallback; native playback used generated
+loopback silence and temporary session state. Temporary transfer/smoke files were
+removed. No real-account playback, phone-clock change or service restart was issued.
+The new RPM awaits user installation; rootless success does not establish normally
+installed sandbox access to optional pactl diagnostics or reproduce car stutter.
+
+## Morning car stutter investigation — 2026-10-07
+
+| Check | Actual result |
+| --- | --- |
+| User field report with yesterday's RPM installed | Severe intermittent resume audio; another Bluetooth app affected; Bluetooth restart restored music |
+| SSH retry | Passed after initial No route to host attempts |
+| Running installed app / retained log descriptors | PID 23273, `/usr/bin/harbour-plexfreq`; stdout/stderr point to Oct 6 fallback log |
+| Retained application log | Nine lines, startup/vendor graphics diagnostics only; no audio errors, clock-loss messages or HTTP retries |
+| Bluetooth service | Running since 08:12:15 CEST Oct 7 |
+| Read-only BlueZ ObjectManager snapshot | One adapter, seven Device1 objects, zero audio transports |
+| PulseAudio existing PlexFreq stream | Corked, x-maemo, 48 kHz float32 stereo, deep-buffer sink; default sink is null |
+| OBEX status | Failed since Oct 6 07:55:18; predates this incident |
+| Load / two-second process CPU sample | Load about 14; no sampled CPU saturation, PlexFreq about 3%; vendor/kernel D-state tasks present |
+| User/system journal access | Denied to ordinary developer account; no incident service logs recovered |
+
+This is a post-recovery read-only inspection, not a reproduction or hardware fix.
+No playback, pause, service restart, package replacement or live Plex request was
+issued. No source behavior changed, so audio/build gates were not rerun. The log
+date is selected at startup, explaining why no Oct 7 file exists for this overnight
+process. Shared Bluetooth/audio trouble is favored by the user's observations;
+the failing layer remains unproven. A connected snapshot during the next silence,
+before restarting Bluetooth, is needed to distinguish app starvation from downstream
+transport/routing trouble.
+
 ## Car-trip recovery / logo — 2026-10-06
 
 | Check | Actual result |

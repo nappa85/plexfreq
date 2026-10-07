@@ -3,7 +3,7 @@ use gstreamer as gst;
 use gstreamer_app as app;
 use std::{
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         mpsc, Arc,
     },
     thread,
@@ -146,6 +146,8 @@ impl Representation {
 pub struct Reader {
     stop: watch::Sender<Option<u64>>,
     worker: Option<thread::JoinHandle<()>>,
+    input: app::AppSrc,
+    received: Arc<AtomicU64>,
 }
 impl Reader {
     pub fn new(
@@ -162,6 +164,8 @@ impl Reader {
                 .build(),
         );
         let output = source.clone();
+        let received_bytes = Arc::new(AtomicU64::new(0));
+        let progress = received_bytes.clone();
         let worker=thread::Builder::new().name("plexfreq-stream".into()).spawn(move|| {
             let stop_uri=url::Url::parse(&uri).ok().and_then(|url|crate::quality::stop_url(&url));
             let stop_token=token.clone();
@@ -186,6 +190,7 @@ impl Reader {
                         failures = 0;
                     }
                     let Some(offset)=retry_offset.take().or(*changed.borrow_and_update()) else{return;};
+                    crate::diagnostics::event(format_args!("HTTP audio request offset={offset} progressive={progressive} retry={failures}"));
                     let mut request_builder=client.get(&uri).header("Accept-Encoding", "identity");
                     if !progressive {request_builder=request_builder.header("Range",format!("bytes={offset}-"));}
                     if let Some(validator) = representation.validator.as_deref() {
@@ -207,6 +212,7 @@ impl Reader {
                         _=>{gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;}
                     };
                     let Some((mut skip, total, expected)) = representation.layout(response.status(), response.headers(), offset) else {gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;};
+                    crate::diagnostics::event(format_args!("HTTP audio response status={} total={total:?} expected={expected:?} validator={}", response.status().as_u16(), representation.validator.is_some()));
                     if let Some(total)=total{output.set_size(total.min(i64::MAX as u64) as i64);}
                     let mut interrupted=false;let mut received=0u64;let mut delivered=0u64;
                     loop {
@@ -214,11 +220,12 @@ impl Reader {
                         match chunk {
                             Ok(Some(bytes))=>{
                                 received=received.saturating_add(bytes.len() as u64);
+                                progress.fetch_add(bytes.len() as u64, Ordering::Relaxed);
                                 if expected.is_some_and(|n|received>n){gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;}
                                 let ignore=skip.min(bytes.len() as u64) as usize;skip-=ignore as u64;if ignore==bytes.len(){continue;}
                                 for chunk in bytes[ignore..].chunks(64*1024){if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}delivered+=chunk.len() as u64;}
                             },
-                            Ok(None) if skip == 0 && expected.is_none_or(|n|received==n)=>{let _=output.end_of_stream();break;},
+                             Ok(None) if skip == 0 && expected.is_none_or(|n|received==n)=>{crate::diagnostics::event(format_args!("HTTP audio EOF received={received} delivered={delivered}"));let _=output.end_of_stream();break;},
                             _=>{
                                 let resume = offset + delivered;
                                 if retryable(&representation, resume, progressive, failures) {
@@ -243,7 +250,15 @@ impl Reader {
         Ok(Self {
             stop,
             worker: Some(worker),
+            input: source.clone(),
+            received: received_bytes,
         })
+    }
+    pub(super) fn diagnostics(&self) -> (u64, u64) {
+        (
+            self.received.load(Ordering::Relaxed),
+            self.input.current_level_bytes(),
+        )
     }
     pub fn stop(&self) {
         let _ = self.stop.send(None);

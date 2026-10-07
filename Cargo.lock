@@ -1149,6 +1149,7 @@ dependencies = [
  "futures-util",
  "gstreamer",
  "gstreamer-app",
+ "libc",
  "rand 0.8.8",
  "reqwest",
  "serde",

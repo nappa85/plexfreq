@@ -19,6 +19,34 @@ fn output(value: serde_json::Value) -> *mut c_char {
 }
 
 /// # Safety
+/// `dir` is valid UTF-8 C text. Install once before runtime startup; free after
+/// runtime/Qt teardown, with no concurrent logger install/free calls.
+#[no_mangle]
+pub unsafe extern "C" fn pf_log_new(dir: *const c_char) -> *mut crate::diagnostics::Log {
+    if dir.is_null() {
+        return ptr::null_mut();
+    }
+    catch_unwind(|| {
+        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
+        crate::diagnostics::Log::install(PathBuf::from(path))
+            .ok()
+            .map(Box::new)
+            .map(Box::into_raw)
+    })
+    .ok()
+    .flatten()
+    .unwrap_or(ptr::null_mut())
+}
+/// # Safety
+/// Free one live logger after all application workers have stopped.
+#[no_mangle]
+pub unsafe extern "C" fn pf_log_free(log: *mut crate::diagnostics::Log) {
+    if !log.is_null() {
+        drop(unsafe { Box::from_raw(log) });
+    }
+}
+
+/// # Safety
 /// `dir` is a valid NUL-terminated UTF-8 string. Runtime is owned by its GUI bridge.
 #[no_mangle]
 pub unsafe extern "C" fn pf_runtime_new(dir: *const c_char) -> *mut crate::runtime::Runtime {

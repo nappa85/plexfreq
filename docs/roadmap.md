@@ -1,5 +1,27 @@
 # Development roadmap
 
+Multi-day diagnostics (2026-10-07): current-local-date rotation is implemented in
+a Rust stdout/stderr capture worker, independent of GUI timers. Logs have local
+timestamps/UTC offsets, monotonic elapsed time and PID, URL/token redaction, seven
+retained dates and bounded active/backup files. Controls, pipeline warnings/states,
+clock/latency, HTTP status/bytes, PCM queues and stall/recovery now accompany periodic
+read-only Bluetooth/PulseAudio/load snapshots. All 150 Rust tests, desktop gates,
+Sailfish production/fixture builds, phone logging smoke and synthetic real-PulseAudio
+transport pass. New RPM is in Downloads. Next: install/restart the app, verify optional
+PulseAudio snapshot access under normal Sailjail launch, then inspect the retained
+records after a real recurrence. No extra diagnostic build should be needed merely
+to distinguish decoder starvation, output backlog, stalled position and routing/cork.
+
+Car-resume investigation (2026-10-07): user confirms yesterday's RPM installed;
+severe morning stutter and another Bluetooth application's failure cleared after
+Bluetooth restart. Read-only phone inspection finds an installed overnight app,
+no recorded audio/HTTP/clock-loss errors in its Oct 6 startup-date log, and no
+currently connected Bluetooth audio transport. Shared-stack trouble is favored,
+but the failing layer is unproven and journals are inaccessible. Next: capture
+PulseAudio stream route/cork/latency, BlueZ transport state and track-position
+progress during a recurrence before recovery. Overnight logging currently keeps
+the startup-date file rather than rotating at midnight.
+
 Car-trip follow-up (2026-10-06): reproduced/fixed full-output pause/resume deadlock;
 added output clock-loss recovery, larger bounded input/PCM headroom, catch-up batches
 and validated original-stream retries. Root logo now supplies PNG launcher/window

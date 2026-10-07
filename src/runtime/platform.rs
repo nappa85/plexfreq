@@ -26,6 +26,7 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
         .spawn(move || {
             let connection = bluetooth_connection;
             let mut policy = crate::bluetooth::PausePolicy::default();
+            let mut previous_facts = None;
             let signals = connection.as_ref().and_then(|connection| {
                 zbus::MatchRule::builder()
                     .msg_type(zbus::message::Type::Signal)
@@ -45,11 +46,20 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
                     .as_ref()
                     .and_then(|connection| bluetooth_audio(connection).ok());
                 let snapshot = bluetooth.playback();
+                if facts != previous_facts {
+                    log_bluetooth(&facts, "change");
+                    previous_facts = facts.clone();
+                }
                 if policy.observe(
                     facts,
                     snapshot.loaded && (snapshot.playing || snapshot.buffering),
                 ) {
-                    let _ = bluetooth.send(json!({"op":"audio_pause"}));
+                    let result = bluetooth.send(json!({"op":"audio_pause"}));
+                    crate::diagnostics::event(format_args!(
+                        "Bluetooth disconnect auto-pause occurrence={} accepted={}",
+                        snapshot.id,
+                        result.is_ok()
+                    ));
                 }
             };
             // Subscribe first, then seed, so startup disconnects stay queued.
@@ -101,6 +111,7 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
                     .and_then(|c| facts(c).ok())
                     .unwrap_or((false, false));
                 if previous != Some(facts) {
+                    crate::diagnostics::event(format_args!("network change wifi={} online={}", facts.0, facts.1));
                     network.hint_network(facts.0);
                     let _ = network.send(json!({"op":"network_state","wifi":facts.0,"online":facts.1,"live_hint":true}));
                     previous = Some(facts);
@@ -115,6 +126,36 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
         })
     {
         threads.push(net);
+    }
+    if crate::diagnostics::enabled() {
+        let diagnostic = shared.clone();
+        if let Ok(worker) = thread::Builder::new().name("plexfreq-diagnostics".into()).spawn(move || {
+            let connection = Connection::system().ok();
+            while !diagnostic.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                let state = diagnostic.playback();
+                let load: Vec<f64> = std::fs::read_to_string("/proc/loadavg").unwrap_or_default()
+                    .split_whitespace().take(3).filter_map(|s| s.parse().ok()).collect();
+                crate::diagnostics::event(format_args!("platform heartbeat occurrence={} playing={} buffering={} paused={} loaded={} position_ms={} load={load:?}",
+                    state.id, state.playing, state.buffering, state.paused, state.loaded, state.position));
+                log_bluetooth(&connection.as_ref().and_then(|c| bluetooth_audio(c).ok()), "heartbeat");
+                match pulse_command(&["list", "sink-inputs"], &diagnostic.stop) {
+                    Ok(text) => crate::diagnostics::event(format_args!("PulseAudio {}", pulse_summary(&text))),
+                    Err(reason) => crate::diagnostics::event(format_args!("PulseAudio snapshot unavailable reason={reason}")),
+                }
+                match pulse_command(&["list", "sinks"], &diagnostic.stop) {
+                    Ok(text) => crate::diagnostics::event(format_args!("PulseAudio routes {}", pulse_routes(&text))),
+                    Err(reason) => crate::diagnostics::event(format_args!("PulseAudio routes unavailable reason={reason}")),
+                }
+                let ticks = if state.playing || state.buffering { 100 } else { 600 };
+                for _ in 0..ticks {
+                    if diagnostic.stop.load(std::sync::atomic::Ordering::SeqCst) { break; }
+                    thread::sleep(Duration::from_millis(100));
+                    let next = diagnostic.playback();
+                    if (state.id, state.playing, state.buffering, state.paused, state.loaded)
+                        != (next.id, next.playing, next.buffering, next.paused, next.loaded) { break; }
+                }
+            }
+        }) { threads.push(worker); }
     }
     let bus = shared.clone();
     if let Ok(player) = thread::Builder::new()
@@ -225,10 +266,16 @@ fn bluetooth_audio(connection: &Connection) -> zbus::Result<crate::bluetooth::Fa
             }
         }
         if let Some(transport) = interfaces.get("org.bluez.MediaTransport1") {
-            let active = transport
+            let state = transport
                 .get("State")
-                .and_then(|v| <&str>::try_from(v).ok())
-                .is_some_and(|state| matches!(state, "active" | "pending"));
+                .and_then(|v| <&str>::try_from(v).ok());
+            match state {
+                Some("idle") => facts.idle_transports += 1,
+                Some("pending") => facts.pending_transports += 1,
+                Some("active") => facts.active_transports += 1,
+                _ => {}
+            }
+            let active = state.is_some_and(|state| matches!(state, "active" | "pending"));
             if active {
                 if let Some(device) = transport
                     .get("Device")
@@ -241,6 +288,204 @@ fn bluetooth_audio(connection: &Connection) -> zbus::Result<crate::bluetooth::Fa
         }
     }
     Ok(facts)
+}
+
+fn log_bluetooth(facts: &Option<crate::bluetooth::Facts>, reason: &str) {
+    match facts {
+        Some(facts) => crate::diagnostics::event(format_args!("Bluetooth {reason} audio_connected={} tracked_active={} transports_idle={} pending={} active={}",
+            facts.connected.len(), facts.active.len(), facts.idle_transports, facts.pending_transports, facts.active_transports)),
+        None => crate::diagnostics::event(format_args!("Bluetooth {reason} facts unavailable (not treated as disconnect)")),
+    }
+}
+// Read-only, off the audio/GUI actors. Bound both subprocess lifetime and output;
+// never persist pactl's arbitrary media titles/URLs or other clients' properties.
+fn pulse_command(
+    args: &[&str],
+    stop: &std::sync::atomic::AtomicBool,
+) -> Result<String, &'static str> {
+    use std::{
+        io::Read,
+        os::fd::AsRawFd,
+        process::{Command, Stdio},
+        time::Instant,
+    };
+    let mut child = Command::new("pactl")
+        .args(args)
+        .env("LC_ALL", "C")
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|_| "pactl unavailable")?;
+    let result = (|| {
+        let mut stdout = child.stdout.take().ok_or("no stdout")?;
+        let flags = unsafe { libc::fcntl(stdout.as_raw_fd(), libc::F_GETFL) };
+        if flags < 0
+            || unsafe { libc::fcntl(stdout.as_raw_fd(), libc::F_SETFL, flags | libc::O_NONBLOCK) }
+                < 0
+        {
+            return Err("nonblocking setup");
+        }
+        let start = Instant::now();
+        let mut output = Vec::new();
+        let mut buffer = [0; 4096];
+        loop {
+            loop {
+                match stdout.read(&mut buffer) {
+                    Ok(0) => break,
+                    Ok(count) => {
+                        output.extend_from_slice(&buffer[..count]);
+                        if output.len() > 256 * 1024 {
+                            return Err("output limit");
+                        }
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                    Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+                    Err(_) => return Err("read failed"),
+                }
+            }
+            if let Some(status) = child.try_wait().map_err(|_| "wait failed")? {
+                if !status.success() {
+                    return Err("query denied/failed");
+                }
+                // Drain the final pipe bytes after exit (bounded, still nonblocking).
+                loop {
+                    match stdout.read(&mut buffer) {
+                        Ok(0) => break,
+                        Ok(count) => {
+                            output.extend_from_slice(&buffer[..count]);
+                            if output.len() > 256 * 1024 {
+                                return Err("output limit");
+                            }
+                        }
+                        Err(_) => break,
+                    }
+                }
+                return Ok(String::from_utf8_lossy(&output).into_owned());
+            }
+            if stop.load(std::sync::atomic::Ordering::SeqCst)
+                || start.elapsed() >= Duration::from_secs(2)
+            {
+                return Err("cancelled/timeout");
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+    })();
+    let _ = child.kill();
+    let _ = child.wait();
+    result
+}
+fn pulse_summary(text: &str) -> String {
+    let mut streams = Vec::new();
+    let mut total = 0;
+    for block in text.split("Sink Input #").skip(1) {
+        total += 1;
+        if !block
+            .lines()
+            .any(|line| line.trim() == "application.name = \"PlexFreq\"")
+        {
+            continue;
+        }
+        let mut fields = Vec::new();
+        if let Some(index) = block
+            .lines()
+            .next()
+            .and_then(|s| s.trim().parse::<u64>().ok())
+        {
+            fields.push(format!("input={index}"));
+        }
+        for line in block.lines() {
+            let line = line.trim();
+            if [
+                "Sink:",
+                "Corked:",
+                "Mute:",
+                "Volume:",
+                "Buffer Latency:",
+                "Sink Latency:",
+                "Sample Specification:",
+            ]
+            .iter()
+            .any(|key| line.starts_with(key))
+            {
+                fields.push(line.to_owned());
+            }
+        }
+        streams.push(fields.join("; "));
+    }
+    format!(
+        "inputs={total} plexfreq_streams={} [{}]",
+        streams.len(),
+        streams.join(" | ")
+    )
+}
+
+fn pulse_routes(text: &str) -> String {
+    let mut sinks = Vec::new();
+    for block in text.split("Sink #").skip(1) {
+        let mut fields = Vec::new();
+        if let Some(index) = block
+            .lines()
+            .next()
+            .and_then(|s| s.trim().parse::<u64>().ok())
+        {
+            fields.push(format!("sink={index}"));
+        }
+        for line in block.lines() {
+            let line = line.trim();
+            if let Some(name) = line.strip_prefix("Name: ") {
+                fields.push(format!(
+                    "kind={}",
+                    if name.contains("bluez") {
+                        "bluetooth"
+                    } else if name.contains("null") {
+                        "null"
+                    } else {
+                        "native/other"
+                    }
+                ));
+            } else if [
+                "State:",
+                "Driver:",
+                "Sample Specification:",
+                "Mute:",
+                "Volume:",
+                "Latency:",
+            ]
+            .iter()
+            .any(|key| line.starts_with(key))
+            {
+                fields.push(line.into());
+            }
+        }
+        sinks.push(fields.join("; "));
+    }
+    sinks.join(" | ")
+}
+#[cfg(test)]
+mod diagnostic_tests {
+    #[test]
+    fn pulse_snapshot_excludes_urls_titles_and_unrelated_clients() {
+        let summary = super::pulse_summary("Sink Input #9\n Sink: 2\n Corked: no\n Buffer Latency: 300000 usec\n application.name = \"PlexFreq\"\n media.name = \"private title\"\n media.filename = \"https://fixture.invalid/?X-Plex-Token=secret\"\nSink Input #10\n application.name = \"Other\"\n Corked: yes\n");
+        assert!(
+            summary.contains("inputs=2")
+                && summary.contains("input=9")
+                && summary.contains("Corked: no")
+        );
+        assert!(
+            !summary.contains("title")
+                && !summary.contains("secret")
+                && !summary.contains("Other")
+                && !summary.contains("Corked: yes")
+        );
+        let routes = super::pulse_routes("Sink #2\n State: RUNNING\n Name: bluez_sink.private_address\n Description: private car name\n Latency: 100000 usec\n");
+        assert!(
+            routes.contains("sink=2")
+                && routes.contains("kind=bluetooth")
+                && routes.contains("RUNNING")
+        );
+        assert!(!routes.contains("private"));
+    }
 }
 
 #[cfg(test)]
