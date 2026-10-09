@@ -1,5 +1,48 @@
 # Architecture
 
+## Native PulseAudio introspection (2026-10-07)
+
+`runtime/pulse.rs` replaces the sandbox-inaccessible pactl observer. Rust links
+libpulse directly and confines context/mainloop/operations to the existing
+diagnostic worker. Each sample opens the local `$XDG_RUNTIME_DIR/pulse/native`
+Unix socket (UID runtime fallback when unset), with NOAUTOSPAWN. Nonblocking
+iterations share a two-second connection/query deadline and check shutdown every
+iteration. A new connection per sample permits recovery after daemon failure.
+
+Concurrent sink-input/sink list queries must both finish successfully. At most
+32 entries per list are processed; overflow, timeout, denial or connection loss
+produces an unavailable record. Callback data is borrowed only during dispatch;
+technical fields are copied into bounded summaries and arbitrary strings are
+not persisted. Volume is the numeric channel min/max percentage. Stream matching
+retains the exact application.name=PlexFreq whitelist. Sink names are classified
+as bluetooth/null/native-other but never emitted. Indexes correlate stream routes
+with sink state, mute, actual/configured latency and sample specifications.
+
+Cancellation disables both callbacks before their stack userdata is destroyed;
+context teardown precedes mainloop teardown. No observer creates an audio stream,
+starts a daemon or changes routing/volume. C++/QML and playback policy retain their
+existing roles. `examples/pulse-diagnostics.rs` provides a read-only probe of this
+same code. Phone rootless smoke/probe pass; updated normally installed Sailjail
+execution remains pending RPM installation.
+
+## Installed diagnostics boundary / afternoon incident (2026-10-07)
+
+Normally installed Sailjail execution has now been inspected: diagnostics-v2
+audio/BlueZ records work, but `/usr/bin/pactl` is absent from the running app's
+filesystem namespace although it exists over SSH. Thus `runtime/platform.rs`'s
+subprocess observer cannot currently retain installed-app PulseAudio snapshots.
+Rootless log/transport tests do not cover that boundary. The native libpulse
+replacement above uses the existing Audio permission's socket access and retains
+technical-field filtering off the audio/GUI actors.
+
+Pipeline position and `heard_ms` are output-clock-derived estimates, not acoustic
+measurements. The 15:46 incident has advancing position, healthy local decoder
+queues and no pipeline warnings while the user reports stutter. BlueZ active
+transport counts likewise do not guarantee successful packet delivery. Correlated
+ElectricEel BLE failures and recovery following service/application restarts favor
+shared-stack trouble but do not isolate its origin. Playback/disconnect policy is
+unchanged by this read-only investigation.
+
 ## Rotating multi-day diagnostics (2026-10-07)
 
 Rust `diagnostics.rs` captures framework and Rust stdout/stderr through a process

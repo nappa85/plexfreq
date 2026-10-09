@@ -1,5 +1,60 @@
 # Validation record
 
+## Native PulseAudio observer patch — 2026-10-07
+
+| Check | Actual result |
+| --- | --- |
+| Silent temporary Unix socket / real libpulse handshake | Passed: 100 ms test deadline, cancellation during wait and before connect, bounded return |
+| Missing local socket | Passed: failure, no daemon autospawn |
+| Native callback whitelist / cap / end/error semantics | Passed: own stream and technical fields retained, private fields excluded, oversized list rejected, query failure not empty success |
+| Focused `cargo test --locked runtime::pulse -- --nocapture` | Passed: 4/4 |
+| `cargo run --locked --example pulse-diagnostics` | Passed: existing desktop server, two sinks, no playback stream created |
+| Initial full gate | Failed at Clippy callback-owned immutable while condition; corrected |
+| Next full gate | Rust checks passed; desktop compile exceeded 600s tool deadline |
+| Final `./tools/check.sh` | Passed: 153 Rust tests, fmt/Clippy, 39 locales/549 messages, desktop CTest 2/2 (15.29s) |
+| Final `./tools/build-sailfish.sh` / `./tools/build-device-tests.sh` | Passed: Qt5.6/aarch64 GNU production RPM/rootless and native fixture; libpulse linked, existing lint warnings only |
+| Standalone probe Cargo cross-build | Failed: host disk exhausted; scoped generated-package cleanup, final direct SDK GNU ld probe link succeeds |
+| Phone read-only native observer probe | Passed: existing PlexFreq input/sink/cork/mute/volume/latency and four sinks retrieved |
+| Temporary probe Sailjail launch | Rejected: Exec mismatch with installed desktop file; sandbox result not claimed |
+| Phone real-PulseAudio `protocolAndNativeAudio` | Passed: 3 QtTest entries, no failures/skips, explicit exit 0 |
+| Phone temporary-HOME production smoke | Exit 0; persisted libpulse stream/routes records with no unavailable result |
+| Phone delivery | New RPM in Downloads, 4626489 bytes; host/phone SHA256 match `137a383fe6b65ab8ada392df6e0f646eaf13369d642f62744c6796589493b9f0` |
+| Temporary phone files | Removed; installed app, credentials/session/cache retained |
+| Final documentation/source whitespace | `git diff --check` passed |
+
+All local tests precede phone experiments. Phone fixture uses generated loopback
+media/temporary state and an isolated D-Bus session. Production smoke uses a
+temporary HOME/data/config and unavailable Documents directory, so user state is
+not touched. Observer queries are read-only. Installed sandbox access after RPM
+replacement and physical car stutter recovery remain separate pending checks.
+
+## Afternoon car-stop cross-application investigation — 2026-10-07
+
+| Check | Actual result |
+| --- | --- |
+| Read-only SSH / current phone time | Passed; 16:36:07 CEST Oct 7 |
+| Installed diagnostics-v2 log | Recovered same-date fallback file; startup 10:27:53, namespace PID 43 / host PID 65146 |
+| First-stop disconnect policy | Auto-pause accepted at 15:42:34.392; explicit play resumes output at 15:46:26.399 |
+| Reported-stutter decoder/output snapshots | Cache/local sources, about 2 s decoded PCM and 0.501 s appsrc queue; advancing position, no buffering, zero warning/QoS counters |
+| Natural track transitions | Recorded at 15:46:46 and 15:54:58 |
+| Second-stop disconnect policy | Auto-pause accepted at 15:56:11.047 |
+| ElectricEel pre-reset failures | Prime timeout / repeated In Progress after second stop; two ServicesResolved timeouts at 16:18, second Disconnect cleanup also timed out |
+| Bluetooth restart evidence | PlexFreq facts unavailable around 16:19:07/12; systemd new start 16:19:12 CEST |
+| ElectricEel recovery | App/session also restarted; new GATT resolves in 1.392 s, DRIVE response succeeds at 16:19:19.820 |
+| PlexFreq post-reset recovery | Same app/occurrence retained; reconnect 16:19:49, play/resume 16:20:03 |
+| Normally installed optional PulseAudio diagnostics | Failed: pactl unavailable throughout; host binary exists but app namespace binary absent |
+| Post-recovery SSH PulseAudio snapshot | Corked/unmuted 48 kHz float32 stereo stream on deep-buffer sink; 152875 us buffer latency, sinks suspended |
+| PulseAudio service lifetime | Running since Oct 5 16:01:11 CEST, not restarted with Bluetooth |
+| Journal access | Denied; ordinary account cannot recover system/user incident journal |
+| Documentation `git diff --check` | Passed |
+
+This is log correlation after user-led recovery, not a reproduction or verified
+hardware fix. No live Plex request, playback command, application replacement or
+service change was issued. No behavior changed; build/audio gates were not rerun.
+Current snapshots do not establish historical route/latency. Pipeline-derived
+heard-time is not proof of acoustic delivery. See research.md for consulted sources
+and the distinction between correlated failures and causal attribution.
+
 ## Current-date rotation / expanded diagnostics — 2026-10-07
 
 | Check | Actual result |

@@ -1,5 +1,29 @@
 # Development roadmap
 
+Native diagnostic patch (2026-10-07): pactl subprocess dependency is replaced by
+Rust/libpulse introspection with two-second connection/query bounds, shutdown
+cancellation, 32-entry caps and technical-only summaries. Local regressions,
+153-test/full desktop gate, final SDK app/fixture builds, phone read-only probe,
+temporary-HOME production logging smoke and generated real-PulseAudio transport
+pass. Updated RPM is in Downloads. Next: install/restart normally and verify
+`PulseAudio backend=libpulse` plus route snapshots in the retained dated log under
+Sailjail, then retain a connected stutter snapshot before user-led recovery.
+The temporary probe cannot substitute for that installed launch (Exec mismatch).
+No playback recovery behavior or Bluetooth-service reset is introduced.
+
+Afternoon car-stop investigation (2026-10-07): current installed diagnostics-v2
+records correlate first-stop resume at 15:46 with healthy cached decoding/output
+progress, then second-stop BLE failures and Bluetooth restart at 16:19:12.
+ElectricEel also restarted and subsequently resolved GATT/authenticated; PlexFreq
+resumed its retained occurrence. Shared Bluetooth-stack/car trouble is favored,
+but the failing component and any cross-app interference remain unproven.
+Installed sandbox inspection confirms pactl is absent from the app namespace,
+so historical PulseAudio snapshots are missing despite passing rootless smoke.
+Native replacement is now implemented above under existing Audio permission;
+next verify through a normally installed launch and retain
+connected incident route/cork/latency evidence before user-led recovery. No audio
+policy workaround or service-reset behavior was added on this evidence.
+
 Multi-day diagnostics (2026-10-07): current-local-date rotation is implemented in
 a Rust stdout/stderr capture worker, independent of GUI timers. Logs have local
 timestamps/UTC offsets, monotonic elapsed time and PID, URL/token redaction, seven

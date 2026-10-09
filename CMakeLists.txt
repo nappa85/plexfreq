@@ -8,7 +8,7 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0 gstreamer-app-1.0 gio-2.0)
+pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0 gstreamer-app-1.0 gio-2.0 libpulse)
 find_program(CARGO cargo REQUIRED)
 # Keep cargo artifacts out of the source tree; reuse the binary dir.
 set(RUST_TARGET_DIR "${CMAKE_BINARY_DIR}/cargo-target")

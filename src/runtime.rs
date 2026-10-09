@@ -1,5 +1,6 @@
 //! Rust owns worker lifetime, audio transport and maintenance; Qt only polls events.
 mod platform;
+mod pulse;
 use crate::{
     audio::{self, Engine, Event, Source},
     Command, Core, Error, Prepared, Result,

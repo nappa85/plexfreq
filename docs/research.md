@@ -1,5 +1,124 @@
 # Research log
 
+## Native PulseAudio diagnostics patch — 2026-10-07
+
+- Replaced `pactl` subprocesses/text parsing with `src/runtime/pulse.rs`, a
+  read-only `libpulse-sys` observer on the existing diagnostic worker. It connects
+  explicitly to the local user-session Unix socket, disables daemon autospawn,
+  and uses nonblocking mainloop iterations with a shared two-second connection/
+  query deadline and shutdown cancellation. No streams, routing or volume writes.
+- Native sink/input callbacks copy technical fields only: PlexFreq input/sink
+  indexes, cork/mute, sample format/rate/channels, min/max channel-volume percentage,
+  buffer/sink latency; sink state, classified kind and configured latency.
+  Application name is used only for exact matching; arbitrary titles, addresses,
+  descriptions, URLs, driver strings and properties never enter the records.
+  Each list is capped at 32 entries; oversized/error/timeout results are explicitly
+  unavailable rather than reported as complete. Both end-of-list callbacks are
+  required for success. RAII cancels/unrefs operations, disconnects/unrefs the
+  context and frees its loop before callback userdata leaves scope.
+- Consulted upstream PulseAudio C headers (successful retrieval):
+  https://raw.githubusercontent.com/pulseaudio/pulseaudio/master/src/pulse/introspect.h
+  (callback lifetime, positive end/negative error, sink/input fields),
+  https://raw.githubusercontent.com/pulseaudio/pulseaudio/master/src/pulse/mainloop.h
+  (nonblocking iterate and thread confinement), plus installed libpulse-sys
+  1.23.0 and libpulse-binding 2.30.1 ownership/cancellation implementations. The
+  freedesktop Doxygen endpoint returned 418; an attempted example URL returned
+  404 and neither was used as evidence. The existing Sailfish Audio permission
+  exposes the local PulseAudio socket; no permission expansion is needed.
+- Added libpulse to desktop/qmake/RPM/fixture linkage and development dependencies
+  in CI/SDK image. SDK rebuilt with pulseaudio-devel 17.0; image config ID
+  `sha256:6322bb00c145ca3283150997b2d6631d66c6e5d23ddedc5d360256af366ecb5f`.
+  Rust bindings use API level 12, below the phone/SDK's PulseAudio 17.
+- Local callback fixtures verify private-field exclusion, own-stream filtering,
+  error versus empty list and bounded records. A silent temporary Unix listener
+  verifies real libpulse handshake timeout and cancellation; a missing socket
+  fails without daemon spawn. All four pass before phone experiments. The
+  read-only `examples/pulse-diagnostics.rs` reuses the exact observer and successfully
+  queries the existing desktop server without creating any stream.
+- Initial host gate caught Clippy's immutable-condition warning for callback-owned
+  flags; an explicit loop fixes it. The next gate passed Rust checks but its desktop
+  compile hit the 600s tool deadline. Final complete `./tools/check.sh` passes:
+  153 Rust tests, fmt/Clippy, 39 locales/549 messages, desktop CTest 2/2 (15.29s).
+  Final production and Qt5.6 fixture SDK builds pass with existing lint warnings.
+- Standalone probe Cargo cross-build exhausted host disk after the package builds
+  had succeeded. Scoped Cargo cleanup removed this package's generated aarch64
+  release files; the already built app/RPM/fixture remain intact. Temporary probe
+  linker attempts encountered SDK GCC/ld discovery and transitive search paths;
+  final probe links using SDK GNU ld/startup files and existing GNU Rust/FFI
+  artifacts, with output in temporary storage. No production build wrapper changed.
+- Phone probe succeeds: existing PlexFreq input 6805 on sink 1, corked/unmuted,
+  float32 stereo 48 kHz, volume 43%, buffer latency 152875 us; four sink snapshots.
+  Sailjail rejects the temporary probe's Exec mismatch with the installed desktop
+  file. This is not a normally installed sandbox validation; no profile bypass.
+- Temporary-HOME production smoke exits 0 and persists both `backend=libpulse`
+  stream/routes records with no unavailable result. Separate isolated-bus,
+  real-PulseAudio `protocolAndNativeAudio` passes all three QtTest entries, exit 0.
+  Generated fixture media only; no real Plex playback or service restart.
+- New RPM copied to Downloads, 4626489 bytes, SHA256
+  `137a383fe6b65ab8ada392df6e0f646eaf13369d642f62744c6796589493b9f0`.
+  Temporary phone probe/fixture/home removed; installed app/session/cache retained.
+  Next: user installs RPM and restarts normally, then verify persisted libpulse
+  records under Sailjail before the next physical car-stop test. This patch closes
+  the subprocess dependency; it is not a demonstrated cure for the audio stutter.
+
+## Afternoon car stops / ElectricEel correlation — 2026-10-07
+
+- Read-only SSH at 16:36 CEST recovered the installed diagnostics-v2 log from
+  `~/.local/share/org.plexfreq/harbour-plexfreq/logs/plexfreq-2026-10-07.log`
+  (startup 10:27:53, namespace PID 43; host PID 65146) and the same-date
+  `~/Documents/ElectricEel/phone-key-2026-10-07.log`. Times below are phone-local
+  CEST. Temporary host copies were used for correlation; no credentials/session
+  files, playback controls, service restarts or package updates were involved.
+- First stop: audio transport disappears at 15:42:34; disconnect auto-pause succeeds
+  at 15:42:34.392. ElectricEel's GATT drops at 15:42:57.561. On return, ElectricEel
+  resolves GATT at 15:45:04 and answers DRIVE authentication at 15:45:05.305.
+  Audio reconnects at 15:46:12.949; explicit play at 15:46:26.397 immediately moves
+  output PAUSED → PLAYING. Its brief active/idle transitions before play also occur
+  after the later reset, so these alone do not identify the stutter.
+- During reported stutter, output position and submitted PCM keep advancing,
+  appsrc queue is 192512 bytes (~0.501 s), decoder PCM is about 96000 frames
+  (~2 s), buffering=false and warning/QoS counters are zero. All five created
+  decoders use cache/local files; no HTTP stream is involved. Natural occurrence
+  transitions at 15:46:46 and 15:54:58 progress normally. No recorded clock loss,
+  stall/recovery or delayed-actor report establishes an app starvation failure.
+  `src/audio/mod.rs:678` queries pipeline position, and `publish` derives heard
+  time from it: neither counter proves sound actually reached the car.
+- Second stop: audio disconnect/auto-pause at 15:56:11.047. ElectricEel then logs
+  VCSEC prime timeout at 15:56:30.313, repeated `In Progress` until 15:56:50,
+  followed by GATT drop. Return attempts at 16:18:05 and 16:18:35 both get a
+  successful Device1.Connect reply but never ServicesResolved; the first loses
+  Connected, the second stays Connected=true. The second cleanup Disconnect also
+  times out after two seconds. These are concrete BLE failures, not proof of
+  which component caused the preceding audio stutter.
+- PlexFreq observes BlueZ facts unavailable at 16:19:07 and 16:19:12; systemd
+  reports Bluetooth's actual new start at **16:19:12 CEST**. ElectricEel itself
+  also restarts (old session closes 16:18:58, new session 16:19:16); its new GATT
+  resolves in 1.392 s and DRIVE authentication succeeds at 16:19:19.820.
+  Audio reconnects at 16:19:49; play at 16:20:03 resumes the same occurrence and
+  position without restarting PlexFreq. PulseAudio has remained up since Oct 5.
+  Recovery includes both Bluetooth and ElectricEel restart, so attribution to
+  Bluetooth alone is not isolated experimentally.
+- Installed sandbox validation exposes a diagnostics gap: every PulseAudio query
+  reports `pactl unavailable`. SSH has `/usr/bin/pactl`, but
+  `/proc/65146/root/usr/bin/pactl` does not exist in the app's namespace.
+  `src/runtime/platform.rs:312` depends on spawning that tool; rootless smoke did
+  not establish installed access. Post-recovery SSH PulseAudio snapshot: PlexFreq
+  input 6805 corked, unmuted, float32 stereo 48 kHz, sink 1 (`sink.deep_buffer`),
+  buffer latency 152875 us; all sinks suspended. This idle snapshot cannot recover
+  incident-time routing/latency. Next diagnostic integration should use bounded
+  Rust-owned libpulse introspection within existing Audio permission, rather than
+  depend on a host utility absent from the sandbox.
+- Consulted ElectricEel `helper/session/bluez/gatt.go:252–285` (actual
+  ServicesResolved polling) and `helper/session/main.go:1062–1068` (scan paused
+  while GATT is up); no scan-restart storm is recorded at 15:46. Upstream sources:
+  https://raw.githubusercontent.com/bluez/bluez/master/doc/org.bluez.Device.rst
+  (Connected and ServicesResolved are distinct; successful Connect is not proof
+  of completed service discovery), and
+  https://raw.githubusercontent.com/sailfishos/sailjail-permissions/master/permissions/Audio.permission
+  (PulseAudio socket access). Shared Bluetooth/controller/car trouble is favored,
+  but absent incident PulseAudio/HCI evidence cannot distinguish the failing layer
+  or prove that ElectricEel causes audio interference. No speculative audio fix.
+
 ## Multi-day rotating diagnostics — 2026-10-07
 
 - User requests current-calendar-date logs for an app retained in the background
