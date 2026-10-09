@@ -1,5 +1,44 @@
 # Validation record
 
+## Recording resume / Bluetooth profile loss / shutdown — 2026-10-09
+
+| Check | Actual result |
+| --- | --- |
+| Today's installed disconnect diagnostics | Five Pause → PAUSED/corked sequences; sustained reported failure not reproduced or time-matched |
+| User-led Android recording introspection | Uncorked AppSupport recording source-output observed, monitor association absent; technical fields only |
+| Bluetooth policy regressions | Audio profile removal pauses while Device1 stays connected; idle/unavailable facts do not; accessory switch forgets old route |
+| Private daemon → real fake-sink audio | Profile removal and full-device disconnect pause despite full metadata queue; reconnect does not resume |
+| Stalled BlueZ RPC plus 512 signals | Query times out/reconciles; platform shutdown completes below asserted three-second deadline |
+| Native REQUEST_STATE plus full PCM queue | Pause clears normal play intent; subsequent uncork/clock loss cannot restart; explicit Play still works |
+| Recording hold actor / callbacks | Retained intent resumes; already paused stays paused; Pause cancels resume; policy cork during hold preserves intent; monitor/corked streams excluded and list failures/caps handled |
+| Full `./tools/check.sh` | Passed: 159 Rust tests, fmt/Clippy, 39 locales/549 messages, desktop CTest 2/2 (15.60s) |
+| Behavioral build `./tools/build-sailfish.sh` / `./tools/build-device-tests.sh` | Passed: Qt5.6/aarch64 GNU app/RPM/rootless and fixture, existing lint warnings only |
+| Phone `PLEXFREQ_RECORDING_CHECK=1 ... protocolAndNativeAudio` | Passed: generated real-PulseAudio playback + existing silent null-source recording, automatic resume and explicit-pause override; 3 entries, 0 failures/skips, exit 0 |
+| Behavioral-build temporary-HOME production smoke | Exit 0; no application QML error; existing vendor/isolated-bus diagnostics; all worker joins logged |
+| First installed update startup failure | Old Oct 7 PID 7014 survived window close with Core/Bluetooth waiting; anchored SIGTERM removed it, normal launcher restored startup |
+| Initial installed recording pause | User confirmed; retained log at 19:28:15/18 shows active/inactive and accepted pause; manual resume superseded by final hold policy |
+| Final normally installed recording pause/resume | User confirmed; log 19:48:41/47 shows accepted hold/release with resume intent retained |
+| Final installed close/reopen | User confirmed; 19:48:59.213 runtime stop → all workers joined/Core joined → log drain at .315 (~102 ms); new startup 19:49:03.058 |
+| Installed artifact identity | Executable digest matches behavioral RPM package metadata; sole app PID 30649 |
+| Installed behavioral RPM | 4707285 bytes; SHA256 `8c336f27a977df22e47ef37560daf925ee62153fe139155bf9be682b5cd3360b` |
+| Follow-up recording-hold diagnostic classifier | Paused snapshots do not report stalls with retained intent; extended synthetic test, fmt/Clippy and 43 library tests pass |
+| Diagnostics-only refresh build/delivery | SDK production build passes; 4707262-byte RPM in Downloads, host/phone SHA256 `c704c5df546495d998c5acef620264493f31038c91ac96b98912af82bc939a20`; installation pending |
+
+Local behavioral fixtures preceded phone experiments. Phone fixture uses generated
+media, temporary state and an isolated session bus; `parec` reads only the preexisting
+silent `source.null`, with output discarded. Actual messenger recording is user-led;
+observation reads flags/indexes only. The user installed the behavioral RPM normally and later
+removed its Downloads copy; installed metadata/executable were compared against a
+temporary behavioral-RPM copy. The diagnostics-only refresh remains in Downloads.
+App state/cache/credentials retained, test files removed.
+No Bluetooth/PulseAudio service reset, routing change, root or privileged helper.
+
+The old surviving Bluetooth worker and upstream zbus implementation establish a
+plausible signal-queue/RPC teardown deadlock; no phone backtrace proves its precise
+wait. The regression validates the repaired failure path and installed close/reopen
+validates normal teardown. Long-lived/high-traffic phone behavior and physical car
+profile loss still require field validation; successful packaging alone claims neither.
+
 ## Native PulseAudio observer patch — 2026-10-07
 
 | Check | Actual result |

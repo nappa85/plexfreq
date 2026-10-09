@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 pub(crate) struct Facts {
     pub connected: BTreeSet<String>,
     pub active: BTreeSet<String>,
+    pub transports: BTreeSet<String>,
     pub idle_transports: usize,
     pub pending_transports: usize,
     pub active_transports: usize,
@@ -12,15 +13,24 @@ pub(crate) struct Facts {
 #[derive(Default)]
 pub(crate) struct PausePolicy {
     armed: BTreeSet<String>,
+    armed_transports: BTreeSet<String>,
 }
 impl PausePolicy {
     pub fn observe(&mut self, facts: Option<Facts>, playing: bool) -> bool {
         let Some(facts) = facts else { return false };
-        let lost = self
-            .armed
-            .iter()
-            .any(|device| !facts.connected.contains(device));
+        let route_lost: BTreeSet<_> = self
+            .armed_transports
+            .difference(&facts.transports)
+            .cloned()
+            .collect();
+        let lost = !route_lost.is_empty()
+            || self
+                .armed
+                .iter()
+                .any(|device| !facts.connected.contains(device));
         self.armed.retain(|device| facts.connected.contains(device));
+        self.armed_transports
+            .retain(|device| facts.transports.contains(device));
         if !facts.active.is_empty() {
             self.armed = facts
                 .active
@@ -28,7 +38,16 @@ impl PausePolicy {
                 .cloned()
                 .collect();
         } else if self.armed.is_empty() && facts.connected.len() == 1 {
-            self.armed = facts.connected;
+            self.armed = facts.connected.clone();
+        }
+        self.armed_transports
+            .retain(|device| self.armed.contains(device));
+        self.armed_transports
+            .extend(self.armed.intersection(&facts.transports).cloned());
+        // The audio profile can disappear while BLE/HFP keeps Device1 connected.
+        // An existing idle transport is deliberately retained, not treated as loss.
+        for device in route_lost {
+            self.armed.remove(&device);
         }
         lost && playing
     }
@@ -79,5 +98,30 @@ mod tests {
         assert!(!policy.observe(facts(&["car"], &[]), false));
         assert!(policy.observe(facts(&[], &[]), true));
         assert!(!policy.observe(facts(&["car"], &[]), false));
+    }
+    #[test]
+    fn audio_profile_removal_pauses_even_while_device_stays_connected() {
+        let mut policy = PausePolicy::default();
+        let mut car = facts(&["car", "headset"], &["car"]).unwrap();
+        car.transports.insert("car".into());
+        assert!(!policy.observe(Some(car.clone()), true));
+        car.active.clear(); // Idle is not disconnect.
+        assert!(!policy.observe(Some(car.clone()), true));
+        assert!(!policy.observe(None, true));
+        car.transports.clear();
+        assert!(policy.observe(Some(car.clone()), true));
+        assert!(!policy.observe(Some(car), true));
+        assert!(!policy.observe(facts(&["headset"], &[]), false));
+    }
+    #[test]
+    fn switching_accessory_forgets_the_previous_audio_route() {
+        let mut policy = PausePolicy::default();
+        let mut both = facts(&["car", "headset"], &["car"]).unwrap();
+        both.transports = ["car".into(), "headset".into()].into_iter().collect();
+        assert!(!policy.observe(Some(both.clone()), true));
+        both.active = ["headset".into()].into_iter().collect();
+        assert!(!policy.observe(Some(both.clone()), true));
+        both.transports.remove("car");
+        assert!(!policy.observe(Some(both), true));
     }
 }

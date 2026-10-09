@@ -12,6 +12,7 @@
 #include <QRegularExpression>
 #include <QFileInfo>
 #include <QFile>
+#include <QProcess>
 #include "plexfreq_core.h"
 #include <memory>
 #include <QQmlEngine>
@@ -944,6 +945,26 @@ ApplicationWindow {
         QTRY_VERIFY_WITH_TIMEOUT(backend.position() >= 100, 5000);
         QCOMPARE(backend.state().value("track").toMap().value("title").toString(), QString("First"));
         QVERIFY(!backend.state().contains("stream"));
+        if(!qgetenv("PLEXFREQ_RECORDING_CHECK").isEmpty()) {
+            // The phone's existing silent null source exercises recording policy
+            // without microphone samples or changes to PulseAudio configuration.
+            QProcess recording;recording.setStandardOutputFile(QProcess::nullDevice());
+            recording.start("parec",QStringList{"--device=source.null","--raw"});
+            QVERIFY(recording.waitForStarted(3000));
+            QTRY_VERIFY_WITH_TIMEOUT(backend.paused() && !backend.playing(),3000);
+            const auto pausedPosition=backend.position();
+            recording.terminate();QVERIFY(recording.waitForFinished(3000));
+            QTRY_VERIFY_WITH_TIMEOUT(backend.playing(),3000);
+            QVERIFY(backend.position()>=pausedPosition);
+            // An explicit pause while recording must cancel automatic resume.
+            recording.start("parec",QStringList{"--device=source.null","--raw"});
+            QVERIFY(recording.waitForStarted(3000));
+            QTRY_VERIFY_WITH_TIMEOUT(backend.paused(),3000);
+            backend.pause();QTest::qWait(200);
+            recording.terminate();QVERIFY(recording.waitForFinished(3000));
+            QTest::qWait(600);QVERIFY(backend.paused());QVERIFY(!backend.playing());
+            backend.play();QTRY_VERIFY_WITH_TIMEOUT(backend.playing(),3000);
+        }
         backend.pause();
         QTRY_VERIFY(!backend.playing());
         QTRY_VERIFY(backend.paused());

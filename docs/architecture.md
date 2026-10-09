@@ -1,5 +1,37 @@
 # Architecture
 
+## Temporary recording holds / bounded Bluetooth lifetime (2026-10-09)
+
+Rust `runtime/pulse/recording.rs` owns a persistent read-only libpulse subscription
+to sources and source-outputs. Two bounded lists identify uncorked non-monitor
+recording streams by indexes/flags only. No microphone samples or stream properties
+are read. Subscription changes trigger reconciliation; an idle loop wakes at 100 ms
+and refreshes every two seconds. Failed queries preserve the last hold until a
+successful observation; cancellation/retry is worker-owned under Audio permission.
+
+Recording changes go directly to the independent audio handle. The actor retains
+logical play intent separately from its recording hold, freezes the output and
+publishes paused rather than buffering. Ending the hold resumes only retained
+intent: manual/ Bluetooth-disconnect Pause or Stop cancels resume; Play during the
+hold remains inaudible until release. Source loads/seeks preserve the hold. Native
+REQUEST_STATE(PAUSED) is serviced before PCM/backpressure checks, with no unsolicited
+uncork resume. Clock-loss recovery cannot override a pause or recording hold.
+Paused snapshots reset the progress diagnostic baseline, so a recording hold is
+not mislabeled as stalled playback even while logical play intent is retained.
+
+Bluetooth facts include existing transport devices, including idle transports.
+Removing the selected device's audio transport now pauses even if Device1 remains
+connected via another profile. Signals are continuously drained while asynchronous
+ObjectManager queries await replies, avoiding zbus's bounded signal-queue/reply
+deadlock. Connection, subscription, queries and deregistration have two-second
+deadlines; shutdown is checked every 100 ms. A draining clone keeps cleanup replies
+deliverable while the match is removed before disconnect. Diagnostic BlueZ RPCs
+are also bounded. Stage-specific shutdown logs record worker joins and Core exit.
+
+Final installed recording pause/resume and close/reopen are user-confirmed and
+log-verified; car-profile-loss policy and stalled-RPC/signal-flood shutdown have
+local fixtures. Historical hang attribution remains probable, without a backtrace.
+
 ## Native PulseAudio introspection (2026-10-07)
 
 `runtime/pulse.rs` replaces the sandbox-inaccessible pactl observer. Rust links

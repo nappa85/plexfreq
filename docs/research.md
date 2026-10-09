@@ -1,5 +1,77 @@
 # Research log
 
+## Recording interruptions / car profile loss / shutdown hang — 2026-10-09
+
+- Read-only SSH recovered today's installed libpulse diagnostics. All five detected
+  car disconnects (08:09:30, 08:24:45, 08:37:23, 15:43:58, 15:54:20 CEST) issue
+  Pause, reach output PAUSED and report a corked stream on the native sink. The
+  user reports sustained phone playback at least twice; exact incident times are
+  unavailable, so these five records do not reproduce that sustained failure.
+- BlueZ Device1.Connected can survive audio-profile loss through another profile.
+  Policy now tracks existence of the previously selected device's MediaTransport1,
+  including idle, and pauses on its removal without waiting for whole-device loss.
+  Idle alone is not disconnect; switching to a different active accessory forgets
+  the previous route. Disconnect during a recording hold cancels resume intent.
+  Source: https://raw.githubusercontent.com/bluez/bluez/master/doc/org.bluez.MediaTransport.rst
+- User-led recording at 18:54:48–18:55:07 exposes one uncorked AppSupport source-output
+  on source 3, without a sink-monitor association. Phone configuration classifies
+  appsupportaudio `record` as alien, and `record-voice` as aliencall. Rust now observes
+  source/source-output subscriptions and excludes monitor/corked streams; it copies
+  indexes/flags only, never recording samples or application/media strings. Lists
+  are capped at 32 and queries at two seconds, with cancellation and reconnect.
+  A persistent context has 100 ms idle wakes and two-second reconciliation.
+- GStreamer pulsesink turns PA request-cork/uncork into REQUEST_STATE messages,
+  which the actor previously ignored. Output now honors PAUSED and prevents an
+  unrelated uncork/clock-loss from undoing user/disconnect pause. Recording is a
+  separate Rust actor hold: it freezes output while retaining logical play intent,
+  resumes after recording, and respects explicit Pause/Stop during the hold. An
+  already paused app does not start. No UI, C++ or privileged routing policy.
+  Sources: https://raw.githubusercontent.com/GStreamer/gst-plugins-good/master/ext/pulse/pulsesink.c
+  and https://raw.githubusercontent.com/pulseaudio/pulseaudio/master/src/pulse/subscribe.h
+  plus installed libpulse-sys callback/introspection declarations. An attempted
+  pulseaudio-modules-nemo module-policy-enforcement source URL returned 404; actual
+  phone configuration and the successfully retrieved sources supply the evidence.
+- User's first update would not open because the Oct 7 executable was still alive
+  after window close: host PID 7014 / namespace PID 43, Qt/Core/Bluetooth threads
+  waiting on futexes, other platform workers gone, audio actor still idle after
+  Stop. Ordinary SSH could not read /proc/PID/syscall; no backtrace establishes the
+  exact wait. Anchored SIGTERM removed only that old app; normal invoker launch
+  restored the updated installed app (PID 29142), and the user confirmed recording
+  pause. Its initial manual-resume behavior was then changed at the user's request.
+- Found a concrete structural hang path: the Bluetooth callback synchronously
+  called GetManagedObjects while it stopped draining the same connection's bounded
+  signal stream. zbus 4.4's socket reader awaits broadcast delivery; a full queue
+  can therefore block RPC replies and awaited RemoveMatch at shutdown. Upstream
+  explicitly requires continuous polling. Sources (also checked against installed
+  Cargo code): https://raw.githubusercontent.com/dbus2/zbus/zbus-4.4.0/zbus/src/message_stream.rs
+  and https://raw.githubusercontent.com/dbus2/zbus/zbus-4.4.0/zbus/src/connection/socket_reader.rs
+  This fits the surviving Bluetooth worker but is not a recovered stack trace.
+- Bluetooth observation now drains signals concurrently with async queries. Connect,
+  subscribe, RPC and cleanup have two-second bounds; query/idle loops check shutdown
+  every 100 ms. Cleanup drains a clone while deregistering before disconnect. BlueZ
+  diagnostic RPCs are bounded too. Runtime logs checkpoint/join/completion stages
+  so another hang will identify the unfinished worker. A private-daemon fixture
+  with a never-replying RPC and 512 signals verifies timeout/reconciliation and
+  platform shutdown under three seconds, without touching real Bluetooth.
+- Final host gate passes: 159 Rust tests, fmt/Clippy, 39 locales/549 messages and
+  desktop CTest 2/2 (15.60s). SDK app/fixture builds pass. Phone generated playback
+  plus `parec --device=source.null` verifies pause/resume and explicit-pause override,
+  3 QtTest entries, exit 0; no microphone samples or service changes. Temporary-HOME
+  production smoke exits 0. Normally installed user recording at 19:48:41–47 pauses
+  and resumes; close at 19:48:59 joins all workers and drains logging in ~102 ms,
+  and reopening succeeds at 19:49:03. User confirms both checks.
+- Installed behavioral-build executable matches the delivered RPM's packaged digest. RPM:
+  4707285 bytes, SHA256 `8c336f27a977df22e47ef37560daf925ee62153fe139155bf9be682b5cd3360b`.
+  Sole installed app PID 30649 remains; credentials/session/cache are retained.
+  Physical car retest remains necessary; temporary phone fixtures are removed.
+- Final review found that recording intentionally retains desired=true while paused,
+  so the progress classifier could incorrectly label a long recording as a stall.
+  Paused snapshots now reset its progress baseline; the extended synthetic regression,
+  fmt/Clippy and all 43 library tests pass. SDK production packaging passes again.
+  This diagnostics-only refresh is in Downloads (4707262 bytes, SHA256
+  `c704c5df546495d998c5acef620264493f31038c91ac96b98912af82bc939a20`), awaiting
+  installation; the installed/phone-validated behavioral build above remains running.
+
 ## Native PulseAudio diagnostics patch — 2026-10-07
 
 - Replaced `pactl` subprocesses/text parsing with `src/runtime/pulse.rs`, a

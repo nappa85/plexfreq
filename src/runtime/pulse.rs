@@ -1,5 +1,5 @@
-//! Read-only libpulse diagnostics. All native objects and callbacks stay on the
-//! diagnostic worker; no subprocess, routing write, audio stream or daemon spawn.
+//! Read-only libpulse observation. Native objects and callbacks stay on their
+//! owning worker; no subprocess, routing write, audio stream or daemon spawn.
 use libpulse_sys as pa;
 use std::{
     ffi::{c_void, CStr, CString},
@@ -11,6 +11,9 @@ use std::{
 
 const DEADLINE: Duration = Duration::from_secs(2);
 const MAX_ENTRIES: usize = 32;
+#[path = "pulse/recording.rs"]
+mod recording;
+pub(super) use recording::watch_recording;
 
 #[derive(Default, Debug)]
 pub(super) struct Snapshot {
@@ -58,6 +61,7 @@ impl Drop for Client {
                 }
             }
             if !self.context.is_null() {
+                pa::pa_context_set_subscribe_callback(self.context, None, ptr::null_mut());
                 pa::pa_context_disconnect(self.context);
                 pa::pa_context_unref(self.context);
             }
@@ -69,6 +73,10 @@ impl Drop for Client {
 }
 
 pub(super) fn snapshot(stop: &AtomicBool) -> Result<Snapshot, &'static str> {
+    collect(&local_server()?, stop, DEADLINE)
+}
+
+fn local_server() -> Result<CString, &'static str> {
     // Explicit local Unix socket avoids DNS/remote connects on the diagnostic
     // worker. Sailfish Audio.permission exposes this user-session socket.
     let runtime = std::env::var_os("XDG_RUNTIME_DIR")
@@ -80,8 +88,7 @@ pub(super) fn snapshot(stop: &AtomicBool) -> Result<Snapshot, &'static str> {
     use std::os::unix::ffi::OsStrExt;
     let mut address = b"unix:".to_vec();
     address.extend_from_slice(runtime.join("pulse/native").as_os_str().as_bytes());
-    let address = CString::new(address).map_err(|_| "invalid local socket")?;
-    collect(&address, stop, DEADLINE)
+    CString::new(address).map_err(|_| "invalid local socket")
 }
 
 fn collect(server: &CStr, stop: &AtomicBool, timeout: Duration) -> Result<Snapshot, &'static str> {
@@ -90,13 +97,55 @@ fn collect(server: &CStr, stop: &AtomicBool, timeout: Duration) -> Result<Snapsh
     // Declare userdata before its owner so cancellation/disconnect precedes its
     // destruction on every early-return path, including failed second query.
     let mut data = Snapshot::default();
+    let mut client = connect(server, stop, started, timeout)?;
+    // SAFETY: native objects are exclusively accessed here on one thread. Each
+    // callback receives a live, stable stack address only while collect dispatches.
+    unsafe {
+        let userdata = (&mut data as *mut Snapshot).cast::<c_void>();
+        client.operations[0] =
+            pa::pa_context_get_sink_input_info_list(client.context, Some(input_callback), userdata);
+        client.operations[1] =
+            pa::pa_context_get_sink_info_list(client.context, Some(sink_callback), userdata);
+        if client.operations.iter().any(|p| p.is_null()) {
+            return Err("query unavailable");
+        }
+        loop {
+            check_budget(stop, started, timeout)?;
+            if let Some(error) = data.error {
+                return Err(error);
+            }
+            if data.inputs_done && data.sinks_done {
+                break;
+            }
+            if matches!(
+                pa::pa_context_get_state(client.context),
+                pa::PA_CONTEXT_FAILED | pa::PA_CONTEXT_TERMINATED
+            ) {
+                return Err("connection lost");
+            }
+            iterate(&client)?;
+        }
+    }
+    check_budget(stop, started, timeout)?;
+    if let Some(error) = data.error {
+        return Err(error);
+    }
+    drop(client);
+    Ok(data)
+}
+
+fn connect(
+    server: &CStr,
+    stop: &AtomicBool,
+    started: Instant,
+    timeout: Duration,
+) -> Result<Client, &'static str> {
     let mut client = Client {
         mainloop: ptr::null_mut(),
         context: ptr::null_mut(),
         operations: [ptr::null_mut(); 2],
     };
-    // SAFETY: native objects are exclusively accessed here on one thread. Each
-    // callback receives a live, stable stack address only while collect dispatches.
+    // SAFETY: all allocated native objects are owned by Client on this thread.
     unsafe {
         client.mainloop = pa::pa_mainloop_new();
         if client.mainloop.is_null() {
@@ -128,40 +177,8 @@ fn collect(server: &CStr, stop: &AtomicBool, timeout: Duration) -> Result<Snapsh
                 _ => iterate(&client)?,
             }
         }
-        let userdata = (&mut data as *mut Snapshot).cast::<c_void>();
-        client.operations[0] =
-            pa::pa_context_get_sink_input_info_list(client.context, Some(input_callback), userdata);
-        client.operations[1] =
-            pa::pa_context_get_sink_info_list(client.context, Some(sink_callback), userdata);
-        if client.operations.iter().any(|p| p.is_null()) {
-            return Err("query unavailable");
-        }
-        loop {
-            check_budget(stop, started, timeout)?;
-            if let Some(error) = data.error {
-                return Err(error);
-            }
-            // Callback-owned flags are changed by mainloop dispatch through the
-            // userdata pointer, not by a Rust assignment in this loop.
-            if data.inputs_done && data.sinks_done {
-                break;
-            }
-            if matches!(
-                pa::pa_context_get_state(client.context),
-                pa::PA_CONTEXT_FAILED | pa::PA_CONTEXT_TERMINATED
-            ) {
-                return Err("connection lost");
-            }
-            iterate(&client)?;
-        }
     }
-    check_budget(stop, started, timeout)?;
-    if let Some(error) = data.error {
-        return Err(error);
-    }
-    // Explicitly release callback references before moving the userdata.
-    drop(client);
-    Ok(data)
+    Ok(client)
 }
 
 fn check_budget(
