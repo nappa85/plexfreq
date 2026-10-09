@@ -290,10 +290,12 @@ impl Runtime {
 }
 impl Drop for Runtime {
     fn drop(&mut self) {
+        crate::diagnostics::event(format_args!("shutdown runtime requested"));
         self.shared.stop.store(true, Ordering::SeqCst);
         let _ = self.shared.requests.try_send(json!({"op":"_shutdown"}));
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
+            crate::diagnostics::event(format_args!("shutdown core joined"));
         }
     }
 }
@@ -894,6 +896,9 @@ fn worker(
         state.duration,
     );
     let _ = engine.handle.stop();
+    crate::diagnostics::event(format_args!(
+        "shutdown checkpoint complete; joining platform"
+    ));
     shared.stop.store(true, Ordering::SeqCst);
     drop(platform);
     *shared

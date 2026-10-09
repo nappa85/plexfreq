@@ -8,5 +8,5 @@ with Image.open(root / "logo.png") as image:
     for size in (172, 512):
         directory = root / "app/icons" / f"{size}x{size}"
         directory.mkdir(exist_ok=True)
-        icon = image.convert("RGB").resize((size, size), Image.Resampling.LANCZOS)
+        icon = image.convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
         icon.save(directory / "harbour-plexfreq.png", optimize=True)

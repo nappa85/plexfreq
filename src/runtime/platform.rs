@@ -13,47 +13,80 @@ pub struct Platform {
 impl Drop for Platform {
     fn drop(&mut self) {
         for thread in self.threads.drain(..) {
+            let name = thread
+                .thread()
+                .name()
+                .unwrap_or("platform-worker")
+                .to_owned();
+            crate::diagnostics::event(format_args!("shutdown joining {name}"));
             let _ = thread.join();
+            crate::diagnostics::event(format_args!("shutdown joined {name}"));
         }
     }
 }
 pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
     let mut threads = Vec::new();
+    let recording = shared.clone();
+    if let Ok(worker) = thread::Builder::new()
+        .name("plexfreq-recording".into())
+        .spawn(move || {
+            let mut previous = None;
+            while !recording.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                let result = super::pulse::watch_recording(&recording.stop, |active| {
+                    if previous != Some(active) {
+                        crate::diagnostics::event(format_args!(
+                            "microphone recording active={active}"
+                        ));
+                        let result = crate::mutex_lock(&recording.audio)
+                            .as_ref()
+                            .map(|audio| audio.recording(active));
+                        crate::diagnostics::event(format_args!(
+                            "recording hold active={active} accepted={}",
+                            matches!(result, Some(Ok(())))
+                        ));
+                        if matches!(result, Some(Ok(()))) {
+                            previous = Some(active);
+                        }
+                    }
+                });
+                if let Err(reason) = result {
+                    if recording.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                        break;
+                    }
+                    crate::diagnostics::event(format_args!(
+                        "recording observer unavailable reason={reason}"
+                    ));
+                }
+                for _ in 0..50 {
+                    if recording.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(100));
+                }
+            }
+        })
+    {
+        threads.push(worker);
+    }
     let bluetooth = shared.clone();
-    let bluetooth_connection = Connection::system().ok();
     if let Ok(worker) = thread::Builder::new()
         .name("plexfreq-bluetooth".into())
         .spawn(move || {
-            let connection = bluetooth_connection;
+            let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+            else {
+                return;
+            };
             let mut policy = crate::bluetooth::PausePolicy::default();
             let mut previous_facts = None;
-            let signals = connection.as_ref().and_then(|connection| {
-                zbus::MatchRule::builder()
-                    .msg_type(zbus::message::Type::Signal)
-                    .sender("org.bluez")
-                    .ok()
-                    .and_then(|builder| {
-                        zbus::blocking::MessageIterator::for_match_rule(
-                            builder.build(),
-                            connection,
-                            Some(64),
-                        )
-                        .ok()
-                    })
-            });
-            let mut observe = || {
-                let facts = connection
-                    .as_ref()
-                    .and_then(|connection| bluetooth_audio(connection).ok());
+            let mut observe = |facts| {
                 let snapshot = bluetooth.playback();
                 if facts != previous_facts {
                     log_bluetooth(&facts, "change");
                     previous_facts = facts.clone();
                 }
-                if policy.observe(
-                    facts,
-                    snapshot.loaded && (snapshot.playing || snapshot.buffering),
-                ) {
+                if policy.observe(facts, snapshot.loaded) {
                     let result = bluetooth.send(json!({"op":"audio_pause"}));
                     crate::diagnostics::event(format_args!(
                         "Bluetooth disconnect auto-pause occurrence={} accepted={}",
@@ -62,39 +95,22 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
                     ));
                 }
             };
-            // Subscribe first, then seed, so startup disconnects stay queued.
-            observe();
-            if let Some(signals) = signals {
-                let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
-                    .enable_all()
-                    .build()
-                else {
-                    return;
-                };
-                let mut stream = signals.into_inner();
-                runtime.block_on(async {
-                    while !bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
-                        tokio::select! {
-                            signal=stream.next()=>match signal {Some(Ok(_))=>observe(),_=>break},
-                            _=tokio::time::sleep(Duration::from_millis(100))=>{},
+            runtime.block_on(async {
+                while !bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                    if let Err(reason) = watch_bluetooth(&bluetooth.stop, &mut observe).await {
+                        crate::diagnostics::event(format_args!(
+                            "Bluetooth observer unavailable reason={reason}"
+                        ));
+                        observe(None);
+                    }
+                    for _ in 0..50 {
+                        if bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
+                            break;
                         }
+                        tokio::time::sleep(Duration::from_millis(100)).await;
                     }
-                    // Deregister while the connection is still open. Closing it
-                    // first can make zbus's synchronous iterator drop send on a
-                    // closed Unix socket in the C++ host (SIGPIPE).
-                    zbus::AsyncDrop::async_drop(stream).await;
-                });
-                return;
-            }
-            while !bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
-                observe();
-                for _ in 0..5 {
-                    if bluetooth.stop.load(std::sync::atomic::Ordering::SeqCst) {
-                        break;
-                    }
-                    thread::sleep(Duration::from_millis(100));
                 }
-            }
+            });
         })
     {
         threads.push(worker);
@@ -239,15 +255,112 @@ pub fn start(shared: Shared, events: mpsc::Sender<Value>) -> Platform {
     }
     Platform { threads }
 }
+type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+async fn watch_bluetooth(
+    stop: &std::sync::atomic::AtomicBool,
+    mut observe: impl FnMut(Option<crate::bluetooth::Facts>),
+) -> Result<(), &'static str> {
+    let connection = tokio::time::timeout(Duration::from_secs(2), zbus::Connection::system())
+        .await
+        .map_err(|_| "connect timeout")?
+        .map_err(|_| "connect failed")?;
+    let rule = zbus::MatchRule::builder()
+        .msg_type(zbus::message::Type::Signal)
+        .sender("org.bluez")
+        .map_err(|_| "invalid match")?
+        .build();
+    let mut stream = tokio::time::timeout(
+        Duration::from_secs(2),
+        zbus::MessageStream::for_match_rule(rule, &connection, Some(64)),
+    )
+    .await
+    .map_err(|_| "subscribe timeout")?
+    .map_err(|_| "subscribe failed")?;
+    let result = async {
+        // Always drain signals concurrently with RPCs. zbus 4's socket reader
+        // otherwise blocks on a full signal queue before delivering the reply.
+        while !stop.load(std::sync::atomic::Ordering::SeqCst) {
+            let query = tokio::time::timeout(Duration::from_secs(2), bluetooth_query(&connection));
+            tokio::pin!(query);
+            let mut dirty = false;
+            loop {
+                if stop.load(std::sync::atomic::Ordering::SeqCst) {
+                    return Ok(());
+                }
+                tokio::select! {
+                    facts = &mut query => {
+                        observe(facts.ok().and_then(Result::ok));
+                        break;
+                    }
+                    signal = stream.next() => {
+                        if !matches!(signal, Some(Ok(_))) { return Err("signal connection lost"); }
+                        dirty = true;
+                    }
+                    _ = tokio::time::sleep(Duration::from_millis(100)) => {},
+                }
+            }
+            if dirty {
+                continue;
+            }
+            let refresh = tokio::time::sleep(Duration::from_secs(2));
+            tokio::pin!(refresh);
+            loop {
+                if stop.load(std::sync::atomic::Ordering::SeqCst) {
+                    return Ok(());
+                }
+                tokio::select! {
+                    signal = stream.next() => {
+                        if !matches!(signal, Some(Ok(_))) { return Err("signal connection lost"); }
+                        break;
+                    }
+                    _ = &mut refresh => break,
+                    _ = tokio::time::sleep(Duration::from_millis(100)) => {},
+                }
+            }
+        }
+        Ok(())
+    }
+    .await;
+    // Deregister before disconnect, with a draining clone so RemoveMatch's reply
+    // cannot sit behind a full signal queue. Cleanup itself has a fixed deadline.
+    let mut drain = stream.clone();
+    let cleanup = tokio::time::timeout(Duration::from_secs(2), zbus::AsyncDrop::async_drop(stream));
+    tokio::pin!(cleanup);
+    loop {
+        tokio::select! {
+            result = &mut cleanup => {
+                crate::diagnostics::event(format_args!("Bluetooth observer cleanup completed={}", result.is_ok()));
+                break;
+            }
+            _ = drain.next() => {},
+        }
+    }
+    result
+}
 fn bluetooth_audio(connection: &Connection) -> zbus::Result<crate::bluetooth::Facts> {
-    type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
-    let proxy = Proxy::new(
-        connection,
-        "org.bluez",
-        "/",
-        "org.freedesktop.DBus.ObjectManager",
-    )?;
-    let objects: Objects = proxy.call("GetManagedObjects", &())?;
+    // The diagnostic worker must not reintroduce an unbounded BlueZ wait during
+    // the same outage that the live disconnect observer now handles safely.
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()?;
+    runtime.block_on(async {
+        tokio::time::timeout(Duration::from_secs(2), bluetooth_query(connection.inner()))
+            .await
+            .map_err(|_| zbus::Error::Failure("Bluetooth query timed out".into()))?
+    })
+}
+async fn bluetooth_query(connection: &zbus::Connection) -> zbus::Result<crate::bluetooth::Facts> {
+    let proxy = zbus::proxy::Builder::<zbus::Proxy<'_>>::new(connection)
+        .destination("org.bluez")?
+        .path("/")?
+        .interface("org.freedesktop.DBus.ObjectManager")?
+        .cache_properties(zbus::proxy::CacheProperties::No)
+        .build()
+        .await?;
+    let objects: Objects = proxy.call("GetManagedObjects", &()).await?;
+    Ok(bluetooth_objects(objects))
+}
+fn bluetooth_objects(objects: Objects) -> crate::bluetooth::Facts {
     let mut facts = crate::bluetooth::Facts::default();
     for (path, interfaces) in &objects {
         if let Some(device) = interfaces.get("org.bluez.Device1") {
@@ -275,18 +388,19 @@ fn bluetooth_audio(connection: &Connection) -> zbus::Result<crate::bluetooth::Fa
                 _ => {}
             }
             let active = state.is_some_and(|state| matches!(state, "active" | "pending"));
-            if active {
-                if let Some(device) = transport
-                    .get("Device")
-                    .and_then(|v| v.try_clone().ok())
-                    .and_then(|v| OwnedObjectPath::try_from(v).ok())
-                {
+            if let Some(device) = transport
+                .get("Device")
+                .and_then(|v| v.try_clone().ok())
+                .and_then(|v| OwnedObjectPath::try_from(v).ok())
+            {
+                facts.transports.insert(device.to_string());
+                if active {
                     facts.active.insert(device.to_string());
                 }
             }
         }
     }
-    Ok(facts)
+    facts
 }
 
 fn log_bluetooth(facts: &Option<crate::bluetooth::Facts>, reason: &str) {
@@ -309,14 +423,19 @@ mod bluetooth_tests {
     };
     struct Manager {
         connected: Arc<AtomicBool>,
+        transport: Arc<AtomicBool>,
+        stalled: Arc<AtomicBool>,
         reads: Arc<AtomicUsize>,
     }
     #[zbus::interface(name = "org.freedesktop.DBus.ObjectManager")]
     impl Manager {
-        fn get_managed_objects(
+        async fn get_managed_objects(
             &self,
         ) -> HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>> {
             self.reads.fetch_add(1, Ordering::SeqCst);
+            if self.stalled.load(Ordering::SeqCst) {
+                futures_util::future::pending::<()>().await;
+            }
             let properties = HashMap::from([
                 (
                     "Connected".into(),
@@ -330,10 +449,33 @@ mod bluetooth_tests {
                     .unwrap(),
                 ),
             ]);
-            HashMap::from([(
+            let mut objects = HashMap::from([(
                 OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture").unwrap(),
                 HashMap::from([("org.bluez.Device1".into(), properties)]),
-            )])
+            )]);
+            if self.transport.load(Ordering::SeqCst) {
+                objects.insert(
+                    OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture/fd0").unwrap(),
+                    HashMap::from([(
+                        "org.bluez.MediaTransport1".into(),
+                        HashMap::from([
+                            (
+                                "Device".into(),
+                                OwnedValue::try_from(zbus::zvariant::Value::from(
+                                    OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture")
+                                        .unwrap(),
+                                ))
+                                .unwrap(),
+                            ),
+                            (
+                                "State".into(),
+                                OwnedValue::try_from(zbus::zvariant::Value::from("idle")).unwrap(),
+                            ),
+                        ]),
+                    )]),
+                );
+            }
+            objects
         }
     }
     struct Bus(std::process::Child);
@@ -378,6 +520,8 @@ mod bluetooth_tests {
             std::env::set_var(key, address);
         }
         let connected = Arc::new(AtomicBool::new(true));
+        let transport = Arc::new(AtomicBool::new(true));
+        let stalled = Arc::new(AtomicBool::new(false));
         let reads = Arc::new(AtomicUsize::new(0));
         let service = ConnectionBuilder::address(address)
             .unwrap()
@@ -387,6 +531,8 @@ mod bluetooth_tests {
                 "/",
                 Manager {
                     connected: connected.clone(),
+                    transport: transport.clone(),
+                    stalled: stalled.clone(),
                     reads: reads.clone(),
                 },
             )
@@ -448,6 +594,52 @@ mod bluetooth_tests {
             thread::sleep(Duration::from_millis(10));
         }
         thread::sleep(Duration::from_millis(30));
+        // Profile removal must pause even while Device1 remains connected.
+        transport.store(false, Ordering::SeqCst);
+        service
+            .emit_signal(
+                None::<&str>,
+                "/",
+                "org.freedesktop.DBus.ObjectManager",
+                "InterfacesRemoved",
+                &(
+                    OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture/fd0").unwrap(),
+                    vec!["org.bluez.MediaTransport1"],
+                ),
+            )
+            .unwrap();
+        let end = Instant::now() + Duration::from_secs(3);
+        while !engine.handle.snapshot().paused {
+            assert!(
+                Instant::now() < end,
+                "Audio profile removal did not pause audio"
+            );
+            thread::sleep(Duration::from_millis(10));
+        }
+        assert!(connected.load(Ordering::SeqCst));
+        // Restore the profile and explicitly resume for the separate full-device test.
+        transport.store(true, Ordering::SeqCst);
+        service
+            .emit_signal(
+                None::<&str>,
+                "/org/bluez/hci0/dev_fixture",
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                &(
+                    "org.bluez.Device1",
+                    HashMap::from([("Connected", true)]),
+                    Vec::<String>::new(),
+                ),
+            )
+            .unwrap();
+        thread::sleep(Duration::from_millis(100));
+        assert!(engine.handle.snapshot().paused);
+        engine.handle.play().unwrap();
+        let end = Instant::now() + Duration::from_secs(3);
+        while !engine.handle.snapshot().playing {
+            assert!(Instant::now() < end);
+            thread::sleep(Duration::from_millis(10));
+        }
         connected.store(false, Ordering::SeqCst);
         service
             .emit_signal(
@@ -472,8 +664,58 @@ mod bluetooth_tests {
         }
         assert!(shared.busy());
         assert!(!crate::mutex_lock(&shared.checkpoint_overflow).is_empty());
+        // A silent RPC plus more signals than the 64-message subscription cap
+        // used to block the socket reader and then shutdown's RemoveMatch reply.
+        stalled.store(true, Ordering::SeqCst);
+        let before = reads.load(Ordering::SeqCst);
+        service
+            .emit_signal(
+                None::<&str>,
+                "/org/bluez/hci0/dev_fixture",
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                &(
+                    "org.bluez.Device1",
+                    HashMap::from([("Connected", false)]),
+                    Vec::<String>::new(),
+                ),
+            )
+            .unwrap();
+        let end = Instant::now() + Duration::from_secs(3);
+        while reads.load(Ordering::SeqCst) == before {
+            assert!(Instant::now() < end);
+            thread::sleep(Duration::from_millis(10));
+        }
+        for _ in 0..512 {
+            service
+                .emit_signal(
+                    None::<&str>,
+                    "/org/bluez/hci0/dev_fixture",
+                    "org.freedesktop.DBus.Properties",
+                    "PropertiesChanged",
+                    &(
+                        "org.bluez.Device1",
+                        HashMap::from([("Connected", false)]),
+                        Vec::<String>::new(),
+                    ),
+                )
+                .unwrap();
+        }
+        let end = Instant::now() + Duration::from_secs(3);
+        while reads.load(Ordering::SeqCst) <= before + 1 {
+            assert!(
+                Instant::now() < end,
+                "Silent BlueZ query did not time out and reconcile queued signals"
+            );
+            thread::sleep(Duration::from_millis(10));
+        }
+        let shutdown = Instant::now();
         shared.stop.store(true, Ordering::SeqCst);
         drop(platform);
+        assert!(
+            shutdown.elapsed() < Duration::from_secs(3),
+            "Stalled BlueZ RPC/signal flood blocked shutdown"
+        );
         drop(service);
         drop(engine);
     }

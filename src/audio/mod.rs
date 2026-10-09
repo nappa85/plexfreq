@@ -96,6 +96,7 @@ enum Control {
     Prepare(Option<Source>),
     Play,
     Pause,
+    Recording(bool),
     Stop,
     Seek(u64),
     Volume(f64),
@@ -132,6 +133,9 @@ impl Handle {
     }
     pub fn pause(&self) -> Result<()> {
         self.send(Control::Pause)
+    }
+    pub(crate) fn recording(&self, active: bool) -> Result<()> {
+        self.send(Control::Recording(active))
     }
     pub fn stop(&self) -> Result<()> {
         self.send(Control::Stop)
@@ -584,7 +588,7 @@ impl Output {
             .map_err(|_| Error::Input("Audio output is unavailable"))?;
         Ok(())
     }
-    fn service(&mut self, desired: bool) -> Result<()> {
+    fn service(&mut self, desired: &mut bool) -> Result<()> {
         let bus = self
             .pipeline
             .bus()
@@ -625,7 +629,18 @@ impl Output {
                 gst::MessageView::NewClock(_) => {
                     crate::diagnostics::event(format_args!("output selected new clock"))
                 }
-                gst::MessageView::ClockLost(_) if desired => {
+                gst::MessageView::RequestState(request) => {
+                    crate::diagnostics::event(format_args!(
+                        "output policy requested state={:?}",
+                        request.requested_state()
+                    ));
+                    if request.requested_state() == gst::State::Paused {
+                        *desired = false;
+                        self.state(gst::State::Paused)?;
+                    }
+                    // Uncork is not permission to resume after user/disconnect pause.
+                }
+                gst::MessageView::ClockLost(_) if *desired => {
                     eprintln!("PlexFreq audio output clock lost; selecting a new clock");
                     self.state(gst::State::Paused)?;
                     self.state(gst::State::Playing)?;
@@ -718,6 +733,7 @@ struct Actor {
     output: Option<Output>,
     segments: VecDeque<Segment>,
     desired: bool,
+    recording: bool,
     volume: f32,
     config: dsp::Config,
     processor: dsp::Processor,
@@ -758,7 +774,11 @@ impl ProgressDiagnostics {
         let changed = self
             .previous
             .is_none_or(|old| (old.0, old.1, old.2, old.3) != (key.0, key.1, key.2, key.3));
-        if changed || self.previous.is_none_or(|old| old.4 != state.position) || !desired {
+        if changed
+            || self.previous.is_none_or(|old| old.4 != state.position)
+            || !desired
+            || state.paused
+        {
             self.progressed = now;
         }
         self.previous = Some(key);
@@ -808,6 +828,7 @@ impl Actor {
             output: None,
             segments: VecDeque::new(),
             desired: false,
+            recording: false,
             volume: 0.8,
             processor: dsp::Processor::new(RATE, &config),
             config,
@@ -874,7 +895,9 @@ impl Actor {
                 // A paused, full appsrc cannot drain. Resume before pump's
                 // backpressure check, which otherwise prevents this forever.
                 if let Some(out) = &self.output {
-                    out.state(gst::State::Playing)?;
+                    if !self.recording {
+                        out.state(gst::State::Playing)?;
+                    }
                 }
             }
             Control::Pause => {
@@ -885,6 +908,26 @@ impl Actor {
                 self.desired = false;
                 if let Some(out) = &self.output {
                     out.state(gst::State::Paused)?;
+                }
+            }
+            Control::Recording(active) => {
+                // Keep logical play intent separate from a temporary recording
+                // hold. User/disconnect Pause clears it even during the hold.
+                if active {
+                    self.recording = true;
+                }
+                self.service_output()?;
+                self.recording = active;
+                crate::diagnostics::event(format_args!(
+                    "audio recording hold active={active} resume_intent={}",
+                    self.desired
+                ));
+                if let Some(out) = &self.output {
+                    out.state(if self.desired && !active {
+                        gst::State::Playing
+                    } else {
+                        gst::State::Paused
+                    })?;
                 }
             }
             Control::Stop => {
@@ -945,7 +988,22 @@ impl Actor {
         state.buffering = false;
         state.error = message.into();
     }
+    fn service_output(&mut self) -> Result<()> {
+        if let Some(output) = &mut self.output {
+            if self.recording {
+                // A policy cork during recording must not erase the saved
+                // intent; explicit Pause controls still clear it normally.
+                output.service(&mut false)?;
+            } else {
+                output.service(&mut self.desired)?;
+            }
+        }
+        Ok(())
+    }
     fn pump(&mut self) -> Result<()> {
+        // Service policy requests even when decoding has ended or the PCM queue
+        // is full. Clear play intent before any path can restart the pipeline.
+        self.service_output()?;
         let tail = (self.config.crossfade_ms as usize * RATE as usize / 1000).min(MAX_TAIL_FRAMES);
         // Effective overlap can never exceed a fully-decoded short successor.
         // Without this clamp a <tail successor stalls: the normal path
@@ -992,8 +1050,7 @@ impl Actor {
         let Some(output) = &mut self.output else {
             return Ok(());
         };
-        output.service(self.desired)?;
-        if !self.desired {
+        if !self.desired || self.recording {
             return Ok(());
         };
         if output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES {
@@ -1151,7 +1208,7 @@ impl Actor {
         let frames = position.saturating_sub(segment.start);
         let media = segment.source.resume + frames * 1000 / RATE as u64;
         let listened = segment.source.listened + frames * 1000 / RATE as u64;
-        let eos = output.eof && self.desired;
+        let eos = output.eof && self.desired && !self.recording;
         if eos {
             crate::diagnostics::event(format_args!(
                 "audio natural end occurrence={} position_ms={media} heard_ms={listened}",
@@ -1167,9 +1224,13 @@ impl Actor {
         let mut state = lock_state(&self.state);
         *state = Snapshot {
             id: segment.source.id,
-            playing: self.desired && output.pipeline.current_state() == gst::State::Playing,
-            paused: !self.desired,
-            buffering: self.desired && output.pipeline.current_state() != gst::State::Playing,
+            playing: self.desired
+                && !self.recording
+                && output.pipeline.current_state() == gst::State::Playing,
+            paused: !self.desired || self.recording,
+            buffering: self.desired
+                && !self.recording
+                && output.pipeline.current_state() != gst::State::Playing,
             loaded: true,
             position: if segment.source.duration > 0 {
                 media.min(segment.source.duration)
@@ -1213,6 +1274,7 @@ impl Actor {
                     break;
                 }
                 if !self.desired
+                    || self.recording
                     || self.output.as_ref().is_none_or(|out| {
                         out.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES
                     })
@@ -1223,7 +1285,11 @@ impl Actor {
             self.publish();
             self.diagnose();
             // Idle/paused actors wake on commands rather than spinning at 200 Hz.
-            let wait = Duration::from_millis(if self.desired { 5 } else { 100 });
+            let wait = Duration::from_millis(if self.desired && !self.recording {
+                5
+            } else {
+                100
+            });
             match receiver.recv_timeout(wait) {
                 Ok(control) => match self.control(control) {
                     Ok(false) => return,
@@ -1302,6 +1368,116 @@ mod tests {
             monitor.observe(now + Duration::from_secs(65), &state, false),
             Some("heartbeat")
         );
+        // Recording retains play intent while deliberately publishing paused.
+        state.paused = true;
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(66), &state, true),
+            Some("state-change")
+        );
+        assert_eq!(
+            monitor.observe(now + Duration::from_secs(70), &state, true),
+            None
+        );
+    }
+    #[test]
+    fn recording_resumes_only_retained_play_intent_and_pause_cancels_resume() {
+        gst::init().unwrap();
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let (events, _) = mpsc::channel();
+        let mut actor = Actor::new(
+            Sink::Fake,
+            Arc::new(Mutex::new(Snapshot::default())),
+            capture.clone(),
+            events,
+            http::SessionCloser::new().unwrap(),
+        );
+        let mut output = Output::new(Sink::Fake, capture).unwrap();
+        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        actor.output = Some(output);
+        actor.control(Control::Recording(true)).unwrap();
+        actor.control(Control::Recording(false)).unwrap();
+        assert!(!actor.desired); // An already paused app must not start.
+        actor.control(Control::Play).unwrap();
+        actor.control(Control::Recording(true)).unwrap();
+        assert!(actor.desired && actor.recording);
+        let output = actor.output.as_ref().unwrap();
+        output
+            .pipeline
+            .bus()
+            .unwrap()
+            .post(
+                gst::message::RequestState::builder(gst::State::Paused)
+                    .src(&output.pipeline)
+                    .build(),
+            )
+            .unwrap();
+        actor.pump().unwrap();
+        assert_ne!(
+            actor.output.as_ref().unwrap().pipeline.pending_state(),
+            gst::State::Playing
+        );
+        actor.control(Control::Recording(false)).unwrap();
+        assert!(actor.desired && !actor.recording);
+        actor.control(Control::Recording(true)).unwrap();
+        actor.control(Control::Pause).unwrap(); // User or Bluetooth disconnect.
+        actor.control(Control::Recording(false)).unwrap();
+        assert!(!actor.desired && !actor.recording);
+        let (_, current, pending) = actor
+            .output
+            .as_ref()
+            .unwrap()
+            .pipeline
+            .state(gst::ClockTime::from_seconds(1));
+        assert_eq!(current, gst::State::Paused);
+        assert_ne!(pending, gst::State::Playing);
+    }
+    #[test]
+    fn policy_pause_clears_intent_and_uncork_or_clock_loss_cannot_resume_it() {
+        gst::init().unwrap();
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let (events, _) = mpsc::channel();
+        let mut actor = Actor::new(
+            Sink::Fake,
+            Arc::new(Mutex::new(Snapshot::default())),
+            capture.clone(),
+            events,
+            http::SessionCloser::new().unwrap(),
+        );
+        let mut output = Output::new(Sink::Fake, capture).unwrap();
+        for _ in 0..(OUTPUT_MAX_BYTES as usize / (BLOCK * 8) + 2) {
+            output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        }
+        assert!(output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES);
+        output.state(gst::State::Playing).unwrap();
+        let bus = output.pipeline.bus().unwrap();
+        bus.post(
+            gst::message::RequestState::builder(gst::State::Paused)
+                .src(&output.pipeline)
+                .build(),
+        )
+        .unwrap();
+        bus.post(
+            gst::message::RequestState::builder(gst::State::Playing)
+                .src(&output.pipeline)
+                .build(),
+        )
+        .unwrap();
+        bus.post(
+            gst::message::ClockLost::builder(&gst::SystemClock::obtain())
+                .src(&output.pipeline)
+                .build(),
+        )
+        .unwrap();
+        actor.output = Some(output);
+        actor.desired = true;
+        actor.pump().unwrap();
+        assert!(!actor.desired);
+        let out = actor.output.as_ref().unwrap();
+        let (_, current, pending) = out.pipeline.state(gst::ClockTime::from_seconds(1));
+        assert_eq!(current, gst::State::Paused);
+        assert_ne!(pending, gst::State::Playing);
+        actor.control(Control::Play).unwrap();
+        assert!(actor.desired);
     }
     #[test]
     fn clock_loss_restarts_output_only_with_play_intent() {
@@ -1309,7 +1485,7 @@ mod tests {
         let mut output = Output::new(Sink::Fake, Arc::new(Mutex::new(Vec::new()))).unwrap();
         output.state(gst::State::Paused).unwrap();
         output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
-        for desired in [false, true] {
+        for mut desired in [false, true] {
             output
                 .pipeline
                 .bus()
@@ -1320,7 +1496,7 @@ mod tests {
                         .build(),
                 )
                 .unwrap();
-            output.service(desired).unwrap();
+            output.service(&mut desired).unwrap();
             let (_, _, pending) = output.pipeline.state(gst::ClockTime::from_mseconds(100));
             if desired {
                 assert!(

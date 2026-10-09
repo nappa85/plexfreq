@@ -1,5 +1,23 @@
 # Development roadmap
 
+Recording/car/shutdown follow-up (2026-10-09): implemented native policy pause plus
+read-only libpulse recording observation. Recording now temporarily holds output,
+automatically resumes retained intent afterward, and honors explicit pause/disconnect
+during the hold. Audio-transport removal pauses even if another Bluetooth profile
+keeps the device connected; idle alone remains distinct from disconnect. Fixed the
+structural bounded-signal-queue/RPC hang path by continuously draining Bluetooth
+signals during deadline-bound queries and cleanup. Shutdown-stage diagnostics identify
+unfinished workers. Final 159-test/full desktop gate, SDK app/fixture builds, phone
+generated recording/resume/override test, and production smoke pass. Behavioral RPM is
+installed; user and retained logs confirm messenger pause/resume and clean ~102 ms
+shutdown/reopen. Next: physical car retest and retained long-lived/high-traffic traces.
+Today's five logged whole-device disconnects did pause/cork; the reported sustained
+phone playback and historical hang's exact stack remain unproven. No service reset.
+Final diagnostics-only refinement prevents intentional recording pauses from being
+classified as stalls despite retained play intent. Extended regression, fmt/Clippy,
+43 library tests and SDK production build pass; refreshed RPM is in Downloads for
+installation. The behavioral build validated above is already installed and running.
+
 Native diagnostic patch (2026-10-07): pactl subprocess dependency is replaced by
 Rust/libpulse introspection with two-second connection/query bounds, shutdown
 cancellation, 32-entry caps and technical-only summaries. Local regressions,
