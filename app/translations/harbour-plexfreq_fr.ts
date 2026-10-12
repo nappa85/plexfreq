@@ -2234,8 +2234,8 @@
       <translation>Vider · Cache · Arrêter · Lire</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Audio · Lire</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Audio · Lire</translation>
     </message>
   </context>
   <context>

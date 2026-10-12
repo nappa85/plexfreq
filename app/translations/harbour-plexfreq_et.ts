@@ -2234,8 +2234,8 @@
       <translation>Tühjenda · Vahemälu · Peata · Esita</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Heli · Esita</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Heli · Esita</translation>
     </message>
   </context>
   <context>

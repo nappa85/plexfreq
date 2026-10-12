@@ -2234,8 +2234,8 @@
       <translation>Очистить · Кэш · Остановить · Воспроизвести</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Звук · Воспроизвести</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Звук · Воспроизвести</translation>
     </message>
   </context>
   <context>

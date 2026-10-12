@@ -70,7 +70,7 @@ build from the repository; custom external CARGO_TARGET_DIR is not supported.
 Application execution needs no root. RPM installation is an OS/package-manager
 operation; where that is unavailable, use developer SSH and an extracted bundle:
 
-The build also produces `build/plexfreq-0.1.0-aarch64-rootless.tar.gz`, containing
+The build also produces `build/plexfreq-0.1.1-aarch64-rootless.tar.gz`, containing
 the executable and adjacent QML directory. Extract it in a user-owned phone
 directory and run `./harbour-plexfreq`; this avoids the manual RPM extraction below.
 

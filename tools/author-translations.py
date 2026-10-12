@@ -54,7 +54,7 @@ PHRASES = {
     "Pending listening history: %1":"pending history %1",
     "Play mix (%1 seeds)":"play mix %1 source",
     "Rust audio engine · gapless PCM output":"=Rust audio gapless =PCM output",
-    "PlexFreq 0.1.0 · Direct-stream music player":"=PlexFreq =0.1.0 audio play",
+    "PlexFreq 0.1.1 · Direct-stream music player":"=PlexFreq =0.1.1 audio play",
     "Find your frequency.":"frequency search", "Favorites · 5 stars":"favorites =★ =5",
     "★ Favorite":"=★ favorites", "☆ Add to favorites":"=☆ add favorites",
     "No description provided by Plex.":"description unavailable =Plex",

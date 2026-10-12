@@ -2234,8 +2234,8 @@
       <translation>ತೆರವುಗೊಳಿಸು · ಸಂಗ್ರಹ · ನಿಲ್ಲಿಸು · ಪ್ಲೇಮಾಡು</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · ಆಡಿಯೋ · ಪ್ಲೇಮಾಡು</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · ಆಡಿಯೋ · ಪ್ಲೇಮಾಡು</translation>
     </message>
   </context>
   <context>

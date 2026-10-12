@@ -1,5 +1,20 @@
 # Research log
 
+## CI translation freshness / recording fixture — 2026-10-12
+
+- GitHub CI run 38217007133 and release run 38217024197 fail translation
+  freshness after the v0.1.1 bump: TS sources changed, but compiled QM files
+  were not regenerated. `tools/build-qm.sh --check` reproduces this locally;
+  regenerating all 39 catalogues with the pinned Linguist tool repairs it.
+- CI also reports Playing instead of Paused at the recording fixture's final
+  state assertion. Its only PCM block can drain on resume; unlike the real
+  actor, the fixture has no decoder to supply the next preroll buffer.
+  GStreamer documents that a non-live sink needs a buffer/GAP/EOS to commit
+  PAUSED: https://gstreamer.freedesktop.org/documentation/additional/design/preroll.html
+  The fixture now provides fresh PCM before awaiting PAUSED and checks successful
+  state completion, including PLAYING after recording release.
+- Full local gate and 20 repeated focused runs pass; see validation.md.
+
 ## Recording interruptions / car profile loss / shutdown hang — 2026-10-09
 
 - Read-only SSH recovered today's installed libpulse diagnostics. All five detected

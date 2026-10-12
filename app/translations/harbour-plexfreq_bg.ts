@@ -2234,8 +2234,8 @@
       <translation>Изчистване · Кеш · Спиране · Възпроизвеждане</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Звук · Възпроизвеждане</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Звук · Възпроизвеждане</translation>
     </message>
   </context>
   <context>

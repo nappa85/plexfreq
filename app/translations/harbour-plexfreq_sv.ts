@@ -2234,8 +2234,8 @@
       <translation>Töm · Cache · Stoppa · Spela</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Ljud · Spela</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Ljud · Spela</translation>
     </message>
   </context>
   <context>

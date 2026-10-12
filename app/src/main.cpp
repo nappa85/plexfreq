@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<QGuiApplication> applicationOwner(application);
     application->setOrganizationName("org.plexfreq");
     application->setApplicationName("harbour-plexfreq");
-    application->setApplicationVersion("0.1.0");
+    application->setApplicationVersion("0.1.1");
     application->setWindowIcon(QIcon(QStringLiteral(":/icons/plexfreq.png")));
 #ifdef SAILFISH
     diagnostics.reset(installPersistentLogging());

@@ -1,5 +1,18 @@
 # Validation record
 
+## CI translation freshness / recording fixture — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| Hosted CI 38217007133 / release 38217024197 logs | Stale QM catalogues fail translations and desktop build; CI also fails final recording-fixture PAUSED assertion |
+| Initial local translation freshness | Reproduced stale `harbour-plexfreq_bg.qm` |
+| Initial local Rust attempt | Linker failed with bus error on nearly full /home; removed this project's generated dev artifacts, then rebuilt without debug symbols/incremental compilation |
+| `bash tools/build-qm.sh` then `bash tools/build-qm.sh --check` | Passed: 39 locales, 549 messages per catalogue |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy, 159 Rust tests, translation freshness, desktop CTest 2/2 (15.07s) |
+| Focused recording regression, 20 consecutive executions | Passed 20/20; successful PLAYING release and PAUSED after explicit pause with fresh preroll PCM |
+
+Hosted rerun remains pending publication; these results are local desktop checks.
+
 ## Recording resume / Bluetooth profile loss / shutdown — 2026-10-09
 
 | Check | Actual result |

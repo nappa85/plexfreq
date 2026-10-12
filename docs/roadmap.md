@@ -1,5 +1,10 @@
 # Development roadmap
 
+CI follow-up (2026-10-12): regenerated the 39 compiled translation catalogues
+after the v0.1.1 source bump and repaired recording-fixture preroll starvation.
+Full local gate passes (159 Rust tests, translations, desktop CTest 2/2), as do
+20 focused repetitions. Hosted CI verification remains pending publication.
+
 Recording/car/shutdown follow-up (2026-10-09): implemented native policy pause plus
 read-only libpulse recording observation. Recording now temporarily holds output,
 automatically resumes retained intent afterward, and honors explicit pause/disconnect

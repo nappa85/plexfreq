@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.0
+Version: 0.1.1
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -36,5 +36,7 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Fri Oct 12 2026 PlexFreq contributors - 0.1.1-1
+- Reliability improvements
 * Fri Oct 02 2026 PlexFreq contributors - 0.1.0-1
 - Initial Rust backend and native Sailfish/desktop music player

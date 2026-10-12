@@ -77,7 +77,7 @@ Page {
             Label { x:Theme.horizontalPageMargin; width:parent.width-2*x; text:backend.cache.error; visible:text.length>0; wrapMode:Text.Wrap; color:Theme.errorColor }
             Label { x:Theme.horizontalPageMargin; width:parent.width-2*x; text:qsTr("The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.").arg(backend.cache.ahead); wrapMode:Text.Wrap; font.pixelSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor }
             Button { anchors.horizontalCenter:parent.horizontalCenter; text:qsTr("Clear cache and stop playback"); enabled:!backend.busy; onClicked:backend.command("clear_cache") }
-            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: qsTr("PlexFreq 0.1.0 · Direct-stream music player"); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; wrapMode: Text.Wrap }
+            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: qsTr("PlexFreq 0.1.1 · Direct-stream music player"); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; wrapMode: Text.Wrap }
         }
         VerticalScrollDecorator {}
     }

@@ -1418,16 +1418,25 @@ mod tests {
         );
         actor.control(Control::Recording(false)).unwrap();
         assert!(actor.desired && !actor.recording);
-        actor.control(Control::Recording(true)).unwrap();
-        actor.control(Control::Pause).unwrap(); // User or Bluetooth disconnect.
-        actor.control(Control::Recording(false)).unwrap();
-        assert!(!actor.desired && !actor.recording);
-        let (_, current, pending) = actor
+        let (result, current, _) = actor
             .output
             .as_ref()
             .unwrap()
             .pipeline
             .state(gst::ClockTime::from_seconds(1));
+        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
+        assert_eq!(current, gst::State::Playing);
+        actor.control(Control::Recording(true)).unwrap();
+        actor.control(Control::Pause).unwrap(); // User or Bluetooth disconnect.
+        actor.control(Control::Recording(false)).unwrap();
+        assert!(!actor.desired && !actor.recording);
+        let output = actor.output.as_mut().unwrap();
+        // The initial block may have drained during resume. A non-live sink
+        // needs a fresh preroll buffer to complete PLAYING -> PAUSED; the real
+        // actor supplies PCM from its decoder, but this fixture has no decoder.
+        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        let (result, current, pending) = output.pipeline.state(gst::ClockTime::from_seconds(1));
+        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
         assert_eq!(current, gst::State::Paused);
         assert_ne!(pending, gst::State::Playing);
     }

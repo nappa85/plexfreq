@@ -2234,7 +2234,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
       <translation type="unfinished" />
     </message>
   </context>

@@ -2234,8 +2234,8 @@
       <translation>Vymazat · Mezipaměť · Zastavit · Přehrát</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · Zvuk · Přehrát</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · Zvuk · Přehrát</translation>
     </message>
   </context>
   <context>

@@ -2234,8 +2234,8 @@
       <translation>साफ करा · कॅश · थांबवा · वाजवा</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.0 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.0 · ऑडिओ · वाजवा</translation>
+      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
+      <translation>PlexFreq 0.1.1 · ऑडिओ · वाजवा</translation>
     </message>
   </context>
   <context>

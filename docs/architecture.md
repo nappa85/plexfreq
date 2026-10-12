@@ -1,5 +1,12 @@
 # Architecture
 
+## Recording fixture preroll (2026-10-12)
+
+The decoder-free recording actor fixture supplies fresh PCM before awaiting the
+final PAUSED transition. Non-live GStreamer sinks require preroll to commit that
+state; a previously played block may already have drained. The regression also
+awaits PLAYING after release, then verifies Pause cancels retained resume intent.
+
 ## Temporary recording holds / bounded Bluetooth lifetime (2026-10-09)
 
 Rust `runtime/pulse/recording.rs` owns a persistent read-only libpulse subscription
