@@ -1385,19 +1385,26 @@ mod tests {
         let capture = Arc::new(Mutex::new(Vec::new()));
         let (events, _) = mpsc::channel();
         let mut actor = Actor::new(
-            Sink::Fake,
+            Sink::Capture,
             Arc::new(Mutex::new(Snapshot::default())),
             capture.clone(),
             events,
             http::SessionCloser::new().unwrap(),
         );
-        let mut output = Output::new(Sink::Fake, capture).unwrap();
+        let mut output = Output::new(Sink::Capture, capture.clone()).unwrap();
         output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
         actor.output = Some(output);
         actor.control(Control::Recording(true)).unwrap();
         actor.control(Control::Recording(false)).unwrap();
         assert!(!actor.desired); // An already paused app must not start.
         actor.control(Control::Play).unwrap();
+        // Wait for actual sink delivery so the first block cannot accidentally
+        // provide preroll for the later recording-release transition.
+        let deadline = Instant::now() + Duration::from_secs(1);
+        while capture.lock().unwrap().len() < BLOCK * CHANNELS && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(1));
+        }
+        assert_eq!(capture.lock().unwrap().len(), BLOCK * CHANNELS);
         actor.control(Control::Recording(true)).unwrap();
         assert!(actor.desired && actor.recording);
         let output = actor.output.as_ref().unwrap();
@@ -1416,6 +1423,14 @@ mod tests {
             actor.output.as_ref().unwrap().pipeline.pending_state(),
             gst::State::Playing
         );
+        // No decoder runs in this fixture. Supply the next PCM block while held
+        // so the non-live sink can finish PAUSED and later resume from preroll.
+        let output = actor.output.as_mut().unwrap();
+        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        let (result, current, _) = output.pipeline.state(gst::ClockTime::from_seconds(1));
+        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
+        assert_eq!(current, gst::State::Paused);
+        assert_eq!(capture.lock().unwrap().len(), BLOCK * CHANNELS);
         actor.control(Control::Recording(false)).unwrap();
         assert!(actor.desired && !actor.recording);
         let (result, current, _) = actor
@@ -1426,6 +1441,11 @@ mod tests {
             .state(gst::ClockTime::from_seconds(1));
         assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
         assert_eq!(current, gst::State::Playing);
+        let deadline = Instant::now() + Duration::from_secs(1);
+        while capture.lock().unwrap().len() < 2 * BLOCK * CHANNELS && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(1));
+        }
+        assert_eq!(capture.lock().unwrap().len(), 2 * BLOCK * CHANNELS);
         actor.control(Control::Recording(true)).unwrap();
         actor.control(Control::Pause).unwrap(); // User or Bluetooth disconnect.
         actor.control(Control::Recording(false)).unwrap();

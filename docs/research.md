@@ -1,5 +1,72 @@
 # Research log
 
+## CI recording-release preroll race — 2026-10-12
+
+- GitHub CI run 38225181884 (commit 48f8f51) fails only the Rust job:
+  `recording_resumes_only_retained_play_intent_and_pause_cancels_resume`
+  receives StateChangeSuccess::Async at the resumed PLAYING assertion (line 1427).
+  Qt integration, QML syntax, translations and SDK cross-compilation all pass.
+- The earlier fixture fix supplied fresh PCM only for the final explicit Pause.
+  Recording release can also require fresh preroll once the first block drains.
+  Consulted https://gstreamer.freedesktop.org/documentation/additional/design/preroll.html:
+  both PAUSED and PLAYING require a queued buffer/GAP/EOS to commit.
+- Made exhaustion deterministic with the capture sink and awaited delivery of
+  the initial block. Without new preroll, the focused test reproduces Async versus
+  Success locally. The fixture now supplies a new block during the recording hold,
+  verifies PAUSED completion without sink delivery, then verifies PLAYING and actual
+  delivery after release. Manual/disconnect pause cancellation retains its final
+  completed-state checks. This is test-fixture synchronization, not audio-policy code.
+- Focused regression passes 100 consecutive runs on Gentoo and 100 on Ubuntu 24.04
+  with GStreamer 1.24.2. Full host gate passes all 159 Rust tests and desktop CTest
+  2/2. An extra Ubuntu all-library container run reached 42 passing tests but stalled
+  in the unrelated BlueZ fixture and hit its outer 600s deadline; focused runs were
+  then executed separately and the disposable container stopped. The same BlueZ
+  fixture passed on hosted CI and the full host gate. See validation.md for scope.
+
+## Extract-and-run desktop archive — 2026-10-12
+
+- User clarified that active development and their Gentoo host favor a plain
+  binary tar.gz rather than Debian/Ubuntu packaging. This supersedes the DEB
+  choice below. No distribution-specific installer or bundled Qt runtime is needed.
+- Consulted https://cmake.org/cmake/help/latest/cpack_gen/archive.html:
+  TGZ creates a gzip-compressed tar archive from CMake install rules. A relative
+  bin/share layout preserves existing translation lookup (`../share/plexfreq`)
+  and embedded QML without requiring installation. Runtime notes ship in the archive.
+- CI continues building against Ubuntu 24.04's Qt 6.4.2/glibc 2.39 baseline, extracts
+  the versioned archive into temporary storage and runs that binary directly.
+  Host libraries/plugins are required; testing the same Ubuntu-built archive on
+  Gentoo checks the user's actual use case. Actual results are in validation.md.
+- Ubuntu TGZ build/extraction/startup passes, and the same archive starts on Gentoo
+  with Qt6.11.2 and the Italian locale override, without installation or library-path
+  overrides. All linked dependencies resolve to host libraries. Desktop CTest 2/2,
+  39-locale checks, workflow lint and whitespace validation pass.
+
+## Earlier desktop DEB choice / sandbox boundary (superseded) — 2026-10-12
+
+- User requests a useful amd64 desktop release instead of the rootless phone
+  archive, citing dependencies available over SSH but absent under Sailjail.
+  The installed `pactl` namespace failure on Oct 7 supplies an actual example.
+- Inspected `CMakeLists.txt`, `app/desktop.qrc`, `packaging/plexfreq.desktop` and
+  the existing Ubuntu 24.04 Qt CI job. Desktop already embeds QML/translations
+  and has install rules for executable, launcher, icon and QM catalogues.
+- Consulted CMake's DEB generator documentation:
+  https://cmake.org/cmake/help/latest/cpack_gen/deb.html
+  `CPACK_DEBIAN_PACKAGE_SHLIBDEPS` enables dpkg-shlibdeps; explicit dependencies
+  are appended to inferred ones. `DEB-DEFAULT` names packages using version,
+  revision and Debian architecture. Dynamic QML/platform/codec plugins require
+  explicit dependencies rather than relying on ELF analysis alone.
+- Chosen artifact: Ubuntu 24.04-native `plexfreq_<version>-1_amd64.deb`, with
+  system Qt6/GStreamer/libpulse dependencies, menu integration and translations.
+  Release CI installs and smoke-tests it before upload/publication. Both platform
+  jobs depend on quality gates; publication requires both packages. Rootless
+  archive generation/upload/publication is removed. Checks are in validation.md.
+- Actual Ubuntu 24.04 build/package/install and a second fresh runtime-only APT
+  install pass; installed QML startup exits 0. CPack needs `file` as well as
+  dpkg-dev, now explicit in release CI. Local Ubuntu validation initially lacked
+  pip (GitHub setup-python supplies it); the harness was corrected. Inferred
+  dependencies include libc6 >=2.39 and QtCore >=6.4.0, confirming the distro
+  baseline matters. Full host gate, workflow lint and SDK RPM build pass.
+
 ## CI translation freshness / recording fixture — 2026-10-12
 
 - GitHub CI run 38217007133 and release run 38217024197 fail translation

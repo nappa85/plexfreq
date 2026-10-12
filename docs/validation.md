@@ -1,5 +1,61 @@
 # Validation record
 
+## CI recording-release preroll race — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| `gh run view 38225181884 --log-failed` | Rust recording fixture failed: resumed PLAYING state returned Async instead of Success; other four CI jobs succeeded |
+| Deterministic initial-buffer drain, before new preroll | Focused test reproduced the same Async/Success failure; first cold compile attempt exceeded 120s, retry completed and reproduced failure |
+| Fixed focused regression | Passed: initial PCM delivered, recording hold commits PAUSED without delivery, release commits PLAYING and delivers held PCM, explicit Pause cancels resume |
+| Focused Gentoo executions | Passed 100/100 |
+| Focused Ubuntu 24.04 / GStreamer 1.24.2 executions | Passed 100/100 in a disposable container using the existing test binary |
+| Additional Ubuntu all-library run | 42 tests passed; unrelated BlueZ fixture stalled and outer 600s timeout expired. Focused recording runs passed separately; container stopped |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy, all 159 Rust tests, 39 locales/549 messages, desktop CTest 2/2 (15.14s), including BlueZ fixture |
+| Final `git diff --check` | Passed |
+
+Only the test fixture changed. No phone deployment/live Plex run was performed;
+hosted rerun of the fix requires committing/pushing. The extra Ubuntu all-library
+attempt is not recorded as a successful full Ubuntu test suite.
+
+## Extract-and-run desktop tar.gz / Gentoo — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| Ubuntu 24.04 build and CPack TGZ | Passed: `plexfreq-0.1.1-linux-amd64.tar.gz`; bin/share paths under one versioned directory, stripped amd64 executable, icon/launcher, 39 QM files and runtime README |
+| Extracted Ubuntu-built binary smoke on Ubuntu 24.04 | Passed, exit 0, without app installation; offscreen/software Qt6.4.2, fake audio, isolated D-Bus and temporary state |
+| Same archive extracted on Gentoo | Passed, exit 0, with host Qt6.11.2 and Italian override; no app installation, bundled libraries or library-path overrides |
+| Gentoo `ldd` on extracted Ubuntu executable | All shared libraries resolve from host paths; no missing library |
+| Gentoo CMake rebuild, translations and CTest | Passed: 39 locales/549 messages and CTest 2/2 (15.04s) |
+| actionlint 1.7.11 / `git diff --check` | Passed; shellcheck integration disabled because unavailable |
+
+These startup checks ran with isolated temporary state and do not claim audible
+output or live Plex playback. The archive relies on compatible installed Qt6/audio
+libraries and plugins. The previous full Rust and Sailfish RPM gates below passed;
+this follow-up changes only desktop distribution/workflow/docs. Hosted publication
+still awaits a committed/pushed workflow. The DEB experiment below is superseded.
+
+## Earlier desktop DEB experiment (superseded) — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy, 159 Rust tests, 39 locales/549 messages, desktop CTest 2/2 (15.12s) |
+| `python3 tools/release-version.py --tag v0.1.1` / Sailfish script Bash syntax | Passed |
+| Ubuntu 24.04 desktop release build (`BUILD_TESTING=OFF`) | Passed with GCC 13.3, Qt 6.4.2, GStreamer 1.24.2 and libpulse 16.1 |
+| Initial clean-container attempts | Validation harness lacked Python pip, then CPack lacked `file`; installed harness pip and added explicit `file` packaging dependency to release CI |
+| CPack DEB metadata and contents | Passed: `plexfreq_0.1.1-1_amd64.deb`, version 0.1.1-1, amd64, 6393554 bytes; executable, launcher, icon and 39 QM files; inferred library and explicit plugin dependencies |
+| APT install / installed executable smoke in build container | Passed, exit 0; isolated D-Bus, offscreen/software Qt, fake audio, temporary state |
+| Fresh Ubuntu 24.04 runtime-only container | Passed: APT installed the DEB and its declared dependencies (plus dbus-daemon for the isolated harness); installed executable/launcher/icon verified and smoke exited 0 without development packages |
+| actionlint 1.7.11 on CI and release workflows | Passed; shellcheck integration disabled because unavailable |
+| `./tools/build-sailfish.sh` | Passed: aarch64 GNU/Qt5.6 RPM; 0 rpmlint errors, existing no-url-tag and changelog-date warnings; no rootless archive generation |
+| Final `git diff --check` | Passed |
+
+Ubuntu checks ran in disposable containers with source read-only and build/package
+outputs under `/tmp/opencode/plexfreq-desktop-validation`. Qt reports existing
+Qt5-compatible Connections/signal-parameter deprecations, without QML load errors.
+These checks validate local packaging/dependency resolution and startup, not audible
+desktop output or phone permissions. Hosted artifact upload/publication awaits a
+committed/pushed workflow; no phone deployment or live Plex experiment was performed.
+
 ## CI translation freshness / recording fixture — 2026-10-12
 
 | Check | Actual result |

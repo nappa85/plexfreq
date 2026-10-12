@@ -1,4 +1,4 @@
-name: Build and publish Sailfish packages
+name: Build and publish packages
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   build:
-    name: Build RPM, rootless bundle and device fixture
+    name: Build Sailfish RPM and device fixture
     needs: quality
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -77,14 +77,67 @@ jobs:
           if-no-files-found: error
           path: |
             build/sailfish/RPMS/*.rpm
-            build/plexfreq-*-aarch64-rootless.tar.gz
             build/device-tests/plexfreq-backend-test
             build/device-tests/RPMS/*.rpm
+
+  desktop:
+    name: Build Linux amd64 desktop archive
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check committed release version
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
+        run: python3 tools/release-version.py --tag "$RELEASE_TAG"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Qt, audio and packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config file dbus-daemon libpulse-dev libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-libav qt6-base-dev qt6-declarative-dev qt6-qpa-plugins qt6-wayland qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-templates qml6-module-qtqml-workerscript
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cache/qt-tools
+          key: ${{ runner.os }}-desktop-package-linguist-6.11.2-${{ hashFiles('Cargo.lock') }}
+      - name: Build and package desktop release
+        run: |
+          cmake -S . -B build/desktop -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build/desktop --parallel 2
+          cpack --config build/desktop/CPackConfig.cmake -B build/packages
+      - name: Extract and smoke-test desktop archive
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+          PLEXFREQ_AUDIO_SINK: fake
+        run: |
+          bundle="plexfreq-${EXPECTED_VERSION}-linux-amd64"
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          tar -xzf "build/packages/${bundle}.tar.gz" -C "$stage"
+          executable="$stage/$bundle/bin/plexfreq"
+          test -x "$executable"
+          file "$executable" | grep -q 'ELF 64-bit.*x86-64'
+          test -f "$stage/$bundle/share/doc/plexfreq/README.md"
+          dbus-run-session -- bash tools/smoke-test.sh "$executable"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          path: build/packages/plexfreq-*-linux-amd64.tar.gz
 
   publish:
     name: Publish tag release
     if: github.event_name == 'push'
-    needs: build
+    needs: [build, desktop]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -93,10 +146,14 @@ jobs:
         with:
           name: sailfish-${{ needs.build.outputs.version }}
           path: packages
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-${{ needs.build.outputs.version }}
+          path: packages/desktop
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             packages/sailfish/RPMS/*.rpm
-            packages/plexfreq-*-aarch64-rootless.tar.gz
+            packages/desktop/plexfreq-*-linux-amd64.tar.gz
           fail_on_unmatched_files: true
           generate_release_notes: true

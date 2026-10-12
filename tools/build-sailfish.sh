@@ -44,5 +44,3 @@ docker run --rm --user root -v "$root/build/sailfish:/home/mersdk/app" \
 docker run --rm -v "$root/build/sailfish:/home/mersdk/app" \
     -w /home/mersdk/app --entrypoint mb2 "$image" --target "$target" build
 printf 'RPMs: %s/build/sailfish/RPMS/\n' "$root"
-tar -C "$root/build/sailfish" -czf "$root/build/plexfreq-$version-aarch64-rootless.tar.gz" harbour-plexfreq qml translations
-printf 'Rootless bundle: %s/build/plexfreq-%s-aarch64-rootless.tar.gz\n' "$root" "$version"

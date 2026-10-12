@@ -37,10 +37,10 @@ Clean runners bootstrap pinned Qt Linguist 6.11.2 from PySide6-Essentials using
 `tools/qt_tools.py`; matching reference caches are reused. The versioned cache is
 `$XDG_CACHE_HOME/qt-tools/plexfreq-6.11.2`.
 
-`release.yml` reuses CI before SDK app/device-fixture builds. `v*` tags publish app
-RPM/rootless assets; manual runs only upload artifacts. Tags must equal `v` plus
+`release.yml` reuses CI before SDK app/device-fixture and desktop builds. `v*` tags publish
+Sailfish aarch64 RPM and Linux amd64 tar.gz assets; manual runs only upload artifacts. Tags must equal `v` plus
 the committed version. `tools/release-version.py` checks Cargo/.pro/spec/main.cpp/
-CMake versions without rewriting source/lock files. Rootless filenames use the
+CMake versions without rewriting source/lock files. Package filenames use the
 verified version. Build permissions are contents:read; only publication gets write.
 CI does not claim phone audio routing, physical-key or live-account validation.
 
@@ -65,14 +65,44 @@ versions and record the image digest. The compiler wrapper assumes Cargo's
 sources reside under CARGO_HOME and outputs under the project root. Run the
 build from the repository; custom external CARGO_TARGET_DIR is not supported.
 
-## Rootless device validation
+## Desktop release packaging
+
+The desktop release job builds with Ubuntu 24.04's Qt6 and audio development
+packages, then uses CPack's TGZ generator and the existing CMake install rules:
+
+```sh
+cmake -S . -B build/desktop -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build/desktop --parallel 2
+cpack --config build/desktop/CPackConfig.cmake -B build/packages
+```
+
+The download is `plexfreq-<version>-linux-amd64.tar.gz`, with one top-level
+directory containing `bin/plexfreq` and `share/` (desktop launcher, icon, 39 compiled
+translations and runtime notes). Desktop/shared QML and translations are also
+embedded in the executable. CPack stages relative `bin/` and `share/` paths,
+independently of the normal CMake installation prefix. Extract anywhere and run
+`./plexfreq-<version>-linux-amd64/bin/plexfreq`; no app installation is needed.
+
+This development archive uses host Qt6/QML, platform plugins, GLib/GIO, GStreamer
+codecs and libpulse. CI builds on Ubuntu 24.04 with Qt 6.4.2 and glibc 2.39;
+compatible host libraries are required, including on Gentoo. It does not bundle
+system libraries or require a Debian package manager. Runtime requirements ship
+in `share/doc/plexfreq/README.md`. CI extracts to a temporary user-owned directory,
+verifies the versioned layout and ELF amd64 architecture, then smoke-tests the
+extracted binary using temporary state, isolated D-Bus, offscreen Qt and fake audio.
+
+## Installed Sailfish validation
+
+The Sailfish release asset is the RPM; the build no longer generates a rootless
+archive. Install the RPM normally and start the app through its launcher for
+platform integration, permissions, audio and field checks under Sailjail.
+Unpacked execution cannot establish installed sandbox compatibility (the historical
+`pactl` namespace failure is recorded in research.md and validation.md).
+
+### Historical unpacked developer workflow
 
 Application execution needs no root. RPM installation is an OS/package-manager
 operation; where that is unavailable, use developer SSH and an extracted bundle:
-
-The build also produces `build/plexfreq-0.1.1-aarch64-rootless.tar.gz`, containing
-the executable and adjacent QML directory. Extract it in a user-owned phone
-directory and run `./harbour-plexfreq`; this avoids the manual RPM extraction below.
 
 1. On the host extract the RPM with `rpm2cpio <rpm> | cpio -id` in a clean staging
    directory (or use bsdtar). Copy `usr/bin/harbour-plexfreq` and the contents of

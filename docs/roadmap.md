@@ -1,5 +1,18 @@
 # Development roadmap
 
+CI recording-release follow-up (2026-10-12): hosted run 38225181884 exposes the
+remaining decoder-free fixture preroll race on PLAYING resume. Actual capture-sink
+delivery now forces exhaustion; fresh held PCM verifies PAUSED/no delivery and
+PLAYING/delivery after release. The unfixed deterministic case fails locally;
+fixed test passes 100 times each on Gentoo and Ubuntu/GStreamer 1.24.2, with the
+full host gate passing 159 Rust tests and CTest 2/2. Hosted rerun awaits publication.
+
+Release distribution (2026-10-12): replace the rootless phone archive with a Linux
+amd64 desktop tar.gz, alongside the Sailfish aarch64 RPM. Desktop packaging uses
+CPack TGZ and an extracted-binary CI smoke gate, with host Qt6/audio dependencies. Sailfish
+integration/permission checks require the normally installed Sailjail app. Actual
+local packaging checks and hosted execution scope are recorded in validation.md.
+
 CI follow-up (2026-10-12): regenerated the 39 compiled translation catalogues
 after the v0.1.1 source bump and repaired recording-fixture preroll starvation.
 Full local gate passes (159 Rust tests, translations, desktop CTest 2/2), as do
@@ -385,7 +398,7 @@ The i18n/audio follow-up above was implemented in the next iteration (2026-10-04
 
 - Branch pushes/PRs: Rust, Qt integration/smoke, all-QML syntax, 39-locale freshness
   and actual-SDK GNU aarch64 compilation.
-- Tags/manual: gated SDK RPM/rootless/device fixture artifacts; only tags publish.
+- Tags/manual: gated SDK RPM/device fixture and Linux amd64 desktop tar.gz artifacts; only tags publish.
 - Pinned clean-runner Linguist bootstrap and committed release-version preflight.
 - Remaining validation: first GitHub run after committing/pushing these workflows.
   Initial shuffled-history review failure was observed; final working-tree Rust

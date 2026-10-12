@@ -7,8 +7,8 @@ Rust formatting/Clippy/tests, Qt6 release build and isolated integration/QML smo
 Qt5 syntax checks for all desktop/Silica QML, translation freshness for 39 locales,
 and an aarch64 Rust build against the actual Sailfish SDK sysroot.
 
-`v*` tag pushes run those gates before building the Sailfish RPM, rootless bundle
-and device-test fixture; app RPM/bundle assets are attached to the tag release.
+`v*` tag pushes run those gates before building the Sailfish aarch64 RPM, Linux
+amd64 desktop tar.gz and device-test fixture; app RPM/archive assets are attached to the tag release.
 Manual release builds upload artifacts without publishing. Tags must match the
 committed core/application/package versions. See `.github/workflows` and
 `docs/build.md`; phone/live-account tests remain separate opt-in checks.
@@ -29,7 +29,7 @@ Output PCM is fixed 48 kHz stereo; sample-rate matching and wider codec/routing/
 long-session tests remain follow-ups.
 
 39 locale catalogues match ElectricEel/sailfish-proton, with full locale → base
-language → English fallback, packaged/embedded for installed and rootless builds.
+language → English fallback, packaged/embedded for Sailfish and desktop builds.
 `PLEXFREQ_LANGUAGE=it_IT` overrides the system locale for inspection.
 `./tools/build-qm.sh` compiles the authored dictionary; `--check` verifies catalogue
 coverage/placeholders and deterministic TS/QM/resources. New technical translations
@@ -73,6 +73,22 @@ implementation of a Plexamp-inspired client.
 - Bluetooth audio disconnect auto-pause; reconnect does not resume playback.
 
 ## Desktop
+
+Releases provide `plexfreq-<version>-linux-amd64.tar.gz`. Extract it into any
+user-owned directory and run the included executable without installing the app:
+
+```sh
+tar -xzf plexfreq-<version>-linux-amd64.tar.gz
+./plexfreq-<version>-linux-amd64/bin/plexfreq
+```
+
+The CI binary is built on Ubuntu 24.04 (Qt 6.4.2, glibc 2.39) and uses compatible
+host Qt6/QML, GLib/GIO, GStreamer codecs and libpulse libraries/plugins. Audio uses
+PulseAudio or PipeWire's PulseAudio service. This is a plain development archive,
+not a bundled runtime; it can run on Gentoo with these dependencies available.
+See the included `share/doc/plexfreq/README.md` for runtime requirements.
+
+### Building from source
 
 Requires Rust stable, CMake, a C++ compiler and Qt **6.2+** Core, Gui, Qml, Quick,
 QuickControls2 and DBus development/runtime modules, GStreamer core/base development
@@ -256,7 +272,7 @@ rustup target add aarch64-unknown-linux-gnu
 Uses the available `coderus/sailfishos-platform-sdk-aarch64:latest` image and
 `SailfishOS-5.2.0.15-aarch64` target. Rust C dependencies are compiled against the
 SDK sysroot. Output RPMs: `build/sailfish/RPMS/`. See [build notes](docs/build.md)
-for validation and rootless device execution.
+for normal installation and sandboxed device validation.
 
 ## Checks and development notes
 

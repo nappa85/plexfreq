@@ -1,5 +1,23 @@
 # Architecture
 
+## Recording fixture synchronization (2026-10-12)
+
+The decoder-free recording fixture uses a capture sink to await actual initial PCM
+delivery, forcing exhaustion before the recording hold. Fresh PCM supplies preroll
+while held: PAUSED commits without delivering it, then recording release commits
+PLAYING and delivers that block. Explicit Pause still cancels retained resume intent.
+This extends the earlier final-Pause preroll fix to recording release and leaves
+production actor/recording policy unchanged.
+
+## Release distribution (2026-10-12)
+
+Tag releases publish the normally installed Sailfish aarch64 RPM and an Ubuntu
+24.04-built Linux amd64 desktop tar.gz. CPack's TGZ generator consumes the existing
+CMake install layout with relative bin/share paths. QML/translations are embedded;
+the archive relies on compatible host Qt6 and audio libraries/plugins. CI extracts
+and smoke-tests the desktop archive before publication. Rootless phone archives are no longer generated;
+Sailfish integration evidence must come from normal Sailjail installation/launch.
+
 ## Recording fixture preroll (2026-10-12)
 
 The decoder-free recording actor fixture supplies fresh PCM before awaiting the

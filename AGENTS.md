@@ -13,8 +13,10 @@
 - Use aarch64-unknown-linux-gnu, not musl, when linking Rust with Sailfish Qt.
   Compile C dependencies through `tools/sdk-cc.sh` against the actual sysroot.
 - No phone root, privileged helper or modifications to system media services.
-  Rootless bundle runs from a user-owned directory; sandbox validation requires
-  a normally installed app and is distinct from terminal execution.
+  Sailfish integration/permission validation requires a normally installed app
+  launched under Sailjail; unpacked terminal execution is not a substitute.
+  Release assets are the Sailfish aarch64 RPM and Linux amd64 desktop tar.gz.
+  The desktop archive runs unpacked using compatible host Qt6/audio libraries.
 - Checks: `./tools/check.sh`; SDK packaging: `./tools/build-sailfish.sh`.
   A successful package build is not a hardware runtime test.
 - Keep session fixtures in temporary directories. Never put actual tokens in
