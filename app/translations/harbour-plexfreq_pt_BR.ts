@@ -2234,8 +2234,8 @@
       <translation>Limpar · Cache · Parar · Reproduzir</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
-      <translation>PlexFreq 0.1.1 · Áudio · Reproduzir</translation>
+      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.2 · Áudio · Reproduzir</translation>
     </message>
   </context>
   <context>

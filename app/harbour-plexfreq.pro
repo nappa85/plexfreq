@@ -1,5 +1,5 @@
 TARGET = harbour-plexfreq
-VERSION = 0.1.1
+VERSION = 0.1.2
 CONFIG += sailfishapp c++11
 CONFIG += link_pkgconfig
 PKGCONFIG += gstreamer-1.0 gstreamer-app-1.0 gio-2.0 libpulse

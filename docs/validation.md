@@ -1,5 +1,18 @@
 # Validation record
 
+## v0.1.2 translation freshness CI fix — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| `gh run view 38275986392 --log-failed` / `gh run view 38276025896 --log-failed` | Both CI and release quality gates rejected stale translated catalogues; desktop build failed at the same translation check |
+| Local `bash tools/build-qm.sh --check` before regeneration | Reproduced `Translation catalogue out of date: app/translations/harbour-plexfreq_bg.ts` |
+| `bash tools/build-qm.sh` | Regenerated TS/QM for all 39 locales from the authored translations; only the v0.1.2 label formatting changed |
+| Initial full gate attempts | First attempt exceeded 120s; next attempt passed fmt/Clippy but the PulseAudio silent-socket fixture exceeded its one-second shutdown assertion |
+| Final `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy, 184 Rust tests, translation freshness (39 locales/549 messages), desktop build and CTest 2/2 |
+
+Hosted confirmation requires pushing the regenerated catalogues. No platform
+integration or runtime behavior changed.
+
 ## Production review hardening — 2026-10-12
 
 | Check | Actual result |

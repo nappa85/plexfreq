@@ -2234,8 +2234,8 @@
       <translation>Чистарту · Кэш · Туктату · Уйнату</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
-      <translation>PlexFreq 0.1.1 · Тавыш · Уйнату</translation>
+      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.2 · Тавыш · Уйнату</translation>
     </message>
   </context>
   <context>

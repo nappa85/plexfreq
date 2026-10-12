@@ -2234,8 +2234,8 @@
       <translation>Εκκαθάριση · Προσωρινή μνήμη · Διακοπή · Αναπαραγωγή</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
-      <translation>PlexFreq 0.1.1 · Ήχος · Αναπαραγωγή</translation>
+      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.2 · Ήχος · Αναπαραγωγή</translation>
     </message>
   </context>
   <context>

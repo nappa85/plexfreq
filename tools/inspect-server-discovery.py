@@ -24,7 +24,7 @@ def main():
             headers={
                 "Accept": "application/json",
                 "X-Plex-Product": "PlexFreq",
-                "X-Plex-Version": "0.1.1",
+                "X-Plex-Version": "0.1.2",
                 "X-Plex-Platform": "Linux",
                 "X-Plex-Client-Identifier": state["clientIdentifier"],
                 "X-Plex-Token": token,

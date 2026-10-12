@@ -2234,8 +2234,8 @@
       <translation>Wyczyść · Pamięć podręczna · Zatrzymaj · Odtwarzaj</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
-      <translation>PlexFreq 0.1.1 · Dźwięk · Odtwarzaj</translation>
+      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.2 · Dźwięk · Odtwarzaj</translation>
     </message>
   </context>
   <context>

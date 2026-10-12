@@ -2234,8 +2234,8 @@
       <translation>Vyčistiť · Vyrovnávacia pamäť · Zastaviť · Prehrať</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.1 · Direct-stream music player</source>
-      <translation>PlexFreq 0.1.1 · Zvuk · Prehrať</translation>
+      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.2 · Zvuk · Prehrať</translation>
     </message>
   </context>
   <context>
