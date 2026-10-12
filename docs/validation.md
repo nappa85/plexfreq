@@ -1,5 +1,57 @@
 # Validation record
 
+## Ten production-logic regressions — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| `cargo fmt --all` | Passed |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 cargo test --locked --test production_logic_bugs --test queue_edit --test cache` | Passed: 11 production-logic tests (ten supplied plus Core no-op/shuffle regression), 2 queue-edit and 11 cache tests |
+| Strengthened timestamp and station validation assertions | Passed: exact fractional millisecond rounding, span fallback, negative/out-of-range rejection, invalid/external/traversal/credential-bearing station keys |
+| Strengthened malformed-entry recovery assertions | Passed: good entry remains lookup-playable, missing-field and wrong-type entries are omitted, saved index contains only the good entry, reopen succeeds |
+| Existing whole-index corruption fixture | Passed: malformed document still fails open and preserves index/media evidence |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy warnings-as-errors, all 196 Rust tests, 39 locales/549 messages, desktop build and CTest 2/2 (15.14s) |
+| `git diff --check` | Passed |
+
+Updated the older malformed-brace lyric assertion to match the plain-text fallback
+contract; valid unsupported JSON still fails. Fixtures use temporary directories
+and synthetic data. No live Plex/device experiment or SDK packaging was performed
+for these Rust queue/parser/index changes. Untested actor-admission/pad-link/fallback
+and broader cleanup findings remain follow-up work recorded in roadmap.md.
+
+## Network stalls / cached replacement / loading feedback — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| Read-only SSH / current-date phone log | Initial No route to host, later success; installed 0.1.1-1; remote retries/buffering and 15013 ms audio-actor delay before cached replacement observed |
+| New stalled-HTTP → generated local WAV fixture before follow-up | Passed in 0.16s with the checkout's existing input-backpressure fix; does not reproduce the installed historical delay |
+| First full host gate | Clippy rejected unhandled read amount in the new fixture; changed to complete-header reading |
+| Second full host gate | Fixture caught EOF on an initial connection cancelled by appsrc seek; now accepts until a complete request arrives, with bounded waits |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt/Clippy, 185 Rust tests, 39 locales/549 messages and desktop CTest 2/2 (15.20s) |
+| Desktop loading-indicator regression | Passed: live foreground busy and independent audio buffering each start/stop the production indicator |
+| First `./tools/build-sailfish.sh` | Version preflight rejected preexisting main.cpp 0.1.1 versus package 0.1.2; synchronized application version |
+| Final `./tools/build-sailfish.sh` | Passed: GNU aarch64/Qt5.6 RPM, zero rpmlint errors; existing no-url-tag/changelog-date warnings |
+| First `./tools/build-device-tests.sh` | Qt5-only injected navigation test failed Q_ARG macro parsing of a map initializer; supplied a separate QVariant argument |
+| Final `./tools/build-device-tests.sh` | Passed: Qt5.6/aarch64 fixture build, existing lint warnings; native early-failure-before-push case compiled but not executed |
+| Final desktop rebuild / CTest after version and fixture fixes | Passed 2/2 (15.04s), translation freshness passed |
+| Final closed-reader seek guard / full host gate and production RPM rebuild | Passed: audio 9/9 and HTTP 5/5 focused tests, then all 185 Rust tests/fmt/Clippy/39 locales/CTest 2/2 (16.10s); final GNU aarch64/Qt5.6 RPM build passes |
+| Final `git diff --check` | Passed |
+
+User-requested delivery: copied the final RPM to
+`/home/defaultuser/Downloads/harbour-plexfreq-0.1.2-1.aarch64.rpm` on
+192.168.1.121. Host and phone SHA256 match:
+`cd9cb8893bf6c13ba22f9b4200a560b545f6514e28332f24a1bcb4cb24d5bd68`.
+Installation/restart and installed runtime retest remain pending.
+
+The new audio fixture uses temporary state/generated WAV, a loopback listener
+with withheld headers, real GStreamer decoding and a capture sink. It verifies
+delivery from local replacement within two seconds without awaiting HTTP timeout.
+Phone access was read-only (logs/package identity). No fixture execution, RPM
+installation, production relaunch, live Plex request or service modification was
+performed on the phone. SDK build success is not installed Sailjail or physical
+network-loss validation. Native navigation timing and the historical stall's
+exact blocking call remain field-validation questions; new request timings improve
+evidence for the next report.
+
 ## v0.1.2 translation freshness CI fix — 2026-10-12
 
 | Check | Actual result |

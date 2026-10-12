@@ -1,5 +1,75 @@
 # Research log
 
+## Ten production-logic regressions — 2026-10-12
+
+- Queue previous now wraps under repeat-all; same-row moves preserve playback
+  order and shuffle policy. The materialized editable presentation is linear,
+  while Core UI/prepared snapshots report shuffle policy from the original queue.
+  Core same-row moves validate indexes before returning without materialization.
+- JSON syntax failure falls back to plain lyric content for all JSON-looking
+  prefixes. Valid JSON with an unsupported document structure remains an error.
+  Fractional PMS millisecond starts round to the nearest millisecond, including
+  span fallback; negative and out-of-range float starts remain untimed.
+- Required PIN integer strings and optional gain strings trim whitespace. Radio
+  flags accept numeric 1.0 and trimmed, case-insensitive true strings. Station URI
+  construction reuses advertised-path validation, retaining legitimate queries.
+- Consulted https://serde.rs/field-attrs.html (`deserialize_with`, `default`).
+  Defaults only cover missing fields; cache entry isolation instead deserializes
+  each map value independently and diagnoses the rejected count without keys or
+  credentials. Whole-document syntax/shape failures still abort before cleanup.
+  Strengthened cache regression verifies actual lookup, persisted good-only index
+  and successful reopen, rather than only the presence of files.
+- Assessed untested audio findings against current source and consulted
+  https://gstreamer.freedesktop.org/documentation/app/appsrc.html: `block` defaults
+  to false, so the omitted explicit output setter is not a demonstrated blocking
+  bug. Audio structural admission returns errors rather than silently accepting;
+  Bluetooth policy can still consume a disconnect before rejected admission is
+  retried. Pad-link results and fallback's exact error-text comparison warrant
+  focused failure fixtures. Diagnostics' file unwrap follows successful open;
+  FFI's expect constructs a fixed NUL-free literal, so neither alone establishes
+  a reachable input-triggered panic. Broad deduplication/dependency replacements
+  need separate contract review, especially intentional optional metadata tolerance.
+- Local focused suites passed 11 production-logic, 11 cache and 2 queue-edit tests.
+  Full check results are recorded in validation.md.
+
+## Network stalls / cached replacement / navigation feedback — 2026-10-12
+
+- Read-only SSH to defaultuser@192.168.1.121 initially failed with No route to
+  host, then succeeded. The installed package is 0.1.1-1. Its current-date
+  AppData log records repeated remote audio retries and buffering around 19:10.
+  select_track completes at 19:10:49.003 in 32 ms, but the first cached decoder
+  appears at 19:11:04.011; the audio actor reports a 15013 ms delayed iteration.
+  This establishes an audio-worker delay after planning, not slow cache lookup.
+  No stack trace identifies the exact blocking call. Existing logs lack listing
+  request timings, so the reported recent-artist navigation cannot be time-matched.
+- Consulted https://gstreamer.freedesktop.org/documentation/app/appsrc.html:
+  need-data requires buffers or end-of-stream, and push-buffer may block when
+  block is enabled. The current checkout already has nonblocking, cancellable
+  input backpressure absent from earlier implementations. A new real-decoder
+  loopback fixture with withheld HTTP headers successfully switches to generated
+  local WAV; it also passed before this follow-up, so it is not a reproduction of
+  the installed 15-second stall.
+- Consulted https://docs.rs/tokio/latest/tokio/sync/watch/struct.Sender.html#method.send_if_modified:
+  conditional updates occur under the mutable channel borrow. Reader cancellation
+  is now terminal: late seek callbacks cannot replace None with a fresh offset.
+  Stop also sends appsrc EOS before decoder teardown to release waiting consumers.
+  This closes a concrete cancellation-resurrection race, without claiming a
+  recovered causal stack for the phone incident.
+- Sailfish restorePage could restore the outgoing route when a reply arrived
+  before forward push deactivation. A departure guard spans that interval and
+  clears on subsequent activation. The native fixture now injects a failed detail
+  reply before pushing the artist page; it compiles against Qt5.6 but has not run
+  on the phone for this change.
+- The old spinner lived inside the scrolling header and used frozen page busy
+  state. A viewport-level indicator now reads live foreground busy/audio buffering
+  on Library/detail and Now playing; desktop's fixed indicator covers buffering
+  too. C++ only exposes the Rust snapshot field. Rust logs request operation,
+  success and elapsed time without keys, titles, URLs or credentials.
+- Packaging preflight found the existing main.cpp application version still at
+  0.1.1 while Cargo/qmake/spec/CMake were 0.1.2; synchronized it to unblock the RPM.
+  Actual checks and intermediate fixture errors are in validation.md. Phone access
+  remained read-only; no live Plex request, app replacement or service change.
+
 ## Production review hardening — 2026-10-12
 
 - Supplied five regressions reproduce mismatched lyric whitespace, bitrate policy,

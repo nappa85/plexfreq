@@ -45,6 +45,7 @@ class NavigationBackend : public QObject {
     Q_PROPERTY(qint64 position READ position NOTIFY playbackChanged)
     Q_PROPERTY(qint64 duration READ duration CONSTANT)
     Q_PROPERTY(bool playing READ playing CONSTANT)
+    Q_PROPERTY(bool buffering READ buffering NOTIFY playbackChanged)
     Q_PROPERTY(QString error READ error CONSTANT)
 public:
     QString operation;
@@ -61,6 +62,8 @@ public:
     qint64 position() const {return playbackPosition;}
     qint64 duration() const {return 10000;}
     bool playing() const {return false;}
+    bool buffering() const {return bufferingValue;}
+    bool bufferingValue=false;
     QString error() const {return QString();}
     QVariantMap state() const { return data; }
     QVariantMap cache() const { return cacheData; }
@@ -153,6 +156,10 @@ Item {
         QVERIFY(QMetaObject::invokeMethod(music,"jump",Q_ARG(QVariant,QVariant("B"))));QTRY_VERIFY(list->property("contentY").toReal()>list->property("originY").toReal());QTRY_COMPARE(rail->property("current").toString(),QString("B"));
         list->setProperty("contentY",list->property("originY"));QTRY_COMPARE(rail->property("current").toString(),QString("A"));
         backend.busyValue=true;emit backend.busyChanged();QVERIFY(!library->property("enabled").toBool());QCOMPARE(visualItem(quickWindow->contentItem(),"libraryDestination"),library);
+        auto *loading=window->findChild<QObject *>("foregroundLoadingIndicator");QVERIFY(loading);QVERIFY(loading->property("running").toBool());
+        backend.busyValue=false;emit backend.busyChanged();QVERIFY(!loading->property("running").toBool());
+        backend.bufferingValue=true;emit backend.playbackChanged();QVERIFY(loading->property("running").toBool());
+        backend.bufferingValue=false;emit backend.playbackChanged();QVERIFY(!loading->property("running").toBool());
         backend.busyValue=false;emit backend.busyChanged();QVERIFY(QMetaObject::invokeMethod(queue,"triggered"));QVERIFY(music->property("showQueue").toBool());QVERIFY(window->property("showBack").toBool());
         QVERIFY(QMetaObject::invokeMethod(playlists,"clicked"));QCOMPARE(backend.operation,QString("playlists"));QVERIFY(!window->property("showBack").toBool());
 #endif
@@ -207,7 +214,13 @@ ApplicationWindow {
         QObject *root=app->property("current").value<QObject *>();auto *rootView=root->findChild<QObject *>("browsePageView");QVERIFY(rootView);
         const QVariant artist=QVariantMap{{"type","artist"},{"ratingKey","10"},{"title","Artist"}},album=QVariantMap{{"type","album"},{"ratingKey","20"},{"title","Album"}};
         backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();
-        QVERIFY(QMetaObject::invokeMethod(music.get(),"activate",Q_ARG(QVariant,artist),Q_ARG(QVariant,QVariant(0))));
+        // Complete (or fail) a request before the native push deactivates the
+        // outgoing root. Restoration must not undo the forward route.
+        const QVariant detailArgs=QVariantMap{{"key","10"},{"start",0}};
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"load",Q_ARG(QVariant,QVariant("detail")),Q_ARG(QVariant,detailArgs),Q_ARG(QVariant,QVariant("Artist")),Q_ARG(QVariant,QVariant(true)),Q_ARG(QVariant,artist)));
+        emit backend.completed("detail",false,QVariantMap());
+        QCOMPARE(music->property("route").toMap().value("op").toString(),QString("detail"));
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"navigate",Q_ARG(QString,QString("artist")),Q_ARG(QString,QString("10"))));
         QCOMPARE(rootView->property("heading").toString(),QString("Artists"));QVERIFY(rootView->property("detail").toMap().isEmpty());QCOMPARE(rootView->property("items").toList(),QVariantList{artist});
         QTRY_VERIFY(app->property("current").value<QObject *>()!=root);QTRY_VERIFY(!app->property("transitioning").toBool());
         auto *artistView=app->property("current").value<QObject *>()->findChild<QObject *>("browsePageView");QVERIFY(artistView);

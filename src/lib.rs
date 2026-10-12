@@ -478,7 +478,7 @@ impl Core {
         let prepared = match result {
             Ok(mut plan) if queue.track().is_some() => {
                 let q = queue.presentation();
-                plan["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":q.shuffled});
+                plan["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":queue.shuffled});
                 Ok(Some(Prepared {
                     queue,
                     radio: next_radio,
@@ -1660,7 +1660,7 @@ impl Core {
         }
         if result.get("queue").is_some() {
             let q = self.queue.presentation();
-            result["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":q.shuffled});
+            result["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":self.queue.shuffled});
         }
         Ok(result)
     }
@@ -2148,6 +2148,11 @@ impl Core {
                 result
             }
             Command::QueueMove { from, to } => {
+                self.queue.physical_index(from)?;
+                self.queue.physical_index(to)?;
+                if from == to {
+                    return Ok(json!({"queue":self.queue,"radio":self.radio}));
+                }
                 let mut queue = self.queue.presentation();
                 queue.move_item(from, to)?;
                 self.queue = queue;

@@ -44,7 +44,7 @@ ApplicationWindow {
         RowLayout {
             Label { text: "PlexFreq"; font.pixelSize: 30; font.bold: true; color: "#ebad3d" }
             Label { text: qsTr("Find your frequency."); Layout.fillWidth: true; color: "#9eaabd" }
-            BusyIndicator { running: backend.busy; visible: running; Layout.preferredWidth: 32; Layout.preferredHeight: 32 }
+            BusyIndicator { objectName:"foregroundLoadingIndicator";running: backend.busy || backend.buffering; visible: running; Layout.preferredWidth: 32; Layout.preferredHeight: 32 }
             Switch {text:navigation.offlineLabel;checked:navigation.offlineEnabled;enabled:navigation.ready;onClicked:navigation.setOffline(checked)}
         }
         Label { text: backend.error; visible: text.length > 0; color: "#ff998b"; wrapMode: Text.Wrap; Layout.fillWidth: true }

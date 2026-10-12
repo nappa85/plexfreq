@@ -166,7 +166,20 @@ impl Reader {
         let seek = stop.clone();
         source.set_callbacks(
             app::AppSrcCallbacks::builder()
-                .seek_data(move |_, offset| seek.send(Some(offset)).is_ok())
+                .seek_data(move |_, offset| {
+                    // None is terminal cancellation. A late decoder seek during
+                    // teardown must not resurrect a stopped network reader.
+                    if seek.is_closed() {
+                        return false;
+                    }
+                    seek.send_if_modified(|requested| {
+                        if requested.is_none() {
+                            return false;
+                        }
+                        *requested = Some(offset);
+                        true
+                    })
+                })
                 .build(),
         );
         let output = source.clone();
@@ -281,7 +294,9 @@ impl Reader {
         )
     }
     pub fn stop(&self) {
-        let _ = self.stop.send(None);
+        self.stop.send_replace(None);
+        // Release appsrc consumers waiting for preroll while HTTP is cancelled.
+        let _ = self.input.end_of_stream();
     }
 }
 

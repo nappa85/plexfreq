@@ -15,7 +15,6 @@ pub fn decode(text: &str) -> Result<Vec<Line>> {
     }
     let value = match serde_json::from_str::<serde_json::Value>(text) {
         Ok(value) => value,
-        Err(_) if text.starts_with('{') => return Err(Error::ProtocolAt("lyrics JSON")),
         Err(_) => return Ok(parse(text)),
     };
     if let Some(text) = value
@@ -56,11 +55,11 @@ pub fn decode(text: &str) -> Result<Vec<Line>> {
             );
         }
         let time = if timed {
-            line.get("start").and_then(|v| v.as_u64()).or_else(|| {
+            line.get("start").and_then(timestamp).or_else(|| {
                 spans
                     .first()
                     .and_then(|s| s.get("start"))
-                    .and_then(|v| v.as_u64())
+                    .and_then(timestamp)
             })
         } else {
             None
@@ -68,6 +67,17 @@ pub fn decode(text: &str) -> Result<Vec<Line>> {
         lines.push(Line { time, text });
     }
     Ok(lines)
+}
+
+fn timestamp(value: &serde_json::Value) -> Option<u64> {
+    value.as_u64().or_else(|| {
+        let milliseconds = value.as_f64()?;
+        // Round fractional milliseconds like LRC timestamps. The exclusive upper
+        // bound avoids saturating a float at 2^64 to a valid-looking timestamp.
+        let rounded = milliseconds.round();
+        (milliseconds >= 0.0 && rounded.is_finite() && rounded < u64::MAX as f64)
+            .then_some(rounded as u64)
+    })
 }
 
 pub fn normalize_cached(lines: Vec<Line>) -> Result<Vec<Line>> {
@@ -182,7 +192,7 @@ mod tests {
         assert_eq!(lines[3].text, "");
         assert_eq!(normalize_cached(parse(payload)).unwrap(), lines);
         assert!(decode(r#"{"error":"unrelated JSON"}"#).is_err());
-        assert!(decode("{malformed json").is_err());
+        assert_eq!(decode("{malformed json").unwrap(), parse("{malformed json"));
         assert!(decode(r#"{"MediaContainer":{"Lyrics":[]}}"#)
             .unwrap()
             .is_empty());

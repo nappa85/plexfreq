@@ -35,4 +35,10 @@ Page {
         }
         VerticalScrollDecorator {}
     }
+    BusyIndicator {
+        objectName:"playbackLoadingIndicator";anchors.centerIn:parent;z:10
+        size:BusyIndicatorSize.Medium
+        running:page.status===PageStatus.Active && (backend.busy || backend.buffering)
+        visible:running
+    }
 }

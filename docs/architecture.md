@@ -1,5 +1,41 @@
 # Architecture
 
+## Queue presentation / isolated cache-entry recovery (2026-10-12)
+
+Queue presentation materializes playback order into a linear editable queue and
+clears its shuffle policy. Core snapshots take the displayed items/current from
+that copy but the shuffle indicator from the source queue. Same-row QueueMove
+validates indexes and preserves the source queue and radio without materialization.
+Repeat-all previous wraps across the playback-order boundary.
+
+Cache index syntax and outer map shape remain strict. Individual malformed Entry
+values are skipped with count-only diagnostics; independently valid entries still
+undergo file/length validation and remain available. A manifest write/shutdown
+persists the recovered map. This differs from whole-index corruption, which fails
+before orphan cleanup and preserves evidence.
+
+Lyric JSON syntax failure is plain content; valid unsupported JSON is a protocol
+error. PMS fractional starts use nearest-millisecond rounding, rejecting negative
+or unrepresentable float values and falling back from line to first-span starts.
+
+## Terminal stream cancellation / viewport feedback (2026-10-12)
+
+The HTTP reader's watch value None is terminal cancellation. seek-data updates
+the offset conditionally under the channel write borrow and rejects a stopped
+reader, preventing teardown-time seeks from resurrecting requests. Stop publishes
+None even after receiver loss and supplies appsrc EOS before decoder NULL teardown.
+Existing nonblocking, bounded input feeding remains on the Rust HTTP worker.
+
+Backend exposes Rust audio Snapshot.buffering as a Qt property using the existing
+playbackChanged signal. Sailfish Library/detail and Now playing indicators sit
+outside their scroll content and read live busy/buffering rather than retained
+presentation snapshots; desktop uses its fixed top indicator. Native outgoing
+pages mark departure before route changes and suppress restorePage until their
+next activation, so early request completion cannot undo an intended forward push.
+Core request diagnostics record operation/success/elapsed time, excluding request
+arguments. Blocking metadata/reporting still shares Core's request worker; these
+changes do not make all metadata requests concurrent or remove their HTTP deadlines.
+
 ## Production review admission / transport / storage bounds (2026-10-12)
 
 Runtime list generations publish only after successful request admission under a

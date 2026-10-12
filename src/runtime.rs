@@ -674,6 +674,8 @@ fn worker(
                 apply_checkpoint(&mut core, current, &input);
                 continue;
             }
+            crate::diagnostics::event(format_args!("core request begin op={op}"));
+            let request_started = Instant::now();
             let transport = matches!(
                 op,
                 "play"
@@ -878,6 +880,11 @@ fn worker(
             if input["_page"] == true {
                 shared.pages.fetch_sub(1, Ordering::SeqCst);
             }
+            crate::diagnostics::event(format_args!(
+                "core request complete op={op} success={} elapsed_ms={}",
+                response["ok"] == true,
+                request_started.elapsed().as_millis()
+            ));
             let _ = events.send(json!({"request":input,"response":response}));
         }
         if maintenance.elapsed() >= Duration::from_secs(5) {

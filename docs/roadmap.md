@@ -1,5 +1,32 @@
 # Development roadmap
 
+Production-logic review follow-up (2026-10-12): fixed the ten supplied queue,
+lyrics, PIN/flag/gain, station-key and cache-entry regressions. Added Core-level
+same-row/shuffle coverage and strengthened cache lookup/reopen and timestamp/path
+boundaries. Focused 24-test run passes; full gate results are in validation.md.
+Remaining review work: reliable admission/retry of Bluetooth/recording pause and
+structural audio controls under saturation, pad-link failure diagnostics and typed
+fallback causes. Develop failure fixtures before changing actor/transport policy.
+Output appsrc already defaults to nonblocking per upstream documentation.
+Assess shared HTTP normalization/auth/encoding helpers, digest utilities, queue
+cursor helpers, FFI/QML adapters and numeric-parser consolidation independently;
+preserve optional heterogeneous metadata tolerance and document required-field
+contracts before replacing defaults. Time/MIME/locale dependency replacements
+and storage-scan error reporting remain cleanup candidates, not verified regressions.
+
+Network-delay follow-up (2026-10-12): installed 0.1.1 logs confirm a 15-second
+audio-worker delay after fast cached track planning during remote failures.
+Current input backpressure is already nonblocking; terminal cancellation now
+rejects late seeks and releases appsrc consumers with EOS. Viewport-level live
+busy/buffering indicators cover Sailfish Library/detail/Now playing and desktop.
+Outgoing-page restoration is suppressed during forward departure; Rust request
+timings now cover listing work. The 185-test host gate, desktop CTest and Qt5.6
+production/fixture SDK builds pass. Next: normally installed phone retest of
+remote-to-cache replacement, recent-artist navigation and spinner visibility;
+the native early-reply fixture is compiled but not run, and no stack establishes
+the installed stall's exact blocking call. Core metadata/reporting concurrency
+remains a separate responsiveness improvement.
+
 Production review hardening (2026-10-12): the five supplied regressions pass.
 Request-generation admission, volume coalescing, dynamic-pad linking, cancellable
 HTTP input backpressure, bounded JSON, explicit corrupt-cache failure, bounded

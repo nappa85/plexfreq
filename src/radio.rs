@@ -83,6 +83,9 @@ pub fn station_uri(machine_identifier: &str, key: &str) -> Result<String> {
     {
         return Err(Error::ProtocolAt("radio server identity"));
     }
+    // Reuse the advertised-key rules (including legitimate station queries).
+    let base = Url::parse("https://station.invalid/")?;
+    advertised_path(&base, key)?;
     Ok(format!(
         "server://{machine_identifier}/com.plexapp.plugins.library{key}"
     ))

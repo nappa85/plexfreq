@@ -8,6 +8,7 @@ Page {
     property string pageKind: "root"
     property string pageKey: ""
     property bool restoringView: false
+    property bool departingView: false
     property bool controlsExpanded: false
     property bool libraryView: pageKind === "root" && navigation.libraryView
     property bool searchableView: pageKind === "root" && !pageView.showQueue && !!backend.state.serverUrl && pageView.route && (libraryView || pageView.route.op === "search" || pageView.route.op === "discovery_home" || pageView.route.op === "offline_search" || pageView.route.op === "cached_tracks")
@@ -20,7 +21,7 @@ Page {
     }
     allowedOrientations: Orientation.All
     function restorePage() {
-        if (status !== PageStatus.Active || !music || backend.busy) return
+        if (status !== PageStatus.Active || !music || backend.busy || departingView) return
         if (pageKind !== "root" && (!music.route || music.route.op !== "detail" && music.route.op!=="artist_albums")) {
             pageStack.pop()
         } else if (!music.matchesPage(pageKind, pageKey) && music.canGoBack) {
@@ -29,6 +30,7 @@ Page {
         } else if (!restoringView) pageView.thaw()
     }
     onStatusChanged: {
+        if (status === PageStatus.Active) departingView = false
         if (status === PageStatus.Deactivating) pageView.freeze()
         restorePage()
     }
@@ -43,6 +45,11 @@ Page {
     }
     Connections {
         target: music
+        onBeforeViewChange: {
+            if (page.status !== PageStatus.Active || !music.matchesPage(pageKind,pageKey)) return
+            var detailRoute=op==="detail" || op==="artist_albums"
+            departingView=pageKind==="root" ? detailRoute : !detailRoute || args.key!==pageKey
+        }
         onResetView: if (page.status===PageStatus.Active) list.positionViewAtBeginning()
         onArtistJumped: if (page.status===PageStatus.Active && pageKind==="root") list.positionArtist(index)
     }
@@ -180,7 +187,6 @@ Page {
             }
             }
             } }
-            BusyIndicator { anchors.horizontalCenter: parent.horizontalCenter; running: pageView.busy; visible: running; size: BusyIndicatorSize.Medium }
             IntrinsicLoader {
                 width: parent.width; active: !!pageView.detail
                 sourceComponent: Component { DetailHeader { width: list.width; music: page.music; view:pageView } }
@@ -329,6 +335,14 @@ Page {
         current:list.activeArtistLetter
         onChosen:music.jump(letter)
     }
+    }
+    BusyIndicator {
+        objectName:"foregroundLoadingIndicator"
+        anchors.horizontalCenter:parent.horizontalCenter
+        y:Math.max(Theme.paddingLarge,(page.height-player.height-height)/2)
+        z:10;size:BusyIndicatorSize.Medium
+        running:page.status===PageStatus.Active && (backend.busy || backend.buffering)
+        visible:running
     }
     DockedPanel {
         id: player; dock: Dock.Bottom; width: parent.width; height: playerContent.height; open: true

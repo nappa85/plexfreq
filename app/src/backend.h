@@ -31,6 +31,7 @@ class Backend : public QObject {
     Q_PROPERTY(QAbstractItemModel *queueModel READ queueModel CONSTANT)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(bool playing READ playing NOTIFY playbackChanged)
+    Q_PROPERTY(bool buffering READ buffering NOTIFY playbackChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY playbackChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY playbackChanged)
 public:
@@ -44,6 +45,7 @@ public:
     QAbstractItemModel *queueModel(){return &m_queue;}
     QString error() const {return m_error;}
     bool playing() const {return m_playback.value("playing").toBool();}
+    bool buffering() const {return m_playback.value("buffering").toBool();}
     Q_PROPERTY(bool paused READ paused NOTIFY playbackChanged)
     bool paused() const {return m_playback.value("paused").toBool();}
     Q_PROPERTY(double volume READ volume NOTIFY playbackChanged)

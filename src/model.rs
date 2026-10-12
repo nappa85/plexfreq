@@ -277,8 +277,11 @@ fn radio_flag<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<bool,
     let value = serde_json::Value::deserialize(deserializer)?;
     Ok(match value {
         serde_json::Value::Bool(flag) => flag,
-        serde_json::Value::Number(number) => number.as_u64() == Some(1),
-        serde_json::Value::String(flag) => flag == "1" || flag.eq_ignore_ascii_case("true"),
+        serde_json::Value::Number(number) => number.as_f64() == Some(1.0),
+        serde_json::Value::String(flag) => {
+            let flag = flag.trim();
+            flag == "1" || flag.eq_ignore_ascii_case("true")
+        }
         _ => false,
     })
 }
@@ -291,7 +294,7 @@ fn optional_gain<'de, D: serde::Deserializer<'de>>(
     let value = serde_json::Value::deserialize(deserializer)?;
     Ok(value
         .as_f64()
-        .or_else(|| value.as_str().and_then(|text| text.parse().ok()))
+        .or_else(|| value.as_str().and_then(|text| text.trim().parse().ok()))
         .filter(|gain| gain.is_finite()))
 }
 
@@ -401,7 +404,7 @@ fn required_u64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<u64
     let value = serde_json::Value::deserialize(deserializer)?;
     value
         .as_u64()
-        .or_else(|| value.as_str().and_then(|s| s.parse().ok()))
+        .or_else(|| value.as_str().and_then(|s| s.trim().parse().ok()))
         .ok_or_else(|| serde::de::Error::custom("Expected an unsigned integer"))
 }
 

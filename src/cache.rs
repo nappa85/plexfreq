@@ -61,7 +61,30 @@ struct Entry {
 }
 #[derive(Default, Deserialize, Serialize)]
 struct Manifest {
+    #[serde(deserialize_with = "manifest_entries")]
     entries: BTreeMap<String, Entry>,
+}
+
+fn manifest_entries<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> std::result::Result<BTreeMap<String, Entry>, D::Error> {
+    let raw = BTreeMap::<String, Value>::deserialize(deserializer)?;
+    let mut entries = BTreeMap::new();
+    let mut rejected = 0;
+    for (key, value) in raw {
+        match serde_json::from_value(value) {
+            Ok(entry) => {
+                entries.insert(key, entry);
+            }
+            Err(_) => rejected += 1,
+        }
+    }
+    if rejected > 0 {
+        crate::diagnostics::event(format_args!(
+            "audio cache index: skipped {rejected} malformed entries"
+        ));
+    }
+    Ok(entries)
 }
 #[derive(Default, Deserialize, Serialize)]
 struct Partial {

@@ -36,6 +36,74 @@ fn source(id: u64, path: &std::path::Path) -> Source {
 }
 
 #[test]
+fn stalled_remote_preroll_does_not_delay_local_replacement() {
+    use std::io::Read;
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let (accepted, ready) = std::sync::mpsc::channel();
+    let (release, done) = std::sync::mpsc::channel();
+    let server = std::thread::spawn(move || {
+        // appsrc's initial seek can cancel a connection before its headers
+        // arrive. Synchronize with a complete request, not the first accept.
+        listener.set_nonblocking(true).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let _socket = loop {
+            assert!(Instant::now() < deadline);
+            let Ok((mut socket, _)) = listener.accept() else {
+                std::thread::sleep(Duration::from_millis(5));
+                continue;
+            };
+            socket
+                .set_read_timeout(Some(Duration::from_secs(1)))
+                .unwrap();
+            let mut request = Vec::new();
+            while !request.ends_with(b"\r\n\r\n") {
+                let mut byte = [0];
+                if socket.read_exact(&mut byte).is_err() {
+                    break;
+                }
+                request.push(byte[0]);
+                assert!(request.len() <= 4096);
+            }
+            if request.ends_with(b"\r\n\r\n") {
+                break socket;
+            }
+        };
+        accepted.send(()).unwrap();
+        // Keep headers outstanding until after replacement, rather than waiting
+        // for the real HTTP timeout or touching the external network.
+        let _ = done.recv_timeout(Duration::from_secs(5));
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let local = dir.path().join("local.wav");
+    wav(&local, RATE, 4800, 4096);
+    let engine = Engine::new(Sink::Capture).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url: format!("http://{address}/audio"),
+                duration: 10000,
+                resume: 1604,
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
+    ready.recv_timeout(Duration::from_secs(2)).unwrap();
+    let started = Instant::now();
+    engine.handle.load(source(2, &local), false).unwrap();
+    while engine.handle.captured().is_empty() && started.elapsed() < Duration::from_secs(2) {
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let delivered = !engine.handle.captured().is_empty();
+    release.send(()).unwrap();
+    server.join().unwrap();
+    assert!(delivered, "Local replacement waited on remote preroll");
+}
+
+#[test]
 fn continuous_pcm_output_joins_two_decoded_tracks_without_added_or_lost_frames() {
     let dir = tempfile::tempdir().unwrap();
     let one = dir.path().join("one.wav");

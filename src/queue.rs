@@ -105,6 +105,9 @@ impl Queue {
         if from >= self.items.len() || to >= self.items.len() {
             return Err(Error::Input("Invalid queue index"));
         }
+        if from == to {
+            return Ok(());
+        }
         let remap = |i| {
             if i == from {
                 to
@@ -132,9 +135,10 @@ impl Queue {
     pub fn presentation(&self) -> Self {
         let mut q = Self {
             repeat: self.repeat,
-            shuffled: self.shuffled,
             ..Self::default()
         };
+        // This editable copy has materialized playback order, not shuffle policy.
+        // UI snapshots must read the policy from the original queue.
         // Never panic on corrupt persisted order: keep only addressable items
         // and clamp the playback slot. Worker threads must survive bad state.
         // A dangling current (pointing outside items/order) must not be
@@ -297,10 +301,12 @@ impl Queue {
             self.current = Some(self.order[self.cursor]);
             return self.track();
         }
-        self.cursor = self
-            .cursor
-            .min(self.order.len().saturating_sub(1))
-            .saturating_sub(1);
+        self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
+        self.cursor = if self.cursor == 0 && self.repeat == Repeat::All {
+            self.order.len() - 1
+        } else {
+            self.cursor.saturating_sub(1)
+        };
         self.current = Some(self.order[self.cursor]);
         self.track()
     }
