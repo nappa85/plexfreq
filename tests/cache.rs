@@ -57,6 +57,20 @@ fn origin(listener: &TcpListener) -> String {
 }
 
 #[test]
+fn corrupt_index_is_reported_without_deleting_completed_audio() {
+    let dir = tempfile::tempdir().unwrap();
+    let media = dir.path().join(format!("{}.wav", "a".repeat(64)));
+    std::fs::write(&media, b"fixture").unwrap();
+    std::fs::write(dir.path().join("index.json"), b"{broken").unwrap();
+    assert!(Cache::new(dir.path().into(), Config::default(), "fixture").is_err());
+    assert_eq!(std::fs::read(media).unwrap(), b"fixture");
+    assert_eq!(
+        std::fs::read(dir.path().join("index.json")).unwrap(),
+        b"{broken"
+    );
+}
+
+#[test]
 fn completed_files_survive_restart_are_private_and_scoped_to_credentials() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let url = origin(&listener);

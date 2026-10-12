@@ -1,5 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+pub(crate) fn music_kind_code(kind: &str) -> crate::Result<&'static str> {
+    match kind {
+        "artist" => Ok("8"),
+        "album" => Ok("9"),
+        "track" => Ok("10"),
+        _ => Err(crate::Error::Input("Unknown music type")),
+    }
+}
+
 #[derive(Clone, Default, Deserialize, Serialize, Debug, PartialEq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Item {
@@ -380,10 +389,44 @@ pub struct Connection {
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Pin {
+    #[serde(deserialize_with = "required_u64")]
     pub id: u64,
     pub code: String,
+    #[serde(deserialize_with = "required_u64")]
     pub expires_in: u64,
     pub auth_token: Option<String>,
+}
+
+fn required_u64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
+    let value = serde_json::Value::deserialize(deserializer)?;
+    value
+        .as_u64()
+        .or_else(|| value.as_str().and_then(|s| s.parse().ok()))
+        .ok_or_else(|| serde::de::Error::custom("Expected an unsigned integer"))
+}
+
+#[cfg(test)]
+mod pin_tests {
+    use super::*;
+
+    #[test]
+    fn pin_integer_strings_are_supported_but_invalid_required_values_fail() {
+        let pin =
+            serde_json::json!({"id":"42","code":"fixture","expiresIn":"3600","authToken":null});
+        let decoded: Pin = serde_json::from_value(pin.clone()).unwrap();
+        assert_eq!(decoded.id, 42);
+        assert_eq!(decoded.expires_in, 3600);
+        for value in [
+            serde_json::json!(null),
+            serde_json::json!(-1),
+            serde_json::json!("bad"),
+            serde_json::json!(1.5),
+        ] {
+            let mut invalid = pin.clone();
+            invalid["expiresIn"] = value;
+            assert!(serde_json::from_value::<Pin>(invalid).is_err());
+        }
+    }
 }
 
 #[derive(Clone, Default, Deserialize, Serialize)]

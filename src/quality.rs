@@ -3,6 +3,8 @@ use crate::{model::Item, plex::server_path, Error, Result};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+const BITRATES: &[u32] = &[64, 96, 128, 160, 192, 256, 320];
+
 #[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Config {
@@ -25,7 +27,7 @@ impl Config {
     pub fn validate(&self) -> Result<()> {
         if [self.wifi_kbps, self.mobile_kbps, self.download_kbps]
             .iter()
-            .any(|n| ![0, 64, 96, 128, 160, 192, 256, 320].contains(n))
+            .any(|n| *n != 0 && !BITRATES.contains(n))
         {
             return Err(Error::Input("Choose original audio or 64–320 kbps"));
         }
@@ -41,7 +43,7 @@ impl Config {
 }
 pub fn transcode_url(base: &Url, key: &str, kbps: u32, session: &str) -> Result<Url> {
     crate::numeric(key)?;
-    if !(64..=320).contains(&kbps) || uuid::Uuid::parse_str(session).is_err() {
+    if !BITRATES.contains(&kbps) || uuid::Uuid::parse_str(session).is_err() {
         return Err(Error::Input("Invalid audio source"));
     }
     // Plex's Kodi audioobject uses start.m3u8 + protocol=http for a progressive

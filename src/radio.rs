@@ -1,4 +1,4 @@
-use crate::{model::Item, plex::server_path, Error, Result};
+use crate::{model::Item, plex::advertised_path, Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use url::Url;
@@ -71,7 +71,7 @@ pub fn station_key(item: &Item, base: &Url) -> Result<Option<String>> {
     if key.is_empty() {
         return Ok(None);
     }
-    server_path(base, key)?;
+    advertised_path(base, key)?;
     Ok(Some(key.to_owned()))
 }
 

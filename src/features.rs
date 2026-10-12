@@ -198,12 +198,7 @@ impl Core {
         start: usize,
     ) -> Result<Value> {
         crate::numeric(section)?;
-        let code = match kind {
-            "artist" => "8",
-            "album" => "9",
-            "track" => "10",
-            _ => return Err(Error::Input("Unknown music type")),
-        };
+        let code = crate::model::music_kind_code(kind)?;
         let sort = match sort {
             "title" => "titleSort:asc",
             "newest" => "addedAt:desc",

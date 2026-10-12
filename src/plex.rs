@@ -11,6 +11,43 @@ use serde::de::DeserializeOwned;
 use std::{io::Read, time::Duration};
 use url::Url;
 
+pub(crate) const JSON_LIMIT: usize = 8 * 1024 * 1024;
+
+pub(crate) fn audio_mime(mime: &str) -> bool {
+    let mime = mime
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase();
+    mime.is_empty()
+        || mime.starts_with("audio/")
+        || matches!(
+            mime.as_str(),
+            "application/octet-stream" | "application/binary" | "video/mp4"
+        )
+}
+
+pub(crate) async fn bounded_json<T: DeserializeOwned>(
+    mut response: reqwest::Response,
+    context: &'static str,
+) -> Result<T> {
+    if response
+        .content_length()
+        .is_some_and(|n| n > JSON_LIMIT as u64)
+    {
+        return Err(Error::ProtocolAt(context));
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await.map_err(|_| Error::Network)? {
+        if bytes.len().saturating_add(chunk.len()) > JSON_LIMIT {
+            return Err(Error::ProtocolAt(context));
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
+}
+
 pub struct Plex {
     client: Client,
     pub account_url: Url,
@@ -65,7 +102,23 @@ impl Plex {
         }
         let response = request.send().map_err(|_| Error::Network)?;
         match response.status().as_u16() {
-            200..=299 => response.json().map_err(|_| Error::ProtocolAt(context)),
+            200..=299 => {
+                if response
+                    .content_length()
+                    .is_some_and(|n| n > JSON_LIMIT as u64)
+                {
+                    return Err(Error::ProtocolAt(context));
+                }
+                let mut bytes = Vec::new();
+                response
+                    .take(JSON_LIMIT as u64 + 1)
+                    .read_to_end(&mut bytes)
+                    .map_err(|_| Error::Network)?;
+                if bytes.len() > JSON_LIMIT {
+                    return Err(Error::ProtocolAt(context));
+                }
+                serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
+            }
             401 | 403 => Err(Error::Unauthorized),
             code => Err(Error::Http(code)),
         }
@@ -256,7 +309,7 @@ impl Plex {
             .unwrap_or("")
             .trim()
             .to_ascii_lowercase();
-        if !mime.starts_with("audio/") {
+        if !audio_mime(&mime) {
             return Err(Error::Input(
                 "Server returned non-audio content for this track",
             ));
@@ -290,16 +343,25 @@ pub fn server_url(value: &str) -> Result<Url> {
 }
 
 pub fn server_path(base: &Url, path: &str) -> Result<Url> {
-    if !path.starts_with('/') || path.starts_with("//") || path.contains('\\') || path.contains('#')
+    if !path.starts_with('/')
+        || path.starts_with("//")
+        || path.contains('\\')
+        || path.contains(['?', '#'])
+        || path.chars().any(char::is_control)
     {
         return Err(Error::Input("Expected a server-relative Plex path"));
     }
     // Block dot segments before Url::join normalizes them away: /a/../b would
     // otherwise silently become /b under the same origin.
-    let path_part = path.split(['?', '#']).next().unwrap_or(path);
-    if path_part
-        .split('/')
-        .any(|segment| segment == ".." || segment == ".")
+    // Encoded separators and dots can be normalized differently by proxies/PMS.
+    // Reject these before URL parsing, including double-encoded variants.
+    let lower = path.to_ascii_lowercase();
+    if ["%2e", "%2f", "%5c", "%25", "%3f", "%23", "%00"]
+        .iter()
+        .any(|escape| lower.contains(escape))
+        || path
+            .split('/')
+            .any(|segment| segment == ".." || segment == ".")
     {
         return Err(Error::Input("Expected a server-relative Plex path"));
     }
@@ -311,7 +373,89 @@ pub fn server_path(base: &Url, path: &str) -> Result<Url> {
 }
 
 pub fn authenticated_url(base: &Url, path: &str, token: &str) -> Result<String> {
-    let mut url = server_path(base, path)?;
+    let mut url = advertised_path(base, path)?;
     url.query_pairs_mut().append_pair("X-Plex-Token", token);
     Ok(url.into())
+}
+
+/// Station and artwork keys may advertise queries. Keep credential/header
+/// parameters out of that input and validate the pathname before joining.
+pub(crate) fn advertised_path(base: &Url, key: &str) -> Result<Url> {
+    let (path, query) = key
+        .split_once('?')
+        .map_or((key, None), |(p, q)| (p, Some(q)));
+    let mut url = server_path(base, path)?;
+    if let Some(query) = query {
+        if query.contains('#') || query.chars().any(char::is_control) {
+            return Err(Error::Input("Expected a server-relative Plex path"));
+        }
+        for (name, _) in url::form_urlencoded::parse(query.as_bytes()) {
+            if name.to_ascii_lowercase().starts_with("x-plex-") {
+                return Err(Error::Input("Expected a server-relative Plex path"));
+            }
+        }
+        url.set_query(Some(query));
+    }
+    Ok(url)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{io::Write, net::TcpListener, thread};
+
+    #[test]
+    fn json_body_limit_checks_streamed_bytes_and_declared_length() {
+        for declared in [false, true] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let base = Url::parse(&format!("http://{}/", listener.local_addr().unwrap())).unwrap();
+            let server = thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap();
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                let mut byte = [0];
+                let mut request = Vec::new();
+                while !request.ends_with(b"\r\n\r\n") {
+                    stream.read_exact(&mut byte).unwrap();
+                    request.push(byte[0]);
+                }
+                if declared {
+                    write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                        JSON_LIMIT + 1
+                    )
+                    .unwrap();
+                } else {
+                    stream
+                        .write_all(b"HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
+                        .unwrap();
+                    // An otherwise valid large JSON string with no length header.
+                    let _ = stream.write_all(b"\"");
+                    let _ = stream.write_all(&vec![b'a'; JSON_LIMIT]);
+                    let _ = stream.write_all(b"\"");
+                }
+            });
+            let plex = Plex::new("fixture", base.clone()).unwrap();
+            assert!(matches!(
+                plex.request::<serde_json::Value>(Method::GET, base, "", &[], "fixture"),
+                Err(Error::ProtocolAt(context)) if context == "fixture"
+            ));
+            server.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn advertised_queries_cannot_supply_plex_credentials() {
+        let base = Url::parse("https://fixture.invalid/").unwrap();
+        assert!(advertised_path(&base, "/photo/:/transcode?url=test").is_ok());
+        for query in [
+            "X-Plex-Token=evil",
+            "x%2dplex%2dtoken=evil",
+            "url=test#fragment",
+        ] {
+            assert!(advertised_path(&base, &format!("/photo/:/transcode?{query}")).is_err());
+        }
+    }
 }

@@ -1,5 +1,77 @@
 # Research log
 
+## Production review hardening — 2026-10-12
+
+- Supplied five regressions reproduce mismatched lyric whitespace, bitrate policy,
+  unsafe server paths, empty offline search and repeated sonic-journey tracks.
+  All five now pass with one bitrate allowlist, query-free path validation,
+  normalized timed text, nonempty search terms and stable global track deduplication.
+- Consulted https://gstreamer.freedesktop.org/documentation/application-development/basics/pads.html
+  (possible versus negotiated pad caps) and
+  https://gstreamer.freedesktop.org/documentation/app/appsrc.html
+  (blocking push-buffer, current-level-bytes and max-bytes). Dynamic audio pads
+  now query possible caps, or await a CAPS event when unconstrained. HTTP feeding
+  uses nonblocking push-buffer with a cancellable bounded watermark instead of
+  waiting inside GStreamer while seek/stop notifications go unobserved.
+- Existing station, artwork and filter fixtures document legitimate advertised
+  queries. These use an explicit origin/path validator rejecting X-Plex query
+  parameters, including encoded names. Filter/cleanup HTTP calls separate path
+  from query parameters; ordinary server_path rejects queries entirely.
+- Request admission serializes generation publication with successful enqueue;
+  rejected replacements preserve good replies. Volume updates coalesce separately
+  from structural controls. Audio loads publish runtime identity only after
+  admission; failed load requests surface errors, and rejected successor admission
+  is diagnosed and retried on the Core worker.
+- JSON HTTP bodies are capped at 8 MiB, with both declared-length and streamed-byte
+  checks, including cache metadata. PIN required integers accept numeric strings
+  but reject invalid values. Optional metadata tolerance remains intentional:
+  null title, variant gain and malformed optional records must not poison a page.
+- A corrupt/unreadable cache index now fails explicitly before orphan cleanup,
+  preserving media/index evidence instead of deleting indexed audio and silently
+  scheduling it again. LRU hits update memory and persist at manifest mutation or
+  orderly shutdown. Transient batch failures have three automatic retries;
+  terminal failures (including 401/404) are excluded from remaining retry passes.
+  Unknown-length quota accounting reserves 4 MiB windows with chunk-size fallback;
+  an eviction pass scans disk bytes once. Lookup stat runs outside the state mutex.
+- Shared pagination preserves server-row offsets and stops on zero progress;
+  shared music-kind codes, tuple cache protection identities, allocation-free
+  insight sorting, saturating queue arithmetic and noneditable malformed smart
+  rules address selected consistency findings. Broad download-bookkeeping/storage
+  consolidation and moving all cache mutation I/O outside state locks remain work.
+  Query-token DTOs and in-process credential messages still exist; Rust network
+  readers strip query credentials before framework use and send header auth.
+- Local synthetic fixtures precede any device work. Actual check results and
+  intermediate failures are recorded in validation.md. Final full host gate passes
+  174 Rust tests, 39 locales and desktop CTest 2/2; Sailfish GNU/Qt5.6 RPM packaging
+  also passes. No live Plex or phone deployment/runtime experiment was performed.
+
+## Rolling radio and disconnected cache cycling — 2026-10-12
+
+- Radio extended only at the last queue slot. Explicit offline mode skipped the
+  extension but still naturally ended; an unreported network loss made refill fail
+  transactionally instead of selecting another completed cached track. Completion
+  timeline failures could also block direct automatic advancement after restart.
+- Consulted https://raw.githubusercontent.com/pkkid/python-plexapi/master/plexapi/playqueue.py:
+  `get` documents center as playQueueItemID (not a selection change), window size
+  and includeBefore/includeAfter. Existing PMS timeline sources and strict local
+  completion-order fixtures remain applicable. No new Plex endpoint is introduced.
+- Station radio now admits one unseen occurrence per advance from the server's
+  response. Startup bounds the window at eleven rows; advancement retains current,
+  future and only the recent history that fits. Track-sonic radio replenishes per
+  advance; album-sonic radio keeps ordered whole-album groups.
+- Explicit offline mode, observed disconnection, or network/5xx refill failure
+  selects the next usable credential-scoped cache entry in the existing radio
+  window, skips missing audio and wraps. The window/radio source are retained for
+  later continuation. Unknown initial network facts do not imply disconnection.
+  Failed speculative refills cannot block an existing successor; timeline network
+  failures cannot block local advancement. Authorization failures remain errors
+  when continuation is required.
+- Local regressions pass for thirty rolling advances and restart/cache cycling with
+  the endpoint removed, with explicit offline mode and with a disconnected network
+  observation. Full gate passes 161 Rust tests, 39 locales and CTest 2/2; Sailfish
+  GNU/Qt5.6 RPM packaging passes. See validation.md for intermediate check failures
+  and runtime scope. No live Plex requests or phone deployment were performed.
+
 ## CI recording-release preroll race — 2026-10-12
 
 - GitHub CI run 38225181884 (commit 48f8f51) fails only the Rust job:

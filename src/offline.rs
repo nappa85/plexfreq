@@ -1,7 +1,7 @@
 //! Private, credential-scoped raw metadata snapshots and bounded artwork storage.
 use crate::{
     model::{Container, Item},
-    plex::{server_path, server_url},
+    plex::{advertised_path, server_url},
     Error, Result,
 };
 use serde::Serialize;
@@ -300,7 +300,7 @@ impl Artwork {
                         continue;
                     }
                     let result = (|| -> Result<()> {
-                        let url = server_path(&server_url(&job.server)?, &job.path)?;
+                        let url = advertised_path(&server_url(&job.server)?, &job.path)?;
                         let response = client
                             .get(url)
                             .header("X-Plex-Token", &job.token)
@@ -381,7 +381,7 @@ impl Artwork {
             return;
         }
         if server_url(server)
-            .and_then(|base| server_path(&base, path))
+            .and_then(|base| crate::plex::advertised_path(&base, path))
             .is_err()
         {
             return;

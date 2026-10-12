@@ -2,7 +2,7 @@
 use crate::{Core, Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Layout {
@@ -98,12 +98,14 @@ impl Core {
                 } else {
                     key.clone()
                 };
-                let row = groups.entry(identity).or_insert((title.clone(), 0, 0));
+                let row = groups
+                    .entry(identity)
+                    .or_insert_with(|| (title.clone(), 0, 0));
                 row.1 += 1;
                 row.2 = row.2.saturating_add(listen.listened_ms);
             }
             let mut rows: Vec<_> = groups.into_iter().collect();
-            rows.sort_by_key(|(key, (_, plays, _))| (std::cmp::Reverse(*plays), key.clone()));
+            rows.sort_by(|(a, (_, ap, _)), (b, (_, bp, _))| bp.cmp(ap).then_with(|| a.cmp(b)));
             rows.into_iter().take(20).map(|(key,(title,plays,listened))|json!({"ratingKey":if key.starts_with("title:"){String::new()}else{key},"type":kind,"title":title,"plays":plays,"listenedMs":listened})).collect::<Vec<_>>()
         };
         Ok(
@@ -115,6 +117,7 @@ impl Core {
             return Err(Error::Input("Choose 2–8 tracks for a sonic journey"));
         }
         let mut items = Vec::new();
+        let mut seen = BTreeSet::new();
         let mut offline = false;
         for pair in keys.windows(2) {
             let page = self.sonic_adventure(section, &pair[0], &pair[1])?;
@@ -126,10 +129,10 @@ impl Core {
                 return Err(Error::Input("Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio."));
             }
             for item in path {
-                if items
-                    .last()
-                    .is_some_and(|last: &Value| last["ratingKey"] == item["ratingKey"])
-                {
+                let key = item["ratingKey"]
+                    .as_str()
+                    .ok_or(Error::ProtocolAt("sonic adventure"))?;
+                if !seen.insert(key.to_owned()) {
                     continue;
                 }
                 items.push(item.clone());

@@ -581,6 +581,7 @@ mod bluetooth_tests {
             foreground: Arc::new(AtomicUsize::new(1)),
             pages: Arc::new(AtomicUsize::new(0)),
             view: Arc::new(AtomicU64::new(0)),
+            admission: Arc::new(Mutex::new(())),
             plans: Arc::new(Mutex::new(std::collections::BTreeMap::new())),
             shown: Arc::new(AtomicU64::new(0)),
             seeks: Arc::new(Mutex::new(Vec::new())),

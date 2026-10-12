@@ -12,6 +12,7 @@ pub mod history;
 pub mod lyrics;
 pub mod model;
 pub mod offline;
+mod pagination;
 pub mod plex;
 pub mod quality;
 pub mod queue;
@@ -447,6 +448,7 @@ pub struct Core {
     offline_mode: bool,
     network_wifi: bool,
     network_online: bool,
+    network_known: bool,
 }
 
 pub(crate) struct Prepared {
@@ -616,6 +618,7 @@ impl Core {
             catalogue_epoch: 0,
             network_wifi: false,
             network_online: false,
+            network_known: false,
             playback_generation: settings.playback.generation,
             library: offline::Library::new(dir.join("library-cache"), downloads)?,
             artwork,
@@ -681,9 +684,14 @@ impl Core {
             .filter(|i| matches!(i.kind.as_str(), "artist" | "album" | "track" | "playlist"))
             .map(|i| self.display_item(i))
             .collect();
-        let next = start.saturating_add(c.size);
-        Ok(json!({"items": items, "start": start, "next": next,
-            "hasMore": c.total_size.map_or(c.size >= size && size > 0, |total| next < total),"offline":offline}))
+        Ok(pagination::page(
+            items,
+            start,
+            c.size,
+            size,
+            c.total_size,
+            offline,
+        ))
     }
     fn container_cached(
         &self,
@@ -887,9 +895,14 @@ impl Core {
                 &format!("/library/metadata/{id}/children"),
                 &params,
             ) {
-                let next = start + c.size;
-                let has_more = c.total_size.map_or(c.size == 100, |total| next < total);
-                let mut value = json!({"items":c.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"start":start,"next":next,"hasMore":has_more,"offline":true});
+                let mut value = pagination::page(
+                    c.items.iter().map(|i| self.display_item(i)).collect(),
+                    start,
+                    c.size,
+                    100,
+                    c.total_size,
+                    true,
+                );
                 if start == 0 {
                     value["detail"] = self.display_item(&item);
                 }
@@ -905,9 +918,8 @@ impl Core {
                 .take(100)
                 .map(|i| self.display_item(&i))
                 .collect();
-            let next = start.saturating_add(page_items.len());
-            let has_more = next < total;
-            let mut value = json!({"items":page_items,"start":start,"next":next,"hasMore":has_more,"offline":true});
+            let received = page_items.len();
+            let mut value = pagination::page(page_items, start, received, 100, Some(total), true);
             if start == 0 {
                 value["detail"] = self.display_item(&item);
             }
@@ -1231,7 +1243,11 @@ impl Core {
                 .iter()
                 .position(|i| i.play_queue_item_id == queue.play_queue_selected_item_id)
                 .unwrap_or(0);
-            (queue.items, start, Source::Station { queue_id })
+            (
+                queue.items.into_iter().skip(start).take(11).collect(),
+                0,
+                Source::Station { queue_id },
+            )
         } else {
             if kind == RadioKind::Artist {
                 return Err(Error::Input(
@@ -1316,6 +1332,7 @@ impl Core {
                             .iter()
                             .any(|known| known.play_queue_item_id == i.play_queue_item_id)
                     })
+                    .take(1)
                     .collect()
             }
             Source::Sonic { seed, recent } => {
@@ -1352,7 +1369,12 @@ impl Core {
         let result = (|| {
             if automatic && self.station_radio_active() {
                 let duration = self.queue.track().map(|track| track.duration).unwrap_or(0);
-                self.timeline("stopped".into(), duration, duration, true)?;
+                // Reporting must not prevent local continuation on connection loss.
+                if let Err(error) = self.timeline("stopped".into(), duration, duration, true) {
+                    if !matches!(error, Error::Network | Error::Http(500..=599)) {
+                        return Err(error);
+                    }
+                }
             }
             self.advance_next(automatic, true)
         })();
@@ -1394,14 +1416,66 @@ impl Core {
                 }
             }
         }
-        if self.radio.is_some() && self.queue.at_end() && !self.offline_mode {
-            self.extend_radio()?;
+        if self.radio.is_some() && !(automatic && self.queue.repeat == Repeat::One) {
+            let disconnected = self.offline_mode || (self.network_known && !self.network_online);
+            if disconnected {
+                self.advance_cached_radio()?;
+                return self.playback_with_cache(schedule);
+            }
+            // Station/track radio replenishes as each track is consumed. Album
+            // radio retains ordered album groups and requests the next at its end.
+            let refill = (self.station_radio_active() && self.queue.upcoming(12).len() <= 11)
+                || self
+                    .radio
+                    .as_ref()
+                    .is_some_and(|radio| radio.kind == RadioKind::Track)
+                || self.queue.at_end();
+            if refill {
+                if let Err(error) = self.extend_radio() {
+                    if matches!(error, Error::Network | Error::Http(500..=599))
+                        && self.advance_cached_radio().is_ok()
+                    {
+                        return self.playback_with_cache(schedule);
+                    }
+                    // A speculative refill must not discard an existing successor.
+                    if self.queue.at_end() {
+                        return Err(error);
+                    }
+                }
+            }
         }
         self.queue.advance(automatic);
         if self.radio.is_some() {
-            self.queue.trim_history(100);
+            // Eleven rows: current, upcoming and whatever recent history fits.
+            // Whole-album radio can exceed that window to preserve album order.
+            let future = self
+                .queue
+                .upcoming(queue::MAX_QUEUE)
+                .len()
+                .saturating_sub(1);
+            self.queue.trim_history(10usize.saturating_sub(future));
         }
         self.playback_with_cache(schedule)
+    }
+
+    fn advance_cached_radio(&mut self) -> Result<()> {
+        let ordered = self.queue.presentation();
+        let current = ordered
+            .current
+            .ok_or(Error::Input("This track has not been downloaded"))?;
+        let namespace = self.cache_namespace();
+        for offset in 1..=ordered.items.len() {
+            let index = (current + offset) % ordered.items.len();
+            if self
+                .cache
+                .lookup(&namespace, &ordered.items[index], false)
+                .is_some()
+            {
+                self.queue.select(self.queue.physical_index(index)?)?;
+                return Ok(());
+            }
+        }
+        Err(Error::Input("This track has not been downloaded"))
     }
 
     fn timeline(
@@ -1413,7 +1487,8 @@ impl Core {
     ) -> Result<Value> {
         // Local playback must not wait on an unreachable server. Offline history
         // synchronization will be a separate feature; no pretend events are sent.
-        if self.cached_playback || self.offline_mode {
+        if self.cached_playback || self.offline_mode || (self.network_known && !self.network_online)
+        {
             return Ok(json!({}));
         }
         if !matches!(
@@ -1723,6 +1798,7 @@ impl Core {
                 }
                 self.network_wifi = wifi;
                 self.network_online = online;
+                self.network_known = true;
                 if !online || !self.downloads_allowed() {
                     self.refresh.cancel();
                 }
@@ -2262,12 +2338,7 @@ impl Core {
                 start,
             } => {
                 let section = numeric(&section)?;
-                let kind = match kind.as_str() {
-                    "artist" => "8",
-                    "album" => "9",
-                    "track" => "10",
-                    _ => return Err(Error::Input("Unknown music type")),
-                };
+                let kind = model::music_kind_code(&kind)?;
                 let mut params = vec![("type", kind.into()), ("sort", "titleSort:asc".into())];
                 if !query.is_empty() {
                     params.push(("title", query));

@@ -27,12 +27,17 @@ pub(crate) struct Shared {
     foreground: Arc<AtomicUsize>,
     pages: Arc<AtomicUsize>,
     view: Arc<AtomicU64>,
+    admission: Arc<Mutex<()>>,
     plans: Arc<Mutex<BTreeMap<u64, Value>>>,
     shown: Arc<AtomicU64>,
     pub(crate) seeks: Arc<Mutex<Vec<i64>>>,
     checkpoint_overflow: Arc<Mutex<Vec<Value>>>,
 }
 impl Shared {
+    fn current_view(&self) -> u64 {
+        let _guard = crate::mutex_lock(&self.admission);
+        self.view.load(Ordering::SeqCst)
+    }
     fn checkpoint(&self, snapshot: audio::Snapshot, reset: bool) {
         // Checkpoints carry listened/scrobble data: never block the GUI thread
         // on a full request queue, and never silently drop them either.
@@ -130,11 +135,13 @@ impl Shared {
         let replace = listing && !page && request["_refresh"] != true;
         let view_bound = listing || op == "similar_artists";
         let mut request = request;
-        if replace {
-            self.view.fetch_add(1, Ordering::SeqCst);
-        }
+        let _admission = crate::mutex_lock(&self.admission);
+        let view = self
+            .view
+            .load(Ordering::SeqCst)
+            .wrapping_add(u64::from(replace));
         if view_bound {
-            request["_view"] = json!(self.view.load(Ordering::SeqCst));
+            request["_view"] = json!(view);
         }
         if foreground {
             self.foreground.fetch_add(1, Ordering::SeqCst);
@@ -153,6 +160,7 @@ impl Shared {
             }
             return Err(Error::Input("Backend command queue is unavailable"));
         }
+        self.view.store(view, Ordering::SeqCst);
         Ok(
             json!({"accepted":true,"busy":self.busy(),"loadingMore":self.loading_more(),"resetItems":replace,"clearError":foreground}),
         )
@@ -233,6 +241,7 @@ impl Runtime {
             foreground: Arc::new(AtomicUsize::new(0)),
             pages: Arc::new(AtomicUsize::new(0)),
             view: Arc::new(AtomicU64::new(0)),
+            admission: Arc::new(Mutex::new(())),
             plans: Arc::new(Mutex::new(BTreeMap::new())),
             shown: Arc::new(AtomicU64::new(0)),
             seeks: Arc::new(Mutex::new(Vec::new())),
@@ -265,7 +274,7 @@ impl Runtime {
             let input = &event["request"];
             let op = input["op"].as_str().unwrap_or("");
             if (is_listing(op) || op == "similar_artists")
-                && input["_view"].as_u64().unwrap_or(0) != self.shared.view.load(Ordering::SeqCst)
+                && input["_view"].as_u64().unwrap_or(0) != self.shared.current_view()
             {
                 event["response"]["data"] = json!({"_discarded":true});
             }
@@ -510,10 +519,14 @@ fn worker(
     let mut current = 0u64;
     let mut serial = 0u64;
     let mut prepared: Option<(u64, Prepared)> = None;
+    let mut retry_prepare = false;
     let mut maintenance = Instant::now();
     let mut cache_tick = Instant::now();
     let mut history_tick = Instant::now();
     while !shared.stop.load(Ordering::SeqCst) {
+        if retry_prepare {
+            retry_prepare = !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+        }
         for event in engine.events() {
             match event {
                 Event::Transition {
@@ -540,7 +553,8 @@ fn worker(
                             }
                         }
                     }
-                    prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                    retry_prepare =
+                        !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
                 }
                 Event::End {
                     id,
@@ -551,17 +565,21 @@ fn worker(
                     let _ = record(&mut core, id, current, position, listened, position);
                     match core.execute(Command::Next { automatic: true }) {
                         Ok(data) => {
-                            let _ = start_plan(
+                            if let Err(error) = start_plan(
                                 &data,
                                 &shared,
                                 &engine,
                                 &mut serial,
                                 &mut current,
                                 false,
-                            );
+                            ) {
+                                let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}));
+                                continue;
+                            }
                             shared.merge(&data);
                             let _ = events.send(update(visible_plan(&data)));
-                            prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                            retry_prepare =
+                                !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
                         }
                         Err(error) if radio => {
                             let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}));
@@ -610,7 +628,13 @@ fn worker(
                             {
                                 shared.merge(&data);
                                 let _ = events.send(update(visible_plan(&data)));
-                                prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                                retry_prepare = !prepare(
+                                    &mut core,
+                                    &shared,
+                                    &engine,
+                                    &mut serial,
+                                    &mut prepared,
+                                );
                                 continue;
                             }
                         }
@@ -701,11 +725,11 @@ fn worker(
                     command_started.elapsed().as_millis()
                 ));
             }
+            let mut audio_failure = None;
             let mut response = match result {
                 Ok(mut data) => {
                     let discarded = (is_listing(op) || op == "similar_artists")
-                        && input["_view"].as_u64().unwrap_or(0)
-                            != shared.view.load(Ordering::SeqCst);
+                        && input["_view"].as_u64().unwrap_or(0) != shared.current_view();
                     if discarded {
                         data = json!({"_discarded":true});
                     } else {
@@ -713,6 +737,7 @@ fn worker(
                             let _ = engine.handle.stop();
                             current = 0;
                             prepared = None;
+                            retry_prepare = false;
                             shared
                                 .plans
                                 .lock()
@@ -731,7 +756,7 @@ fn worker(
                             }
                         }
                         if data.get("stream").is_some() {
-                            let _ = start_plan(
+                            let started = start_plan(
                                 &data,
                                 &shared,
                                 &engine,
@@ -739,7 +764,17 @@ fn worker(
                                 &mut current,
                                 input["_paused"] == true,
                             );
-                            prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                            if let Err(error) = started {
+                                audio_failure = Some(error);
+                            } else {
+                                retry_prepare = !prepare(
+                                    &mut core,
+                                    &shared,
+                                    &engine,
+                                    &mut serial,
+                                    &mut prepared,
+                                );
+                            }
                         } else if matches!(
                             op,
                             "enqueue"
@@ -751,7 +786,8 @@ fn worker(
                                 | "shuffle"
                                 | "repeat"
                         ) {
-                            prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                            retry_prepare =
+                                !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
                         }
                         if op == "similar_artists" || op == "lyrics" {
                             data[if op == "lyrics" {
@@ -782,10 +818,13 @@ fn worker(
                 }
                 Err(error) => json!({"ok":false,"error":error.to_string()}),
             };
+            if let Some(error) = audio_failure {
+                response = json!({"ok":false,"error":error.to_string()});
+            }
             // Correlate failures as well as successes; the presentation must be
             // able to leave its loading state without accepting a stale reply.
             if (is_listing(op) || op == "similar_artists")
-                && input["_view"].as_u64().unwrap_or(0) != shared.view.load(Ordering::SeqCst)
+                && input["_view"].as_u64().unwrap_or(0) != shared.current_view()
             {
                 response["data"] = json!({"_discarded":true});
             }
@@ -923,8 +962,9 @@ fn start_plan(
         return Ok(());
     };
     *serial += 1;
+    let input = source(*serial, data)?;
+    engine.handle.load(input, paused)?;
     *current = *serial;
-    let input = source(*current, data)?;
     {
         let mut plans = shared
             .plans
@@ -934,7 +974,7 @@ fn start_plan(
         plans.insert(*current, visible_plan(data));
     }
     shared.shown.store(*current, Ordering::SeqCst);
-    engine.handle.load(input, paused)
+    Ok(())
 }
 fn prepare(
     core: &mut Core,
@@ -942,21 +982,28 @@ fn prepare(
     engine: &Engine,
     serial: &mut u64,
     prepared: &mut Option<(u64, Prepared)>,
-) {
+) -> bool {
+    if let Err(error) = engine.handle.prepare(None) {
+        crate::diagnostics::event(format_args!("successor clear failed: {error}"));
+        return false;
+    }
     *prepared = None;
-    let _ = engine.handle.prepare(None);
     if let Ok(Some(next)) = core.prepare_next() {
         *serial += 1;
         if let Ok(source) = source(*serial, &next.plan) {
+            if let Err(error) = engine.handle.prepare(Some(source)) {
+                crate::diagnostics::event(format_args!("successor admission failed: {error}"));
+                return false;
+            }
             shared
                 .plans
                 .lock()
                 .unwrap_or_else(|poison| poison.into_inner())
                 .insert(*serial, visible_plan(&next.plan));
-            let _ = engine.handle.prepare(Some(source));
             *prepared = Some((*serial, next));
         }
     }
+    true
 }
 
 #[cfg(test)]
@@ -978,6 +1025,7 @@ mod tests {
                 foreground: Arc::new(AtomicUsize::new(0)),
                 pages: Arc::new(AtomicUsize::new(0)),
                 view: Arc::new(AtomicU64::new(1)),
+                admission: Arc::new(Mutex::new(())),
                 plans: Arc::new(Mutex::new(BTreeMap::new())),
                 shown: Arc::new(AtomicU64::new(0)),
                 seeks: Arc::new(Mutex::new(Vec::new())),
@@ -1004,6 +1052,20 @@ mod tests {
         assert_eq!(
             result["events"][2]["response"]["data"]["items"][0]["ratingKey"],
             "new"
+        );
+        // Fill admission without a worker, then reject a replacement. Good
+        // replies for the admitted view and busy counters must survive.
+        for _ in 0..7 {
+            runtime.submit(json!({"op":"status"})).unwrap();
+        }
+        let foreground = runtime.shared.foreground.load(Ordering::SeqCst);
+        assert!(runtime.submit(json!({"op":"browse"})).is_err());
+        assert_eq!(runtime.shared.current_view(), 2);
+        assert_eq!(runtime.shared.foreground.load(Ordering::SeqCst), foreground);
+        events.send(json!({"request":{"op":"detail","_view":2},"response":{"ok":true,"data":{"items":[1]}}})).unwrap();
+        assert_eq!(
+            runtime.poll()["events"][0]["response"]["data"]["items"],
+            json!([1])
         );
     }
 

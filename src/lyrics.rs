@@ -126,7 +126,7 @@ pub fn parse(text: &str) -> Vec<Line> {
                 break;
             }
             times.push(minutes * 60000 + (seconds * 1000.0).round() as u64);
-            rest = tag.1;
+            rest = tag.1.trim_start();
         }
         if !times.is_empty() {
             for time in times {

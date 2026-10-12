@@ -83,8 +83,9 @@ fn artist_station_uses_advertised_key_continues_by_queue_item_id_and_reports_tim
         ("GET","/identity",vec![],json!({"MediaContainer":{"machineIdentifier":"test-server"}})),
         ("POST","/playQueues",vec![("type","audio"),("continuous","1"),("uri","server://test-server/com.plexapp.plugins.library/library/metadata/42/station/example?type=10")],json!({"MediaContainer":{"playQueueID":50,"playQueueSelectedItemID":101,"Metadata":[track("1",Some(101)),track("2",Some(102))]}})),
         ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","101"),("state","stopped"),("time","10000"),("duration","10000"),("continuing","1")],json!({"MediaContainer":{"size":0}})),
+        ("GET","/playQueues/50",vec![("center","101"),("includeBefore","0"),("includeAfter","1")],json!({"MediaContainer":{"playQueueID":50,"Metadata":[track("1",Some(101)),track("2",Some(102)),track("1",Some(103)),track("4",Some(104))]}})),
         ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","102"),("state","stopped"),("time","10000"),("duration","10000"),("continuing","1")],json!({"MediaContainer":{"size":0}})),
-        ("GET","/playQueues/50",vec![("center","102"),("includeBefore","0"),("includeAfter","1")],json!({"MediaContainer":{"playQueueID":50,"Metadata":[track("2",Some(102)),track("1",Some(103))]}})),
+        ("GET","/playQueues/50",vec![("center","102"),("includeBefore","0"),("includeAfter","1")],json!({"MediaContainer":{"playQueueID":50,"Metadata":[track("2",Some(102)),track("1",Some(103)),track("4",Some(104))]}})),
         ("POST","/:/timeline",vec![("playQueueID","50"),("playQueueItemID","103"),("state","playing"),("time","2500")],json!({"MediaContainer":{"size":0}})),
     ]);
     let started = core
@@ -100,7 +101,7 @@ fn artist_station_uses_advertised_key_continues_by_queue_item_id_and_reports_tim
         "2"
     );
     let continued = core.execute(Command::Next { automatic: true }).unwrap();
-    assert_eq!(continued["queue"]["items"].as_array().unwrap().len(), 3);
+    assert_eq!(continued["queue"]["items"].as_array().unwrap().len(), 4);
     assert_eq!(continued["track"]["playQueueItemID"], 103);
     core.execute(Command::Timeline {
         state: "playing".into(),
@@ -315,6 +316,136 @@ fn radio_history_is_bounded_without_losing_current_track_or_order() {
         .unwrap();
     assert_eq!(queue.advance(false).unwrap().rating_key, "200");
     assert_eq!(queue.previous().unwrap().rating_key, "199");
+}
+
+#[test]
+fn station_replenishes_one_track_per_skip_and_keeps_a_bounded_window() {
+    let mut responses = vec![
+        connect(),
+        (
+            "GET",
+            "/library/metadata/42",
+            vec![],
+            json!({"MediaContainer":{"Metadata":[{"ratingKey":"42","type":"artist","Stations":{"Metadata":[{"key":"/library/metadata/42/station/test","radio":true}]}}]}}),
+        ),
+        (
+            "GET",
+            "/identity",
+            vec![],
+            json!({"MediaContainer":{"machineIdentifier":"fixture"}}),
+        ),
+        (
+            "POST",
+            "/playQueues",
+            vec![],
+            json!({"MediaContainer":{"playQueueID":50,"Metadata":[track("1",Some(1)),track("2",Some(2)),track("3",Some(3))]}}),
+        ),
+    ];
+    for id in 4..34 {
+        responses.push(("GET", "/playQueues/50", vec![], json!({"MediaContainer":{"playQueueID":50,"Metadata":[track(&id.to_string(),Some(id)),track("999",Some(999))]}})));
+    }
+    let (mut core, _dir, task) = fixture(responses);
+    core.execute(Command::Radio {
+        key: "42".into(),
+        kind: RadioKind::Artist,
+    })
+    .unwrap();
+    for id in 2..32 {
+        let result = core.execute(Command::Next { automatic: false }).unwrap();
+        let items = result["queue"]["items"].as_array().unwrap();
+        assert_eq!(result["track"]["ratingKey"], id.to_string());
+        assert_eq!(items.len(), (id as usize + 2).min(11));
+        assert_eq!(items.last().unwrap()["ratingKey"], (id + 2).to_string());
+        assert!(!items.iter().any(|item| item["ratingKey"] == "999"));
+    }
+    task.join().unwrap();
+}
+
+#[test]
+fn disconnected_radio_skips_missing_audio_and_cycles_completed_cache_after_restart() {
+    use plexfreq_core::{
+        cache::{namespace, Cache, Config},
+        queue::Queue,
+        radio::{Radio, Source},
+        store,
+    };
+    use std::time::{Duration, Instant};
+
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    let server = thread::spawn(move || {
+        for _ in 0..2 {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut bytes = Vec::new();
+            while !bytes.windows(4).any(|w| w == b"\r\n\r\n") {
+                let mut buffer = [0; 4096];
+                let n = socket.read(&mut buffer).unwrap();
+                assert!(n > 0);
+                bytes.extend_from_slice(&buffer[..n]);
+            }
+            socket.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/flac\r\nContent-Length: 10\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
+        }
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let items: Vec<Item> = (1..=3)
+        .map(|id| serde_json::from_value(track(&id.to_string(), Some(id))).unwrap())
+        .collect();
+    let cache = Cache::new(dir.path().join("audio-cache"), Config::default(), "fixture").unwrap();
+    cache
+        .schedule(
+            &origin,
+            "fixture-token",
+            vec![items[0].clone(), items[2].clone()],
+        )
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(8);
+    while cache.items(&namespace(&origin, "fixture-token")).len() != 2 {
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(20));
+    }
+    drop(cache);
+    server.join().unwrap(); // The endpoint is now unreachable, including without network hints.
+    let mut queue = Queue::default();
+    queue.replace(items, 0).unwrap();
+    let mut settings = store::Settings {
+        server_url: origin,
+        server_token: "fixture-token".into(),
+        client_identifier: "fixture".into(),
+        ..Default::default()
+    };
+    settings.cache.enabled = false;
+    settings.playback.queue = queue;
+    settings.playback.radio = Some(Radio {
+        kind: RadioKind::Artist,
+        title: "Fixture".into(),
+        source: Source::Station { queue_id: 50 },
+    });
+    store::save(dir.path(), &settings).unwrap();
+
+    for mode in 0..3 {
+        let mut core = Core::new(dir.path().into()).unwrap();
+        if mode == 1 {
+            core.execute(Command::OfflineMode { enabled: true })
+                .unwrap();
+        } else if mode == 2 {
+            core.execute(Command::NetworkState {
+                wifi: false,
+                online: false,
+                live_hint: false,
+            })
+            .unwrap();
+        }
+        for id in ["3", "1", "3", "1"] {
+            let result = core.execute(Command::Next { automatic: true }).unwrap();
+            assert_eq!(result["track"]["ratingKey"], id);
+            assert_eq!(result["playbackSource"], "cache");
+            assert_eq!(result["radio"]["source"], "station");
+            assert_eq!(result["queue"]["items"].as_array().unwrap().len(), 3);
+        }
+    }
 }
 
 #[test]

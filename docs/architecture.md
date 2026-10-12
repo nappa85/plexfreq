@@ -1,5 +1,54 @@
 # Architecture
 
+## Production review admission / transport / storage bounds (2026-10-12)
+
+Runtime list generations publish only after successful request admission under a
+short admission mutex shared with generation readers. An unavailable queue cannot
+invalidate accepted replies. Audio structural controls retain a bounded FIFO;
+volume has a latest-value mailbox with one outstanding wake. Load failure returns
+an error before publishing occurrence identity; rejected successor controls are
+retried by the Core worker. Decoder dynamic pads query possible caps and defer
+unknown media types until CAPS, rather than discarding an unnegotiated audio pad.
+
+The HTTP reader alone produces decoder input. It bounds queued bytes explicitly
+with nonblocking pushes and seek/stop-aware waits. Playback/cache/probe share a
+normalized media MIME policy. Plex account/library JSON and async cache metadata
+are bounded to 8 MiB before deserialization. server_path accepts only query-free,
+origin-confined paths, rejecting literal/encoded traversal and separators;
+advertised station/artwork/filter queries have a separate credential-rejecting
+validator. Internal cleanup/filter requests pass query parameters separately.
+
+Cache index errors are explicit and precede orphan deletion. LRU touch is memory
+only until a manifest write/shutdown. Terminal downloads are excluded from retry
+passes; transient failures permit at most three retries per admitted batch.
+Unknown-size downloads reserve quota in 4 MiB windows (smaller fallback near full);
+eviction accounts disk once per pass. Protection identity is a namespace/key tuple.
+Lookup filesystem validation is outside the state mutex; mutation/status I/O still
+needs a larger storage-ownership refactor. A common page envelope uses raw server
+count independently of displayed rows and never advertises more at zero progress.
+
+
+## Rolling radio window / offline continuation (2026-10-12)
+
+Rust `Core::advance_next` replenishes station radio one unseen playQueueItemID per
+advance, including speculative native successor preparation. The prepared queue
+is still committed only when its occurrence becomes audible. Station startup
+(artist and discovery station paths) retains at most eleven tracks starting at
+the selected occurrence. Advancement trims old history so current + future +
+recent history fit eleven rows. Track sonic radio replenishes each advance;
+album sonic radio preserves whole-album groups and may exceed eleven rows.
+
+An empty/failed speculative refill retains an already available successor.
+Explicit offline mode, a known disconnected network observation, or a network/5xx
+refill error traverses the radio window in playback order, skips entries without
+usable completed audio and wraps, including repeating the sole cached track.
+The same cache namespace/length validation as ordinary local playback applies;
+partial files and unrelated cached music are never selected. Offline cycling
+retains the queue and radio source, so online advancement can resume replenishment.
+Network facts are distinguished from the initial unknown state. Timeline reporting
+is skipped when disconnected; network/5xx completion-report failures do not block
+direct automatic continuation. Queue policy remains entirely Rust-owned.
+
 ## Recording fixture synchronization (2026-10-12)
 
 The decoder-free recording fixture uses a capture sink to await actual initial PCM

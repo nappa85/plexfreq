@@ -163,10 +163,10 @@ impl Queue {
                 .current
                 .and_then(|current| filtered.iter().position(|i| *i == current));
             if let Some(pos) = pos {
-                q.cursor = pos.min(q.items.len() - 1);
+                q.cursor = pos.min(q.items.len().saturating_sub(1));
                 q.current = Some(q.cursor);
             } else {
-                q.cursor = self.cursor.min(q.items.len() - 1);
+                q.cursor = self.cursor.min(q.items.len().saturating_sub(1));
                 q.current = None;
             }
             q.order = (0..q.items.len()).collect();
@@ -213,7 +213,7 @@ impl Queue {
                 }
             } else if let Some(last) = ended {
                 if let Some(p) = self.order.iter().position(|i| *i == last) {
-                    let slot = self.cursor.min(self.order.len() - 1);
+                    let slot = self.cursor.min(self.order.len().saturating_sub(1));
                     self.order.swap(slot, p);
                 }
             }
@@ -231,7 +231,7 @@ impl Queue {
         if self.order.is_empty() {
             self.cursor = 0;
         } else {
-            self.cursor = self.cursor.min(self.order.len() - 1);
+            self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
         }
     }
 
@@ -293,11 +293,14 @@ impl Queue {
         if self.current.is_none() {
             // Natural end of queue: resume the last audible entry instead of
             // skipping it. `cursor` still points at the final playback slot.
-            self.cursor = self.cursor.min(self.order.len() - 1);
+            self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
             self.current = Some(self.order[self.cursor]);
             return self.track();
         }
-        self.cursor = self.cursor.min(self.order.len() - 1).saturating_sub(1);
+        self.cursor = self
+            .cursor
+            .min(self.order.len().saturating_sub(1))
+            .saturating_sub(1);
         self.current = Some(self.order[self.cursor]);
         self.track()
     }
@@ -354,7 +357,7 @@ impl Queue {
         let dropped: std::collections::BTreeSet<usize> =
             self.order.iter().take(drop).copied().collect();
         let mut mapping = vec![usize::MAX; self.items.len()];
-        let mut items = Vec::with_capacity(self.items.len() - dropped.len());
+        let mut items = Vec::with_capacity(self.items.len().saturating_sub(dropped.len()));
         for (old, item) in self.items.drain(..).enumerate() {
             if !dropped.contains(&old) {
                 mapping[old] = items.len();
@@ -362,7 +365,7 @@ impl Queue {
             }
         }
         self.items = items;
-        let mut order = Vec::with_capacity(self.order.len() - drop);
+        let mut order = Vec::with_capacity(self.order.len().saturating_sub(drop));
         for old in self.order.iter().skip(drop) {
             let mapped = mapping.get(*old).copied().unwrap_or(usize::MAX);
             if mapped != usize::MAX {
@@ -370,7 +373,7 @@ impl Queue {
             }
         }
         self.order = order;
-        self.cursor -= drop;
+        self.cursor = self.cursor.saturating_sub(drop);
         if let Some(current) = self.current {
             self.current = match mapping.get(current).copied() {
                 Some(mapped) if mapped != usize::MAX => Some(mapped),
@@ -383,7 +386,7 @@ impl Queue {
             self.cursor = 0;
             self.current = None;
         } else {
-            self.cursor = self.cursor.min(self.order.len() - 1);
+            self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
         }
     }
 }

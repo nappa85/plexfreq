@@ -32,7 +32,8 @@ impl Index {
             .iter()
             .zip(&self.text)
             .filter(move |(item, text)| {
-                (kind.is_empty() || item.kind == kind)
+                !terms.is_empty()
+                    && (kind.is_empty() || item.kind == kind)
                     && terms.iter().all(|term| text.contains(term))
             })
             .map(|(item, _)| item)

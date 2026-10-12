@@ -58,14 +58,7 @@ impl Music {
         Ok(params)
     }
 }
-fn kind_code(kind: &str) -> Result<&'static str> {
-    match kind {
-        "artist" => Ok("8"),
-        "album" => Ok("9"),
-        "track" => Ok("10"),
-        _ => Err(Error::Input("Unknown music type")),
-    }
-}
+use crate::model::music_kind_code as kind_code;
 fn sort_key(sort: &str) -> Result<&'static str> {
     match sort {
         "title" => Ok("titleSort:asc"),
@@ -116,9 +109,18 @@ impl Core {
                     "mood" => filters.mood = value.into_owned(),
                     "style" => filters.style = value.into_owned(),
                     "title" => filters.title = value.into_owned(),
-                    "year>=" => filters.year_from = value.parse().ok(),
-                    "year<=" => filters.year_to = value.parse().ok(),
-                    "userRating>=" => filters.min_rating = value.parse().ok(),
+                    "year>=" => {
+                        filters.year_from = value.parse().ok();
+                        editable &= filters.year_from.is_some();
+                    }
+                    "year<=" => {
+                        filters.year_to = value.parse().ok();
+                        editable &= filters.year_to.is_some();
+                    }
+                    "userRating>=" => {
+                        filters.min_rating = value.parse().ok();
+                        editable &= filters.min_rating.is_some();
+                    }
                     "viewCount" if value == "0" => filters.unplayed = true,
                     "limit" => limit = value.parse().unwrap_or(0),
                     "sort" => {
@@ -230,14 +232,22 @@ impl Core {
                 json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":[],"filterAvailable":false}),
             );
         };
-        let url = crate::plex::server_path(&self.base()?, key)?;
+        let url = crate::plex::advertised_path(&self.base()?, key)?;
         if !url
             .path()
             .starts_with(&format!("/library/sections/{section}/"))
         {
             return Err(Error::Input("Expected a server-relative Plex path"));
         }
-        let (choices, _) = self.container_cached(key, &[])?;
+        let params: Vec<_> = url
+            .query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect();
+        let refs: Vec<_> = params
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.clone()))
+            .collect();
+        let (choices, _) = self.container_cached(url.path(), &refs)?;
         Ok(
             json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":choices.sections.iter().filter(|c|crate::numeric(&c.key).is_ok()).take(1000).map(|c|json!({"key":c.key,"title":c.title})).collect::<Vec<_>>(),"filterAvailable":true}),
         )
@@ -270,10 +280,14 @@ impl Core {
             .filter(|i| i.kind == kind)
             .map(|i| self.display_item(i))
             .collect();
-        let next = start.saturating_add(container.size);
-        Ok(
-            json!({"items":items,"start":start,"next":next,"hasMore":container.total_size.map_or(container.size==100,|total|next<total),"offline":offline}),
-        )
+        Ok(crate::pagination::page(
+            items,
+            start,
+            container.size,
+            100,
+            container.total_size,
+            offline,
+        ))
     }
     pub(crate) fn smart_playlist(
         &mut self,

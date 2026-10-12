@@ -89,6 +89,12 @@ impl Representation {
         offset: u64,
     ) -> Option<(u64, Option<u64>, Option<u64>)> {
         if !matches!(status.as_u16(), 200 | 206)
+            || !crate::plex::audio_mime(
+                headers
+                    .get("content-type")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or(""),
+            )
             || headers
                 .get("content-encoding")
                 .and_then(|v| v.to_str().ok())
@@ -164,6 +170,9 @@ impl Reader {
                 .build(),
         );
         let output = source.clone();
+        // The HTTP worker is the sole producer. Use a cancellable watermark
+        // instead of blocking inside Gst push_buffer, which cannot poll seek.
+        output.set_block(false);
         let received_bytes = Arc::new(AtomicU64::new(0));
         let progress = received_bytes.clone();
         let worker=thread::Builder::new().name("plexfreq-stream".into()).spawn(move|| {
@@ -223,7 +232,18 @@ impl Reader {
                                 progress.fetch_add(bytes.len() as u64, Ordering::Relaxed);
                                 if expected.is_some_and(|n|received>n){gst::element_error!(output,gst::ResourceError::Read,["Invalid audio representation"]);return;}
                                 let ignore=skip.min(bytes.len() as u64) as usize;skip-=ignore as u64;if ignore==bytes.len(){continue;}
-                                for chunk in bytes[ignore..].chunks(64*1024){if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}delivered+=chunk.len() as u64;}
+                                 let chunk_size = if output.max_bytes() == 0 {64 * 1024} else {output.max_bytes().min(64 * 1024) as usize};
+                                 for chunk in bytes[ignore..].chunks(chunk_size){
+                                     while output.max_bytes() > 0 && output.current_level_bytes().saturating_add(chunk.len() as u64) > output.max_bytes() {
+                                         tokio::select! {
+                                             _ = changed.changed() => { continue 'requests; },
+                                             _ = tokio::time::sleep(Duration::from_millis(5)) => {},
+                                         }
+                                     }
+                                     if changed.has_changed().unwrap_or(true) { continue 'requests; }
+                                     if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}
+                                     delivered+=chunk.len() as u64;
+                                 }
                             },
                              Ok(None) if skip == 0 && expected.is_none_or(|n|received==n)=>{crate::diagnostics::event(format_args!("HTTP audio EOF received={received} delivered={delivered}"));let _=output.end_of_stream();break;},
                             _=>{
@@ -279,6 +299,51 @@ mod tests {
     use super::*;
     use gst::prelude::*;
     use reqwest::{header::HeaderMap, StatusCode};
+
+    #[test]
+    fn full_input_queue_does_not_block_reader_shutdown() {
+        use std::io::{Read, Write};
+        gst::init().unwrap();
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut byte = [0];
+            while !request.ends_with(b"\r\n\r\n") {
+                stream.read_exact(&mut byte).unwrap();
+                request.push(byte[0]);
+            }
+            stream
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 131072\r\nConnection: close\r\n\r\n",
+                )
+                .unwrap();
+            let _ = stream.write_all(&vec![1; 131072]);
+        });
+        let source = app::AppSrc::builder().max_bytes(65536).block(true).build();
+        let reader = Reader::new(
+            &source,
+            format!("http://{address}/audio"),
+            String::new(),
+            SessionCloser::new().unwrap(),
+        )
+        .unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        while source.current_level_bytes() == 0 || reader.received.load(Ordering::Relaxed) <= 65536
+        {
+            assert!(std::time::Instant::now() < deadline);
+            thread::sleep(Duration::from_millis(5));
+        }
+        assert!(source.current_level_bytes() <= 65536);
+        let start = std::time::Instant::now();
+        drop(reader);
+        assert!(start.elapsed() < Duration::from_secs(1));
+        server.join().unwrap();
+    }
 
     #[test]
     fn recovery_is_bounded_and_requires_a_validated_original() {

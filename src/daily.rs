@@ -160,13 +160,21 @@ impl Core {
             .plex
             .probe_audio(uri.clone(), &self.settings.server_token);
         let stopped = crate::quality::stop_url(&uri).is_some_and(|stop| {
+            let params: Vec<_> = stop
+                .query_pairs()
+                .map(|(k, v)| (k.into_owned(), v.into_owned()))
+                .collect();
+            let refs: Vec<_> = params
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.clone()))
+                .collect();
             self.plex
                 .mutate(
                     &base,
                     &self.settings.server_token,
                     reqwest::Method::GET,
-                    &format!("{}?{}", stop.path(), stop.query().unwrap_or("")),
-                    &[],
+                    stop.path(),
+                    &refs,
                 )
                 .is_ok()
         });
@@ -342,7 +350,7 @@ impl Core {
     pub(crate) fn download_plan(&mut self, kind: &str, key: &str, minutes: u32) -> Result<Value> {
         if kind == "station" {
             if !key.starts_with("/library/")
-                || !crate::plex::server_path(&self.base()?, key)?
+                || !crate::plex::advertised_path(&self.base()?, key)?
                     .path()
                     .starts_with("/library/")
             {
@@ -603,8 +611,15 @@ impl Core {
             .take(100)
             .map(|item| self.display_item(item))
             .collect();
-        let next = start.saturating_add(page.len());
-        Ok(json!({"items":page,"start":start,"next":next,"hasMore":next<total,"offline":true}))
+        let received = page.len();
+        Ok(crate::pagination::page(
+            page,
+            start,
+            received,
+            100,
+            Some(total),
+            true,
+        ))
     }
     pub(crate) fn discovery_home(&self, section: &str) -> Result<Value> {
         crate::numeric(section)?;
@@ -651,7 +666,7 @@ impl Core {
                 let station = item.kind == "playlist"
                     && item.radio
                     && item.key.starts_with("/library/")
-                    && crate::plex::server_path(&self.base()?, &item.key).is_ok();
+                    && crate::plex::advertised_path(&self.base()?, &item.key).is_ok();
                 if !matches!(
                     item.kind.as_str(),
                     "artist" | "album" | "track" | "playlist"
@@ -691,7 +706,7 @@ impl Core {
             return Err(Error::Input("Choose a music item"));
         }
         let base = self.base()?;
-        crate::plex::server_path(&base, key)?;
+        crate::plex::advertised_path(&base, key)?;
         let identity = self
             .plex
             .container(&base, &self.settings.server_token, "/identity", &[])?;
@@ -715,7 +730,7 @@ impl Core {
             .position(|i| i.play_queue_item_id == page.play_queue_selected_item_id)
             .unwrap_or(0);
         let mut queue = crate::queue::Queue::default();
-        queue.replace(page.items, start)?;
+        queue.replace(page.items.into_iter().skip(start).take(11).collect(), 0)?;
         let old = std::mem::replace(&mut self.queue, queue);
         let old_radio = self.radio.replace(radio::Radio {
             kind: radio::RadioKind::Artist,

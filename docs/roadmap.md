@@ -1,5 +1,30 @@
 # Development roadmap
 
+Production review hardening (2026-10-12): the five supplied regressions pass.
+Request-generation admission, volume coalescing, dynamic-pad linking, cancellable
+HTTP input backpressure, bounded JSON, explicit corrupt-cache failure, bounded
+transient retry, amortized quota accounting and deferred LRU persistence are
+implemented. Shared page envelopes/kind codes/MIME policy, tuple protection keys,
+strict required PIN values and smart-filter parse guards address targeted cleanup.
+Final host gate passes 174 Rust tests, 39 locales and desktop CTest 2/2; Sailfish
+GNU/Qt5.6 RPM packaging passes.
+Remaining: consolidate download-group bookkeeping/storage scans/poison-lock idioms,
+move mutation/status filesystem I/O off shared cache locks, replace token-bearing
+DTOs with credential handles, and improve optional-data diagnostics without rejecting
+valid heterogeneous Plex pages. Physical/device validation remains separate from
+the local fixture, host gate and SDK package results in validation.md.
+
+
+Rolling radio / offline continuation (2026-10-12): station radio now adds one fresh
+occurrence per advance and trims old history to an eleven-row rolling window.
+Track radio replenishes each advance; album radio retains whole-album ordering.
+Disconnected radio skips uncached entries and cycles completed audio in its
+retained window, including after restart. Speculative refill and completion-report
+network failures no longer prevent usable local continuation. Local rolling/cache
+regressions, the 161-test/full desktop gate and Sailfish RPM build pass. Next:
+normally installed phone validation through actual signal loss and reconnection,
+and long-running live station listening; packaging alone is not that validation.
+
 CI recording-release follow-up (2026-10-12): hosted run 38225181884 exposes the
 remaining decoder-free fixture preroll race on PLAYING resume. Actual capture-sink
 delivery now forces exhaustion; fresh held PCM verifies PAUSED/no delivery and

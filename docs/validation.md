@@ -1,5 +1,50 @@
 # Validation record
 
+## Production review hardening — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| Supplied `cargo test --locked --test review_findings` | Passed 5/5 after fixes |
+| First broader focused run | Station-query rejection failed the prior audit and prevented the artwork fixture request; tool timeout at 120s. Added explicit validated advertised-query handling |
+| Initial added library fixtures | Two fixture failures: pad parents were destroyed before linking, and HTTP queue assertion assumed a whole 64 KiB chunk; corrected fixture ownership/backpressure synchronization |
+| Focused library/cache/audit/review suites | Passed 46 + 11 + 11 + 5 tests, including admission rejection, 10,000-volume flood, missing negotiated caps, full-input shutdown and corrupt-index preservation |
+| First full gate | Clippy rejected byte-char slices in new JSON fixture; corrected |
+| Next full gate | fmt/Clippy and library/audio/cache/core/features/gain passed; parity found legitimate filter query and cleanup query still joined as paths; split both into path/parameter requests |
+| Following full gate | All 174 Rust tests passed; desktop translation extraction rejected the new cache-index label (and identified a test-only ProtocolAt literal). Reused translated application-state I/O error with explicit corruption diagnostics and removed the fixture-only extraction match |
+| Final `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy warnings-as-errors, 174 Rust tests, 39 locales/549 messages, desktop CTest 2/2 (14.93s) |
+| `./tools/build-sailfish.sh` | Passed: aarch64 GNU Rust/Qt5.6 RPM; zero rpmlint errors, existing no-url-tag and changelog-date warnings |
+| `git diff --check` | Passed |
+
+New fixtures use temporary directories, synthetic credentials/media and loopback
+HTTP. JSON fixtures cover oversized declared and streamed bodies. Optional metadata
+tolerance remains covered by existing null/numeric-string/gain tests. No live Plex
+request or phone deployment/runtime experiment has been performed for this change.
+SDK packaging validates compilation/linkage, not installed Sailjail runtime or
+audible hardware behavior. Broader storage ownership/credential DTO refactors
+remain listed in roadmap.md; this patch does not claim those complete.
+
+
+## Rolling radio / disconnected cache cycling — 2026-10-12
+
+| Check | Actual result |
+| --- | --- |
+| Focused `cargo test --locked --test radio` (debug symbols/incremental disabled) | Passed 8/8, including two new regressions |
+| Strict station timeline/occurrence fixture | Passed: completion report precedes per-advance refresh; repeated song with distinct occurrence accepted; only one new occurrence admitted per response |
+| Thirty station advances | Passed: one fresh tail track per skip, expected successor order and maximum eleven rows, extra returned candidate excluded |
+| Completed cache with server removed, after restart | Passed: missing middle track skipped, cached first/third tracks cycle repeatedly, station identity and queue retained |
+| Explicit offline / observed disconnected variants | Passed: same cached cycling without Plex requests |
+| First full gate | Clippy rejected a collapsible nested condition; corrected |
+| Second full gate | All 161 Rust tests passed; translation extraction rejected a new error string; reused the existing translated missing-download error |
+| Final `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt, Clippy, 161 Rust tests, 39 locales/549 messages, desktop CTest 2/2 (15.14s) |
+| `./tools/build-sailfish.sh` | Passed: GNU aarch64/Qt5.6 RPM, zero rpmlint errors; existing no-url-tag/changelog-date warnings |
+| Final `git diff --check` | Passed |
+
+Fixtures use temporary state, synthetic credentials/media bytes and loopback
+servers. Offline regression verifies completed-file selection, not decoding its
+synthetic payload. Existing native decoding/transport tests pass in the full gate.
+No live Plex timeline, phone deployment or installed Sailjail runtime test was
+performed. Physical signal-loss/long-station listening remains a field check.
+
 ## CI recording-release preroll race — 2026-10-12
 
 | Check | Actual result |

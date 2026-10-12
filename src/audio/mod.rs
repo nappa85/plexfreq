@@ -100,6 +100,7 @@ enum Control {
     Stop,
     Seek(u64),
     Volume(f64),
+    Wake,
     Configure(dsp::Config),
     Shutdown,
 }
@@ -115,6 +116,7 @@ pub struct Handle {
     tx: mpsc::SyncSender<Control>,
     state: Arc<Mutex<Snapshot>>,
     capture: Arc<Mutex<Vec<f32>>>,
+    volume: Arc<Mutex<Option<f64>>>,
 }
 impl Handle {
     fn send(&self, control: Control) -> Result<()> {
@@ -147,7 +149,18 @@ impl Handle {
         if !value.is_finite() {
             return Err(Error::Input("Invalid audio volume"));
         }
-        self.send(Control::Volume(value.clamp(0., 1.)))
+        let mut pending = crate::mutex_lock(&self.volume);
+        let wake = pending.is_none();
+        *pending = Some(value.clamp(0., 1.));
+        if !wake {
+            return Ok(());
+        }
+        match self.tx.try_send(Control::Wake) {
+            Ok(()) | Err(mpsc::TrySendError::Full(_)) => Ok(()),
+            Err(mpsc::TrySendError::Disconnected(_)) => {
+                Err(Error::Input("Audio command queue is unavailable"))
+            }
+        }
     }
     pub fn configure(&self, config: dsp::Config) -> Result<()> {
         config.validate()?;
@@ -193,15 +206,17 @@ impl Engine {
             ..Default::default()
         }));
         let capture = Arc::new(Mutex::new(Vec::new()));
+        let volume = Arc::new(Mutex::new(None));
         let handle = Handle {
             tx,
             state: state.clone(),
             capture: capture.clone(),
+            volume: volume.clone(),
         };
         let closer = http::SessionCloser::new()?;
         let worker = thread::Builder::new()
             .name("plexfreq-audio".into())
-            .spawn(move || Actor::new(sink, state, capture, events, closer).run(rx))?;
+            .spawn(move || Actor::new(sink, state, capture, events, closer).run(rx, volume))?;
         Ok(Self {
             handle,
             events: receiver,
@@ -228,6 +243,33 @@ fn caps() -> gst::Caps {
         .field("channels", 2i32)
         .field("rate", RATE as i32)
         .build()
+}
+
+fn link_audio_pad(pad: &gst::Pad, target: &gst::Pad) {
+    if target.is_linked() {
+        return;
+    }
+    let caps = pad.current_caps().unwrap_or_else(|| pad.query_caps(None));
+    if caps.is_any() || caps.is_empty() {
+        let target = target.clone();
+        // An unconstrained dynamic pad is classified when its CAPS event
+        // arrives, before buffers flow. A non-audio stream remains unlinked.
+        pad.add_probe(gst::PadProbeType::EVENT_DOWNSTREAM, move |pad, info| {
+            if let Some(gst::PadProbeData::Event(event)) = &info.data {
+                if let gst::EventView::Caps(caps) = event.view() {
+                    if caps.caps().iter().any(|s| s.name().starts_with("audio/"))
+                        && !target.is_linked()
+                    {
+                        let _ = pad.link(&target);
+                    }
+                    return gst::PadProbeReturn::Remove;
+                }
+            }
+            gst::PadProbeReturn::Ok
+        });
+    } else if caps.iter().any(|s| s.name().starts_with("audio/")) {
+        let _ = pad.link(target);
+    }
 }
 fn element(factory: &str) -> Result<gst::Element> {
     gst::ElementFactory::make(factory)
@@ -303,7 +345,7 @@ impl Decoder {
                 } else {
                     app::AppStreamType::Seekable
                 })
-                .block(true)
+                .block(false)
                 .max_bytes(4 * 1024 * 1024)
                 .build();
             pipeline
@@ -334,18 +376,7 @@ impl Decoder {
         let target = convert
             .static_pad("sink")
             .ok_or(Error::Input("Audio pipeline creation failed"))?;
-        decoder.connect_pad_added(move |_, pad| {
-            if target.is_linked() {
-                return;
-            }
-            let audio = pad
-                .current_caps()
-                .and_then(|c| c.structure(0).map(|s| s.name().starts_with("audio/")))
-                .unwrap_or(false);
-            if audio {
-                let _ = pad.link(&target);
-            }
-        });
+        decoder.connect_pad_added(move |_, pad| link_audio_pad(pad, &target));
         pipeline
             .set_state(gst::State::Playing)
             .map_err(|_| Error::Input("Audio decoder initialization failed"))?;
@@ -970,6 +1001,7 @@ impl Actor {
                 self.processor = dsp::Processor::new(RATE, &config);
                 self.config = config;
             }
+            Control::Wake => {}
             Control::Shutdown => return Ok(false),
         }
         Ok(true)
@@ -1244,7 +1276,7 @@ impl Actor {
             error: String::new(),
         };
     }
-    fn run(mut self, receiver: mpsc::Receiver<Control>) {
+    fn run(mut self, receiver: mpsc::Receiver<Control>, volume: Arc<Mutex<Option<f64>>>) {
         let mut previous_wake = Instant::now();
         loop {
             let now = Instant::now();
@@ -1255,6 +1287,9 @@ impl Actor {
                 ));
             }
             previous_wake = now;
+            if let Some(value) = crate::mutex_lock(&volume).take() {
+                let _ = self.control(Control::Volume(value));
+            }
             while let Ok(control) = receiver.try_recv() {
                 match self.control(control) {
                     Ok(false) => return,
@@ -1327,6 +1362,36 @@ impl Actor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn volume_flood_leaves_room_for_transport_and_retains_latest_value() {
+        let (tx, rx) = mpsc::sync_channel(128);
+        let handle = Handle {
+            tx,
+            state: Arc::new(Mutex::new(Snapshot::default())),
+            capture: Arc::new(Mutex::new(Vec::new())),
+            volume: Arc::new(Mutex::new(None)),
+        };
+        for n in 0..10000 {
+            handle.volume(n as f64 / 10000.).unwrap();
+        }
+        handle.load(Source::default(), false).unwrap();
+        handle.play().unwrap();
+        handle.pause().unwrap();
+        assert_eq!(rx.try_iter().count(), 4);
+        assert_eq!(*crate::mutex_lock(&handle.volume), Some(0.9999));
+    }
+
+    #[test]
+    fn dynamic_audio_pad_without_current_caps_is_linked() {
+        gst::init().unwrap();
+        let source_element = element("audiotestsrc").unwrap();
+        let target_element = element("audioconvert").unwrap();
+        let source = source_element.static_pad("src").unwrap();
+        let target = target_element.static_pad("sink").unwrap();
+        assert!(source.current_caps().is_none());
+        link_audio_pad(&source, &target);
+        assert!(target.is_linked());
+    }
     #[test]
     fn diagnostics_distinguish_stall_recovery_pause_and_heartbeat() {
         let mut monitor = ProgressDiagnostics::new();

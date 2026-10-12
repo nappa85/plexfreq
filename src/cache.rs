@@ -80,8 +80,8 @@ struct State {
     gate: Arc<Gate>,
     manifest: Manifest,
     config: Config,
-    pinned: BTreeSet<String>,
-    permanent: BTreeSet<String>,
+    pinned: BTreeSet<(String, String)>,
+    permanent: BTreeSet<(String, String)>,
     downloading: bool,
     pending: usize,
     received: u64,
@@ -240,10 +240,19 @@ impl Cache {
         } else {
             None
         };
-        let mut manifest: Manifest = fs::read(root.join("index.json"))
-            .ok()
-            .and_then(|b| serde_json::from_slice(&b).ok())
-            .unwrap_or_default();
+        let mut manifest: Manifest = match fs::read(root.join("index.json")) {
+            Ok(bytes) => serde_json::from_slice(&bytes).map_err(|_| {
+                crate::diagnostics::event(format_args!(
+                    "audio cache index is corrupt; preserving cache files"
+                ));
+                Error::Io(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    "Audio cache index is corrupt",
+                ))
+            })?,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Manifest::default(),
+            Err(error) => return Err(error.into()),
+        };
         manifest.entries.retain(|_, e| usable(&root, e));
         // A crash between temp write and rename can leave orphan `*.tmp` files
         // (old `index.<uuid>.tmp` naming included) plus unindexed hash files.
@@ -360,7 +369,7 @@ impl Cache {
             .unwrap_or_else(|poison| poison.into_inner())
             .permanent = items
             .iter()
-            .map(|i| format!("{namespace}\0{}", i.rating_key))
+            .map(|i| (namespace.to_owned(), i.rating_key.clone()))
             .collect();
     }
     pub fn configure(&self, config: Config, keep: Option<(&str, &str)>) -> Result<()> {
@@ -373,7 +382,7 @@ impl Cache {
         let previous = state.config.clone();
         state.config = config;
         if let Some((namespace, key)) = keep {
-            state.pinned.insert(format!("{namespace}\0{key}"));
+            state.pinned.insert((namespace.to_owned(), key.to_owned()));
         }
         let result = room(&self.root, &mut state, 0, "");
         if result.is_err() {
@@ -451,7 +460,7 @@ impl Cache {
                 .unwrap_or_else(|poison| poison.into_inner());
             state.pinned = items
                 .iter()
-                .map(|i| format!("{ns}\0{}", i.rating_key))
+                .map(|i| (ns.clone(), i.rating_key.clone()))
                 .collect();
             state.pending = items.len();
             state.error.clear();
@@ -471,11 +480,7 @@ impl Cache {
             .map_err(|_| Error::Input("Cache worker unavailable"))
     }
     pub fn lookup(&self, namespace: &str, item: &Item, touch: bool) -> Option<(PathBuf, Item)> {
-        let mut state = self
-            .state
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner());
-        let found = state
+        let candidates: Vec<_> = crate::mutex_lock(&self.state)
             .manifest
             .entries
             .iter()
@@ -483,18 +488,22 @@ impl Cache {
                 e.namespace == namespace
                     && e.item.rating_key == item.rating_key
                     && part_key(item).is_none_or(|p| part_key(&e.item) == Some(p))
-                    && usable(&self.root, e)
             })
+            .map(|(key, entry)| (key.clone(), entry.clone()))
+            .collect();
+        let found = candidates
+            .iter()
+            .filter(|(_, e)| usable(&self.root, e))
             .max_by_key(|(_, e)| e.used)
             .map(|(k, _)| k.clone())?;
+        let mut state = crate::mutex_lock(&self.state);
         let entry = state.manifest.entries.get_mut(&found)?;
         if touch && !self.read_only {
             entry.used = now();
         }
         let result = (self.root.join(&entry.file), entry.item.clone());
-        if touch && !self.read_only {
-            let _ = save(&self.root, &state);
-        }
+        // Persist LRU with the next manifest mutation or orderly shutdown;
+        // playback lookups must not rewrite the index for every hit.
         Some(result)
     }
     pub fn items(&self, namespace: &str) -> Vec<Item> {
@@ -576,6 +585,9 @@ impl Drop for Cache {
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
         }
+        if !self.read_only {
+            let _ = save(&self.root, &crate::mutex_lock(&self.state));
+        }
     }
 }
 
@@ -611,11 +623,15 @@ async fn worker(
             continue;
         }
         changed.borrow_and_update();
-        loop {
+        let mut terminal = BTreeSet::new();
+        for attempt in 0..4 {
             let mut failed = false;
             for (position, item) in batch.items.iter().enumerate() {
                 if epoch.load(Ordering::SeqCst) != batch.epoch || !gate.allowed() {
                     break;
+                }
+                if terminal.contains(&item.rating_key) {
+                    continue;
                 }
                 {
                     let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
@@ -647,7 +663,12 @@ async fn worker(
                 let Some(result) = result else { break };
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
-                        failed = true;
+                        let retryable = matches!(error, Error::Network | Error::Http(500..=599))
+                            || matches!(&error, Error::Input("Download interrupted; it will retry when the connection improves" | "Audio download is incomplete; waiting to resume" | "Audio changed or server returned the wrong byte range; retrying from the beginning"));
+                        failed |= retryable;
+                        if !retryable {
+                            terminal.insert(item.rating_key.clone());
+                        }
                         let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
                         s.error = error.to_string();
                         s.errors.insert(item.rating_key.clone(), error.to_string());
@@ -669,7 +690,7 @@ async fn worker(
                 s.pending = 0;
                 s.active_key.clear();
             }
-            if !failed {
+            if !failed || attempt == 3 || !gate.allowed() {
                 break;
             }
             // Retry stalled/interrupted downloads while the same queue is active.
@@ -684,7 +705,8 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
         return Err(Error::Input("Audio file exceeds the cache limit"));
     }
     let mut evicted = false;
-    while disk_bytes(root).saturating_add(extra) > limit {
+    let mut used = disk_bytes(root);
+    while used.saturating_add(extra) > limit {
         let old = state
             .manifest
             .entries
@@ -693,10 +715,10 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
                 k.as_str() != current_key
                     && !state
                         .pinned
-                        .contains(&format!("{}\0{}", e.namespace, e.item.rating_key))
+                        .contains(&(e.namespace.clone(), e.item.rating_key.clone()))
                     && !state
                         .permanent
-                        .contains(&format!("{}\0{}", e.namespace, e.item.rating_key))
+                        .contains(&(e.namespace.clone(), e.item.rating_key.clone()))
             })
             .min_by_key(|(_, e)| e.used)
             .map(|(k, _)| k.clone());
@@ -704,7 +726,11 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
             if let Some(entry) = state.manifest.entries.remove(&old) {
                 state.catalogue_revision = state.catalogue_revision.wrapping_add(1);
                 if safe_file(&entry.file) {
-                    let _ = fs::remove_file(root.join(entry.file));
+                    let path = root.join(entry.file);
+                    let bytes = fs::metadata(&path).map_or(0, |m| m.len());
+                    if fs::remove_file(path).is_ok() {
+                        used = used.saturating_sub(bytes);
+                    }
                 }
             }
         } else {
@@ -723,17 +749,19 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
                     !info.item.is_some_and(|i| {
                         state
                             .pinned
-                            .contains(&format!("{}\0{}", info.namespace, i.rating_key))
+                            .contains(&(info.namespace.clone(), i.rating_key.clone()))
                             || state
                                 .permanent
-                                .contains(&format!("{}\0{}", info.namespace, i.rating_key))
+                                .contains(&(info.namespace.clone(), i.rating_key.clone()))
                     })
                 })
                 .ok_or(Error::Input(
                     "Cache is full; increase its limit or clear cached audio",
                 ))?;
             let _ = fs::remove_file(partial.path().with_extension("resume.json"));
+            let bytes = partial.metadata()?.len();
             fs::remove_file(partial.path())?;
+            used = used.saturating_sub(bytes);
         }
         evicted = true;
     }
@@ -785,10 +813,8 @@ async fn download(
         if !response.status().is_success() {
             return Err(Error::Http(response.status().as_u16()));
         }
-        let envelope: Envelope = response
-            .json()
-            .await
-            .map_err(|_| Error::ProtocolAt("cache track metadata"))?;
+        let envelope: Envelope =
+            crate::plex::bounded_json(response, "cache track metadata").await?;
         item = envelope
             .container
             .items
@@ -862,12 +888,7 @@ async fn download(
         .unwrap_or("")
         .trim()
         .to_ascii_lowercase();
-    if !(mime.is_empty()
-        || mime.starts_with("audio/")
-        || mime.starts_with("application/octet-stream")
-        || mime.starts_with("application/binary")
-        || mime.starts_with("video/mp4"))
-    {
+    if !crate::plex::audio_mime(&mime) {
         return Err(Error::Input(
             "Server returned non-audio content for this track",
         ));
@@ -944,6 +965,7 @@ async fn download(
             .open(&partial_path)?
     };
     let mut received = offset;
+    let mut reserved_until = total.unwrap_or(offset);
     while let Some(bytes) = response.chunk().await.map_err(|_| {
         Error::Input("Download interrupted; it will retry when the connection improves")
     })? {
@@ -953,9 +975,18 @@ async fn download(
         if total.is_some_and(|n| received.saturating_add(bytes.len() as u64) > n) {
             return Err(Error::Input("Audio response exceeds its declared size"));
         }
-        if total.is_none() {
+        if total.is_none() && received.saturating_add(bytes.len() as u64) > reserved_until {
             let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
-            room(root, &mut s, bytes.len() as u64, &id)?;
+            // Amortize filesystem accounting across 4 MiB windows. If a
+            // protected cache cannot reserve headroom, admit just this chunk.
+            let reserve = (4 * 1024 * 1024).max(bytes.len() as u64);
+            let admitted = if room(root, &mut s, reserve, &id).is_ok() {
+                reserve
+            } else {
+                room(root, &mut s, bytes.len() as u64, &id)?;
+                bytes.len() as u64
+            };
+            reserved_until = received.saturating_add(admitted);
         }
         file.write_all(&bytes)?;
         received += bytes.len() as u64;
@@ -1106,7 +1137,7 @@ mod tests {
                 },
             );
         }
-        state.permanent.insert(format!("scope\0{}", "2"));
+        state.permanent.insert(("scope".into(), "2".into()));
         room(dir.path(), &mut state, 1024 * 1024, "new").unwrap();
         assert!(!state.manifest.entries.contains_key(&hash("1")));
         assert!(state.manifest.entries.contains_key(&hash("2")));
