@@ -925,6 +925,8 @@ ApplicationWindow {
                 });
             }
         });
+        qint64 savedPosition=0;
+        {
         Backend backend(state.path());
         QSignalSpy completed(&backend, &Backend::completed);
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
@@ -1004,13 +1006,36 @@ ApplicationWindow {
         QTRY_VERIFY(!backend.playing());
         QCOMPARE(backend.state().value("history").toMap().value("pending").toInt(),1); // seeking the second track to its end is not another listen
         backend.command("select_track",{{"index",1}});QTRY_VERIFY(!backend.busy());QTRY_VERIFY(backend.playing());
+        backend.seek(3000);QTRY_VERIFY(backend.position()>=3000);
+        backend.pause();QTRY_VERIFY(backend.paused());
+        savedPosition=backend.position();
+        QVERIFY(completed.size() >= 6);
+        }
+        {
+        Backend backend(state.path());
+        QTRY_VERIFY(!backend.busy());
+        QCOMPARE(backend.duration(),qint64(10000));
+        QVERIFY(qAbs(backend.position()-savedPosition)<200);
+        QVERIFY(!backend.playing());
+        // Stay decoder-free beyond a maintenance tick before resuming. Closing
+        // and reopening this idle state must preserve the same checkpoint too.
+        QTest::qWait(5500);
+        QVERIFY(qAbs(backend.position()-savedPosition)<200);
+        }
+        Backend backend(state.path());
+        QTRY_VERIFY(!backend.busy());
+        QCOMPARE(backend.duration(),qint64(10000));
+        QVERIFY(qAbs(backend.position()-savedPosition)<200);
+        QVERIFY(!backend.playing());
+        backend.play();QTRY_VERIFY(backend.playing());
+        QTRY_VERIFY(backend.position()>=savedPosition-200);
+        QVERIFY(backend.position()<savedPosition+1500);
         backend.command("logout");
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         QTRY_VERIFY(!backend.playing());
         QVERIFY(backend.state().value("serverUrl").toString().isEmpty());
         QVERIFY(backend.state().value("queue").toMap().value("items").toList().isEmpty());
         backend.play();QVERIFY(!backend.playing());
-        QVERIFY(completed.size() >= 6);
     }
 };
 QTEST_MAIN(BackendTest)

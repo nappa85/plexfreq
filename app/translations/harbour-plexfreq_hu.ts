@@ -2230,8 +2230,8 @@
       <translation>Ürítés · Gyorsítótár · Leállítás · Lejátszás</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · Hang · Lejátszás</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · Hang · Lejátszás</translation>
     </message>
   </context>
   <context>

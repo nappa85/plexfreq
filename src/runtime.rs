@@ -279,7 +279,20 @@ impl Runtime {
                 event["response"]["data"] = json!({"_discarded":true});
             }
         }
-        let playback = self.shared.playback();
+        let mut playback = self.shared.playback();
+        // Decoder-free startup still has durable media position/length to show.
+        // This is a presentation projection only: keep the zero occurrence and
+        // loaded/seekable flags, and never feed it into audio checkpoints.
+        if playback.id == 0 {
+            let model = crate::mutex_lock(&self.shared.model);
+            if model["track"].is_object() {
+                playback.duration = model["track"]["duration"].as_u64().unwrap_or(0);
+                playback.position = model["resumePosition"].as_u64().unwrap_or(0);
+                if playback.duration > 0 {
+                    playback.position = playback.position.min(playback.duration);
+                }
+            }
+        }
         if playback.id != 0 && playback.id != self.shared.shown.load(Ordering::SeqCst) {
             if let Some(plan) = self
                 .shared
@@ -441,7 +454,10 @@ fn record(
     listened: u64,
     duration: u64,
 ) -> Result<()> {
-    if id != current {
+    // Zero is the idle/startup sentinel, not an audible occurrence. A restored
+    // queue can have a saved track before any decoder is loaded; checkpointing
+    // that empty snapshot would overwrite its durable resume position with zero.
+    if id == 0 || id != current {
         return Ok(());
     };
     let status = core.execute(Command::Status)?;
@@ -1017,6 +1033,65 @@ fn prepare(
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn idle_restart_checkpoints_preserve_saved_position() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut settings = crate::store::Settings::default();
+        settings
+            .playback
+            .queue
+            .replace(
+                vec![crate::model::Item {
+                    rating_key: "1".into(),
+                    kind: "track".into(),
+                    duration: 2_400_026,
+                    ..Default::default()
+                }],
+                0,
+            )
+            .unwrap();
+        settings.playback.position = 1_266_236;
+        settings.playback.listened = 1_266_236;
+        settings.playback.occurrence = "saved-occurrence".into();
+        crate::store::save(dir.path(), &settings).unwrap();
+        {
+            let mut core = Core::new(dir.path().into()).unwrap();
+            // Startup has a selected saved track but no audio occurrence. Both
+            // maintenance and shutdown use record; a pre-load toggle can also
+            // enqueue this empty snapshot as a checkpoint.
+            record(&mut core, 0, 0, 0, 0, 0).unwrap();
+            apply_checkpoint(
+                &mut core,
+                0,
+                &json!({"snapshot":audio::Snapshot::default()}),
+            );
+            assert_eq!(
+                core.execute(Command::Status).unwrap()["resumePosition"],
+                1_266_236
+            );
+        }
+        let mut core = Core::new(dir.path().into()).unwrap();
+        let status = core.execute(Command::Status).unwrap();
+        assert_eq!(status["resumePosition"], 1_266_236);
+        assert_eq!(status["resumeListened"], 1_266_236);
+        assert_eq!(status["playbackOccurrence"], "saved-occurrence");
+        assert!(status.get("stream").is_none());
+        // Obsolete audio occurrences cannot overwrite the active one, but a
+        // genuine seek to zero must still be saved.
+        record(&mut core, 6, 7, 0, 0, 2_400_026).unwrap();
+        assert_eq!(
+            core.execute(Command::Status).unwrap()["resumePosition"],
+            1_266_236
+        );
+        record(&mut core, 7, 7, 600_000, 1_266_236, 2_400_026).unwrap();
+        assert_eq!(
+            crate::store::load(dir.path()).unwrap().playback.position,
+            600_000
+        );
+        record(&mut core, 7, 7, 0, 1_266_236, 2_400_026).unwrap();
+        assert_eq!(crate::store::load(dir.path()).unwrap().playback.position, 0);
+    }
 
     #[test]
     fn navigation_discards_replies_that_finished_before_the_next_poll() {

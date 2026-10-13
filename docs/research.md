@@ -1,5 +1,58 @@
 # Research log
 
+## Installed resume follow-up / startup display — 2026-10-13
+
+- User's normal install/seek/close/reopen test still restarted at zero. The new
+  installed log confirms a seek to 939,545 ms at 17:15:07, advancing to 965,995 ms
+  before clean close at 17:15:43, then resume_ms=0 after reopening. However,
+  installed executable and RPM database digest are both
+  `6cce0aa40ba902e8e3577697eed29724f3fa8fd33a09895e90b2635f83b364ea`,
+  whereas the previously delivered fixed RPM's packaged executable digest is
+  `d5cefaa34e8288728c20f46ee2d382ec40989d0339484fec6f11e568aebaf518`.
+  Thus the phone still has a different 0.1.3-1 binary. The installation UI's precise
+  outcome is unavailable; using the same package version/release obscured it.
+- Consulted `rpm -q/qp --qf` package/file identity, backend.cpp/h polling/property
+  adapters, the Rust poll/checkpoint paths and the existing native generated-WAV
+  fixture. A separate display defect is confirmed: Backend reads the empty audio
+  snapshot on startup, so it displays 0:00/0:00 despite saved Core metadata.
+- Rust Runtime::poll now projects saved position and track duration only for a
+  zero audio occurrence. Actual engine state and checkpoint inputs remain separate;
+  the projection does not mark media loaded or seekable, create audio or autoplay.
+  Qt continues exposing the returned playback DTO without restoration policy.
+- Extended the native fixture with cached playback, seek, pause, destruction,
+  restored position/length before Play, a 5.5-second idle wait, another idle
+  destruction/reopen, and resumed position. It failed at startup duration before
+  this projection, then passed with the full gate. Package Release is now 2 so the
+  fixed build has an unambiguous upgrade identity. The 0.1.3-2 RPM is in Downloads;
+  normal installation, installed digest confirmation and user retest are pending.
+
+## Resume position erased during idle restart — 2026-10-13
+
+- Read-only SSH to defaultuser@192.168.1.121 recovered the current-date installed
+  app log; installed package is 0.1.3-1. The 2,400,026 ms track became audible at
+  08:27:11, paused at 1,266,236 ms (21:06) and retained that position until clean
+  shutdown at 09:52:37. Reopens at 09:53:30 and 11:38:36 stayed decoder-free.
+  At 15:35:54, the explicit resume command created a cached decoder with resume_ms=0
+  but retained 1,266,236 ms listened time. This confirms a position reset across
+  restart, rather than a new natural occurrence or HTTP fallback at that point.
+- Consulted `src/runtime.rs` record/maintenance/shutdown/checkpoint paths,
+  `src/lib.rs` SavePlayback/Resume and existing queue/cache/codec-resume fixtures.
+  Also consulted https://gstreamer.freedesktop.org/documentation/gstreamer/gstelement.html#gst_element_query_position
+  for pipeline position semantics; no new integration API is needed. Runtime id=0
+  and current=0 passed the equality guard despite representing no loaded audio.
+  Core still had a selected saved track, so maintenance saved position zero.
+- `record` now rejects the zero sentinel before any history/session update.
+  Genuine active zero-position checkpoints remain valid. The temporary-state
+  regression reproduced loss before the fix and now verifies durable position,
+  listened time/occurrence preservation, stale-id rejection and intentional seek-zero.
+- Two full host attempts hung in the existing Bluetooth fixture. An isolated run
+  identified its explicit-play assertion failure, followed by cleanup timeout.
+  The same fixture passed with an isolated XDG_RUNTIME_DIR, excluding the host
+  PulseAudio observer; the full unfiltered gate then passed in that environment.
+  Live recording-state interference is plausible, not separately measured.
+- Fixed RPM delivered to Downloads with matching SHA256; installation and normally
+  launched Sailjail restart/resume validation remain pending (see validation.md).
+
 ## Production-defect regressions — 2026-10-13
 
 - All eight supplied integration regressions and two diagnostics regressions pass.

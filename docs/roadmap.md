@@ -1,5 +1,25 @@
 # Development roadmap
 
+Resume delivery/display follow-up (2026-10-13): the user's restart test still
+ran a different 0.1.3-1 executable than the delivered fix, confirmed by file digests.
+Package release is now 0.1.3-2 for an unambiguous upgrade. Rust also projects saved
+position/length to Qt before a decoder loads, fixing startup 0:00/0:00. The extended
+native seek/pause/close/idle/reopen/resume fixture and full host gate pass, as does
+GNU/Qt5.6 packaging. 0.1.3-2 is in Downloads. Next: normal installation, confirm
+installed package/file identity, then repeat the user's startup and resume check.
+
+Resume-restart fix (2026-10-13): installed log confirms the 40-minute track's
+21:06 position became zero across decoder-free restarts. Rust checkpoints now
+reject the no-audio occurrence sentinel instead of saving the empty startup
+snapshot over durable playback. Regression fails before/passes after the fix;
+unfiltered 199-test host/desktop gate passes with an isolated host runtime,
+and GNU/Qt5.6 RPM packaging passes. Fixed replacement is in phone Downloads.
+Next: install normally, reopen and remain idle for more than five seconds, then
+verify Play resumes the saved position; package build is not that runtime check.
+The Bluetooth fixture's dependency on live host PulseAudio state remains a test
+isolation follow-up; default-environment failures and actual checks are recorded
+in validation.md.
+
 Production-defect review (2026-10-13): all ten supplied regressions now pass.
 Finite ratings, safe/noneditable malformed smart limits, private corrupt-state
 recovery, dangling queue selection, natural-end trimming, zero-filled crossfade

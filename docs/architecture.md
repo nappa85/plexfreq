@@ -1,5 +1,24 @@
 # Architecture
 
+## Restored playback presentation (2026-10-13)
+
+Runtime::poll projects Core's saved resumePosition and selected track duration
+into the outgoing playback DTO when its audio occurrence is zero. Engine snapshots
+used for checkpoints remain untouched. Loaded/playing/seekable flags continue to
+describe the empty engine, so presentation does not fabricate a decoder or autoplay.
+Active and stopped nonzero occurrences continue to report their actual audio state.
+Qt's existing property/signal adapter presents the DTO on both shells.
+
+## Idle startup checkpoints / durable resume (2026-10-13)
+
+Rust runtime audio occurrence zero means no playback has been loaded. `record`
+rejects it even when the worker's current occurrence is also zero. Periodic,
+transport and shutdown checkpoints therefore cannot overwrite the selected saved
+track's durable position/history with a decoder-free startup snapshot. Nonzero
+matching occurrences still save position zero for genuine seeks/stops. Startup
+continues to publish saved metadata without autoplay; ordinary resume loads its
+saved position. No Qt/QML checkpoint policy is added.
+
 ## Production-defect recovery / transparent float DSP (2026-10-13)
 
 Rust session/cache readers recover from malformed whole documents after saving

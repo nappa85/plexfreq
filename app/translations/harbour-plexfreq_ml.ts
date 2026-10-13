@@ -2230,8 +2230,8 @@
       <translation>മായ്ക്കുക · കാഷെ · നിർത്തുക · പ്ലേ ചെയ്യുക</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · ഓഡിയോ · പ്ലേ ചെയ്യുക</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · ഓഡിയോ · പ്ലേ ചെയ്യുക</translation>
     </message>
   </context>
   <context>

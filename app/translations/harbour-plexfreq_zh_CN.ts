@@ -2230,8 +2230,8 @@
       <translation>清除 · 缓存 · 停止 · 播放</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · 音频 · 播放</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · 音频 · 播放</translation>
     </message>
   </context>
   <context>

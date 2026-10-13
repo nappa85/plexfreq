@@ -1,5 +1,50 @@
 # Validation record
 
+## Installed resume follow-up / startup progress — 2026-10-13
+
+| Check | Actual result |
+| --- | --- |
+| User-led normal install/play/seek/close/reopen | User reports 0:00/0:00 on startup and playback restart at zero |
+| Read-only installed log and executable/RPM file identity | Seek reached 939,545 ms and advanced before clean close; reopened decoder resume_ms=0; installed digest differs from previously delivered fixed RPM despite identical 0.1.3-1 version/release |
+| Extended native fixture before display fix | Failed at backend.duration(): zero instead of saved 10,000 ms |
+| `XDG_RUNTIME_DIR=/tmp/opencode CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt/Clippy, all 199 Rust tests, 39 locales/548 messages, desktop build and CTest 2/2 (21.50s) |
+| Native restart extension | Passed: cached generated audio seek/pause/close, saved position/duration displayed before Play, 5.5 s idle maintenance, second idle close/reopen and resume at saved position |
+| `./tools/build-sailfish.sh` | Passed: GNU aarch64/Qt5.6 RPM 0.1.3-2; zero rpmlint errors, existing no-url-tag warning |
+| Phone package metadata / host-phone SHA256 | Confirmed 0.1.3-2; matching `d48f12647064dd7392316491b7e2768367e9ff1b3f4bee994af20a0a1dc2bd9a` |
+| Final `git diff --check` / `cargo fmt --all --check` | Passed |
+
+Delivered `/home/defaultuser/Downloads/harbour-plexfreq-0.1.3-2.aarch64.rpm`.
+The prior user-led attempt does not establish the previous fix's installed behavior:
+the actual phone executable differed from that RPM. Phone operations in this
+follow-up inspected logs/package identity and copied the new artifact; no production
+transport command, service modification or installation was issued. Native tests
+use temporary state, generated WAV and loopback HTTP. Updated installed Sailjail
+startup/progress and audible resume still await normal installation and user retest.
+
+## Idle-restart resume regression — 2026-10-13
+
+| Check | Actual result |
+| --- | --- |
+| Read-only phone SSH/log/package inspection | Installed 0.1.3-1; 40-minute track paused at 1,266,236 ms before restart, then explicit cached resume at zero at 15:35:54 |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 cargo test --locked --lib runtime::tests::idle_restart_checkpoints_preserve_saved_position` before fix | Failed: saved 1,266,236 ms became zero |
+| Same focused test after fix / `cargo fmt --all` | Passed; durable reopen, listened/occurrence, stale id and valid seek-zero assertions included |
+| Two `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` attempts | fmt/Clippy passed; each timed out at 600s in existing Bluetooth fixture after other library tests passed |
+| Bluetooth fixture alone, outer 45s timeout | Explicit Play assertion failed at platform.rs:641, cleanup timed out |
+| Same Bluetooth fixture with `XDG_RUNTIME_DIR=/tmp/opencode` | Passed in 2.34s |
+| Full `./tools/check.sh` with fresh temporary XDG_RUNTIME_DIR and dev debug/incremental disabled | Passed unfiltered: fmt, Clippy warnings-as-errors, all 199 Rust tests, 39 locales/548 messages, desktop build and CTest 2/2 (15.34s) |
+| `./tools/build-sailfish.sh` | Passed: GNU aarch64/Qt5.6 RPM; zero rpmlint errors, existing no-url-tag warning |
+| Phone RPM transfer and host/phone SHA256 | Match: `e2de314dae98eae8af74d42808c87f8062e32640c580e8f32c0daf282756f9a3` |
+| Final `git diff --check` / `cargo fmt --all --check` | Passed |
+
+Delivered `/home/defaultuser/Downloads/harbour-plexfreq-0.1.3-1-resume-fix.aarch64.rpm`.
+The package retains version 0.1.3-1; the filename identifies the fixed replacement.
+Phone access inspected logs/package identity and copied the artifact only; no live
+Plex request, playback control, app restart or installation was issued. Fixtures
+use temporary synthetic session state. The isolated host runtime prevents live
+PulseAudio observations from influencing the fake-sink Bluetooth fixture; it does
+not establish a phone runtime result. Normally installed reopen, wait while idle,
+then resume at the retained position remains the field check.
+
 ## Production-defect regressions — 2026-10-13
 
 | Check | Actual result |

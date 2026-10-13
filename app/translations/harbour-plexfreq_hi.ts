@@ -2230,8 +2230,8 @@
       <translation>साफ़ करें · कैश · बंद करें · चलाएँ</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · ऑडियो · चलाएँ</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · ऑडियो · चलाएँ</translation>
     </message>
   </context>
   <context>

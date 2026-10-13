@@ -2230,8 +2230,8 @@
       <translation>Legen · Cache · Stoppen · Afspelen</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · Audio · Afspelen</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · Audio · Afspelen</translation>
     </message>
   </context>
   <context>

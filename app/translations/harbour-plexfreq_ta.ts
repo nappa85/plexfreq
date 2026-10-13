@@ -2230,8 +2230,8 @@
       <translation>துடை · தற்காலிகச் சேமிப்பு · நிறுத்து · இயக்கு</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · ஒலி · இயக்கு</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · ஒலி · இயக்கு</translation>
     </message>
   </context>
   <context>

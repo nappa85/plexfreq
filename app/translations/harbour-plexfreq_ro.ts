@@ -2230,8 +2230,8 @@
       <translation>Golește · Cache · Oprește · Redă</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · Audio · Redă</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · Audio · Redă</translation>
     </message>
   </context>
   <context>

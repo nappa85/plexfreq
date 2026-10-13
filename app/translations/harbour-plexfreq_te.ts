@@ -2230,8 +2230,8 @@
       <translation>శుభ్రం చేయి · కాష్ · ఆపు · ప్లే చేయి</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · ఆడియో · ప్లే చేయి</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · ఆడియో · ప్లే చేయి</translation>
     </message>
   </context>
   <context>

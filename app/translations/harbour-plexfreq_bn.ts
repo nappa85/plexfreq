@@ -2230,8 +2230,8 @@
       <translation>পরিষ্কার করুন · ক্যাশ · বন্ধ করুন · চালান</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.2 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.2 · অডিও · চালান</translation>
+      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <translation>PlexFreq · 0.1.3 · অডিও · চালান</translation>
     </message>
   </context>
   <context>
