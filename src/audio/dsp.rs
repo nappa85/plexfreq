@@ -126,7 +126,10 @@ impl Processor {
                     value = filter.sample(value, i % 2);
                 }
             }
-            *sample = (value * gain).clamp(-1., 1.);
+            // Float PCM can carry intersample/mixing peaks above full scale.
+            // Preserve them here; configured headroom remains an explicit policy.
+            let processed = value * gain;
+            *sample = if processed.is_finite() { processed } else { 0. };
         }
     }
 }
@@ -150,6 +153,7 @@ pub fn crossfade(
     total_frames: usize,
 ) {
     let len = old.len().min(new.len()).min(output.len());
+    output[len..].fill(0.);
     // Stereo frames: two samples per progress step.
     for (i, sample) in output.iter_mut().enumerate().take(len) {
         let progress = ((start_frame + i / 2) as f32 / total_frames.max(1) as f32).clamp(0., 1.);
@@ -162,7 +166,7 @@ pub fn crossfade(
 mod tests {
     use super::*;
     #[test]
-    fn gain_limiter_and_nan_handling() {
+    fn gain_and_nan_handling() {
         let mut p = Processor::new(48000, &Config::default());
         let mut pcm = [0.5, -0.5, 2., f32::NAN];
         p.process(&mut pcm, 0., 0.5);

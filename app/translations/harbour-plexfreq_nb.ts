@@ -609,10 +609,6 @@
       <translation>Tjener · Mottatt · Spor</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Skadet</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Logg inn · Start</translation>
     </message>

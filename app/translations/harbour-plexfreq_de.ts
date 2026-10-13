@@ -609,10 +609,6 @@
       <translation>Server · Empfangen · Titel</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Beschädigt</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Anmelden · Starten</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>સર્વર · મળેલું · ગીત</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>બગડેલું</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>સાઇન ઇન · શરૂ કરો</translation>
     </message>

@@ -57,17 +57,45 @@ fn origin(listener: &TcpListener) -> String {
 }
 
 #[test]
-fn corrupt_index_is_reported_without_deleting_completed_audio() {
+fn corrupt_index_recovers_without_deleting_completed_audio() {
     let dir = tempfile::tempdir().unwrap();
     let media = dir.path().join(format!("{}.wav", "a".repeat(64)));
     std::fs::write(&media, b"fixture").unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    let target = outside.path().join("outside.wav");
+    std::fs::write(&target, b"external bytes must not count toward quota").unwrap();
+    std::os::unix::fs::symlink(&target, dir.path().join("linked.wav")).unwrap();
     std::fs::write(dir.path().join("index.json"), b"{broken").unwrap();
-    assert!(Cache::new(dir.path().into(), Config::default(), "fixture").is_err());
-    assert_eq!(std::fs::read(media).unwrap(), b"fixture");
+    let inspection = Cache::read_only(dir.path().into(), Config::default(), "fixture").unwrap();
+    assert!(inspection.items("fixture").is_empty());
+    drop(inspection);
     assert_eq!(
         std::fs::read(dir.path().join("index.json")).unwrap(),
         b"{broken"
     );
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    assert!(cache.items("fixture").is_empty());
+    drop(cache);
+    let backup = std::fs::read_dir(dir.path())
+        .unwrap()
+        .flatten()
+        .find(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("index.json.corrupt-")
+        })
+        .unwrap()
+        .path();
+    assert_eq!(std::fs::read(&backup).unwrap(), b"{broken");
+    assert_eq!(
+        std::fs::metadata(backup).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
+    let reopened = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    assert!(reopened.items("fixture").is_empty());
+    assert_eq!(reopened.status("fixture")["bytes"], 7);
+    assert_eq!(std::fs::read(media).unwrap(), b"fixture");
 }
 
 #[test]

@@ -609,10 +609,6 @@
       <translation>ಸರ್ವರ್ · ಸ್ವೀಕರಿಸಲಾಗಿದೆ · ಹಾಡು</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>ಹಾಳಾಗಿದೆ</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>ಸೈನ್ ಇನ್ · ಆರಂಭಿಸು</translation>
     </message>

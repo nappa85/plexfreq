@@ -609,10 +609,6 @@
       <translation>Strežnik · Prejeto · Skladba</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Poškodovano</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Prijava · Začni</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Serveris · Saņemts · Dziesma</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Bojāts</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Pierakstīties · Sākt</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Server · Primit · Piesă</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Corupt</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Autentificare · Pornește</translation>
     </message>

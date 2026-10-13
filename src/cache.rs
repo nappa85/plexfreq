@@ -226,10 +226,17 @@ fn disk_bytes(root: &Path) -> u64 {
         .filter_map(|e| e.ok())
         .filter_map(|e| {
             let name = e.file_name().to_string_lossy().into_owned();
-            if name == "index.json" || name == "cache.lock" || name.ends_with(".resume.json") {
+            if name == "index.json"
+                || name.starts_with("index.json.corrupt-")
+                || name == "cache.lock"
+                || name.ends_with(".resume.json")
+            {
                 return None;
             }
-            e.metadata().ok().filter(|m| m.is_file()).map(|m| m.len())
+            fs::symlink_metadata(e.path())
+                .ok()
+                .filter(|m| m.is_file())
+                .map(|m| m.len())
         })
         .sum()
 }
@@ -263,20 +270,36 @@ impl Cache {
         } else {
             None
         };
+        let mut recovered = false;
         let mut manifest: Manifest = match fs::read(root.join("index.json")) {
-            Ok(bytes) => serde_json::from_slice(&bytes).map_err(|_| {
-                crate::diagnostics::event(format_args!(
-                    "audio cache index is corrupt; preserving cache files"
-                ));
-                Error::Io(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    "Audio cache index is corrupt",
-                ))
-            })?,
+            Ok(bytes) => match serde_json::from_slice(&bytes) {
+                Ok(manifest) => manifest,
+                Err(_) => {
+                    if !read_only {
+                        crate::quarantine_corrupt(&root.join("index.json"), &bytes)?;
+                    }
+                    recovered = true;
+                    crate::diagnostics::event(format_args!(
+                        "corrupt audio cache index preserved; using empty catalogue"
+                    ));
+                    Manifest::default()
+                }
+            },
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Manifest::default(),
             Err(error) => return Err(error.into()),
         };
         manifest.entries.retain(|_, e| usable(&root, e));
+        // Retain unindexed media evidence across reopen while quarantine exists.
+        let preserve_orphans = recovered
+            || fs::read_dir(&root)
+                .into_iter()
+                .flatten()
+                .flatten()
+                .any(|file| {
+                    file.file_name()
+                        .to_string_lossy()
+                        .starts_with("index.json.corrupt-")
+                });
         // A crash between temp write and rename can leave orphan `*.tmp` files
         // (old `index.<uuid>.tmp` naming included) plus unindexed hash files.
         // Unindexed files are not playable without metadata; reclaim our hash
@@ -293,6 +316,7 @@ impl Cache {
             };
             let stem = name.split('.').next().unwrap_or("");
             if !read_only
+                && !preserve_orphans
                 && stem.len() == 64
                 && stem.bytes().all(|b| b.is_ascii_hexdigit())
                 && !name.ends_with(".part")

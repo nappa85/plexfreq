@@ -73,13 +73,13 @@ struct Representation {
     total: Option<u64>,
     started: bool,
 }
-fn retryable(
-    representation: &Representation,
-    offset: u64,
-    progressive: bool,
-    failures: u32,
-) -> bool {
-    !progressive && failures < 3 && (offset == 0 || representation.validator.is_some())
+fn retryable(representation: &Representation, offset: u64, progressive: bool) -> bool {
+    // A temporary outage is not decoder failure: keep queued bytes and wait
+    // for the same representation until seek/stop cancels this reader.
+    !progressive && (offset == 0 || representation.validator.is_some())
+}
+fn retry_delay(failures: u32) -> Duration {
+    Duration::from_secs(1 << failures.saturating_sub(1).min(3))
 }
 impl Representation {
     fn layout(
@@ -206,7 +206,7 @@ impl Reader {
                     if retry_offset.is_some() {
                         tokio::select! {
                             _ = changed.changed() => { retry_offset = None; failures = 0; continue; },
-                            _ = tokio::time::sleep(Duration::from_secs(1 << failures.saturating_sub(1))) => {},
+                            _ = tokio::time::sleep(retry_delay(failures)) => {},
                         }
                     } else {
                         failures = 0;
@@ -225,10 +225,10 @@ impl Reader {
                     let response=tokio::select!{_=changed.changed()=>continue,response=request.send()=>response};
                     let mut response=match response {
                         Ok(r) if r.status().is_success()=>r,
-                        response if (response.is_err() || response.as_ref().is_ok_and(|r| r.status().is_server_error())) && retryable(&representation, offset, progressive, failures) => {
-                            failures += 1;
+                        response if (response.is_err() || response.as_ref().is_ok_and(|r| r.status().is_server_error())) && retryable(&representation, offset, progressive) => {
+                            failures = failures.saturating_add(1);
                             retry_offset = Some(offset);
-                            eprintln!("PlexFreq audio stream interrupted; retry {failures}/3");
+                            crate::diagnostics::event(format_args!("audio stream interrupted; retry={failures} delay_ms={}", retry_delay(failures).as_millis()));
                             continue;
                         },
                         _=>{gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;}
@@ -256,15 +256,16 @@ impl Reader {
                                      if changed.has_changed().unwrap_or(true) { continue 'requests; }
                                      if output.push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec())).is_err(){return;}
                                      delivered+=chunk.len() as u64;
+                                     failures=0;
                                  }
                             },
                              Ok(None) if skip == 0 && expected.is_none_or(|n|received==n)=>{crate::diagnostics::event(format_args!("HTTP audio EOF received={received} delivered={delivered}"));let _=output.end_of_stream();break;},
                             _=>{
                                 let resume = offset + delivered;
-                                if retryable(&representation, resume, progressive, failures) {
-                                    failures += 1;
+                                if retryable(&representation, resume, progressive) {
+                                    failures = failures.saturating_add(1);
                                     retry_offset = Some(resume);
-                                    eprintln!("PlexFreq audio stream interrupted; retry {failures}/3");
+                                    crate::diagnostics::event(format_args!("audio stream interrupted; retry={failures} delay_ms={}", retry_delay(failures).as_millis()));
                                     continue 'requests;
                                 }
                                 gst::element_error!(output,gst::ResourceError::Read,["Audio streaming failed"]);return;
@@ -361,26 +362,75 @@ mod tests {
     }
 
     #[test]
-    fn recovery_is_bounded_and_requires_a_validated_original() {
+    fn recovery_backoff_is_capped_and_requires_a_validated_original() {
         let mut representation = Representation::default();
-        assert!(retryable(&representation, 0, false, 0));
-        assert!(!retryable(&representation, 1, false, 0));
+        assert!(retryable(&representation, 0, false));
+        assert!(!retryable(&representation, 1, false));
         representation.validator = Some("\"fixture\"".into());
-        assert!(retryable(&representation, 1, false, 2));
-        assert!(!retryable(&representation, 1, false, 3));
-        assert!(!retryable(&representation, 1, true, 0));
+        assert!(retryable(&representation, 1, false));
+        assert!(!retryable(&representation, 1, true));
+        for (failures, seconds) in [(1, 1), (2, 2), (3, 4), (4, 8), (32, 8), (u32::MAX, 8)] {
+            assert_eq!(retry_delay(failures), Duration::from_secs(seconds));
+        }
+    }
+
+    #[test]
+    fn retry_backoff_is_cancelled_promptly_by_stop() {
+        use std::io::{Read, Write};
+        gst::init().unwrap();
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let (sent, response) = mpsc::channel();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut byte = [0];
+            while !request.ends_with(b"\r\n\r\n") {
+                stream.read_exact(&mut byte).unwrap();
+                request.push(byte[0]);
+            }
+            stream.write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").unwrap();
+            sent.send(()).unwrap();
+        });
+        let source = app::AppSrc::builder().build();
+        let reader = Reader::new(
+            &source,
+            format!("http://{address}/audio"),
+            String::new(),
+            SessionCloser::new().unwrap(),
+        )
+        .unwrap();
+        response.recv_timeout(Duration::from_secs(3)).unwrap();
+        thread::sleep(Duration::from_millis(100));
+        let start = std::time::Instant::now();
+        drop(reader);
+        assert!(start.elapsed() < Duration::from_millis(500));
+        server.join().unwrap();
     }
 
     #[test]
     fn interrupted_original_stream_resumes_without_duplicate_bytes() {
+        resumed_original_stream(0);
+    }
+
+    #[test]
+    fn original_stream_survives_retry_exhaustion_without_losing_buffered_bytes() {
+        resumed_original_stream(4);
+    }
+
+    fn resumed_original_stream(unavailable_responses: usize) {
         use std::io::{Read, Write};
         gst::init().unwrap();
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = listener.local_addr().unwrap();
         let server = thread::spawn(move || {
-            for offset in [0, 65536] {
-                let until = std::time::Instant::now() + Duration::from_secs(5);
+            for attempt in 0..unavailable_responses + 2 {
+                let offset = if attempt == 0 { 0 } else { 65536 };
+                let until = std::time::Instant::now() + Duration::from_secs(12);
                 let mut stream = loop {
                     match listener.accept() {
                         Ok((stream, _)) => break stream,
@@ -405,6 +455,10 @@ mod tests {
                 if offset > 0 {
                     assert!(request.contains("if-range: \"fixture\""));
                 }
+                if attempt > 0 && attempt <= unavailable_responses {
+                    stream.write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").unwrap();
+                    continue;
+                }
                 write!(stream, "HTTP/1.1 206 Partial Content\r\nContent-Length: {}\r\nContent-Range: bytes {}-131071/131072\r\nETag: \"fixture\"\r\nConnection: close\r\n\r\n", 131072-offset, offset).unwrap();
                 // First response ends early; the second completes the same bytes.
                 stream
@@ -426,9 +480,29 @@ mod tests {
             SessionCloser::new().unwrap(),
         )
         .unwrap();
+        if unavailable_responses > 0 {
+            // Leave the initial bytes queued across the outage, as on the phone.
+            // A bus error would discard them before the connection recovers.
+            let until = std::time::Instant::now() + Duration::from_secs(30);
+            while reader.received.load(Ordering::Relaxed) < 131072 {
+                assert!(
+                    pipeline
+                        .bus()
+                        .unwrap()
+                        .pop_filtered(&[gst::MessageType::Error])
+                        .is_none(),
+                    "Buffered stream must not fail during a temporary outage"
+                );
+                assert!(
+                    std::time::Instant::now() < until,
+                    "No recovery after outage"
+                );
+                thread::sleep(Duration::from_millis(10));
+            }
+        }
         pipeline.set_state(gst::State::Playing).unwrap();
         let mut bytes = Vec::new();
-        let until = std::time::Instant::now() + Duration::from_secs(5);
+        let until = std::time::Instant::now() + Duration::from_secs(30);
         while bytes.len() < 131072 && std::time::Instant::now() < until {
             if let Some(sample) = sink.try_pull_sample(gst::ClockTime::from_mseconds(100)) {
                 bytes
@@ -442,6 +516,11 @@ mod tests {
         assert_eq!(bytes.len(), 131072);
         assert!(bytes[..65536].iter().all(|&v| v == 1));
         assert!(bytes[65536..].iter().all(|&v| v == 2));
+        assert!(pipeline
+            .bus()
+            .unwrap()
+            .pop_filtered(&[gst::MessageType::Error])
+            .is_none());
     }
 
     fn headers(etag: Option<&str>, range: Option<&str>, length: &str) -> HeaderMap {

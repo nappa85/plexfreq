@@ -609,10 +609,6 @@
       <translation>Server · Ricevuto · Brano</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Danneggiato</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Accedi · Avvia</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Сервер · Алынган · Язма</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Бозылган</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Керү · Башлау</translation>
     </message>

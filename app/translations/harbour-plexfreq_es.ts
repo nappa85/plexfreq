@@ -609,10 +609,6 @@
       <translation>Servidor · Recibido · Pista</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Dañado</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Iniciar sesión · Iniciar</translation>
     </message>

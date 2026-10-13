@@ -609,10 +609,6 @@
       <translation>Servidor · Recebido · Faixa</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Danificado</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Entrar · Iniciar</translation>
     </message>

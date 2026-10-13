@@ -1,5 +1,44 @@
 # Development roadmap
 
+Production-defect review (2026-10-13): all ten supplied regressions now pass.
+Finite ratings, safe/noneditable malformed smart limits, private corrupt-state
+recovery, dangling queue selection, natural-end trimming, zero-filled crossfade
+tails, transparent float peaks and bare-credential/control sanitization are fixed.
+Cache quota accounting also excludes symlink targets. Host Rust and desktop gates
+pass after translation regeneration; actual intermediate failures are in validation.md.
+
+Remaining review-reported work, requiring focused failure fixtures and contract review:
+
+- Request responsiveness/durability: cancellable generation-aware listing HTTP off
+  the Core actor, and durable occurrence-aware listen checkpoints rather than lossy
+  overflow. Worker panic handling must publish failure and rebuild validated state;
+  catching an unwind and blindly continuing a partially mutated Core is insufficient.
+- Gapless plan lifetime: keep only active/prepared occurrences, update shown identity
+  at audible Transition, and prove one UI update per transition over long queues.
+- Cache ownership: move blocking filesystem work off the current-thread async loop
+  and shared mutex, make eviction manifest commits transactional on partial failure,
+  bound/coalesce download batches, and define verified completion for unknown-length
+  EOF. Quarantined unindexed media requires an explicit recovery/reclamation policy.
+- Platform lifetime: deadline/cancellation-bound ConnMan and NetworkManager calls,
+  with stalled-service shutdown fixtures matching the existing BlueZ strategy.
+- Audio scheduling: wide frame-to-nanosecond arithmetic, successor-aware tail release,
+  replacement-load coalescing, decoder preparation off the actor and small capture
+  projections outside its lock. Develop long-duration and saturation fixtures first.
+- Offline/catalogue identity and bounds: credential/server-scoped station group IDs,
+  observable lyric/snapshot quota failures and bounded indexed search/top-page work.
+- Consolidation: shared time/digest/storage helpers, PCM byte conversion and page-size
+  policy. Token-bearing artwork DTO removal needs a Rust-owned credential-handle
+  contract; DTOs must not enter persistence/logging in the meantime. Downstream DSP
+  limiting/headroom policy needs audible validation beyond transparent float tests.
+
+Buffered-stream outage fix (2026-10-13): the 08:16 installed log confirms fatal
+HTTP retry exhaustion while audio remained buffered. Resumable originals now keep
+queued data and retry transient failures with cancellable capped backoff rather
+than discarding the pipeline after three failures. Loopback byte continuity and
+Stop regressions pass, as do the 198-test host gate/desktop CTest and GNU/Qt5.6 RPM
+build. Next: normally installed phone validation through actual connectivity loss
+and recovery; progressive transcodes still require their separate restart policy.
+
 Production-logic review follow-up (2026-10-12): fixed the ten supplied queue,
 lyrics, PIN/flag/gain, station-key and cache-entry regressions. Added Core-level
 same-row/shuffle coverage and strengthened cache lookup/reopen and timestamp/path

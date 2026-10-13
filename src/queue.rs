@@ -199,6 +199,9 @@ impl Queue {
     }
 
     fn reorder(&mut self) {
+        if self.current.is_some_and(|index| index >= self.items.len()) {
+            self.current = None;
+        }
         let ended = if self.current.is_none() {
             self.order.get(self.cursor).copied()
         } else {
@@ -350,7 +353,7 @@ impl Queue {
     }
 
     pub fn trim_history(&mut self, keep: usize) {
-        if self.order.is_empty() || self.current.is_none() {
+        if self.order.is_empty() {
             return;
         }
         self.cursor = self.cursor.min(self.order.len().saturating_sub(1));

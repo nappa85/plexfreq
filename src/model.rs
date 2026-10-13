@@ -211,7 +211,12 @@ fn lenient_f64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<f64,
     Ok(match value {
         serde_json::Value::Null => 0.0,
         serde_json::Value::Number(n) => n.as_f64().unwrap_or_default(),
-        serde_json::Value::String(s) => s.trim().parse::<f64>().unwrap_or_default(),
+        serde_json::Value::String(s) => s
+            .trim()
+            .parse::<f64>()
+            .ok()
+            .filter(|value| value.is_finite())
+            .unwrap_or_default(),
         _ => 0.0,
     })
 }

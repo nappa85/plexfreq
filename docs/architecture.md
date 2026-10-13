@@ -1,5 +1,40 @@
 # Architecture
 
+## Production-defect recovery / transparent float DSP (2026-10-13)
+
+Rust session/cache readers recover from malformed whole documents after saving
+their original bytes to a unique 0600 corruption backup using shared atomic writes.
+The invalid active file is removed only after backup success. Ordinary I/O failures
+remain errors. Read-only cache inspection does not write or quarantine. A cache
+quarantine marker protects unindexed media from startup orphan cleanup across
+reopen; it remains unplayable without valid metadata and counts toward quota.
+Symlink targets are excluded from disk accounting just as from lookup and GC.
+These contracts supersede earlier strict whole-index startup failure below.
+
+Ratings tolerate unusable non-finite strings as zero. Smart-rule DTOs always
+provide a valid limit; unsupported limits remain noneditable. Queue history trims
+at natural end without inventing a current selection. Crossfade zeroes unmatched
+output samples. DSP gain/EQ preserves finite float peaks above full scale and
+sanitizes non-finite results; user-selected headroom remains explicit. Downstream
+limiting/physical peak behavior is a separate design and validation question.
+
+Persistent diagnostics strip controls before key matching, redact bare/quoted
+credential assignments with identifier boundaries, and retain the existing
+whole-tail removal for credential-bearing records. Presentation remains Qt/QML-owned.
+
+## Buffered original-stream outage recovery (2026-10-13)
+
+The Rust HTTP reader retains appsrc/decoder state during transient network/5xx
+failures for original streams. A nonzero resume offset requires a representation
+validator; Range/If-Range and total/validator checks prevent mixing different media.
+Reconnect waits grow 1/2/4/8 seconds and remain capped at eight seconds until seek
+or Stop cancels them. Delivered bytes reset the consecutive-failure counter.
+Temporary failures send neither EOS nor a fatal bus error, so buffered PCM can
+continue and the audio actor's existing empty-output buffering state resumes when
+more bytes arrive. Permanent response failures, invalid representations and
+non-resumable progressive streams retain explicit failure behavior. HTTP work and
+retry sleeps remain off the audio actor; memory stays bounded by input watermarks.
+
 ## Queue presentation / isolated cache-entry recovery (2026-10-12)
 
 Queue presentation materializes playback order into a linear editable queue and

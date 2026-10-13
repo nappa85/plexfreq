@@ -609,10 +609,6 @@
       <translation>Serwer · Odebrane · Utwór</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Uszkodzone</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Zaloguj · Rozpocznij</translation>
     </message>

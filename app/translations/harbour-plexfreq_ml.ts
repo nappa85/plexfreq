@@ -609,10 +609,6 @@
       <translation>സെർവർ · ലഭിച്ചത് · ഗാനം</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>കേടായി</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>സൈൻ ഇൻ · ആരംഭിക്കുക</translation>
     </message>

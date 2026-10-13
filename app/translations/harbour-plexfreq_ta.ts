@@ -609,10 +609,6 @@
       <translation>சேவையகம் · பெறப்பட்டது · பாடல்</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>சிதைந்தது</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>உள்நுழை · தொடங்கு</translation>
     </message>

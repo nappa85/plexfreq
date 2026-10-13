@@ -108,6 +108,18 @@ pub(crate) fn atomic_write_json(
     atomic_write_bytes(path, &serde_json::to_vec(value)?)
 }
 
+/// Preserve malformed state privately before allowing defaults to replace it.
+pub(crate) fn quarantine_corrupt(path: &std::path::Path, bytes: &[u8]) -> Result<()> {
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("state");
+    let backup = path.with_file_name(format!("{name}.corrupt-{}", uuid::Uuid::new_v4()));
+    atomic_write_bytes(&backup, bytes)?;
+    std::fs::remove_file(path)?;
+    Ok(())
+}
+
 pub(crate) fn numeric(value: &str) -> Result<&str> {
     // Plex identifiers fit in u64 (max 20 decimal digits). Reject unbounded
     // digit strings before they become huge URL paths or overflow parsers.

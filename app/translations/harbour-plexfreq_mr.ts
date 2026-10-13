@@ -609,10 +609,6 @@
       <translation>सर्व्हर · मिळालेले · गाणे</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>खराब</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>साइन इन · सुरू करा</translation>
     </message>

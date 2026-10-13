@@ -609,10 +609,6 @@
       <translation>Sunucu · Alındı · Parça</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Bozuk</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Oturum aç · Başlat</translation>
     </message>

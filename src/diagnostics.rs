@@ -57,8 +57,10 @@ fn local_stamp() -> (String, String) {
 // Framework diagnostics are not inherently redacted. Remove complete URLs (also
 // local cache paths) and token assignments before they reach persistent storage.
 pub(crate) fn redact(text: &str) -> String {
+    // Strip controls before matching: an embedded escape must not split a key.
+    let text: String = text.chars().filter(|c| !c.is_control()).collect();
     let mut result = String::new();
-    let mut rest = text;
+    let mut rest = text.as_str();
     while !rest.is_empty() {
         let lower = rest.to_ascii_lowercase();
         let start = [
@@ -67,9 +69,33 @@ pub(crate) fn redact(text: &str) -> String {
             "file://",
             "x-plex-token",
             "authorization:",
+            "server_token",
+            "account_token",
+            "access_token",
+            "servertoken",
+            "accounttoken",
+            "accesstoken",
+            "authtoken",
+            "token",
+            "clientid",
+            "code",
         ]
         .iter()
-        .filter_map(|key| lower.find(key).map(|index| (index, *key)))
+        .filter_map(|key| {
+            lower.match_indices(key).find_map(|(index, _)| {
+                let assignment = lower[index + key.len()..]
+                    .trim_start_matches([' ', '\t', '"', '\''])
+                    .starts_with(['=', ':']);
+                let boundary = index == 0
+                    || !(lower.as_bytes()[index - 1].is_ascii_alphanumeric()
+                        || lower.as_bytes()[index - 1] == b'_');
+                (key.ends_with("://")
+                    || *key == "x-plex-token"
+                    || *key == "authorization:"
+                    || (boundary && assignment))
+                    .then_some((index, *key))
+            })
+        })
         .min_by_key(|(index, _)| *index);
         let Some((index, key)) = start else {
             result.push_str(rest);
@@ -470,5 +496,57 @@ mod tests {
             log.matches("oversized diagnostic record discarded").count(),
             1
         );
+    }
+    #[test]
+    fn bare_token_shapes_must_be_redacted() {
+        // Production defect: `redact` only covers full URLs and
+        // `x-plex-token` / `authorization:` lines, so bare JSON/config
+        // shapes pass through to the 7-day persistent log.
+        for leaked in [
+            "server_token=secret-value",
+            "account_token: secret-value",
+            "access_token=secret-value",
+            "authToken=secret-value",
+            "X-Plex-Token=secret-value",
+            "token=secret-value",
+            "clientID=secret-value",
+            "code=secret-value",
+            "{\"account_token\":\"secret-value\"}",
+            "{\"accessToken\":\"secret-value\"}",
+            "token = 'secret-value'",
+            "TOKEN: secret-value",
+        ] {
+            let redacted = redact(leaked);
+            assert!(
+                !redacted.contains("secret-value"),
+                "bare token shape must be redacted, got {redacted:?} for {leaked:?}"
+            );
+        }
+        assert_eq!(
+            redact("decoder codec=flac status_code=200"),
+            "decoder codec=flac status_code=200"
+        );
+    }
+    #[test]
+    fn log_lines_must_strip_carriage_return_and_ansi_controls() {
+        // Production defect: `capture` splits only on `\n` and `line`
+        // persists `\r` / ANSI escapes, allowing terminal-line overwrite
+        // and spoofed lines when logs are tailed.
+        let root = tempfile::tempdir().unwrap();
+        let mut writer = DailyWriter::new(root.path().into()).unwrap();
+        writer
+            .line(
+                "2026-10-13",
+                "2026-10-13T00:00:00",
+                b"first\x1b[2K\rsecond\x07third",
+            )
+            .unwrap();
+        let log = fs::read_to_string(root.path().join("plexfreq-2026-10-13.log")).unwrap();
+        assert!(
+            !log.contains('\r') && !log.contains("\x1b"),
+            "control characters must be stripped, got {log:?}"
+        );
+        assert!(log.contains("first") && log.contains("second"));
+        assert!(!log.chars().any(|c| c.is_control() && c != '\n'));
     }
 }

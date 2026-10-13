@@ -609,10 +609,6 @@
       <translation>Serveris · Gauta · Takelis</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Sugadinta</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Prisijungti · Pradėti</translation>
     </message>

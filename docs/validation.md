@@ -1,5 +1,44 @@
 # Validation record
 
+## Production-defect regressions — 2026-10-13
+
+| Check | Actual result |
+| --- | --- |
+| Focused `cargo test --locked --test production_defects --test cache --test core --lib` with dev debug/incremental disabled | Passed: 8 supplied integration regressions, 54 library tests including both supplied diagnostics regressions, 11 cache and 12 Core tests |
+| First full `./tools/check.sh` after strengthening diagnostics | fmt/Clippy passed; library fixture failed because status_code was redacted as code; corrected identifier boundary |
+| Next `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | fmt, Clippy warnings-as-errors and all 198 Rust tests passed; desktop stage rejected stale translation catalogue after removing obsolete session-corruption error |
+| `bash tools/build-qm.sh` | Regenerated/validated 39 locales, 548 messages per catalogue |
+| `cmake --build build/desktop --parallel && ctest --test-dir build/desktop --output-on-failure` | Passed translation freshness, desktop build and CTest 2/2 (15.09s) |
+| Extended cache recovery/quota fixture after full checks | Passed: external symlink target excluded from bytes, preserved media counted, quarantine metadata excluded |
+| Final `git diff --check` / `cargo fmt --all --check` | Passed |
+
+Fixtures use temporary state and synthetic data/loopback HTTP. The eight supplied
+integration assertions remain intact; diagnostics assertions were strengthened.
+Private backup/read-only/reopen checks replace prior tests of the superseded
+startup-failure contract. No SDK build, live Plex request or phone runtime test was
+performed. Transparent DSP peak preservation is verified locally, not acoustically.
+
+## Buffered original-stream outage recovery — 2026-10-13
+
+| Check | Actual result |
+| --- | --- |
+| Initial loopback outage regression before fix | Failed: three retries exhausted; no further resumed request arrived |
+| `cargo fmt --all` | Passed |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 cargo test --locked --lib audio::http::tests` | Passed 7/7, including buffered recovery after four unavailable responses, exact byte continuity, backoff cap and prompt cancellation |
+| First full host gate / SDK build attempts | Tool timeout at 240 seconds during cold release compilation; Rust tests/fmt/Clippy had passed, SDK Rust release compilation completed |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` with longer tool timeout | Passed: fmt, Clippy warnings-as-errors, all 198 Rust tests, 39 locales/549 messages, desktop build and CTest 2/2 (23.12s) |
+| `./tools/build-sailfish.sh` with longer tool timeout | Passed: GNU aarch64/Qt5.6 RPM; zero rpmlint errors, existing no-url-tag/changelog-date warnings |
+| `git diff --check` | Passed |
+| Phone package delivery | Copied fixed RPM to `/home/defaultuser/Downloads/harbour-plexfreq-0.1.2-1-stutter-fix.aarch64.rpm`; host/phone SHA256 match: `7a66a1081c8058dea69296d15e2715680a583aa02dbb884679e8eb41f073a648` |
+
+The outage fixture uses synthetic bytes, a loopback server and real GStreamer
+appsrc/appsink, retaining queued bytes during reconnect failures before verifying
+complete delivery. It does not measure physical audible playback. Phone log access
+was unprivileged; no live Plex experiment or installed runtime test was performed.
+Normally installed Sailjail signal-loss/reconnection testing remains pending.
+The delivered RPM still uses package version 0.1.2-1; installation/replacement and
+normal app restart are pending. The descriptive filename distinguishes this build.
+
 ## Ten production-logic regressions — 2026-10-12
 
 | Check | Actual result |

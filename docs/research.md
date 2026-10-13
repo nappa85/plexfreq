@@ -1,5 +1,63 @@
 # Research log
 
+## Production-defect regressions — 2026-10-13
+
+- All eight supplied integration regressions and two diagnostics regressions pass.
+  Non-finite rating strings default to zero; malformed/out-of-range smart limits
+  yield 100 and remain noneditable. Queue reorder clears dangling selection and
+  history trimming retains the natural-end slot while removing older history.
+- Corrupt session/index documents now recover with defaults after a private
+  atomic backup (`*.corrupt-<uuid>`). Backup/write/read failures still surface as
+  I/O errors. Cache read-only inspection uses an empty catalogue without mutation.
+  Quarantine presence suppresses startup orphan-media deletion across reopen;
+  preserved audio still counts toward quota and is not automatically playable.
+  This supersedes the earlier whole-document fail-open policy recorded below.
+- Crossfade clears the unmatched output suffix. The supplied peak assertion
+  requires preserving sqrt(2) exactly, so DSP now retains finite floating-point
+  peaks rather than clamping to full scale. Configured headroom remains applied;
+  this does not establish downstream hardware peak handling or implement a limiter.
+  Consulted https://doc.rust-lang.org/std/primitive.f32.html#method.is_finite
+  for non-finite input/result sanitization, and the repository's existing atomic
+  write, cache recovery, queue-end and decoded-PCM fixtures.
+- Diagnostics strip Unicode control characters before redaction and recognize
+  bare/quoted token, clientID and code assignments, including camel-case tokens.
+  A strengthened fixture caught status_code being mistaken for code; key-boundary
+  matching now preserves that technical field. No credential values are diagnosed.
+- Cache quota scans now use symlink_metadata consistently with lookup/GC.
+  Extended recovery coverage verifies read-only preservation, private backup,
+  reopen/media preservation and exclusion of external symlink targets from quota.
+  Old tests asserting failed startup were updated to the requested recovery contract.
+- Actual check outcomes, including the redaction boundary and stale translation
+  failures, are in validation.md. Remaining review-reported structural findings and
+  proposed design directions are in roadmap.md; no device experiment was performed.
+
+## Buffered original-stream outage — 2026-10-13
+
+- Read-only SSH recovered the installed current-date AppData log. At 08:15:42
+  CEST the HTTP reader stopped receiving at offset 8486912; three retries failed.
+  At 08:16:02 playback still advanced with 1703936 queued HTTP bytes and 98826
+  decoded PCM frames. At 08:16:04 the final request failure posted a fatal appsrc
+  error and tore down playback at 62140 ms. Local-cache playback restarted at
+  the same position at 08:16:15. Bluetooth stayed connected through the failure.
+  The unprivileged system journal is inaccessible; phone connectivity versus
+  server/path failure cannot be distinguished from this log.
+- Consulted https://gstreamer.freedesktop.org/documentation/app/appsrc.html:
+  push-buffer queues data, need-data can be serviced from another thread, and
+  EOS means no further buffers. Temporary outages therefore neither send EOS nor
+  post a fatal error for safely resumable original streams. The existing actor
+  drains available PCM, pauses empty output as buffering, and resumes on new PCM.
+- Replaced the three-attempt cutoff with cancellation-aware 1/2/4/8-second
+  capped backoff. Successful byte delivery resets the consecutive-failure count;
+  counters saturate. Range/If-Range, representation validation, redirect confinement,
+  queue limits and non-resumable progressive-stream behavior retain their contracts.
+  Permanent HTTP errors and invalid/changed representations still fail explicitly.
+- The loopback regression failed before the fix at the three-retry cutoff. Fixed
+  coverage holds initial bytes queued across four unavailable reconnect responses,
+  recovers exactly at the delivered offset, verifies all bytes/no duplicates and
+  absence of a bus error. A separate fixture checks prompt Stop during backoff.
+  Actual host and SDK results are recorded in validation.md; installed phone
+  signal-loss/reconnection validation remains pending.
+
 ## Ten production-logic regressions — 2026-10-12
 
 - Queue previous now wraps under repeat-all; same-row moves preserve playback

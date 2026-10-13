@@ -609,10 +609,6 @@
       <translation>ਸਰਵਰ · ਮਿਲਿਆ · ਗੀਤ</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>ਖ਼ਰਾਬ</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>ਸਾਈਨ ਇਨ · ਸ਼ੁਰੂ ਕਰੋ</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Palvelin · Vastaanotettu · Kappale</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Vioittunut</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Kirjaudu sisään · Aloita</translation>
     </message>

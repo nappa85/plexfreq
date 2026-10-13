@@ -609,10 +609,6 @@
       <translation>Сервер · Отримано · Трек</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Пошкоджено</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Увійти · Почати</translation>
     </message>

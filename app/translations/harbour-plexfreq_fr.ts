@@ -609,10 +609,6 @@
       <translation>Serveur · Reçu · Piste</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Endommagé</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Se connecter · Démarrer</translation>
     </message>

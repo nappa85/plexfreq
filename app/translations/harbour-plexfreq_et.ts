@@ -609,10 +609,6 @@
       <translation>Server · Vastu võetud · Lugu</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Rikutud</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Logi sisse · Alusta</translation>
     </message>

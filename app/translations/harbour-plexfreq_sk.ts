@@ -609,10 +609,6 @@
       <translation>Server · Prijaté · Skladba</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Poškodené</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Prihlásiť · Spustiť</translation>
     </message>

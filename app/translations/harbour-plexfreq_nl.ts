@@ -609,10 +609,6 @@
       <translation>Server · Ontvangen · Nummer</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Beschadigd</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Aanmelden · Starten</translation>
     </message>

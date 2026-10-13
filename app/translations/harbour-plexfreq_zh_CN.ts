@@ -609,10 +609,6 @@
       <translation>服务器 · 已接收 · 曲目</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>已损坏</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>登录 · 开始</translation>
     </message>

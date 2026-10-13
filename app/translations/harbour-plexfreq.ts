@@ -609,10 +609,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation type="unfinished" />
     </message>

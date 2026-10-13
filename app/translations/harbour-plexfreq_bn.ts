@@ -609,10 +609,6 @@
       <translation>সার্ভার · প্রাপ্ত · গান</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>ক্ষতিগ্রস্ত</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>সাইন ইন · শুরু করুন</translation>
     </message>

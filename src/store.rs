@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::Result;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, OpenOptions},
@@ -44,10 +44,17 @@ pub struct Playback {
 
 pub fn load(dir: &Path) -> Result<Settings> {
     let path = dir.join("session.json");
-    match fs::read(path) {
-        Ok(bytes) => {
-            serde_json::from_slice(&bytes).map_err(|_| Error::Input("Session file is corrupt"))
-        }
+    match fs::read(&path) {
+        Ok(bytes) => match serde_json::from_slice(&bytes) {
+            Ok(settings) => Ok(settings),
+            Err(_) => {
+                crate::quarantine_corrupt(&path, &bytes)?;
+                crate::diagnostics::event(format_args!(
+                    "corrupt session preserved; using defaults"
+                ));
+                Ok(Settings::default())
+            }
+        },
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Settings::default()),
         Err(e) => Err(e.into()),
     }

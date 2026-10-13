@@ -609,10 +609,6 @@
       <translation>Сървър · Получено · Песен</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Повредено</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Вход · Начало</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Kiszolgáló · Fogadva · Szám</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Sérült</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Bejelentkezés · Indítás</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>సర్వర్ · అందినది · పాట</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>పాడైంది</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>సైన్ ఇన్ · మొదలుపెట్టు</translation>
     </message>

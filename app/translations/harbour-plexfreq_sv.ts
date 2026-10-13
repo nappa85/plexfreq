@@ -609,10 +609,6 @@
       <translation>Server · Mottaget · Spår</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Skadad</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Logga in · Starta</translation>
     </message>

@@ -609,10 +609,6 @@
       <translation>Máy chủ · Đã nhận · Bài hát</translation>
     </message>
     <message>
-      <source>Session file is corrupt</source>
-      <translation>Hỏng</translation>
-    </message>
-    <message>
       <source>Sign in first</source>
       <translation>Đăng nhập · Bắt đầu</translation>
     </message>

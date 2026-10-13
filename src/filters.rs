@@ -122,7 +122,13 @@ impl Core {
                         editable &= filters.min_rating.is_some();
                     }
                     "viewCount" if value == "0" => filters.unplayed = true,
-                    "limit" => limit = value.parse().unwrap_or(0),
+                    "limit" => match value.parse().ok().filter(|n| (1..=1000).contains(n)) {
+                        Some(parsed) => limit = parsed,
+                        None => {
+                            editable = false;
+                            limit = 100;
+                        }
+                    },
                     "sort" => {
                         sort = match value.as_ref() {
                             "titleSort:asc" => "title",

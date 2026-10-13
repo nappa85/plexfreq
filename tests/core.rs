@@ -231,7 +231,7 @@ fn pin_login_pending_authorized_discovery_and_redaction() {
 }
 
 #[test]
-fn expired_pin_and_corrupt_state_have_actionable_errors() {
+fn expired_pin_errors_and_corrupt_state_recovers() {
     let (url, task) = server(vec![(
         "POST /api/v2/pins",
         json!({"id":1,"code":"x","expiresIn":0,"authToken":null}),
@@ -246,8 +246,22 @@ fn expired_pin_and_corrupt_state_have_actionable_errors() {
         .to_string()
         .contains("expired"));
     task.join().unwrap();
+    drop(core);
     std::fs::write(dir.path().join("session.json"), "broken").unwrap();
-    assert!(Core::new(dir.path().into()).is_err());
+    let restored = Core::new(dir.path().into()).unwrap();
+    let backup = std::fs::read_dir(dir.path())
+        .unwrap()
+        .flatten()
+        .find(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("session.json.corrupt-")
+        })
+        .unwrap()
+        .path();
+    assert_eq!(std::fs::read(backup).unwrap(), b"broken");
+    drop(restored);
 }
 
 #[test]
