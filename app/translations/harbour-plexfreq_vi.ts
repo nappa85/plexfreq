@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="vi">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Bảng chữ cái</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Âm thanh · Phát liền mạch · PCM · Đầu ra</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Chuyển âm mượt</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Giây</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Chuyển âm mượt</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Thêm · Lên · 1000 · Bài hát</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Album · Giới hạn · Radio · Bài hát</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Hợp lệ · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Trực tuyến</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Tự động phát · Làm mới · Tải xuống</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Làm mới · Thời lượng</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Làm mới · Thời lượng</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Làm mới · Tải xuống · Đang tải</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Radio · Tải xuống · Thời lượng</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Tải xuống · Thời lượng</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Lên · Tiếp theo</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Ngoại tuyến · Đã lưu · Thư viện · Siêu dữ liệu</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Bộ nhớ đệm · Âm thanh</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Bài hát · Sẵn sàng · Ngoại tuyến</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Thư viện</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Tìm kiếm</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Nghệ sĩ</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Album</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Bài hát</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Tiêu đề</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Mới thêm</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Năm</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Tìm kiếm · Nghệ sĩ · Album · Bài hát</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Thư viện</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Sắp xếp</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Thêm · Sonic · Nguồn</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Loại bỏ · Hàng đợi</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Lên · Tiếp theo</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Ngoại tuyến · Đã lưu · Thư viện · Siêu dữ liệu</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Bộ nhớ đệm · Âm thanh</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Bài hát · Sẵn sàng · Ngoại tuyến</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Thư viện</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Tìm kiếm</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Nghệ sĩ</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Album</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Bài hát</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Tiêu đề</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Mới thêm</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Năm</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Tìm kiếm · Nghệ sĩ · Album · Bài hát</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Thư viện</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sắp xếp</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Đã tải</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Thêm · Sonic · Nguồn</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Thông minh · Bộ lọc · Cài đặt</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Âm thanh · Tương tự</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Bắt đầu · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Bài hát</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Tải xuống · Radio · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Tải xuống · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Phát · Tiếp theo</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Thêm · Hàng đợi</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Thêm · Danh sách phát</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Tạo · Danh sách phát</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Thêm · Bản phối</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Đổi tên · Danh sách phát</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Xóa · Danh sách phát</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Di chuyển · Danh sách phát · Lên</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Di chuyển · Danh sách phát · Xuống</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Loại bỏ · Danh sách phát</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Loại bỏ</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Thêm · Yêu thích</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Bỏ giữ ngoại tuyến · Tải xuống</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Giữ ngoại tuyến · Ngoại tuyến · Lịch sử</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Di chuyển · Lên</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Di chuyển · Xuống</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Loại bỏ · Hàng đợi</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Thử lại · Đang tải</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Ngẫu nhiên</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Lặp lại</translation>
+      <source>Repeat one</source>
+      <translation>Lặp lại: một bài</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Lặp lại: tất cả</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Lặp lại: tắt</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Xóa sạch · Bộ nhớ đệm · Dừng · Phát</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Âm thanh · Phát</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Trình phát nhạc phát trực tuyến trực tiếp</translation>
     </message>
   </context>
   <context>

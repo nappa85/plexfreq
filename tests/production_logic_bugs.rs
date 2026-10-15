@@ -10,7 +10,7 @@ use serde_json::json;
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         title: format!("Track {id}"),
         ..Default::default()
     }
@@ -23,7 +23,7 @@ fn queue_previous_wraps_on_repeat_all() {
     let mut q = Queue::default();
     q.replace(vec![track("0"), track("1"), track("2")], 0)
         .unwrap();
-    q.repeat = Repeat::All;
+    q.set_repeat(Repeat::All);
     assert_eq!(q.track().unwrap().rating_key, "0");
     let wrapped = q.previous().unwrap().rating_key.clone();
     assert_eq!(
@@ -40,11 +40,11 @@ fn queue_move_noop_preserves_shuffle() {
     q.replace(vec![track("0"), track("1"), track("2")], 0)
         .unwrap();
     q.shuffle(true);
-    assert!(q.shuffled);
+    assert!(q.shuffled());
     let before = q.upcoming(10);
     q.move_item(1, 1).unwrap();
     assert!(
-        q.shuffled,
+        q.shuffled(),
         "no-op move_item(1,1) exited shuffle; shuffled flag lost"
     );
     assert_eq!(
@@ -67,7 +67,7 @@ fn queue_presentation_does_not_claim_shuffled_with_identity_order() {
     q.shuffle(true);
     let shown = q.presentation();
     assert!(
-        !shown.shuffled,
+        !shown.shuffled(),
         "presentation linearizes order but keeps shuffled:true"
     );
 }

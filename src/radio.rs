@@ -3,8 +3,20 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use url::Url;
 
-#[derive(Clone, Copy, Deserialize, Serialize, Debug, PartialEq)]
+#[derive(
+    Clone,
+    Copy,
+    Deserialize,
+    Serialize,
+    Debug,
+    PartialEq,
+    strum::Display,
+    strum::EnumString,
+    strum::IntoStaticStr,
+    strum::EnumIter,
+)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum RadioKind {
     Artist,
     Album,
@@ -12,11 +24,12 @@ pub enum RadioKind {
 }
 
 impl RadioKind {
-    pub fn item_type(self) -> &'static str {
+    /// The metadata type of the radio's seed item.
+    pub fn item_kind(self) -> crate::model::ItemKind {
         match self {
-            Self::Artist => "artist",
-            Self::Album => "album",
-            Self::Track => "track",
+            Self::Artist => crate::model::ItemKind::Artist,
+            Self::Album => crate::model::ItemKind::Album,
+            Self::Track => crate::model::ItemKind::Track,
         }
     }
 }
@@ -48,22 +61,27 @@ impl Radio {
 // Plex JSON may represent the optional Stations child as an array directly,
 // or as an object containing a named child array (the XML API calls it Playlist).
 pub fn station_key(item: &Item, base: &Url) -> Result<Option<String>> {
-    fn find(value: &Value) -> Option<&str> {
+    // `container` is true for wrapper objects ({"size":1,"Metadata":[...]},
+    // {"key":"/x","Playlist":[...]}): an outer wrapper may carry an unrelated
+    // "key" while the real stations live in its child arrays. Array elements
+    // are station entries whose own key wins over any nested child (Image,
+    // Genre...) that happens to carry a "key" too.
+    fn find(value: &Value, container: bool) -> Option<&str> {
         match value {
-            Value::Array(items) => items.iter().find_map(find),
+            Value::Array(items) => items.iter().find_map(|entry| find(entry, false)),
             Value::Object(fields) => {
-                // Prefer nested Playlist/Stations children over the container's
-                // own key: an outer object may carry an unrelated "key" while
-                // the real station lives in its Playlist array.
-                fields
-                    .values()
-                    .find_map(find)
-                    .or_else(|| fields.get("key").and_then(Value::as_str))
+                let own = || fields.get("key").and_then(Value::as_str);
+                let nested = || fields.values().find_map(|child| find(child, true));
+                if container {
+                    nested().or_else(own)
+                } else {
+                    own().or_else(nested)
+                }
             }
             _ => None,
         }
     }
-    let Some(key) = find(&item.stations) else {
+    let Some(key) = find(&item.stations, true) else {
         return Ok(None);
     };
     // An empty key means "no station", not a protocol error: fall back to
@@ -97,6 +115,21 @@ mod tests {
     use serde_json::json;
 
     #[test]
+    fn radio_kind_strum_and_serde_spellings_agree() {
+        use strum::IntoEnumIterator;
+        for kind in RadioKind::iter() {
+            let name = kind.to_string();
+            assert_eq!(serde_json::to_value(kind).unwrap(), json!(name));
+            assert_eq!(
+                serde_json::from_value::<RadioKind>(json!(name)).unwrap(),
+                kind
+            );
+            assert_eq!(name.parse::<RadioKind>().unwrap(), kind);
+            assert_eq!(kind.item_kind().as_str(), name);
+        }
+    }
+
+    #[test]
     fn advertised_station_shapes_preserve_query_and_reject_external_keys() {
         let base = Url::parse("https://music.example/").unwrap();
         let key = "/library/metadata/42/station/example?type=10";
@@ -118,5 +151,21 @@ mod tests {
             format!("server://server-123/com.plexapp.plugins.library{key}")
         );
         assert!(station_uri("server/another", key).is_err());
+    }
+
+    #[test]
+    fn station_entry_key_wins_over_nested_children() {
+        let base = Url::parse("https://music.example/").unwrap();
+        let key = "/library/metadata/42/station/example";
+        for stations in [
+            json!([{"Genre":[{"key":"/library/sections/1/genre/7"}],"key":key}]),
+            json!({"key":"/bad","Metadata":[{"Image":{"key":"/photo/x"},"key":key}]}),
+        ] {
+            let item = Item {
+                stations,
+                ..Default::default()
+            };
+            assert_eq!(station_key(&item, &base).unwrap().as_deref(), Some(key));
+        }
     }
 }

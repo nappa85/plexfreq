@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Third-party actions are pinned to full commit SHAs (see the comment above
+  # each `uses:`); Dependabot proposes reviewed SHA bumps.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="cs">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Abeceda</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Zvuk · Bez mezer · PCM · Výstup</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Prolínání</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Sekundy</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Prolínání</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Přidat · Nahoru · 1000 · Skladby</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Album · Limit · Rádio · Skladba</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Platné · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Automatické přehrávání · Obnovit · Stahování</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Obnovit · Délka</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Obnovit · Délka</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Obnovit · Stahování · Načítání</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Rádio · Stahování · Délka</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Rádio · Stahování · Délka</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Nahoru · Další</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Rádio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Uloženo · Knihovna · Metadata</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Mezipaměť · Zvuk</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Skladby · Připraveno · Offline</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Knihovna</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Hledat</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Interpreti</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Alba</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Skladby</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Název</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nedávno přidané</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Rok</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Hledat · Interpreti · Alba · Skladby</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Knihovna</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Seřadit</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Přidat · Sonic · Zdroj</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Odebrat · Fronta</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Nahoru · Další</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Rádio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Offline · Uloženo · Knihovna · Metadata</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Mezipaměť · Zvuk</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Skladby · Připraveno · Offline</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Knihovna</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Hledat</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Interpreti</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Alba</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Skladby</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Název</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedávno přidané</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Rok</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Hledat · Interpreti · Alba · Skladby</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Knihovna</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Seřadit</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Staženo</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Přidat · Sonic · Zdroj</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Chytrý · Filtr · Nastavení</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Zvuk · Podobné</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Spustit · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Skladba</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Stahování · Rádio · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Stahování · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Přehrát · Další</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Přidat · Fronta</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Přidat · Seznam skladeb</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Vytvořit · Seznam skladeb</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Přidat · Mix</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Přejmenovat · Seznam skladeb</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Smazat · Seznam skladeb</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Přesunout · Seznam skladeb · Nahoru</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Přesunout · Seznam skladeb · Dolů</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Odebrat · Seznam skladeb</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Odebrat</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Přidat · Oblíbené</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Přestat uchovávat · Stahování</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Uchovat offline · Offline · Historie</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Přesunout · Nahoru</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Přesunout · Dolů</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Odebrat · Fronta</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Zkusit znovu · Načítání</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Náhodně</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Opakovat</translation>
+      <source>Repeat one</source>
+      <translation>Opakování: jedna</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Opakování: vše</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Opakování: vypnuto</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Vymazat · Mezipaměť · Zastavit · Přehrát</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Zvuk · Přehrát</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Hudební přehrávač s přímým streamováním</translation>
     </message>
   </context>
   <context>

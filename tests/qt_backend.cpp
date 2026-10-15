@@ -29,6 +29,7 @@
 #endif
 #include <QQuickItemGrabResult>
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QDBusInterface>
 #include <QDBusPendingCallWatcher>
 #include <QDBusArgument>
@@ -339,7 +340,15 @@ ApplicationWindow {
     }
     void readOnlyNetworkFacts() {
         QTemporaryDir directory;Backend backend(directory.path());QSignalSpy completed(&backend,&Backend::completed);
-        auto seen=[&]{for(const auto &row:completed)if(row[0].toString()=="network_state")return true;return false;};QTRY_VERIFY_WITH_TIMEOUT(seen(),7000);
+        auto seen=[&]{for(const auto &row:completed)if(row[0].toString()=="network_state")return true;return false;};
+        // Unanswered facts stay unknown rather than being reported offline, so
+        // only expect a reading where a supported network manager is present.
+        const auto bus=QDBusConnection::systemBus();const auto *names=bus.isConnected()?bus.interface():nullptr;
+        if(!names || (!names->isServiceRegistered("net.connman").value() && !names->isServiceRegistered("org.freedesktop.NetworkManager").value())){
+            QTest::qWait(2500);QVERIFY(!seen());QVERIFY(!backend.state().value("networkOnline").toBool());
+            QSKIP("No ConnMan/NetworkManager on the system bus; network facts are unknown");
+        }
+        QTRY_VERIFY_WITH_TIMEOUT(seen(),7000);
         qDebug("Network facts: wifi %d, connected %d",backend.state().value("networkWifi").toBool(),backend.state().value("networkOnline").toBool());
     }
     void discoveryQualityAndOfflineActionsUseSharedNavigation() {

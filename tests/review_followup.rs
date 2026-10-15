@@ -16,7 +16,7 @@ use std::{
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         duration: 120_000,
         ..Default::default()
     }
@@ -25,7 +25,7 @@ fn track(id: &str) -> Item {
 fn album(id: &str, parent: &str, title: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "album".into(),
+        kind: plexfreq_core::model::ItemKind::Album,
         title: title.into(),
         parent_rating_key: parent.into(),
         ..Default::default()
@@ -35,7 +35,7 @@ fn album(id: &str, parent: &str, title: &str) -> Item {
 fn artist(id: &str, title: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "artist".into(),
+        kind: plexfreq_core::model::ItemKind::Artist,
         title: title.into(),
         ..Default::default()
     }

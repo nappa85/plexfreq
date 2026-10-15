@@ -3,7 +3,7 @@ use plexfreq_core::{model::Item, queue::Queue};
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         duration: 120000,
         ..Default::default()
     }
@@ -101,9 +101,10 @@ fn queue_presentation_corrupt_current_must_be_none() {
     let corrupt: Queue = serde_json::from_value(value).unwrap();
     let presented = corrupt.presentation();
     assert_eq!(
-        presented.current, None,
+        presented.current(),
+        None,
         "corrupt current 99 mapped to {:?}, pointing at wrong track",
-        presented.current
+        presented.current()
     );
 }
 

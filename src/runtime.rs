@@ -3,11 +3,12 @@ mod platform;
 mod pulse;
 use crate::{
     audio::{self, Engine, Event, Source},
-    Command, Core, Error, Prepared, Result,
+    Command, Core, Error, PlaybackSource, Prepared, Result,
 };
 use serde_json::{json, Value};
 use std::{
     collections::BTreeMap,
+    panic::{catch_unwind, AssertUnwindSafe},
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
@@ -16,10 +17,98 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use tokio::sync::watch;
+
+/// Messages on the typed worker channel. Admission (`Shared::send`) is the
+/// only producer of `Request`; checkpoints and shutdown are internal and have
+/// no wire spelling, so QML/FFI can never forge them.
+pub(crate) enum WorkerMsg {
+    Request(Box<Request>),
+    Checkpoint(Checkpoint),
+    Shutdown,
+}
+
+impl WorkerMsg {
+    /// Short description for tests (never the payload: a request may carry
+    /// credentials).
+    #[cfg(test)]
+    pub(crate) fn describe(&self) -> &'static str {
+        match self {
+            Self::Request(request) => request.command.op(),
+            Self::Checkpoint(_) => "checkpoint",
+            Self::Shutdown => "shutdown",
+        }
+    }
+}
+
+/// One admitted command with its typed routing facts.
+pub(crate) struct Request {
+    command: Command,
+    /// The request as submitted, echoed back in its reply event (Qt reads `op`).
+    echo: Value,
+    /// Navigation generation for view-bound commands.
+    view: Option<u64>,
+    /// Counted in the busy indicator.
+    foreground: bool,
+    /// Counted in the loading-more indicator; appends at this start offset.
+    page: Option<usize>,
+    /// Load a resulting stream paused (MPRIS next/previous while paused).
+    paused: bool,
+}
+
+#[derive(Clone)]
+pub(crate) struct Checkpoint {
+    snapshot: audio::Snapshot,
+    reset: bool,
+    seq: u64,
+}
+
+/// Wire-level routing flags QML may attach to a request.
+#[derive(Clone, Copy, Default)]
+struct Flags {
+    /// `_background`: never raise the busy indicator.
+    background: bool,
+    /// `_refresh`: reload a listing in place without bumping the view.
+    refresh: bool,
+    /// `_replace`: a listing with a start offset still replaces the list.
+    replace: bool,
+    paused: bool,
+}
+impl Flags {
+    fn wire(request: &Value) -> Self {
+        Self {
+            background: request["_background"] == true,
+            refresh: request["_refresh"] == true,
+            replace: request["_replace"] == true,
+            paused: false,
+        }
+    }
+}
+
+/// An event for Qt plus the navigation generation of the request it answers,
+/// so delivery can discard replies made stale after they finished.
+pub(crate) struct Outgoing {
+    view: Option<u64>,
+    event: Value,
+}
+impl From<Value> for Outgoing {
+    fn from(event: Value) -> Self {
+        Self { view: None, event }
+    }
+}
+
+/// How a reply's items relate to the presented list (`_listAction`).
+#[derive(Clone, Copy, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ListAction {
+    Append,
+    Replace,
+    None,
+}
 
 #[derive(Clone)]
 pub(crate) struct Shared {
-    pub(crate) requests: mpsc::SyncSender<Value>,
+    pub(crate) requests: mpsc::SyncSender<WorkerMsg>,
     pub(crate) audio: Arc<Mutex<Option<audio::Handle>>>,
     pub(crate) model: Arc<Mutex<Value>>,
     pub(crate) control: Arc<Mutex<Option<crate::cache::DownloadControl>>>,
@@ -31,211 +120,20 @@ pub(crate) struct Shared {
     plans: Arc<Mutex<BTreeMap<u64, Value>>>,
     shown: Arc<AtomicU64>,
     pub(crate) seeks: Arc<Mutex<Vec<i64>>>,
-    checkpoint_overflow: Arc<Mutex<Vec<Value>>>,
+    checkpoint_overflow: Arc<Mutex<Vec<Checkpoint>>>,
+    checkpoint_seq: Arc<AtomicU64>,
+    /// Bumped on every presented-model write and queued seek, so MPRIS reacts
+    /// to changes instead of polling the model.
+    revision: Arc<watch::Sender<u64>>,
+    /// Mirrors `view` so view-bound HTTP requests can abort when it moves.
+    navigation: Arc<watch::Sender<u64>>,
 }
 impl Shared {
-    fn current_view(&self) -> u64 {
-        let _guard = crate::mutex_lock(&self.admission);
-        self.view.load(Ordering::SeqCst)
-    }
-    fn checkpoint(&self, snapshot: audio::Snapshot, reset: bool) {
-        // Checkpoints carry listened/scrobble data: never block the GUI thread
-        // on a full request queue, and never silently drop them either.
-        // Fast path is non-blocking; extreme backpressure spills to a bounded
-        // overflow the worker drains every iteration.
-        let value = json!({"op":"_audio_checkpoint","snapshot":snapshot,"reset":reset});
-        if let Err(mpsc::TrySendError::Full(value)) = self.requests.try_send(value) {
-            let mut overflow = crate::mutex_lock(&self.checkpoint_overflow);
-            // Bound overflow: checkpoints are rare (pause/toggle/stop); keep
-            // the latest 16 and drop the oldest rather than growing unbounded
-            // while the worker is stalled on network I/O.
-            if overflow.len() >= 16 {
-                overflow.remove(0);
-            }
-            overflow.push(value);
-        }
-    }
-    pub(crate) fn send(&self, request: Value) -> Result<Value> {
-        let op = request["op"]
-            .as_str()
-            .ok_or(Error::Input("Invalid request data"))?;
-        // Internal worker coordination must never be reachable from QML/FFI.
-        // The worker loop interprets these itself; queuing them would let any
-        // view shut the worker down or forge playback checkpoints.
-        if op.starts_with('_') {
-            return Err(Error::Input("Invalid request data"));
-        }
-        if op.starts_with("audio_") && op != "audio_config" {
-            if matches!(
-                op,
-                "audio_pause"
-                    | "audio_stop"
-                    | "audio_seek"
-                    | "audio_volume"
-                    | "audio_play"
-                    | "audio_toggle"
-            ) {
-                crate::diagnostics::event(format_args!("transport request op={op}"));
-            }
-            let handle = self
-                .audio
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner())
-                .clone()
-                .ok_or(Error::Input("Audio engine is starting"))?;
-            match op {
-                "audio_pause" => handle.pause()?,
-                "audio_stop" => {
-                    let snapshot = handle.snapshot();
-                    self.checkpoint(snapshot, true);
-                    handle.stop()?;
-                }
-                "audio_seek" => handle.seek(
-                    request["position"]
-                        .as_u64()
-                        .ok_or(Error::Input("Invalid seek position"))?,
-                )?,
-                "audio_volume" => handle.volume(
-                    request["volume"]
-                        .as_f64()
-                        .ok_or(Error::Input("Invalid audio volume"))?,
-                )?,
-                "audio_play" | "audio_toggle" => {
-                    let state = handle.snapshot();
-                    if op == "audio_toggle" && state.playing {
-                        handle.pause()?;
-                    } else if state.loaded {
-                        handle.play()?;
-                    } else {
-                        let model = self
-                            .model
-                            .lock()
-                            .unwrap_or_else(|poison| poison.into_inner());
-                        let input = if model["track"].is_object() {
-                            json!({"op":"resume"})
-                        } else {
-                            json!({"op":"select_track","index":0})
-                        };
-                        drop(model);
-                        return self.send(input);
-                    }
-                }
-                _ => return Err(Error::Input("Unknown audio command")),
-            }
-            if op == "audio_pause" || op == "audio_toggle" {
-                self.checkpoint(handle.snapshot(), false);
-            }
-            return Ok(
-                json!({"accepted":true,"busy":self.busy(),"loadingMore":self.loading_more(),"resetItems":false}),
-            );
-        }
-        let listing = is_listing(op);
-        let page = is_page(op, &request);
-        let foreground = !passive(op, &request);
-        let replace = listing && !page && request["_refresh"] != true;
-        let view_bound = listing || op == "similar_artists";
-        let mut request = request;
-        let _admission = crate::mutex_lock(&self.admission);
-        let view = self
-            .view
-            .load(Ordering::SeqCst)
-            .wrapping_add(u64::from(replace));
-        if view_bound {
-            request["_view"] = json!(view);
-        }
-        if foreground {
-            self.foreground.fetch_add(1, Ordering::SeqCst);
-        }
-        if page {
-            self.pages.fetch_add(1, Ordering::SeqCst);
-        }
-        request["_foreground"] = json!(foreground);
-        request["_page"] = json!(page);
-        if self.requests.try_send(request).is_err() {
-            if foreground {
-                self.foreground.fetch_sub(1, Ordering::SeqCst);
-            }
-            if page {
-                self.pages.fetch_sub(1, Ordering::SeqCst);
-            }
-            return Err(Error::Input("Backend command queue is unavailable"));
-        }
-        self.view.store(view, Ordering::SeqCst);
-        Ok(
-            json!({"accepted":true,"busy":self.busy(),"loadingMore":self.loading_more(),"resetItems":replace,"clearError":foreground}),
-        )
-    }
-    pub(crate) fn playback(&self) -> audio::Snapshot {
-        self.audio
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner())
-            .as_ref()
-            .map_or(
-                audio::Snapshot {
-                    volume: 0.8,
-                    ..Default::default()
-                },
-                |a| a.snapshot(),
-            )
-    }
-    pub(crate) fn busy(&self) -> bool {
-        self.foreground.load(Ordering::SeqCst) > 0
-    }
-    fn loading_more(&self) -> bool {
-        self.pages.load(Ordering::SeqCst) > 0
-    }
-    pub(crate) fn merge(&self, data: &Value) {
-        let mut model = self
-            .model
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner());
-        if let Some(fields) = data.as_object() {
-            for (key, value) in fields {
-                if !matches!(
-                    key.as_str(),
-                    "stream" | "items" | "lyrics" | "lyricsKey" | "similarArtists" | "similarKey"
-                ) {
-                    model[key] = value.clone();
-                }
-            }
-        }
-    }
-    pub(crate) fn hint_network(&self, wifi: bool) {
-        if let Some(control) = self
-            .control
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner())
-            .as_ref()
-        {
-            control.network(wifi);
-        }
-    }
-    pub(crate) fn hint_policy(&self, wifi_only: bool, paused: bool) {
-        if let Some(control) = self
-            .control
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner())
-            .as_ref()
-        {
-            control.policy(wifi_only, paused);
-        }
-    }
-}
-pub struct Runtime {
-    shared: Shared,
-    events: mpsc::Receiver<Value>,
-    worker: Option<thread::JoinHandle<()>>,
-}
-impl Runtime {
-    pub fn new(directory: PathBuf) -> Result<Self> {
-        let (requests, receiver) = mpsc::sync_channel(256);
-        let (events, output) = mpsc::channel();
-        let shared = Shared {
+    fn new(requests: mpsc::SyncSender<WorkerMsg>, model: Value) -> Self {
+        Self {
             requests,
             audio: Arc::new(Mutex::new(None)),
-            model: Arc::new(Mutex::new(
-                json!({"queue":{"items":[],"repeat":"off","shuffled":false},"track":null}),
-            )),
+            model: Arc::new(Mutex::new(model)),
             control: Arc::new(Mutex::new(None)),
             stop: Arc::new(AtomicBool::new(false)),
             foreground: Arc::new(AtomicUsize::new(0)),
@@ -246,7 +144,243 @@ impl Runtime {
             shown: Arc::new(AtomicU64::new(0)),
             seeks: Arc::new(Mutex::new(Vec::new())),
             checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
+            checkpoint_seq: Arc::new(AtomicU64::new(0)),
+            revision: Arc::new(watch::channel(0).0),
+            navigation: Arc::new(watch::channel(0).0),
+        }
+    }
+    pub(crate) fn touched(&self) {
+        self.revision
+            .send_modify(|revision| *revision = revision.wrapping_add(1));
+    }
+    pub(crate) fn revisions(&self) -> watch::Receiver<u64> {
+        self.revision.subscribe()
+    }
+    /// Transport changes of the current audio engine, once it exists.
+    pub(crate) fn audio_changes(&self) -> Option<watch::Receiver<audio::Change>> {
+        crate::mutex_lock(&self.audio)
+            .as_ref()
+            .map(audio::Handle::changes)
+    }
+    fn current_view(&self) -> u64 {
+        let _guard = crate::mutex_lock(&self.admission);
+        self.view.load(Ordering::SeqCst)
+    }
+    /// A view-bound reply whose navigation generation is no longer current.
+    fn stale(&self, view: Option<u64>) -> bool {
+        view.is_some_and(|view| view != self.current_view())
+    }
+    /// Undo the busy/loading-more admission counted by `send`.
+    fn release(&self, foreground: bool, page: bool) {
+        if foreground {
+            self.foreground.fetch_sub(1, Ordering::SeqCst);
+        }
+        if page {
+            self.pages.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
+    fn checkpoint(&self, snapshot: audio::Snapshot, reset: bool) {
+        // Checkpoints carry listened/scrobble data: never block the GUI thread
+        // on a full request queue, and never silently drop them either.
+        // Fast path is non-blocking; extreme backpressure spills to a bounded
+        // overflow the worker drains every iteration.
+        // The sequence lets the worker discard a stale queued checkpoint that it
+        // reaches after a newer one drained from the overflow.
+        let seq = self.checkpoint_seq.fetch_add(1, Ordering::SeqCst) + 1;
+        let checkpoint = Checkpoint {
+            snapshot,
+            reset,
+            seq,
         };
+        if let Err(mpsc::TrySendError::Full(WorkerMsg::Checkpoint(checkpoint))) =
+            self.requests.try_send(WorkerMsg::Checkpoint(checkpoint))
+        {
+            let mut overflow = crate::mutex_lock(&self.checkpoint_overflow);
+            // Bound overflow: checkpoints are rare (pause/toggle/stop); keep
+            // the latest 16 and drop the oldest rather than growing unbounded
+            // while the worker is stalled on network I/O.
+            if overflow.len() >= 16 {
+                overflow.remove(0);
+            }
+            overflow.push(checkpoint);
+        }
+    }
+    /// Admit one wire request (QML/FFI JSON), parsed into a `Command` here
+    /// and nowhere else.
+    pub(crate) fn send(&self, request: Value) -> Result<Value> {
+        let command = Command::parse(&request)?;
+        self.admit(command, Flags::wire(&request), request)
+    }
+    /// Admit a platform request (MPRIS) whose resulting stream keeps the
+    /// current paused state.
+    pub(crate) fn send_paused(&self, request: Value, paused: bool) -> Result<Value> {
+        let command = Command::parse(&request)?;
+        let flags = Flags {
+            paused,
+            ..Flags::wire(&request)
+        };
+        self.admit(command, flags, request)
+    }
+    fn accepted(&self, reset_items: bool) -> Value {
+        json!({"accepted":true,"busy":self.busy(),"loadingMore":self.loading_more(),"resetItems":reset_items})
+    }
+    /// Run a transport control against the audio engine on the calling thread.
+    fn transport(&self, command: Command) -> Result<Value> {
+        crate::diagnostics::event(format_args!("transport request op={}", command.op()));
+        let handle = crate::mutex_lock(&self.audio)
+            .clone()
+            .ok_or(Error::Input("Audio engine is starting"))?;
+        let mut checkpoint = false;
+        match command {
+            Command::AudioPause => {
+                handle.pause()?;
+                checkpoint = true;
+            }
+            Command::AudioStop => {
+                let snapshot = handle.snapshot();
+                self.checkpoint(snapshot, true);
+                handle.stop()?;
+            }
+            Command::AudioSeek { position } => handle.seek(position)?,
+            Command::AudioVolume { volume } => handle.volume(volume)?,
+            Command::AudioPlay | Command::AudioToggle => {
+                let toggle = matches!(command, Command::AudioToggle);
+                let state = handle.snapshot();
+                if toggle && state.playing {
+                    handle.pause()?;
+                } else if state.loaded {
+                    handle.play()?;
+                } else {
+                    let model = crate::mutex_lock(&self.model);
+                    let (command, echo) = if model["track"].is_object() {
+                        (Command::Resume, json!({"op":"resume"}))
+                    } else {
+                        (
+                            Command::SelectTrack { index: 0 },
+                            json!({"op":"select_track","index":0}),
+                        )
+                    };
+                    drop(model);
+                    return self.admit(command, Flags::default(), echo);
+                }
+                checkpoint = toggle;
+            }
+            _ => return Err(Error::Input("Unknown audio command")),
+        }
+        if checkpoint {
+            self.checkpoint(handle.snapshot(), false);
+        }
+        Ok(self.accepted(false))
+    }
+    fn admit(&self, command: Command, flags: Flags, echo: Value) -> Result<Value> {
+        let class = command.class();
+        if class.engine {
+            return self.transport(command);
+        }
+        if let Command::DownloadPolicy { wifi_only, paused } = &command {
+            self.hint_policy(*wifi_only, *paused);
+        }
+        let page =
+            (class.listing && command.start() > 0 && !flags.replace).then_some(command.start());
+        let foreground = !(flags.background || page.is_some() || class.passive);
+        let replace = class.listing && page.is_none() && !flags.refresh;
+        let _admission = crate::mutex_lock(&self.admission);
+        let view = self
+            .view
+            .load(Ordering::SeqCst)
+            .wrapping_add(u64::from(replace));
+        if foreground {
+            self.foreground.fetch_add(1, Ordering::SeqCst);
+        }
+        if page.is_some() {
+            self.pages.fetch_add(1, Ordering::SeqCst);
+        }
+        let request = Request {
+            command,
+            echo,
+            view: class.view_bound.then_some(view),
+            foreground,
+            page,
+            paused: flags.paused,
+        };
+        if self
+            .requests
+            .try_send(WorkerMsg::Request(Box::new(request)))
+            .is_err()
+        {
+            if foreground {
+                self.foreground.fetch_sub(1, Ordering::SeqCst);
+            }
+            if page.is_some() {
+                self.pages.fetch_sub(1, Ordering::SeqCst);
+            }
+            return Err(Error::Input("Backend command queue is unavailable"));
+        }
+        self.view.store(view, Ordering::SeqCst);
+        // Still under admission: aborts in-flight requests of the old view.
+        self.navigation.send_if_modified(|current| {
+            let moved = *current != view;
+            *current = view;
+            moved
+        });
+        let mut accepted = self.accepted(replace);
+        accepted["clearError"] = json!(foreground);
+        Ok(accepted)
+    }
+    pub(crate) fn playback(&self) -> audio::Snapshot {
+        crate::mutex_lock(&self.audio).as_ref().map_or(
+            audio::Snapshot {
+                volume: 0.8,
+                ..Default::default()
+            },
+            |a| a.snapshot(),
+        )
+    }
+    pub(crate) fn busy(&self) -> bool {
+        self.foreground.load(Ordering::SeqCst) > 0
+    }
+    fn loading_more(&self) -> bool {
+        self.pages.load(Ordering::SeqCst) > 0
+    }
+    pub(crate) fn merge(&self, data: &Value) {
+        let mut model = crate::mutex_lock(&self.model);
+        if let Some(fields) = data.as_object() {
+            for (key, value) in fields {
+                if !matches!(
+                    key.as_str(),
+                    "stream" | "items" | "lyrics" | "lyricsKey" | "similarArtists" | "similarKey"
+                ) {
+                    model[key] = value.clone();
+                }
+            }
+        }
+        drop(model);
+        self.touched();
+    }
+    pub(crate) fn hint_network(&self, wifi: bool) {
+        if let Some(control) = crate::mutex_lock(&self.control).as_ref() {
+            control.network(wifi);
+        }
+    }
+    pub(crate) fn hint_policy(&self, wifi_only: bool, paused: bool) {
+        if let Some(control) = crate::mutex_lock(&self.control).as_ref() {
+            control.policy(wifi_only, paused);
+        }
+    }
+}
+pub struct Runtime {
+    shared: Shared,
+    events: mpsc::Receiver<Outgoing>,
+    worker: Option<thread::JoinHandle<()>>,
+}
+impl Runtime {
+    pub fn new(directory: PathBuf) -> Result<Self> {
+        let (requests, receiver) = mpsc::sync_channel(256);
+        let (events, output) = mpsc::channel();
+        let shared = Shared::new(
+            requests,
+            json!({"queue":{"items":[],"repeat":"off","shuffled":false},"track":null}),
+        );
         let state = shared.clone();
         let worker = thread::Builder::new()
             .name("plexfreq-core".into())
@@ -258,27 +392,21 @@ impl Runtime {
         })
     }
     pub fn submit(&self, request: Value) -> Result<Value> {
-        if request["op"] == "download_policy" {
-            self.shared.hint_policy(
-                request["wifi_only"].as_bool().unwrap_or(false),
-                request["paused"].as_bool().unwrap_or(false),
-            );
-        }
         self.shared.send(request)
     }
     pub fn poll(&self) -> Value {
-        let mut events: Vec<_> = self.events.try_iter().collect();
         // A reply can finish before navigation but remain unpolled until after
         // it. Check generations at delivery as well as on the Core worker.
-        for event in &mut events {
-            let input = &event["request"];
-            let op = input["op"].as_str().unwrap_or("");
-            if (is_listing(op) || op == "similar_artists")
-                && input["_view"].as_u64().unwrap_or(0) != self.shared.current_view()
-            {
-                event["response"]["data"] = json!({"_discarded":true});
-            }
-        }
+        let mut events: Vec<_> = self
+            .events
+            .try_iter()
+            .map(|Outgoing { view, mut event }| {
+                if self.shared.stale(view) {
+                    event["response"]["data"] = json!({"_discarded":true});
+                }
+                event
+            })
+            .collect();
         let mut playback = self.shared.playback();
         // Decoder-free startup still has durable media position/length to show.
         // This is a presentation projection only: keep the zero occurrence and
@@ -294,11 +422,7 @@ impl Runtime {
             }
         }
         if playback.id != 0 && playback.id != self.shared.shown.load(Ordering::SeqCst) {
-            if let Some(plan) = self
-                .shared
-                .plans
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner())
+            if let Some(plan) = crate::mutex_lock(&self.shared.plans)
                 .get(&playback.id)
                 .cloned()
             {
@@ -314,7 +438,7 @@ impl Drop for Runtime {
     fn drop(&mut self) {
         crate::diagnostics::event(format_args!("shutdown runtime requested"));
         self.shared.stop.store(true, Ordering::SeqCst);
-        let _ = self.shared.requests.try_send(json!({"op":"_shutdown"}));
+        let _ = self.shared.requests.try_send(WorkerMsg::Shutdown);
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
             crate::diagnostics::event(format_args!("shutdown core joined"));
@@ -322,53 +446,28 @@ impl Drop for Runtime {
     }
 }
 
-fn is_listing(op: &str) -> bool {
-    matches!(
-        op,
-        "browse"
-            | "filtered_browse"
-            | "collection"
-            | "hub_items"
-            | "sonic_journey"
-            | "discovery_home"
-            | "sonic_neighbors"
-            | "sonic_adventure"
-            | "offline_search"
-            | "library_browse"
-            | "detail"
-            | "artist_albums"
-            | "children"
-            | "playlist_items"
-            | "playlists"
-            | "search"
-            | "offline_browse"
-            | "cached_tracks"
-            | "jump_artist"
-    )
-}
-fn is_page(op: &str, input: &Value) -> bool {
-    is_listing(op) && input["start"].as_u64().unwrap_or(0) > 0 && input["_replace"] != true
-}
-fn passive(op: &str, input: &Value) -> bool {
-    input["_background"] == true
-        || is_page(op, input)
-        || matches!(
-            op,
-            "cache_status"
-                | "cache_artwork"
-                | "lyrics"
-                | "similar_artists"
-                | "alphabet"
-                | "timeline"
-                | "save_playback"
-                | "playback_event"
-                | "sync_history"
-                | "playlist_choices"
-                | "filter_options"
-                | "smart_rules"
-                | "network_state"
-                | "refresh_downloads"
-        )
+/// Request fields copied into the reply so Qt can correlate it: a key that is
+/// added unless the reply was discarded, and tags that are always added.
+type Correlation = (Option<(&'static str, String)>, Vec<(&'static str, Value)>);
+fn correlation(command: &Command) -> Correlation {
+    match command {
+        Command::Lyrics { key } => (Some(("lyricsKey", key.clone())), Vec::new()),
+        Command::SimilarArtists { key } => (Some(("similarKey", key.clone())), Vec::new()),
+        Command::SmartRules { key } => (None, vec![("smartKey", json!(key))]),
+        Command::FilterOptions {
+            section,
+            kind,
+            field,
+        } => (
+            None,
+            vec![
+                ("filterSection", json!(section)),
+                ("filterKind", json!(kind)),
+                ("filterField", json!(field)),
+            ],
+        ),
+        _ => (None, Vec::new()),
+    }
 }
 fn update(data: Value) -> Value {
     json!({"request":{"op":"_update"},"response":{"ok":true,"data":data}})
@@ -407,6 +506,10 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
         album: track["parentRatingKey"].as_str().unwrap_or("").into(),
     })
 }
+/// Typed source of the presented track (None before any plan).
+fn playback_source(shared: &Shared) -> Option<PlaybackSource> {
+    serde_json::from_value(crate::mutex_lock(&shared.model)["playbackSource"].clone()).ok()
+}
 fn visible_plan(plan: &Value) -> Value {
     let mut visible = plan.clone();
     if let Some(object) = visible.as_object_mut() {
@@ -428,10 +531,7 @@ fn artwork_delta(shared: &Shared, data: &mut Value) {
             .and_then(|v| v.as_str().map(str::to_string))
             .filter(|s| !s.is_empty())
         {
-            let mut model = shared
-                .model
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner());
+            let mut model = crate::mutex_lock(&shared.model);
             if model["track"].is_object() && model["track"][target] != value {
                 model["track"][target] = json!(value);
                 changed = true;
@@ -439,11 +539,8 @@ fn artwork_delta(shared: &Shared, data: &mut Value) {
         }
     }
     if changed {
-        data["track"] = shared
-            .model
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner())["track"]
-            .clone();
+        data["track"] = crate::mutex_lock(&shared.model)["track"].clone();
+        shared.touched();
     }
 }
 fn record(
@@ -481,56 +578,51 @@ fn record(
     })?;
     Ok(())
 }
-fn apply_checkpoint(core: &mut Core, current: u64, input: &Value) {
-    if let Ok(state) = serde_json::from_value::<audio::Snapshot>(input["snapshot"].clone()) {
-        let _ = record(
-            core,
-            state.id,
-            current,
-            if input["reset"] == true {
-                0
-            } else {
-                state.position
-            },
-            state.listened,
-            state.duration,
-        );
+/// Apply a GUI-thread checkpoint unless a newer one for the same occurrence was
+/// already applied. Overflow checkpoints are drained before older queued ones,
+/// so arrival order alone could move the saved position backwards.
+fn apply_checkpoint(
+    core: &mut Core,
+    current: u64,
+    newest: &mut (u64, u64),
+    checkpoint: &Checkpoint,
+) {
+    let state = &checkpoint.snapshot;
+    if state.id == newest.0 && checkpoint.seq <= newest.1 {
+        return;
     }
+    *newest = (state.id, checkpoint.seq);
+    let _ = record(
+        core,
+        state.id,
+        current,
+        if checkpoint.reset { 0 } else { state.position },
+        state.listened,
+        state.duration,
+    );
 }
 fn worker(
     directory: PathBuf,
     shared: Shared,
-    receiver: mpsc::Receiver<Value>,
-    events: mpsc::Sender<Value>,
+    receiver: mpsc::Receiver<WorkerMsg>,
+    events: mpsc::Sender<Outgoing>,
 ) {
     let sink = if std::env::var("PLEXFREQ_AUDIO_SINK").as_deref() == Ok("fake") {
         audio::Sink::Fake
     } else {
         audio::Sink::Pulse
     };
-    let engine = match Engine::new(sink) {
-        Ok(engine) => engine,
-        Err(error) => {
-            let _=events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}));
-            return;
-        }
-    };
-    *shared
-        .audio
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = Some(engine.handle.clone());
-    let mut core = match Core::new(directory) {
-        Ok(core) => core,
-        Err(error) => {
-            let _=events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}));
-            return;
-        }
+    let _exit = Exit(&shared);
+    let started = Engine::new(sink).and_then(|engine| {
+        *crate::mutex_lock(&shared.audio) = Some(engine.handle.clone());
+        Ok((engine, Core::new(directory)?))
+    });
+    let (engine, mut core) = match started {
+        Ok(started) => started,
+        Err(error) => return abandon(&shared, receiver, &events, &error),
     };
     let _ = engine.handle.configure(core.audio_config());
-    *shared
-        .control
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = Some(core.download_control());
+    *crate::mutex_lock(&shared.control) = Some(core.download_control());
     let platform = platform::start(shared.clone(), events.clone());
     let mut current = 0u64;
     let mut serial = 0u64;
@@ -539,6 +631,7 @@ fn worker(
     let mut maintenance = Instant::now();
     let mut cache_tick = Instant::now();
     let mut history_tick = Instant::now();
+    let mut newest_checkpoint = (0, 0);
     while !shared.stop.load(Ordering::SeqCst) {
         if retry_prepare {
             retry_prepare = !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
@@ -565,7 +658,7 @@ fn worker(
                             if let Ok(data) = core.commit_prepared(next) {
                                 current = new;
                                 shared.merge(&data);
-                                let _ = events.send(update(data));
+                                let _ = events.send(update(data).into());
                             }
                         }
                     }
@@ -589,16 +682,16 @@ fn worker(
                                 &mut current,
                                 false,
                             ) {
-                                let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}));
+                                let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
                                 continue;
                             }
                             shared.merge(&data);
-                            let _ = events.send(update(visible_plan(&data)));
+                            let _ = events.send(update(visible_plan(&data)).into());
                             retry_prepare =
                                 !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
                         }
                         Err(error) if radio => {
-                            let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}));
+                            let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
                         }
                         Err(_) => {}
                     }
@@ -613,17 +706,14 @@ fn worker(
                         snapshot.listened,
                         snapshot.duration,
                     );
+                    let source = playback_source(&shared);
                     if id == current
                         && message == "Audio decoding or streaming failed"
-                        && shared
-                            .model
-                            .lock()
-                            .unwrap_or_else(|poison| poison.into_inner())["playbackSource"]
-                            != "cache"
+                        && source != Some(PlaybackSource::Cache)
                     {
                         let cached = core.execute(Command::CachedPlayback);
                         let fallback = cached.or_else(|error| {
-                            if crate::mutex_lock(&shared.model)["playbackSource"] == "transcode" {
+                            if source == Some(PlaybackSource::Transcode) {
                                 Err(error)
                             } else {
                                 core.execute(Command::TranscodedPlayback)
@@ -643,7 +733,7 @@ fn worker(
                             .is_ok()
                             {
                                 shared.merge(&data);
-                                let _ = events.send(update(visible_plan(&data)));
+                                let _ = events.send(update(visible_plan(&data)).into());
                                 retry_prepare = !prepare(
                                     &mut core,
                                     &shared,
@@ -655,15 +745,12 @@ fn worker(
                             }
                         }
                     }
-                    let _=events.send(json!({"request":{"op":"_audio_error"},"response":{"ok":false,"error":message}}));
+                    let _=events.send(json!({"request":{"op":"_audio_error"},"response":{"ok":false,"error":message}}).into());
                 }
                 Event::Seeked(position) => {
-                    shared
-                        .seeks
-                        .lock()
-                        .unwrap_or_else(|poison| poison.into_inner())
-                        .push(position as i64 * 1000);
-                    let _ = events.send(json!({"kind":"seeked","position":position}));
+                    crate::mutex_lock(&shared.seeks).push(position as i64 * 1000);
+                    shared.touched();
+                    let _ = events.send(json!({"kind":"seeked","position":position}).into());
                 }
             }
         }
@@ -679,112 +766,123 @@ fn worker(
             .drain(..)
             .collect::<Vec<_>>();
         for checkpoint in overflow {
-            apply_checkpoint(&mut core, current, &checkpoint);
+            apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint);
         }
-        if let Some(input) = input {
-            let op = input["op"].as_str().unwrap_or("");
-            if op == "_shutdown" {
-                break;
-            }
-            if op == "_audio_checkpoint" {
-                apply_checkpoint(&mut core, current, &input);
+        match input {
+            Some(WorkerMsg::Shutdown) => break,
+            Some(WorkerMsg::Checkpoint(checkpoint)) => {
+                apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint);
                 continue;
             }
-            crate::diagnostics::event(format_args!("core request begin op={op}"));
-            let request_started = Instant::now();
-            let transport = matches!(
-                op,
-                "play"
-                    | "play_download"
-                    | "station"
-                    | "play_album"
-                    | "select_track"
-                    | "next"
-                    | "previous"
-                    | "radio"
-                    | "mix"
-                    | "stop_radio"
-                    | "clear_cache"
-                    | "connect"
-                    | "select_server"
-                    | "logout"
-                    | "queue_remove"
-            );
-            if transport {
-                crate::diagnostics::event(format_args!("core transport begin op={op}"));
-                let snapshot = engine.handle.snapshot();
-                let _ = record(
-                    &mut core,
-                    snapshot.id,
-                    current,
-                    snapshot.position,
-                    snapshot.listened,
-                    snapshot.duration,
-                );
-            }
-            let command_started = Instant::now();
-            let result = if op == "audio_config" {
-                serde_json::from_value::<audio::dsp::Config>(input["config"].clone())
-                    .map_err(Error::from)
-                    .and_then(|config| {
-                        core.set_audio_config(config.clone())?;
+            Some(WorkerMsg::Request(request)) => {
+                let Request {
+                    command,
+                    echo,
+                    view,
+                    foreground,
+                    page,
+                    paused,
+                } = *request;
+                let op = command.op();
+                let class = command.class();
+                let (keyed, tags) = correlation(&command);
+                let logout = matches!(command, Command::Logout);
+                crate::diagnostics::event(format_args!("core request begin op={op}"));
+                let request_started = Instant::now();
+                if class.transport {
+                    crate::diagnostics::event(format_args!("core transport begin op={op}"));
+                    let snapshot = engine.handle.snapshot();
+                    let _ = record(
+                        &mut core,
+                        snapshot.id,
+                        current,
+                        snapshot.position,
+                        snapshot.listened,
+                        snapshot.duration,
+                    );
+                }
+                let command_started = Instant::now();
+                // A view-bound command's Plex requests abort as soon as navigation
+                // makes its reply stale, instead of finishing a discarded transfer.
+                if let Some(view) = view {
+                    core.plex
+                        .bind_view(Some((shared.navigation.subscribe(), view)));
+                }
+                let result = if let Command::AudioConfig { config } = command {
+                    core.set_audio_config(config.clone()).and_then(|()| {
                         engine.handle.configure(config.clone())?;
                         Ok(json!({"audioConfig":config}))
                     })
-            } else {
-                serde_json::from_value::<Command>(input.clone())
-                    .map_err(Error::from)
-                    .and_then(|command| core.execute(command))
-            };
-            if transport {
-                crate::diagnostics::event(format_args!(
-                    "core transport complete op={op} success={} elapsed_ms={}",
-                    result.is_ok(),
-                    command_started.elapsed().as_millis()
-                ));
-            }
-            let mut audio_failure = None;
-            let mut response = match result {
-                Ok(mut data) => {
-                    let discarded = (is_listing(op) || op == "similar_artists")
-                        && input["_view"].as_u64().unwrap_or(0) != shared.current_view();
-                    if discarded {
-                        data = json!({"_discarded":true});
-                    } else {
-                        if matches!(op, "connect" | "select_server" | "logout") {
-                            let _ = engine.handle.stop();
-                            current = 0;
-                            prepared = None;
-                            retry_prepare = false;
-                            shared
-                                .plans
-                                .lock()
-                                .unwrap_or_else(|poison| poison.into_inner())
-                                .clear();
-                            shared.shown.store(0, Ordering::SeqCst);
-                            data["track"] = Value::Null;
-                            data["items"] = json!([]);
-                            data["detail"] = json!({});
-                            data["playlistChoices"] = json!([]);
-                            data["hasMore"] = json!(false);
-                            data["queue"] = json!({"items":[],"repeat":"off","shuffled":false});
-                            if op == "logout" {
-                                data["servers"] = json!([]);
-                                data["libraries"] = json!([]);
+                } else {
+                    // Contain a Core panic to the request that caused it: the reply
+                    // clears its busy state and the worker keeps serving requests.
+                    catch_unwind(AssertUnwindSafe(|| core.execute(command))).unwrap_or_else(|_| {
+                        crate::diagnostics::event(format_args!("core request panicked op={op}"));
+                        Err(Error::Input("Backend panic"))
+                    })
+                };
+                let cancelled = core.plex.cancelled();
+                core.plex.bind_view(None);
+                if cancelled {
+                    crate::diagnostics::event(format_args!(
+                        "core request cancelled by navigation op={op} elapsed_ms={}",
+                        command_started.elapsed().as_millis()
+                    ));
+                }
+                if class.transport {
+                    crate::diagnostics::event(format_args!(
+                        "core transport complete op={op} success={} elapsed_ms={}",
+                        result.is_ok(),
+                        command_started.elapsed().as_millis()
+                    ));
+                }
+                let mut audio_failure = None;
+                let mut response = match result {
+                    // Navigation aborted it: the reply is stale by construction.
+                    _ if cancelled => json!({"ok":true,"data":{"_discarded":true}}),
+                    Ok(mut data) => {
+                        if shared.stale(view) {
+                            data = json!({"_discarded":true});
+                        } else {
+                            if class.resets_session {
+                                let _ = engine.handle.stop();
+                                current = 0;
+                                prepared = None;
+                                retry_prepare = false;
+                                crate::mutex_lock(&shared.plans).clear();
+                                shared.shown.store(0, Ordering::SeqCst);
+                                data["track"] = Value::Null;
+                                data["items"] = json!([]);
+                                data["detail"] = json!({});
+                                data["playlistChoices"] = json!([]);
+                                data["hasMore"] = json!(false);
+                                data["queue"] = json!({"items":[],"repeat":"off","shuffled":false});
+                                if logout {
+                                    data["servers"] = json!([]);
+                                    data["libraries"] = json!([]);
+                                }
                             }
-                        }
-                        if data.get("stream").is_some() {
-                            let started = start_plan(
-                                &data,
-                                &shared,
-                                &engine,
-                                &mut serial,
-                                &mut current,
-                                input["_paused"] == true,
-                            );
-                            if let Err(error) = started {
-                                audio_failure = Some(error);
-                            } else {
+                            if data.get("stream").is_some() {
+                                let started = start_plan(
+                                    &data,
+                                    &shared,
+                                    &engine,
+                                    &mut serial,
+                                    &mut current,
+                                    paused,
+                                );
+                                if let Err(error) = started {
+                                    audio_failure = Some(error);
+                                } else {
+                                    retry_prepare = !prepare(
+                                        &mut core,
+                                        &shared,
+                                        &engine,
+                                        &mut serial,
+                                        &mut prepared,
+                                    );
+                                }
+                            } else if class.reprepare {
                                 retry_prepare = !prepare(
                                     &mut core,
                                     &shared,
@@ -793,115 +891,79 @@ fn worker(
                                     &mut prepared,
                                 );
                             }
-                        } else if matches!(
-                            op,
-                            "enqueue"
-                                | "quality_config"
-                                | "audio_config"
-                                | "enqueue_album"
-                                | "queue_move"
-                                | "queue_remove"
-                                | "shuffle"
-                                | "repeat"
-                        ) {
-                            retry_prepare =
-                                !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
-                        }
-                        if op == "similar_artists" || op == "lyrics" {
-                            data[if op == "lyrics" {
-                                "lyricsKey"
-                            } else {
-                                "similarKey"
-                            }] = input["key"].clone();
-                        }
-                        if let Some(items) = data["items"].as_array() {
-                            let mut artwork = items.clone();
-                            if data["detail"].is_object() {
-                                artwork.insert(0, data["detail"].clone());
+                            if let Some((field, key)) = &keyed {
+                                data[*field] = json!(key);
                             }
-                            if data["track"].is_object() {
-                                artwork.insert(0, data["track"].clone());
+                            if let Some(items) = data["items"].as_array() {
+                                let mut artwork = items.clone();
+                                if data["detail"].is_object() {
+                                    artwork.insert(0, data["detail"].clone());
+                                }
+                                if data["track"].is_object() {
+                                    artwork.insert(0, data["track"].clone());
+                                }
+                                let _ = core.execute(Command::CacheArtwork {
+                                    items: artwork
+                                        .into_iter()
+                                        .filter_map(|i| serde_json::from_value(i).ok())
+                                        .collect(),
+                                });
                             }
-                            let _ = core.execute(Command::CacheArtwork {
-                                items: artwork
-                                    .into_iter()
-                                    .filter_map(|i| serde_json::from_value(i).ok())
-                                    .collect(),
-                            });
+                            artwork_delta(&shared, &mut data);
+                            shared.merge(&data);
                         }
-                        artwork_delta(&shared, &mut data);
-                        shared.merge(&data);
+                        json!({"ok":true,"data":visible_plan(&data)})
                     }
-                    json!({"ok":true,"data":visible_plan(&data)})
+                    Err(error) => json!({"ok":false,"error":error.to_string()}),
+                };
+                if let Some(error) = audio_failure {
+                    response = json!({"ok":false,"error":error.to_string()});
                 }
-                Err(error) => json!({"ok":false,"error":error.to_string()}),
-            };
-            if let Some(error) = audio_failure {
-                response = json!({"ok":false,"error":error.to_string()});
-            }
-            // Correlate failures as well as successes; the presentation must be
-            // able to leave its loading state without accepting a stale reply.
-            if (is_listing(op) || op == "similar_artists")
-                && input["_view"].as_u64().unwrap_or(0) != shared.current_view()
-            {
-                response["data"] = json!({"_discarded":true});
-            }
-            if matches!(op, "lyrics" | "similar_artists") && response["data"]["_discarded"] != true
-            {
-                if !response["data"].is_object() {
-                    response["data"] = json!({});
+                // Correlate failures as well as successes; the presentation must be
+                // able to leave its loading state without accepting a stale reply.
+                let stale = shared.stale(view);
+                if stale {
+                    response["data"] = json!({"_discarded":true});
                 }
-                response["data"][if op == "lyrics" {
-                    "lyricsKey"
-                } else {
-                    "similarKey"
-                }] = input["key"].clone();
-            }
-            if is_listing(op) && !response["data"].is_object() {
-                response["data"] = json!({});
-            }
-            if matches!(op, "smart_rules" | "filter_options") {
-                if !response["data"].is_object() {
-                    response["data"] = json!({});
-                }
-                if op == "smart_rules" {
-                    response["data"]["smartKey"] = input["key"].clone();
-                } else {
-                    for (target, source) in [
-                        ("filterSection", "section"),
-                        ("filterKind", "kind"),
-                        ("filterField", "field"),
-                    ] {
-                        response["data"][target] = input[source].clone();
+                if let Some((field, key)) = keyed {
+                    if !(cancelled || stale) {
+                        if !response["data"].is_object() {
+                            response["data"] = json!({});
+                        }
+                        response["data"][field] = json!(key);
                     }
                 }
-            }
-            if response["data"].is_object() {
-                if input["_page"] == true {
-                    response["data"]["_pageStart"] = input["start"].clone();
+                if (class.listing || !tags.is_empty()) && !response["data"].is_object() {
+                    response["data"] = json!({});
                 }
-                response["data"]["_listAction"] = json!(if is_listing(op) {
-                    if is_page(op, &input) && response["data"]["replaceItems"] != true {
-                        "append"
+                for (field, value) in tags {
+                    response["data"][field] = value;
+                }
+                if response["data"].is_object() {
+                    if let Some(start) = page {
+                        response["data"]["_pageStart"] = json!(start);
+                    }
+                    let action = if !class.listing {
+                        ListAction::None
+                    } else if page.is_some() && response["data"]["replaceItems"] != true {
+                        ListAction::Append
                     } else {
-                        "replace"
-                    }
-                } else {
-                    "none"
+                        ListAction::Replace
+                    };
+                    response["data"]["_listAction"] = json!(action);
+                }
+                shared.release(foreground, page.is_some());
+                crate::diagnostics::event(format_args!(
+                    "core request complete op={op} success={} elapsed_ms={}",
+                    response["ok"] == true,
+                    request_started.elapsed().as_millis()
+                ));
+                let _ = events.send(Outgoing {
+                    view,
+                    event: json!({"request":echo,"response":response}),
                 });
             }
-            if input["_foreground"] == true {
-                shared.foreground.fetch_sub(1, Ordering::SeqCst);
-            }
-            if input["_page"] == true {
-                shared.pages.fetch_sub(1, Ordering::SeqCst);
-            }
-            crate::diagnostics::event(format_args!(
-                "core request complete op={op} success={} elapsed_ms={}",
-                response["ok"] == true,
-                request_started.elapsed().as_millis()
-            ));
-            let _ = events.send(json!({"request":input,"response":response}));
+            None => {}
         }
         if maintenance.elapsed() >= Duration::from_secs(5) {
             let state = engine.handle.snapshot();
@@ -930,19 +992,14 @@ fn worker(
                 artwork_delta(&shared, &mut data);
                 data["history"] =
                     core.execute(Command::Status).unwrap_or_default()["history"].clone();
-                let _ = events.send(update(data));
+                let _ = events.send(update(data).into());
             }
             cache_tick = Instant::now();
         }
         if history_tick.elapsed() >= Duration::from_secs(30) {
-            if shared
-                .model
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner())["networkOnline"]
-                == true
-            {
+            if crate::mutex_lock(&shared.model)["networkOnline"] == true {
                 if let Ok(data) = core.execute(Command::SyncHistory) {
-                    let _ = events.send(update(data));
+                    let _ = events.send(update(data).into());
                 }
             }
             history_tick = Instant::now();
@@ -961,16 +1018,44 @@ fn worker(
     crate::diagnostics::event(format_args!(
         "shutdown checkpoint complete; joining platform"
     ));
-    shared.stop.store(true, Ordering::SeqCst);
     drop(platform);
-    *shared
-        .control
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = None;
-    *shared
-        .audio
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = None;
+}
+/// Marks the runtime stopped and releases the transport/download handles when
+/// the worker exits, including by unwinding. Platform observers are joined
+/// before this runs; `Platform::drop` raises the same stop flag itself.
+struct Exit<'a>(&'a Shared);
+impl Drop for Exit<'_> {
+    fn drop(&mut self) {
+        self.0.stop.store(true, Ordering::SeqCst);
+        *crate::mutex_lock(&self.0.control) = None;
+        *crate::mutex_lock(&self.0.audio) = None;
+    }
+}
+/// Startup failed: report it, then answer every request already admitted so
+/// busy/loading-more counters cannot stay raised with no worker to clear them.
+fn abandon(
+    shared: &Shared,
+    receiver: mpsc::Receiver<WorkerMsg>,
+    events: &mpsc::Sender<Outgoing>,
+    error: &Error,
+) {
+    let error = error.to_string();
+    let _ = events
+        .send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error}}).into());
+    // Admission holds this lock while enqueueing: after the drain no request can
+    // slip in before the receiver drops and later sends fail as disconnected.
+    let _admission = crate::mutex_lock(&shared.admission);
+    for message in receiver.try_iter() {
+        let WorkerMsg::Request(request) = message else {
+            continue;
+        };
+        shared.release(request.foreground, request.page.is_some());
+        let _ = events.send(Outgoing {
+            view: request.view,
+            event: json!({"request":request.echo,"response":{"ok":false,"error":error}}),
+        });
+    }
+    drop(receiver);
 }
 fn start_plan(
     data: &Value,
@@ -989,10 +1074,7 @@ fn start_plan(
     engine.handle.load(input, paused)?;
     *current = *serial;
     {
-        let mut plans = shared
-            .plans
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner());
+        let mut plans = crate::mutex_lock(&shared.plans);
         plans.clear();
         plans.insert(*current, visible_plan(data));
     }
@@ -1018,11 +1100,7 @@ fn prepare(
                 crate::diagnostics::event(format_args!("successor admission failed: {error}"));
                 return false;
             }
-            shared
-                .plans
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner())
-                .insert(*serial, visible_plan(&next.plan));
+            crate::mutex_lock(&shared.plans).insert(*serial, visible_plan(&next.plan));
             *prepared = Some((*serial, next));
         }
     }
@@ -1044,7 +1122,7 @@ mod tests {
             .replace(
                 vec![crate::model::Item {
                     rating_key: "1".into(),
-                    kind: "track".into(),
+                    kind: crate::model::ItemKind::Track,
                     duration: 2_400_026,
                     ..Default::default()
                 }],
@@ -1064,7 +1142,12 @@ mod tests {
             apply_checkpoint(
                 &mut core,
                 0,
-                &json!({"snapshot":audio::Snapshot::default()}),
+                &mut (0, 0),
+                &Checkpoint {
+                    snapshot: audio::Snapshot::default(),
+                    reset: false,
+                    seq: 0,
+                },
             );
             assert_eq!(
                 core.execute(Command::Status).unwrap()["resumePosition"],
@@ -1094,34 +1177,82 @@ mod tests {
     }
 
     #[test]
+    fn stale_queued_checkpoint_cannot_rewind_a_newer_overflow_checkpoint() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut settings = crate::store::Settings::default();
+        settings
+            .playback
+            .queue
+            .replace(
+                vec![crate::model::Item {
+                    rating_key: "1".into(),
+                    kind: crate::model::ItemKind::Track,
+                    duration: 2_400_026,
+                    ..Default::default()
+                }],
+                0,
+            )
+            .unwrap();
+        crate::store::save(dir.path(), &settings).unwrap();
+        let mut core = Core::new(dir.path().into()).unwrap();
+        let checkpoint = |seq: u64, position: u64| Checkpoint {
+            seq,
+            reset: false,
+            snapshot: audio::Snapshot {
+                id: 7,
+                position,
+                listened: position,
+                duration: 2_400_026,
+                ..Default::default()
+            },
+        };
+        let mut newest = (0, 0);
+        // The worker drains the newer overflow checkpoint before reaching the
+        // older one still queued in the request channel.
+        apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(2, 600_000));
+        apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(1, 300_000));
+        assert_eq!(
+            crate::store::load(dir.path()).unwrap().playback.position,
+            600_000
+        );
+        apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(3, 900_000));
+        assert_eq!(
+            crate::store::load(dir.path()).unwrap().playback.position,
+            900_000
+        );
+    }
+
+    #[test]
     fn navigation_discards_replies_that_finished_before_the_next_poll() {
         let (requests, _receiver) = mpsc::sync_channel(8);
         let (events, output) = mpsc::channel();
         let runtime = Runtime {
-            shared: Shared {
-                requests,
-                audio: Arc::new(Mutex::new(None)),
-                model: Arc::new(Mutex::new(json!({}))),
-                control: Arc::new(Mutex::new(None)),
-                stop: Arc::new(AtomicBool::new(false)),
-                foreground: Arc::new(AtomicUsize::new(0)),
-                pages: Arc::new(AtomicUsize::new(0)),
-                view: Arc::new(AtomicU64::new(1)),
-                admission: Arc::new(Mutex::new(())),
-                plans: Arc::new(Mutex::new(BTreeMap::new())),
-                shown: Arc::new(AtomicU64::new(0)),
-                seeks: Arc::new(Mutex::new(Vec::new())),
-                checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
-            },
+            shared: Shared::new(requests, json!({})),
             events: output,
             worker: None,
         };
-        events.send(json!({"request":{"op":"browse","_view":1},"response":{"ok":true,"data":{"items":[{"ratingKey":"old"}]}}})).unwrap();
-        events.send(json!({"request":{"op":"similar_artists","_view":1},"response":{"ok":false,"error":"old error"}})).unwrap();
+        runtime.shared.view.store(1, Ordering::SeqCst);
+        events
+            .send(Outgoing {
+                view: Some(1),
+                event: json!({"request":{"op":"browse"},"response":{"ok":true,"data":{"items":[{"ratingKey":"old"}]}}}),
+            })
+            .unwrap();
+        events
+            .send(Outgoing {
+                view: Some(1),
+                event: json!({"request":{"op":"similar_artists"},"response":{"ok":false,"error":"old error"}}),
+            })
+            .unwrap();
         runtime
             .submit(json!({"op":"detail","key":"2","start":0}))
             .unwrap();
-        events.send(json!({"request":{"op":"detail","_view":2},"response":{"ok":true,"data":{"items":[{"ratingKey":"new"}]}}})).unwrap();
+        events
+            .send(Outgoing {
+                view: Some(2),
+                event: json!({"request":{"op":"detail"},"response":{"ok":true,"data":{"items":[{"ratingKey":"new"}]}}}),
+            })
+            .unwrap();
         let result = runtime.poll();
         assert_eq!(
             result["events"][0]["response"]["data"],
@@ -1144,7 +1275,12 @@ mod tests {
         assert!(runtime.submit(json!({"op":"browse"})).is_err());
         assert_eq!(runtime.shared.current_view(), 2);
         assert_eq!(runtime.shared.foreground.load(Ordering::SeqCst), foreground);
-        events.send(json!({"request":{"op":"detail","_view":2},"response":{"ok":true,"data":{"items":[1]}}})).unwrap();
+        events
+            .send(Outgoing {
+                view: Some(2),
+                event: json!({"request":{"op":"detail"},"response":{"ok":true,"data":{"items":[1]}}}),
+            })
+            .unwrap();
         assert_eq!(
             runtime.poll()["events"][0]["response"]["data"]["items"],
             json!([1])

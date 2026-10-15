@@ -15,7 +15,7 @@ use std::{
 fn item(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         title: "Fixture audio".into(),
         duration: 10000,
         media: vec![Media {

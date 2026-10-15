@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="tt">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Әлифба</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Тавыш · Тәнәфессез · PCM · Чыгыш</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Әкрен күчеш</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Секунд</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Әкрен күчеш</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Өстәү · Өскә · 1000 · Язмалар</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Альбом · Чик · Радио · Язма</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Дөрес · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Челтәрдә</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Автоматик уйнату · Яңарту · Йөкләүләр</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Яңарту · Озынлык</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Яңарту · Озынлык</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Яңарту · Йөкләүләр · Йөкләнә</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Радио · Йөкләүләр · Озынлык</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Радио · Йөкләүләр · Озынлык</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Өскә · Киләсе</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Радио</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Кэш · Тавыш</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Язмалар · Әзер · Челтәрсез</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Китапханә</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Эзләү</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Башкаручылар</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Альбомнар</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Язмалар</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Исем</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Күптән түгел өстәлгән</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Ел</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Эзләү · Башкаручылар · Альбомнар · Язмалар</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Китапханә</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Тәртипләү</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Өстәү · Sonic · Чыганак</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Алып ташлау · Чират</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Өскә · Киләсе</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Радио</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Кэш · Тавыш</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Язмалар · Әзер · Челтәрсез</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Китапханә</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Эзләү</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Башкаручылар</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Альбомнар</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Язмалар</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Исем</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Күптән түгел өстәлгән</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Ел</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Эзләү · Башкаручылар · Альбомнар · Язмалар</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Китапханә</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Тәртипләү</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Йөкләнгән</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Өстәү · Sonic · Чыганак</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Акыллы · Сөзгеч · Көйләүләр</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Тавыш · Охшаш</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Башлау · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Язма</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Йөкләүләр · Радио · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Йөкләүләр · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Уйнату · Киләсе</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Өстәү · Чират</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Өстәү · Уйнату исемлеге</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Булдыру · Уйнату исемлеге</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Өстәү · Катнашма</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Исемен үзгәртү · Уйнату исемлеге</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Бетерү · Уйнату исемлеге</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Күчерү · Уйнату исемлеге · Өскә</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Күчерү · Уйнату исемлеге · Аска</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Алып ташлау · Уйнату исемлеге</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Алып ташлау</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Өстәү · Яратканнар</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Саклауны туктату · Йөкләүләр</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Челтәрсез саклау · Челтәрсез · Тарих</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Күчерү · Өскә</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Күчерү · Аска</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Алып ташлау · Чират</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Кабат тырышу · Йөкләнә</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Бутау</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Кабатлау</translation>
+      <source>Repeat one</source>
+      <translation>Кабатлау: берсе</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Кабатлау: барысы</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Кабатлау: сүнек</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Чистарту · Кэш · Туктату · Уйнату</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Тавыш · Уйнату</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Турыдан-туры агымлы музыка уйнаткычы</translation>
     </message>
   </context>
   <context>

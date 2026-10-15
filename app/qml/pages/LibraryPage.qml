@@ -19,6 +19,8 @@ Page {
         onConnectionRequested:pageStack.push(Qt.resolvedUrl("SettingsPage.qml"),{music:page.music})
         onBackRequested:pageStack.depth>1 ? pageStack.pop() : page.music.back()
     }
+    ItemActions {id:itemActions;music:page.music}
+    GridPosition {id:gridPosition;listView:list;artistBrowse:pageView.artistBrowse;alphabet:pageView.alphabet;hasMore:pageView.hasMore}
     allowedOrientations: Orientation.All
     function restorePage() {
         if (status !== PageStatus.Active || !music || backend.busy || departingView) return
@@ -51,56 +53,21 @@ Page {
             departingView=pageKind==="root" ? detailRoute : !detailRoute || args.key!==pageKey
         }
         onResetView: if (page.status===PageStatus.Active) list.positionViewAtBeginning()
-        onArtistJumped: if (page.status===PageStatus.Active && pageKind==="root") list.positionArtist(index)
+        onArtistJumped: if (page.status===PageStatus.Active && pageKind==="root") gridPosition.positionArtist(index)
     }
     SilicaListView {
         id: list; objectName:"libraryList"; anchors.fill: parent; anchors.bottomMargin: player.height; clip: true
         model: pageView.gridBrowse ? null : pageView.rows
-        property real gridContentY: 0
-        property bool restoreGridContentY: false
-        property int pendingArtistIndex: -1
-        property string activeArtistLetter: ""
         // Keep header and rows in one scrolling plane, avoiding transparent
         // PullBackHeader overlap when reversing direction on Qt5.6 Silica.
         headerPositioning:ListView.InlineHeader
         function checkMore() { if (page.status===PageStatus.Active) music.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
-        function positionArtist(index) {
-            pendingArtistIndex=index
-            Qt.callLater(tryPositionArtist)
-        }
-        function tryPositionArtist() {
-            var grid=footerItem ? footerItem.grid : null
-            if(pendingArtistIndex<0 || !grid || grid.columns<1 || grid.cellHeight<=0)return
-            if(pendingArtistIndex>=grid.count && pageView.hasMore)return
-            if(grid.height>height && contentHeight<=height)return
-            var target=Math.min(pendingArtistIndex,Math.max(0,grid.count-1))
-            var point=grid.mapToItem(contentItem,0,Math.floor(target/grid.columns)*grid.cellHeight)
-            contentY=Math.max(originY,Math.min(point.y,Math.max(originY,contentHeight-height)))
-            pendingArtistIndex=-1
-            updateArtistLetter()
-        }
-        function updateArtistLetter() {
-            var grid=footerItem ? footerItem.grid : null
-            if(!pageView.artistBrowse || !pageView.alphabet.length || !grid || grid.count===0){activeArtistLetter="";return}
-            var localY=grid.mapFromItem(list,0,alphabet.y).y
-            var first=Math.max(0,Math.min(grid.count-1,Math.floor(Math.max(0,localY)/grid.cellHeight)*grid.columns))
-            var letter=pageView.alphabet[0].letter
-            for(var i=0;i<pageView.alphabet.length;i++)if(pageView.alphabet[i].offset<=first)letter=pageView.alphabet[i].letter;else break
-            activeArtistLetter=letter
-        }
-        function retainGridPosition() {
-            if (!restoreGridContentY) return
-            Qt.callLater(function() {
-                contentY = Math.max(originY, Math.min(gridContentY, Math.max(originY, contentHeight - height)))
-                restoreGridContentY = false
-            })
-        }
-        onContentYChanged:{moreTimer.restart();updateArtistLetter()}
-        onContentHeightChanged:Qt.callLater(tryPositionArtist)
+        onContentYChanged:{moreTimer.restart();gridPosition.updateArtistLetter()}
+        onContentHeightChanged:gridPosition.schedulePosition()
         onCountChanged:moreTimer.restart()
         onHeightChanged:moreTimer.restart()
         Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(pageView.gridBrowse){list.gridContentY=list.contentY;list.restoreGridContentY=true}moreTimer.restart()} }
+        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(pageView.gridBrowse)gridPosition.rememberGridPosition();moreTimer.restart()} }
         PullDownMenu {
             Repeater {
                 model:navigation.pageActions
@@ -201,6 +168,7 @@ Page {
         }
         delegate: ListItem {
             property var itemData: entry
+            property int rowIndex: index
             property bool discoveryGridItem:pageView.homeView && !!itemData.discoveryGrid
             property var discoveryCards:discoveryGridItem ? music.discoveryGridItems(pageView.items,index) : []
             objectName:discoveryCards.length ? "discoverySectionHost" : ""
@@ -209,28 +177,14 @@ Page {
             clip:discoveryGridItem
             enabled: !discoveryGridItem && !backend.busy && page.status === PageStatus.Active
             menu: ContextMenu {
-                MenuItem {text:qsTr("Add sonic waypoint");visible:itemData.type==="track";enabled:music.journeyTracks.length<8;onClicked:music.addJourneyTrack(itemData)}
-                MenuItem {text:qsTr("Edit smart filters");visible:itemData.type==="playlist" && !!itemData.smart && !itemData.station;enabled:!backend.state.offlineMode;onClicked:music.editFilters("update",itemData)}
-                MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(itemData);onClicked:music.sonicNeighbors(itemData)}
-                MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onClicked:music.adventureStart=itemData}
-                MenuItem {text:qsTr("Sonic Adventure to this track");visible:itemData.type==="track" && !!music.adventureStart;onClicked:music.sonicAdventure(itemData)}
-                MenuItem {text:qsTr("Download radio · %1 minutes").arg(music.downloadMinutes);visible:itemData.station || music.canRadio(itemData);enabled:!backend.state.offlineMode;onClicked:music.downloadRadio(itemData)}
-                MenuItem {text:qsTr("Download %1 minutes").arg(music.downloadMinutes);visible:itemData.type==="playlist" && !itemData.station;enabled:!backend.state.offlineMode;onClicked:backend.command("download_plan",{kind:"playlist",key:itemData.ratingKey,minutes:music.downloadMinutes})}
-                MenuItem {text:qsTr("Play next"); visible:!music.showQueue && (itemData.type==="track" || itemData.type==="album"); onClicked:music.enqueue(itemData,true)}
-                MenuItem {text:qsTr("Add to queue"); visible:!music.showQueue && (itemData.type==="track" || itemData.type==="album"); onClicked:music.enqueue(itemData,false)}
-                MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("add",itemData)}
-                MenuItem {text:qsTr("Create playlist from this");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("create",itemData)}
-                MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onClicked:music.addMixSeed(itemData)}
-                MenuItem {text:qsTr("Rename playlist");visible:itemData.type==="playlist" && !itemData.station;onClicked:music.playlistEditor("rename",itemData)}
-                MenuItem {text:qsTr("Delete playlist");visible:itemData.type==="playlist" && !itemData.station;onClicked:backend.command("playlist_edit",{action:"delete",key:itemData.ratingKey})}
-                MenuItem {text:qsTr("Move playlist entry up");visible:!!music.playlist && !music.playlist.smart;enabled:index>0;onClicked:music.playlistMove(index,false)}
-                MenuItem {text:qsTr("Move playlist entry down");visible:!!music.playlist && !music.playlist.smart;enabled:index+1<music.items.length;onClicked:music.playlistMove(index,true)}
-                MenuItem {text:qsTr("Remove from playlist");visible:!!music.playlist && !music.playlist.smart;onClicked:backend.command("playlist_edit",{action:"remove",key:music.playlist.ratingKey,item_id:itemData.playlistItemId})}
-                MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onClicked:music.favorite(itemData)}
-                MenuItem {text:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)>=0?qsTr("Unpin download"):qsTr("Pin for offline listening");visible:!itemData.station && (itemData.type==="track" || itemData.type==="album" || itemData.type==="playlist");onClicked:backend.command("pin",{key:itemData.ratingKey,kind:itemData.type,enabled:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)<0})}
-                MenuItem {text:qsTr("Move up"); visible:music.showQueue; enabled:index>0; onClicked:music.moveQueue(index,index-1)}
-                MenuItem {text:qsTr("Move down"); visible:music.showQueue; enabled:index+1<backend.state.queue.items.length; onClicked:music.moveQueue(index,index+1)}
-                MenuItem {text:qsTr("Remove from queue"); visible:music.showQueue; onClicked:backend.command("queue_remove",{index:index})}
+                Repeater {
+                    model:itemActions.rowActions
+                    MenuItem {
+                        property var descriptor:itemActions.definition(modelData,itemData,rowIndex)
+                        text:descriptor.text;visible:descriptor.visible;enabled:descriptor.enabled
+                        onClicked:itemActions.activate(modelData,itemData,rowIndex)
+                    }
+                }
             }
             onClicked:if(!discoveryGridItem)music.activate(itemData,index)
             Image {
@@ -263,11 +217,14 @@ Page {
                     width:discoveryGrid.cellWidth;height:discoveryGrid.cellHeight;contentHeight:height;enabled:!backend.busy && page.status===PageStatus.Active
                     onClicked:music.activate(card,modelData.sourceIndex)
                     menu:ContextMenu {
-                        MenuItem {text:qsTr("Play next");visible:card.type==="track" || card.type==="album";onClicked:music.enqueue(card,true)}
-                        MenuItem {text:qsTr("Add to queue");visible:card.type==="track" || card.type==="album";onClicked:music.enqueue(card,false)}
-                        MenuItem {text:qsTr("Add to playlist");visible:card.type==="track" || card.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("add",card)}
-                        MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(card);onClicked:music.sonicNeighbors(card)}
-                        MenuItem {text:card.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:card.type==="track";onClicked:music.favorite(card)}
+                        Repeater {
+                            model:itemActions.cardActions
+                            MenuItem {
+                                property var descriptor:itemActions.definition(modelData,card,-1)
+                                text:descriptor.text;visible:descriptor.visible;enabled:descriptor.enabled
+                                onClicked:itemActions.activate(modelData,card,-1)
+                            }
+                        }
                     }
                     Column {anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
                         Image {width:parent.width;height:width;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
@@ -288,9 +245,9 @@ Page {
                 height:visible ? Math.ceil(count/columns)*cellHeight : 0
                 visible:pageView.gridBrowse
                 model:visible ? pageView.rows : null
-                onCountChanged:{list.retainGridPosition();list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
-                onColumnsChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
-                onHeightChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                onCountChanged:{gridPosition.retainGridPosition();gridPosition.relayout()}
+                onColumnsChanged:gridPosition.relayout()
+                onHeightChanged:gridPosition.relayout()
                 interactive:false
                 property int columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
                 cellWidth:width/columns
@@ -300,15 +257,16 @@ Page {
                     width:artistGrid.cellWidth;height:artistGrid.cellHeight;contentHeight:height
                     enabled:!backend.busy && page.status===PageStatus.Active
                     onClicked:music.activate(itemData,index)
+                    property int cellIndex:index
                     menu:ContextMenu {
-                        MenuItem {text:qsTr("Play next");visible:itemData.type==="track" || itemData.type==="album";onClicked:music.enqueue(itemData,true)}
-                        MenuItem {text:qsTr("Add to queue");visible:itemData.type==="track" || itemData.type==="album";onClicked:music.enqueue(itemData,false)}
-                        MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onClicked:music.playlistEditor("add",itemData)}
-                        MenuItem {text:qsTr("Sonically similar");visible:music.canRadio(itemData);onClicked:music.sonicNeighbors(itemData)}
-                        MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onClicked:music.adventureStart=itemData}
-                        MenuItem {text:qsTr("Download radio · %1 minutes").arg(music.downloadMinutes);visible:music.canRadio(itemData);enabled:!backend.state.offlineMode;onClicked:music.downloadRadio(itemData)}
-                        MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onClicked:music.addMixSeed(itemData)}
-                        MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onClicked:music.favorite(itemData)}
+                        Repeater {
+                            model:itemActions.gridActions
+                            MenuItem {
+                                property var descriptor:itemActions.definition(modelData,itemData,cellIndex)
+                                text:descriptor.text;visible:descriptor.visible;enabled:descriptor.enabled
+                                onClicked:itemActions.activate(modelData,itemData,cellIndex)
+                            }
+                        }
                     }
                     Column {
                         anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
@@ -332,7 +290,7 @@ Page {
         y:Math.max(0,list.headerItem ? list.headerItem.y + list.headerItem.height - list.contentY : 0) + Theme.paddingSmall
         height:Math.max(0,list.height-y-Theme.paddingMedium)
         width:Math.max(Theme.itemSizeExtraSmall,minimumTouchWidth); fontSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor; highlightColor:Theme.highlightColor
-        current:list.activeArtistLetter
+        current:gridPosition.activeArtistLetter
         onChosen:music.jump(letter)
     }
     }

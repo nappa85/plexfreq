@@ -1,5 +1,5 @@
 //! Validated music filters and server-owned smart playlist sources.
-use crate::{Core, Error, Result};
+use crate::{model::ItemKind, Core, Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -16,12 +16,12 @@ pub struct Music {
     pub unplayed: bool,
 }
 impl Music {
-    fn params(&self, kind: &str) -> Result<Vec<(String, String)>> {
-        if !matches!(kind, "artist" | "album" | "track") {
+    fn params(&self, kind: &ItemKind) -> Result<Vec<(String, String)>> {
+        if !kind.is_music() {
             return Err(Error::Input("Unknown music type"));
         }
         if self.title.len() > 512
-            || kind == "artist" && (self.year_from.is_some() || self.year_to.is_some())
+            || *kind == ItemKind::Artist && (self.year_from.is_some() || self.year_to.is_some())
             || self.year_from.is_some_and(|v| !(1..=9999).contains(&v))
             || self.year_to.is_some_and(|v| !(1..=9999).contains(&v))
             || self.year_from.zip(self.year_to).is_some_and(|(a, b)| a > b)
@@ -59,16 +59,44 @@ impl Music {
     }
 }
 use crate::model::music_kind_code as kind_code;
-fn sort_key(sort: &str) -> Result<&'static str> {
-    match sort {
-        "title" => Ok("titleSort:asc"),
-        "newest" => Ok("addedAt:desc"),
-        "year" => Ok("year:desc"),
-        "played" => Ok("lastViewedAt:desc"),
-        "popular" => Ok("viewCount:desc"),
-        "random" => Ok("random"),
-        _ => Err(Error::Input("Unknown library sort")),
-    }
+/// UI sort names and their PMS `sort` values, shared by plain browsing,
+/// filtered browsing and smart playlist rules.
+const SORTS: [(&str, &str); 6] = [
+    ("title", "titleSort:asc"),
+    ("newest", "addedAt:desc"),
+    ("year", "year:desc"),
+    ("played", "lastViewedAt:desc"),
+    ("popular", "viewCount:desc"),
+    ("random", "random"),
+];
+
+/// PMS sort value for a library listing of `kind`. Artists carry no year,
+/// so a year sort is rejected for them.
+pub(crate) fn sort_key(sort: &str, kind: &ItemKind) -> Result<&'static str> {
+    SORTS
+        .iter()
+        .find(|(name, _)| *name == sort && !(sort == "year" && *kind == ItemKind::Artist))
+        .map(|(_, key)| *key)
+        .ok_or(Error::Input("Unknown library sort"))
+}
+
+/// Borrowed view of owned query pairs for `Core::container_cached`.
+fn param_refs(params: &[(String, String)]) -> Vec<(&str, String)> {
+    params
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.clone()))
+        .collect()
+}
+
+/// Percent-decodes a whole string. form_urlencoded decodes `%XX`, but its
+/// form syntax (`+` as space, `&` as separator) is escaped first so those
+/// characters survive literally.
+fn percent_decode(text: &str) -> String {
+    let escaped = text.replace('+', "%2B").replace('&', "%26");
+    url::form_urlencoded::parse(format!("v={escaped}").as_bytes())
+        .next()
+        .map(|(_, v)| v.into_owned())
+        .unwrap_or_default()
 }
 impl Core {
     pub(crate) fn smart_rules(&self, key: &str) -> Result<Value> {
@@ -81,10 +109,7 @@ impl Core {
         let content = if playlist.content.starts_with("server%")
             || playlist.content.starts_with("library%")
         {
-            url::form_urlencoded::parse(format!("uri={}", playlist.content).as_bytes())
-                .next()
-                .map(|(_, v)| v.into_owned())
-                .unwrap_or_default()
+            percent_decode(&playlist.content)
         } else {
             playlist.content
         };
@@ -130,14 +155,9 @@ impl Core {
                         }
                     },
                     "sort" => {
-                        sort = match value.as_ref() {
-                            "titleSort:asc" => "title",
-                            "addedAt:desc" => "newest",
-                            "year:desc" => "year",
-                            "lastViewedAt:desc" => "played",
-                            "viewCount:desc" => "popular",
-                            "random" => "random",
-                            _ => {
+                        sort = match SORTS.iter().find(|(_, key)| *key == value) {
+                            Some((name, _)) => name,
+                            None => {
                                 editable = false;
                                 "title"
                             }
@@ -153,13 +173,13 @@ impl Core {
             editable = false;
         }
         editable &= crate::numeric(&section).is_ok()
-            && filters.params("track").is_ok()
+            && filters.params(&ItemKind::Track).is_ok()
             && (1..=1000).contains(&limit);
         Ok(
             json!({"smartKey":key,"smartSection":section,"smartFilters":filters,"smartSort":sort,"smartLimit":limit,"smartEditable":editable}),
         )
     }
-    fn filter_schema(&self, section: &str, kind: &str) -> Result<Value> {
+    fn filter_schema(&self, section: &str, kind: &ItemKind) -> Result<Value> {
         crate::numeric(section)?;
         let key = format!("{}:{section}:{kind}", self.cache_namespace());
         if let Some(meta) = self.filter_schemas.borrow().get(&key) {
@@ -183,7 +203,7 @@ impl Core {
     fn filter_params(
         &self,
         section: &str,
-        kind: &str,
+        kind: &ItemKind,
         filters: &Music,
     ) -> Result<Vec<(String, String)>> {
         let mut params = filters.params(kind)?;
@@ -193,7 +213,7 @@ impl Core {
             let meta = self.filter_schema(section, kind)?;
             if let Some(types) = meta["Type"].as_array() {
                 let mut scopes: Vec<_> = types.iter().collect();
-                scopes.sort_by_key(|scope| scope["type"] != kind);
+                scopes.sort_by_key(|scope| scope["type"] != kind.as_str());
                 let fields: Vec<_> = scopes
                     .into_iter()
                     .flat_map(|t| t["Field"].as_array().into_iter().flatten())
@@ -220,7 +240,12 @@ impl Core {
         }
         Ok(params)
     }
-    pub(crate) fn filter_options(&self, section: &str, kind: &str, field: &str) -> Result<Value> {
+    pub(crate) fn filter_options(
+        &self,
+        section: &str,
+        kind: &ItemKind,
+        field: &str,
+    ) -> Result<Value> {
         if !matches!(field, "genre" | "mood" | "style") {
             return Err(Error::Input("Invalid music filter values"));
         }
@@ -229,7 +254,7 @@ impl Core {
             .as_array()
             .into_iter()
             .flatten()
-            .filter(|t| t["type"] == kind)
+            .filter(|t| t["type"] == kind.as_str())
             .flat_map(|t| t["Filter"].as_array().into_iter().flatten())
             .find(|f| f["filter"] == field)
             .and_then(|f| f["key"].as_str());
@@ -249,11 +274,7 @@ impl Core {
             .query_pairs()
             .map(|(k, v)| (k.into_owned(), v.into_owned()))
             .collect();
-        let refs: Vec<_> = params
-            .iter()
-            .map(|(k, v)| (k.as_str(), v.clone()))
-            .collect();
-        let (choices, _) = self.container_cached(url.path(), &refs)?;
+        let (choices, _) = self.container_cached(url.path(), &param_refs(&params))?;
         Ok(
             json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":choices.sections.iter().filter(|c|crate::numeric(&c.key).is_ok()).take(1000).map(|c|json!({"key":c.key,"title":c.title})).collect::<Vec<_>>(),"filterAvailable":true}),
         )
@@ -261,7 +282,7 @@ impl Core {
     pub(crate) fn filtered_browse(
         &self,
         section: &str,
-        kind: &str,
+        kind: &ItemKind,
         sort: &str,
         filters: &Music,
         start: usize,
@@ -270,20 +291,18 @@ impl Core {
         let mut params = self.filter_params(section, kind, filters)?;
         params.extend([
             ("type".into(), kind_code(kind)?.into()),
-            ("sort".into(), sort_key(sort)?.into()),
+            ("sort".into(), sort_key(sort, kind)?.into()),
             ("X-Plex-Container-Start".into(), start.to_string()),
             ("X-Plex-Container-Size".into(), "100".into()),
         ]);
-        let refs: Vec<_> = params
-            .iter()
-            .map(|(k, v)| (k.as_str(), v.clone()))
-            .collect();
-        let (container, offline) =
-            self.container_cached(&format!("/library/sections/{section}/all"), &refs)?;
+        let (container, offline) = self.container_cached(
+            &format!("/library/sections/{section}/all"),
+            &param_refs(&params),
+        )?;
         let items: Vec<_> = container
             .items
             .iter()
-            .filter(|i| i.kind == kind)
+            .filter(|i| i.kind == *kind)
             .map(|i| self.display_item(i))
             .collect();
         Ok(crate::pagination::page(
@@ -297,7 +316,7 @@ impl Core {
     }
     pub(crate) fn smart_playlist(
         &mut self,
-        action: &str,
+        action: crate::SmartAction,
         target: (&str, &str),
         title: &str,
         sort: &str,
@@ -309,22 +328,19 @@ impl Core {
         crate::numeric(section)?;
         if !(1..=1000).contains(&limit)
             || title.trim().len() > 512
-            || action == "create" && title.trim().is_empty()
+            || action == crate::SmartAction::Create && title.trim().is_empty()
         {
             return Err(Error::Input("Enter a playlist name (up to 512 bytes)"));
         }
-        if !matches!(action, "create" | "update") {
-            return Err(Error::Input("Unknown playlist action"));
-        }
-        if action == "update" && !self.playlist_metadata(key)?.smart {
+        if action == crate::SmartAction::Update && !self.playlist_metadata(key)?.smart {
             return Err(Error::Input(
                 "Smart playlist contents are controlled by their Plex filters",
             ));
         }
-        let mut params = self.filter_params(section, "track", filters)?;
+        let mut params = self.filter_params(section, &ItemKind::Track, filters)?;
         params.extend([
             ("type".into(), "10".into()),
-            ("sort".into(), sort_key(sort)?.into()),
+            ("sort".into(), sort_key(sort, &ItemKind::Track)?.into()),
             ("limit".into(), limit.to_string()),
         ]);
         let encoded = url::form_urlencoded::Serializer::new(String::new())
@@ -337,7 +353,7 @@ impl Core {
             &identity.machine_identifier,
             &format!("/library/sections/{section}/all?{encoded}"),
         )?;
-        if action == "create" {
+        if action == crate::SmartAction::Create {
             let container = self.plex.create_playlist(
                 &self.base()?,
                 &self.settings.server_token,
@@ -351,7 +367,7 @@ impl Core {
             let item = container
                 .items
                 .first()
-                .filter(|i| i.kind == "playlist" && i.smart)
+                .filter(|i| i.kind == crate::model::ItemKind::Playlist && i.smart)
                 .ok_or(Error::ProtocolAt("created playlist"))?;
             self.library
                 .invalidate_playlist(&self.cache_namespace(), &item.rating_key);
@@ -368,5 +384,28 @@ impl Core {
                 .invalidate_playlist(&self.cache_namespace(), key);
             Ok(json!({"playlistChanged":key}))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn smart_content_percent_decoding_keeps_literal_plus_and_ampersand() {
+        assert_eq!(
+            percent_decode("server%3A%2F%2Fid%2Fall%3Ftitle%3Da+b&c%2Bd"),
+            "server://id/all?title=a+b&c+d"
+        );
+    }
+
+    #[test]
+    fn sort_names_round_trip_and_artist_year_is_rejected() {
+        for (name, key) in SORTS {
+            assert_eq!(sort_key(name, &ItemKind::Album).unwrap(), key);
+        }
+        assert!(sort_key("year", &ItemKind::Artist).is_err());
+        assert!(sort_key("title", &ItemKind::Artist).is_ok());
+        assert!(sort_key("unknown", &ItemKind::Track).is_err());
     }
 }

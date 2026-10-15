@@ -11,12 +11,16 @@ Dialog {
     ColumnLayout {width:parent.width
         Label {text:qsTr("Streaming quality");font.pixelSize:20}
         Repeater {model:[{key:"wifiKbps",title:qsTr("Wi-Fi audio")},{key:"mobileKbps",title:qsTr("Mobile audio")},{key:"downloadKbps",title:qsTr("Download audio")}]
-            ComboBox {property string settingKey:modelData.key;property string settingTitle:modelData.title;Layout.fillWidth:true;model:[0,64,96,128,160,192,256,320];displayText:settingTitle+": "+music.qualityText(quality[settingKey]);onActivated:music.qualitySetting(settingKey,model[currentIndex])}
+            ComboBox {property string settingKey:modelData.key;property string settingTitle:modelData.title;Layout.fillWidth:true;textRole:"text";valueRole:"value"
+                model:[0,64,96,128,160,192,256,320].map(function(kbps){return {value:kbps,text:music.qualityText(kbps)}})
+                currentIndex:count>0 ? indexOfValue(quality[settingKey] || 0) : -1;displayText:settingTitle+": "+music.qualityText(quality[settingKey]);onActivated:music.qualitySetting(settingKey,currentValue)}
         }
         Switch {text:qsTr("Plex codec fallback");checked:quality.codecFallback!==false;onClicked:music.qualitySetting("codecFallback",checked)}
         Label {Layout.fillWidth:true;text:qsTr("Quality changes apply to following tracks and downloads. Completed local audio is preferred.");wrapMode:Text.Wrap}
         Label {Layout.fillWidth:true;text:qsTr("Rust audio engine · gapless PCM output");wrapMode:Text.Wrap}
-        ComboBox {Layout.fillWidth:true;model:[0,1000,3000,5000,8000,12000];displayText:qsTr("Crossfade")+": "+(config.crossfadeMs ? qsTr("%1 seconds").arg(config.crossfadeMs/1000) : qsTr("Off"));onActivated:music.audioSetting("crossfadeMs",model[currentIndex])}
+        ComboBox {Layout.fillWidth:true;textRole:"text";valueRole:"value"
+            model:[0,1000,3000,5000,8000,12000].map(function(ms){return {value:ms,text:ms ? qsTr("%1 seconds").arg(ms/1000) : qsTr("Off")}})
+            currentIndex:count>0 ? indexOfValue(config.crossfadeMs || 0) : -1;displayText:qsTr("Crossfade")+": "+(config.crossfadeMs ? qsTr("%1 seconds").arg(config.crossfadeMs/1000) : qsTr("Off"));onActivated:music.audioSetting("crossfadeMs",currentValue)}
         Switch {text:qsTr("Normalize loudness");checked:!!config.normalization;onClicked:music.audioSetting("normalization",checked)}
         ComboBox {Layout.fillWidth:true;model:[qsTr("Track gain"),qsTr("Album gain"),qsTr("Automatic gain")];currentIndex:config.normalizationMode==="album" ? 1 : config.normalizationMode==="auto" ? 2 : 0;onActivated:music.audioSetting("normalizationMode",["track","album","auto"][currentIndex])}
         Label {text:qsTr("Headroom")+": "+qsTr("%1 dB").arg(config.headroomDb || 0)}

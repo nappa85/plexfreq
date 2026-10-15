@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="ta">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>அகரவரிசை</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · ஒலி · இடைவெளியின்றி · PCM · வெளியீடு</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>ஒலி கலந்து மாறுதல்</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · நொடிகள்</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>ஒலி கலந்து மாறுதல்</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>சேர் · மேலே · 1000 · பாடல்கள்</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>ஆல்பம் · வரம்பு · வானொலி · பாடல்</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>செல்லுபடியானது · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>இணைப்பில்</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>தானியங்கி இயக்கம் · புதுப்பி · பதிவிறக்கங்கள்</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>புதுப்பி · நேர அளவு</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>புதுப்பி · நேர அளவு</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>புதுப்பி · பதிவிறக்கங்கள் · ஏற்றப்படுகிறது</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>வானொலி · பதிவிறக்கங்கள் · நேர அளவு</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>வானொலி · பதிவிறக்கங்கள் · நேர அளவு</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>மேலே · அடுத்தது</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>வானொலி</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>இணைப்பின்றி · சேமிக்கப்பட்டது · நூலகம் · மேல்தரவு</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>தற்காலிகச் சேமிப்பு · ஒலி</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · பாடல்கள் · தயார் · இணைப்பின்றி</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>நூலகம்</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>தேடு</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>கலைஞர்கள்</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>ஆல்பங்கள்</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>பாடல்கள்</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>தலைப்பு</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>சமீபத்தில் சேர்த்தவை</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>ஆண்டு</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>தேடு · கலைஞர்கள் · ஆல்பங்கள் · பாடல்கள்</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>நூலகம்</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>வரிசைப்படுத்து</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>சேர் · Sonic · மூலம்</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>அகற்று · வரிசை</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>மேலே · அடுத்தது</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>வானொலி</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>இணைப்பின்றி · சேமிக்கப்பட்டது · நூலகம் · மேல்தரவு</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>தற்காலிகச் சேமிப்பு · ஒலி</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · பாடல்கள் · தயார் · இணைப்பின்றி</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>நூலகம்</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>தேடு</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>கலைஞர்கள்</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ஆல்பங்கள்</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>பாடல்கள்</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>தலைப்பு</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>சமீபத்தில் சேர்த்தவை</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>ஆண்டு</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>தேடு · கலைஞர்கள் · ஆல்பங்கள் · பாடல்கள்</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>நூலகம்</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>வரிசைப்படுத்து</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>பதிவிறக்கப்பட்டது</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>சேர் · Sonic · மூலம்</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>நுண்ணறிவு · வடிகட்டி · அமைப்புகள்</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>ஒலி · ஒத்த</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>தொடங்கு · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · பாடல்</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>பதிவிறக்கங்கள் · வானொலி · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>பதிவிறக்கங்கள் · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>இயக்கு · அடுத்தது</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>சேர் · வரிசை</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>சேர் · பாடல் பட்டியல்</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>உருவாக்கு · பாடல் பட்டியல்</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>சேர் · கலவை</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>பெயர்மாற்று · பாடல் பட்டியல்</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>அழி · பாடல் பட்டியல்</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>நகர்த்து · பாடல் பட்டியல் · மேலே</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>நகர்த்து · பாடல் பட்டியல் · கீழே</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>அகற்று · பாடல் பட்டியல்</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>அகற்று</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>சேர் · விருப்பமானவை</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>வைத்திருப்பதை நிறுத்து · பதிவிறக்கங்கள்</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>இணைப்பின்றி வைத்திரு · இணைப்பின்றி · வரலாறு</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>நகர்த்து · மேலே</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>நகர்த்து · கீழே</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>அகற்று · வரிசை</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>மீண்டும் முயற்சி · ஏற்றப்படுகிறது</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>கலக்கு</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>மீண்டும் இயக்கு</translation>
+      <source>Repeat one</source>
+      <translation>மீண்டும் இயக்கு: ஒன்று</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>மீண்டும் இயக்கு: அனைத்தும்</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>மீண்டும் இயக்கு: முடக்கம்</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>துடை · தற்காலிகச் சேமிப்பு · நிறுத்து · இயக்கு</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · ஒலி · இயக்கு</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · நேரடி ஸ்ட்ரீமிங் இசை இயக்கி</translation>
     </message>
   </context>
   <context>

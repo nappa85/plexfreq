@@ -2,8 +2,21 @@ use crate::{model::Item, Error, Result};
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Copy, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(
+    Default,
+    Clone,
+    Copy,
+    Deserialize,
+    Serialize,
+    PartialEq,
+    Debug,
+    strum::Display,
+    strum::EnumString,
+    strum::IntoStaticStr,
+    strum::EnumIter,
+)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum Repeat {
     #[default]
     Off,
@@ -13,23 +26,92 @@ pub enum Repeat {
 
 pub const MAX_QUEUE: usize = 10_000;
 
-#[derive(Default, Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Queue {
-    pub items: Vec<Item>,
-    pub current: Option<usize>,
-    pub repeat: Repeat,
-    pub shuffled: bool,
+    items: Vec<Item>,
+    current: Option<usize>,
+    repeat: Repeat,
+    shuffled: bool,
     order: Vec<usize>,
     cursor: usize,
+    /// Identity of this queue's content, replaced by every mutation. Random
+    /// rather than counted so two independent queues (a cleared queue, a
+    /// deserialized one) can never share a revision with different content.
+    /// Persistence uses it to skip rewriting an unchanged queue.
+    #[serde(skip, default = "fresh_revision")]
+    revision: u64,
+}
+
+fn fresh_revision() -> u64 {
+    rand::random()
+}
+
+impl Default for Queue {
+    fn default() -> Self {
+        Self {
+            items: Vec::new(),
+            current: None,
+            repeat: Repeat::default(),
+            shuffled: false,
+            order: Vec::new(),
+            cursor: 0,
+            revision: fresh_revision(),
+        }
+    }
 }
 
 impl Queue {
+    pub fn items(&self) -> &[Item] {
+        &self.items
+    }
+    pub fn current(&self) -> Option<usize> {
+        self.current
+    }
+    pub fn repeat(&self) -> Repeat {
+        self.repeat
+    }
+    pub fn shuffled(&self) -> bool {
+        self.shuffled
+    }
+    pub fn revision(&self) -> u64 {
+        self.revision
+    }
+    /// Re-attach the revision a persisted queue was saved under.
+    pub(crate) fn restore_revision(&mut self, revision: u64) {
+        self.revision = revision;
+    }
+    fn touch(&mut self) {
+        self.revision = fresh_revision();
+    }
+    pub fn set_repeat(&mut self, repeat: Repeat) {
+        if self.repeat != repeat {
+            self.repeat = repeat;
+            self.touch();
+        }
+    }
+    /// Replace the current track's metadata (e.g. with its cached or resolved
+    /// form). Returns the replaced item, or None without a current track.
+    pub fn replace_track(&mut self, item: Item) -> Option<Item> {
+        let index = self.current?;
+        let slot = self.items.get_mut(index)?;
+        let old = std::mem::replace(slot, item);
+        self.touch();
+        Some(old)
+    }
+    /// Edit item metadata in place (e.g. ratings, stripped artwork).
+    pub fn update_items(&mut self, mut edit: impl FnMut(&mut Item)) {
+        self.items.iter_mut().for_each(&mut edit);
+        self.touch();
+    }
     pub fn validate(&self) -> Result<()> {
         let mut order = self.order.clone();
         order.sort_unstable();
         if self.items.len() > MAX_QUEUE
-            || self.items.iter().any(|i| i.kind != "track")
+            || self
+                .items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track)
             || order != (0..self.items.len()).collect::<Vec<_>>()
             || self
                 .current
@@ -52,7 +134,9 @@ impl Queue {
     pub fn insert(&mut self, items: Vec<Item>, next: bool) -> Result<()> {
         if items.is_empty()
             || self.items.len() + items.len() > MAX_QUEUE
-            || items.iter().any(|i| i.kind != "track")
+            || items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track)
         {
             return Err(Error::Input("Choose tracks for the queue (maximum 10000)"));
         }
@@ -68,6 +152,7 @@ impl Queue {
         };
         self.items.extend(items);
         self.order.splice(at..at, first..first + count);
+        self.touch();
         Ok(())
     }
     pub fn remove(&mut self, index: usize) -> Result<bool> {
@@ -80,6 +165,7 @@ impl Queue {
             .iter()
             .position(|i| *i == index)
             .ok_or(Error::Input("Invalid queue order"))?;
+        self.touch();
         self.items.remove(index);
         self.order.remove(position);
         for i in &mut self.order {
@@ -108,6 +194,7 @@ impl Queue {
         if from == to {
             return Ok(());
         }
+        self.touch();
         let remap = |i| {
             if i == from {
                 to
@@ -186,7 +273,9 @@ impl Queue {
     pub fn replace(&mut self, items: Vec<Item>, start: usize) -> Result<()> {
         if start >= items.len()
             || items.len() > MAX_QUEUE
-            || items.iter().any(|i| i.kind != "track")
+            || items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track)
         {
             return Err(Error::Input(
                 "Queue requires tracks and a valid start index",
@@ -195,6 +284,7 @@ impl Queue {
         self.items = items;
         self.current = Some(start);
         self.reorder();
+        self.touch();
         Ok(())
     }
 
@@ -243,6 +333,7 @@ impl Queue {
     }
 
     pub fn shuffle(&mut self, enabled: bool) {
+        self.touch();
         self.shuffled = enabled;
         self.reorder();
     }
@@ -258,14 +349,23 @@ impl Queue {
             .ok_or(Error::Input("Invalid queue order"))?;
         self.current = Some(index);
         self.cursor = position;
+        self.touch();
         Ok(())
     }
 
     pub fn advance(&mut self, automatic: bool) -> Option<&Item> {
+        self.touch();
         if self.current.is_none() {
-            // Natural end retains the last slot for previous(). Enabling
-            // repeat-all afterwards must allow a restart instead of staying
-            // stuck; both manual and automatic advancement wrap.
+            // Natural end retains the last slot for previous(). Tracks
+            // enqueued afterwards sit past that slot (upcoming() lists them),
+            // so advance into them first. Otherwise enabling repeat-all
+            // afterwards must allow a restart instead of staying stuck; both
+            // manual and automatic advancement wrap.
+            if self.cursor.saturating_add(1) < self.order.len() {
+                self.cursor += 1;
+                self.current = self.order.get(self.cursor).copied();
+                return self.track();
+            }
             if self.repeat == Repeat::All && !self.order.is_empty() {
                 self.cursor = 0;
                 self.current = self.order.first().copied();
@@ -294,6 +394,7 @@ impl Queue {
     }
 
     pub fn previous(&mut self) -> Option<&Item> {
+        self.touch();
         if self.order.is_empty() {
             return None;
         }
@@ -340,7 +441,11 @@ impl Queue {
     }
 
     pub fn append(&mut self, items: Vec<Item>) -> Result<()> {
-        if items.is_empty() || items.iter().any(|i| i.kind != "track") {
+        if items.is_empty()
+            || items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track)
+        {
             return Err(Error::Input("Radio returned no playable tracks"));
         }
         if self.items.len() + items.len() > MAX_QUEUE {
@@ -349,6 +454,7 @@ impl Queue {
         self.order
             .extend(self.items.len()..self.items.len() + items.len());
         self.items.extend(items);
+        self.touch();
         Ok(())
     }
 
@@ -356,6 +462,8 @@ impl Queue {
         if self.order.is_empty() {
             return;
         }
+        // Any change below (even clamping a corrupt cursor) is a new revision.
+        self.touch();
         self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
         let drop = self.cursor.saturating_sub(keep);
         if drop == 0 {
@@ -397,5 +505,80 @@ impl Queue {
         } else {
             self.cursor = self.cursor.min(self.order.len().saturating_sub(1));
         }
+    }
+}
+
+#[cfg(test)]
+mod revision_tests {
+    use super::*;
+
+    fn track(id: &str) -> Item {
+        Item {
+            rating_key: id.into(),
+            kind: crate::model::ItemKind::Track,
+            ..Default::default()
+        }
+    }
+
+    fn queue() -> Queue {
+        let mut q = Queue::default();
+        q.replace(vec![track("0"), track("1"), track("2")], 0)
+            .unwrap();
+        q
+    }
+
+    #[test]
+    fn every_mutation_replaces_the_revision_and_reads_keep_it() {
+        type Edit = fn(&mut Queue);
+        let edits: [(&str, Edit); 11] = [
+            ("insert", |q| q.insert(vec![track("3")], true).unwrap()),
+            ("append", |q| q.append(vec![track("3")]).unwrap()),
+            ("remove", |q| {
+                q.remove(2).unwrap();
+            }),
+            ("move", |q| q.move_item(0, 2).unwrap()),
+            ("shuffle", |q| q.shuffle(true)),
+            ("select", |q| q.select(2).unwrap()),
+            ("advance", |q| {
+                q.advance(false);
+            }),
+            ("previous", |q| {
+                q.previous();
+            }),
+            ("repeat", |q| q.set_repeat(Repeat::All)),
+            ("replace_track", |q| {
+                q.replace_track(track("9"));
+            }),
+            ("update_items", |q| q.update_items(|i| i.user_rating = 10.)),
+        ];
+        for (name, edit) in edits {
+            let mut q = queue();
+            let before = q.revision();
+            edit(&mut q);
+            assert_ne!(before, q.revision(), "{name} kept the revision");
+        }
+        let q = queue();
+        let before = q.revision();
+        let _ = (
+            q.items(),
+            q.current(),
+            q.track(),
+            q.upcoming(5),
+            q.presentation(),
+        );
+        assert_eq!(before, q.revision());
+        assert_eq!(before, q.clone().revision(), "clones share content");
+        let mut same = q.clone();
+        same.set_repeat(Repeat::Off);
+        same.move_item(1, 1).unwrap();
+        assert_eq!(before, same.revision(), "no-op edits keep the revision");
+    }
+
+    #[test]
+    fn independent_queues_never_share_a_revision() {
+        let restored: Queue =
+            serde_json::from_value(serde_json::to_value(queue()).unwrap()).unwrap();
+        assert_ne!(Queue::default().revision(), Queue::default().revision());
+        assert_ne!(queue().revision(), restored.revision());
     }
 }

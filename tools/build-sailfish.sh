@@ -5,8 +5,9 @@ target="${SDK_TARGET:-SailfishOS-5.2.0.15-aarch64}"
 image="${SDK_IMAGE:-plexfreq-audio-sdk:local}"
 triple=aarch64-unknown-linux-gnu
 version="$(python3 "$root/tools/release-version.py" --print-version)"
-# release-version.py exits non-zero on mismatch, but command substitution with
-# set -e does not abort: fail explicitly instead of packaging plexfreq--*.tgz.
+# A plain assignment takes the substitution's exit status, so set -e already
+# aborts when release-version.py reports a mismatch. Also reject unexpected
+# output before it is used to name packages.
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     printf 'Could not determine release version; refusing to package\n' >&2
     exit 1

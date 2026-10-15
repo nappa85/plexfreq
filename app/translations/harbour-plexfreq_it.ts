@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="it">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Alfabeto</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Motore audio Rust · uscita PCM senza interruzioni</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Dissolvenza incrociata</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 secondi</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Dissolvenza incrociata</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Aggiungi · Su · 1000 · Brani</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Album · Limite · Radio · Brano</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Valido · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Aggiorna automaticamente i piani di download</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Intervallo di aggiornamento</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 ore</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Intervallo di aggiornamento</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Aggiornamento dei piani di download…</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Durata dei download radio</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 minuti</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Durata dei download radio</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>In coda</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Offline · metadati salvati della libreria</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Cache · Audio</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 brani disponibili offline</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Libreria</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Cerca</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artisti</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Album</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Brani</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Titolo</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Aggiunti di recente</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Anno</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Cerca artisti, album e brani</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Libreria</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Ordina</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Aggiungi una tappa sonica</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Rimuovi dalla coda</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>In coda</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Offline · metadati salvati della libreria</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Cache · Audio</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 brani disponibili offline</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Libreria</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Cerca</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artisti</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Album</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Brani</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Titolo</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Aggiunti di recente</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Anno</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Cerca artisti, album e brani</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Libreria</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Ordina</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Scaricato</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Aggiungi una tappa sonica</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Modifica i filtri intelligenti</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Somiglianze sonore</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Inizia un percorso sonico da qui</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Percorso sonico fino a questo brano</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Scarica radio · %1 minuti</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Scarica %1 minuti</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Riproduci come successivo</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Aggiungi alla coda</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Aggiungi alla playlist</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Crea una playlist da questo elemento</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Aggiungi come punto di partenza del mix</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Rinomina playlist</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Elimina playlist</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Sposta la voce della playlist su</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Sposta la voce della playlist giù</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Rimuovi dalla playlist</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Rimuovi</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Aggiungi · Preferiti</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Non mantenere il download offline</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Mantieni per l’ascolto offline</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Sposta · Su</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Sposta · Giù</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Rimuovi dalla coda</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Riprova · Caricamento</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Casuale</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Ripeti</translation>
+      <source>Repeat one</source>
+      <translation>Ripeti: un brano</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Ripeti: tutto</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Ripeti: disattivato</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Svuota · Cache · Ferma · Riproduci</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Audio · Riproduci</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Lettore musicale in streaming diretto</translation>
     </message>
   </context>
   <context>

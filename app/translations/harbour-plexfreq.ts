@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,15 +42,15 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation type="unfinished" />
     </message>
     <message>
       <source>Off</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Crossfade</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -186,10 +193,6 @@
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -410,6 +413,10 @@
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Go online</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -861,11 +868,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Refresh interval</source>
+      <source>%1 hours</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>%1 hours</source>
+      <source>Refresh interval</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -873,11 +880,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Radio download length</source>
+      <source>%1 minutes</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>%1 minutes</source>
+      <source>Radio download length</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Library</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Search</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Title</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Year</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation type="unfinished" />
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation type="unfinished" />
@@ -1436,6 +1379,73 @@
     </message>
     <message>
       <source>Remove from queue</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Library</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Search</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Title</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Year</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sort</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1550,102 +1560,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation type="unfinished" />
     </message>
@@ -1670,7 +1584,15 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Repeat</source>
+      <source>Repeat one</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Repeat off</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -2230,7 +2152,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
+      <source>PlexFreq %1 · Direct-stream music player</source>
       <translation type="unfinished" />
     </message>
   </context>

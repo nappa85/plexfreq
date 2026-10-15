@@ -794,7 +794,7 @@ fn normalized_offline_index_invalidates_after_external_snapshot_replacement() {
             &Container {
                 items: vec![Item {
                     rating_key: "10".into(),
-                    kind: "artist".into(),
+                    kind: plexfreq_core::model::ItemKind::Artist,
                     title: title.into(),
                     ..Default::default()
                 }],

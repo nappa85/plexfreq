@@ -9,7 +9,7 @@ pub struct Layout {
     pub hidden: Vec<String>,
     pub order: Vec<String>,
 }
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, Hash)]
 #[serde(rename_all = "camelCase")]
 pub struct Listen {
     pub namespace: String,

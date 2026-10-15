@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="nl">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Alfabet</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Audio · Zonder onderbrekingen · PCM · Uitvoer</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Overvloeien</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Seconden</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Overvloeien</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Toevoegen · Omhoog · 1000 · Nummers</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Album · Limiet · Radio · Nummer</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Geldig · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Automatisch afspelen · Vernieuwen · Downloads</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Vernieuwen · Duur</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Vernieuwen · Duur</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Vernieuwen · Downloads · Laden</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Radio · Downloads · Duur</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Downloads · Duur</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Omhoog · Volgende</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Opgeslagen · Bibliotheek · Metadata</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Cache · Audio</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Nummers · Gereed · Offline</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Bibliotheek</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Zoeken</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Artiesten</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Albums</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Nummers</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Titel</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Recent toegevoegd</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Jaar</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Zoeken · Artiesten · Albums · Nummers</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Bibliotheek</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Sorteren</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Toevoegen · Sonic · Bron</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Verwijderen · Wachtrij</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Omhoog · Volgende</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Offline · Opgeslagen · Bibliotheek · Metadata</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Cache · Audio</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Nummers · Gereed · Offline</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Zoeken</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Artiesten</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albums</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Nummers</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Jaar</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Zoeken · Artiesten · Albums · Nummers</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotheek</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorteren</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Gedownload</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Toevoegen · Sonic · Bron</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Slim · Filter · Instellingen</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Audio · Vergelijkbaar</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Starten · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Nummer</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Downloads · Radio · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Downloads · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Afspelen · Volgende</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Toevoegen · Wachtrij</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Toevoegen · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Maken · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Toevoegen · Mix</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Hernoemen · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Wissen · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Verplaatsen · Afspeellijst · Omhoog</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Verplaatsen · Afspeellijst · Omlaag</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Verwijderen · Afspeellijst</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Verwijderen</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Toevoegen · Favorieten</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Niet meer bewaren · Downloads</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Offline bewaren · Offline · Geschiedenis</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Verplaatsen · Omhoog</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Verplaatsen · Omlaag</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Verwijderen · Wachtrij</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Opnieuw proberen · Laden</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Willekeurig</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Herhalen</translation>
+      <source>Repeat one</source>
+      <translation>Herhalen: één</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Herhalen: alles</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Herhalen: uit</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Legen · Cache · Stoppen · Afspelen</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Audio · Afspelen</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Muziekspeler met directe streaming</translation>
     </message>
   </context>
   <context>

@@ -7,10 +7,173 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Purpose of a bounded track listing; selects offline policy and messages.
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum Paging {
+    /// Durable offline plan: requires fresh server pages.
+    Download,
+    /// Album contents for playback/queueing/pinning: saved pages are fine.
+    Album,
+}
+impl Paging {
+    fn not_track(self) -> Error {
+        match self {
+            Self::Download => Error::Input("Only audio playlists can be downloaded"),
+            Self::Album => Error::ProtocolAt("album radio tracks"),
+        }
+    }
+    fn too_many(self) -> Error {
+        match self {
+            Self::Download => Error::Input("Download plan exceeds 1000 tracks"),
+            Self::Album => Error::Input("Add up to 1000 tracks at a time"),
+        }
+    }
+}
+
+/// Every rating key referenced by any download group.
+pub(crate) fn pinned_keys(groups: &BTreeMap<GroupId, Vec<String>>) -> BTreeSet<String> {
+    groups.values().flatten().cloned().collect()
+}
+
+/// What a pinned download group or durable download plan was made from. The
+/// variants are in alphabetical order so `GroupId`'s derived ordering equals
+/// the ordering of its string form (persisted maps iterate unchanged).
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Deserialize,
+    Serialize,
+    strum::Display,
+    strum::EnumString,
+    strum::IntoStaticStr,
+    strum::EnumIter,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum DownloadKind {
+    Album,
+    AlbumRadio,
+    ArtistRadio,
+    Playlist,
+    /// A Plex station; its group key is the station's hashed namespace.
+    Station,
+    /// A single pinned track (not a plan).
+    Track,
+    TrackRadio,
+}
+
+impl DownloadKind {
+    /// Accepted `minutes` of a download plan of this kind. Radio-like plans
+    /// need a duration; bounded listings accept an optional cap.
+    pub fn minutes(self) -> std::ops::RangeInclusive<u32> {
+        match self {
+            Self::Album | Self::Playlist | Self::Track => 0..=480,
+            Self::Station | Self::ArtistRadio | Self::AlbumRadio | Self::TrackRadio => 30..=480,
+        }
+    }
+    /// Seed metadata type of a sonic radio download.
+    pub fn radio_seed(self) -> Option<crate::model::ItemKind> {
+        match self {
+            Self::ArtistRadio => Some(crate::model::ItemKind::Artist),
+            Self::AlbumRadio => Some(crate::model::ItemKind::Album),
+            Self::TrackRadio => Some(crate::model::ItemKind::Track),
+            Self::Album | Self::Playlist | Self::Station | Self::Track => None,
+        }
+    }
+    /// The download kind pinning an item of this metadata type.
+    pub fn pinned(kind: &crate::model::ItemKind) -> Option<Self> {
+        match kind {
+            crate::model::ItemKind::Album => Some(Self::Album),
+            crate::model::ItemKind::Track => Some(Self::Track),
+            crate::model::ItemKind::Playlist => Some(Self::Playlist),
+            crate::model::ItemKind::Artist | crate::model::ItemKind::Other(_) => None,
+        }
+    }
+}
+
+/// Key of a pinned download group, persisted and sent to Qt as `kind:key`
+/// ("playlist:5", "track:7", "station:<hash>").
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
+#[serde(into = "String", try_from = "String")]
+pub struct GroupId {
+    pub kind: DownloadKind,
+    pub key: String,
+}
+
+/// Marker in the serde error of an unparseable group id (mapped to a
+/// user-facing message at admission).
+pub(crate) const INVALID_GROUP: &str = "invalid download group";
+
+impl GroupId {
+    pub fn new(kind: DownloadKind, key: impl Into<String>) -> Self {
+        Self {
+            kind,
+            key: key.into(),
+        }
+    }
+    /// The group of a plan: stations are keyed by their hashed path.
+    pub fn plan(kind: DownloadKind, key: &str) -> Self {
+        match kind {
+            DownloadKind::Station => Self::new(kind, crate::cache::namespace(key, "station")),
+            _ => Self::new(kind, key),
+        }
+    }
+}
+
+impl std::fmt::Display for GroupId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.kind, self.key)
+    }
+}
+
+impl std::str::FromStr for GroupId {
+    type Err = &'static str;
+    fn from_str(group: &str) -> std::result::Result<Self, Self::Err> {
+        let (kind, key) = group.split_once(':').ok_or(INVALID_GROUP)?;
+        Ok(Self::new(kind.parse().map_err(|_| INVALID_GROUP)?, key))
+    }
+}
+
+impl TryFrom<String> for GroupId {
+    type Error = &'static str;
+    fn try_from(group: String) -> std::result::Result<Self, Self::Error> {
+        group.parse()
+    }
+}
+
+impl From<GroupId> for String {
+    fn from(group: GroupId) -> Self {
+        group.to_string()
+    }
+}
+
+/// Persisted group maps: drop entries whose key is not a group id instead of
+/// rejecting the whole session document.
+pub(crate) fn lenient_groups<'de, D, V>(
+    deserializer: D,
+) -> std::result::Result<BTreeMap<GroupId, V>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    V: serde::de::DeserializeOwned,
+{
+    Ok(BTreeMap::<String, Value>::deserialize(deserializer)?
+        .into_iter()
+        .filter_map(|(group, value)| {
+            Some((group.parse().ok()?, serde_json::from_value(value).ok()?))
+        })
+        .collect())
+}
+
 #[derive(Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadPlan {
-    pub kind: String,
+    pub kind: DownloadKind,
     pub key: String,
     pub minutes: u32,
     pub refreshed_at: u64,
@@ -26,7 +189,7 @@ impl Core {
             ..Default::default()
         }
         .validate()?;
-        let track = self.fresh_metadata_item(key, "track")?;
+        let track = self.fresh_metadata_item(key, &crate::model::ItemKind::Track)?;
         if track.duration < 10000 || track.duration > 600000 {
             return Err(Error::Input(
                 "Track duration is needed for a timed download",
@@ -101,7 +264,7 @@ impl Core {
                 match outcome.result {
                     Ok((title, tracks)) => {
                         match self.install_download_plan(
-                            &outcome.job.plan.kind,
+                            outcome.job.plan.kind,
                             &outcome.job.plan.key,
                             outcome.job.plan.minutes,
                             title,
@@ -125,7 +288,7 @@ impl Core {
                 .download_plans
                 .iter()
                 .find(|(group, plan)| {
-                    plan.kind != "album"
+                    plan.kind != DownloadKind::Album
                         && self
                             .refresh
                             .due(group, plan, &self.settings.refresh_policy, now)
@@ -147,7 +310,7 @@ impl Core {
             ..Default::default()
         }
         .validate()?;
-        let seed = self.fresh_metadata_item(key, "track")?;
+        let seed = self.fresh_metadata_item(key, &crate::model::ItemKind::Track)?;
         if seed.duration == 0 || seed.duration > 600000 {
             return Err(Error::Input(
                 "Track duration is needed for a timed download",
@@ -181,7 +344,7 @@ impl Core {
         let (bytes, mime) = result?;
         Ok(json!({"transcodeProbe":{"bytes":bytes,"mime":mime,"stopped":stopped}}))
     }
-    fn fresh_metadata_item(&self, key: &str, kind: &str) -> Result<Item> {
+    fn fresh_metadata_item(&self, key: &str, kind: &crate::model::ItemKind) -> Result<Item> {
         self.check_planning()?;
         crate::numeric(key)?;
         let path = format!("/library/metadata/{key}");
@@ -194,10 +357,10 @@ impl Core {
         container
             .items
             .into_iter()
-            .find(|i| i.rating_key == key && i.kind == kind)
+            .find(|i| i.rating_key == key && i.kind == *kind)
             .ok_or(Error::Input("Choose a music item"))
     }
-    fn metadata_item(&self, key: &str, kind: &str) -> Result<Item> {
+    fn metadata_item(&self, key: &str, kind: &crate::model::ItemKind) -> Result<Item> {
         crate::numeric(key)?;
         self.container_cached(
             &format!("/library/metadata/{key}"),
@@ -206,13 +369,26 @@ impl Core {
         .0
         .items
         .into_iter()
-        .find(|i| i.rating_key == key && i.kind == kind)
+        .find(|i| i.rating_key == key && i.kind == *kind)
         .ok_or(Error::Input("Choose a music item"))
     }
-    fn bounded_tracks(&self, path: &str, minutes: u32) -> Result<Vec<Item>> {
+    /// Download recipes page fresh server data only; never a stale offline page.
+    pub(crate) fn bounded_tracks(&self, path: &str, minutes: u32) -> Result<Vec<Item>> {
+        self.paged_tracks(path, minutes, Paging::Download)
+    }
+    /// The one bounded track pager: 100-row pages, at most 1000 tracks. Stops
+    /// on an empty page, a short page without `totalSize`, the advertised total
+    /// or, for timed plans, once `minutes` of audio are collected.
+    pub(crate) fn paged_tracks(
+        &self,
+        path: &str,
+        minutes: u32,
+        paging: Paging,
+    ) -> Result<Vec<Item>> {
         let mut tracks = Vec::new();
         let mut start = 0;
         let mut duration = 0u64;
+        // 10 full pages reach the limit; the 11th confirms an unknown total ended.
         for _ in 0..11 {
             let (page, offline) = self.container_cached(
                 path,
@@ -221,13 +397,15 @@ impl Core {
                     ("X-Plex-Container-Size", "100".into()),
                 ],
             )?;
-            if offline {
+            if offline && paging == Paging::Download {
                 return Err(Error::Input("Go online to refresh downloads"));
             }
             let count = page.items.len();
             for item in page.items {
-                if item.kind != "track" || crate::numeric(&item.rating_key).is_err() {
-                    return Err(Error::Input("Only audio playlists can be downloaded"));
+                if item.kind != crate::model::ItemKind::Track
+                    || crate::numeric(&item.rating_key).is_err()
+                {
+                    return Err(paging.not_track());
                 }
                 if minutes > 0 && item.duration == 0 {
                     return Err(Error::Input(
@@ -237,7 +415,7 @@ impl Core {
                 duration = duration.saturating_add(item.duration);
                 tracks.push(item);
                 if tracks.len() > 1000 {
-                    return Err(Error::Input("Download plan exceeds 1000 tracks"));
+                    return Err(paging.too_many());
                 }
                 if minutes > 0 && duration >= u64::from(minutes) * 60000 {
                     return Ok(tracks);
@@ -248,7 +426,7 @@ impl Core {
                 return Ok(tracks);
             }
         }
-        Err(Error::Input("Download plan exceeds 1000 tracks"))
+        Err(paging.too_many())
     }
     fn radio_download_tracks(&self, seed: Item, minutes: u32) -> Result<Vec<Item>> {
         let base = self.base()?;
@@ -258,7 +436,9 @@ impl Core {
         let mut add = |items: Vec<Item>| -> Result<bool> {
             let before = tracks.len();
             for mut item in items {
-                if item.kind != "track" || crate::numeric(&item.rating_key).is_err() {
+                if item.kind != crate::model::ItemKind::Track
+                    || crate::numeric(&item.rating_key).is_err()
+                {
                     return Err(Error::ProtocolAt("radio download tracks"));
                 }
                 if seen.insert(item.rating_key.clone()) {
@@ -314,7 +494,7 @@ impl Core {
                 )?;
             }
         } else {
-            if seed.kind == "artist" {
+            if seed.kind == crate::model::ItemKind::Artist {
                 return Err(Error::Input(
                     "Plex does not expose an artist radio station for this artist",
                 ));
@@ -326,7 +506,7 @@ impl Core {
                 if !seeds.insert(seed.rating_key.clone()) {
                     break;
                 }
-                let items = if seed.kind == "album" {
+                let items = if seed.kind == crate::model::ItemKind::Album {
                     self.album_tracks(&seed)?
                 } else {
                     vec![seed.clone()]
@@ -347,8 +527,13 @@ impl Core {
         }
         Ok(tracks)
     }
-    pub(crate) fn download_plan(&mut self, kind: &str, key: &str, minutes: u32) -> Result<Value> {
-        if kind == "station" {
+    pub(crate) fn download_plan(
+        &mut self,
+        kind: DownloadKind,
+        key: &str,
+        minutes: u32,
+    ) -> Result<Value> {
+        if kind == DownloadKind::Station {
             if !key.starts_with("/library/")
                 || !crate::plex::advertised_path(&self.base()?, key)?
                     .path()
@@ -367,9 +552,7 @@ impl Core {
                 "Enable audio caching before pinning downloads",
             ));
         }
-        if minutes > 480
-            || ((kind == "station" || kind.ends_with("_radio")) && !(30..=480).contains(&minutes))
-        {
+        if !kind.minutes().contains(&minutes) {
             return Err(Error::Input("Choose 30–480 minutes for a radio download"));
         }
         let (title, tracks) = self.collect_download(kind, key, minutes)?;
@@ -377,14 +560,14 @@ impl Core {
     }
     pub(crate) fn collect_download(
         &self,
-        kind: &str,
+        kind: DownloadKind,
         key: &str,
         minutes: u32,
     ) -> Result<(String, Vec<Item>)> {
         self.check_planning()?;
         let collected = match kind {
-            "station" => {
-                let group = format!("station:{}", crate::cache::namespace(key, "station"));
+            DownloadKind::Station => {
+                let group = GroupId::plan(kind, key);
                 let title = self
                     .settings
                     .download_titles
@@ -392,42 +575,47 @@ impl Core {
                     .cloned()
                     .unwrap_or_else(|| "Radio".into());
                 let seed = Item {
-                    kind: "artist".into(),
+                    kind: crate::model::ItemKind::Artist,
                     title: title.clone(),
                     stations: json!([{ "key":key }]),
                     ..Default::default()
                 };
                 (title, self.radio_download_tracks(seed, minutes)?)
             }
-            "playlist" => {
+            DownloadKind::Playlist => {
                 let item = self.playlist_metadata(key)?;
                 (
                     item.title,
                     self.bounded_tracks(&format!("/playlists/{key}/items"), minutes)?,
                 )
             }
-            "album" => {
-                let seed = self.fresh_metadata_item(key, "album")?;
+            DownloadKind::Album => {
+                let seed = self.fresh_metadata_item(key, &crate::model::ItemKind::Album)?;
                 (
                     seed.title.clone(),
                     self.bounded_tracks(&format!("/library/metadata/{key}/children"), 0)?,
                 )
             }
-            "artist_radio" | "album_radio" | "track_radio" => {
-                let seed = self.fresh_metadata_item(key, kind.trim_end_matches("_radio"))?;
+            DownloadKind::ArtistRadio | DownloadKind::AlbumRadio | DownloadKind::TrackRadio => {
+                let seed_kind = kind
+                    .radio_seed()
+                    .ok_or(Error::Input("Choose a playlist, album or radio download"))?;
+                let seed = self.fresh_metadata_item(key, &seed_kind)?;
                 (
                     seed.title.clone(),
                     self.radio_download_tracks(seed, minutes)?,
                 )
             }
-            _ => return Err(Error::Input("Choose a playlist, album or radio download")),
+            DownloadKind::Track => {
+                return Err(Error::Input("Choose a playlist, album or radio download"))
+            }
         };
         self.check_planning()?;
         Ok(collected)
     }
     fn install_download_plan(
         &mut self,
-        kind: &str,
+        kind: DownloadKind,
         key: &str,
         minutes: u32,
         title: String,
@@ -438,17 +626,13 @@ impl Core {
         if tracks.is_empty() {
             return Err(Error::Input("Pin up to 1000 playable tracks"));
         }
-        let group = if kind == "station" {
-            format!("station:{}", crate::cache::namespace(key, "station"))
-        } else {
-            format!("{kind}:{key}")
-        };
+        let group = GroupId::plan(kind, key);
         let mut groups = self.settings.download_groups.clone();
         groups.insert(
             group.clone(),
             tracks.iter().map(|i| i.rating_key.clone()).collect(),
         );
-        let keep: BTreeSet<_> = groups.values().flatten().cloned().collect();
+        let keep = pinned_keys(&groups);
         let mut plan: BTreeMap<_, _> = self
             .manual_cache
             .iter()
@@ -467,7 +651,7 @@ impl Core {
         self.settings.download_plans.insert(
             group.clone(),
             DownloadPlan {
-                kind: kind.into(),
+                kind,
                 key: key.into(),
                 minutes,
                 refreshed_at: crate::history::now(),
@@ -496,23 +680,20 @@ impl Core {
         title: &str,
         minutes: u32,
     ) -> Result<Value> {
-        self.download_plan("station", key, minutes)?;
-        let group = format!("station:{}", crate::cache::namespace(key, "station"));
+        self.download_plan(DownloadKind::Station, key, minutes)?;
+        let group = GroupId::plan(DownloadKind::Station, key);
         self.settings
             .download_titles
             .insert(group, title.chars().take(512).collect());
         Ok(json!({"cache":self.cache_status(),"downloads":self.download_rows()}))
     }
-    pub(crate) fn refresh_download(&mut self, group: &str) -> Result<Value> {
+    pub(crate) fn refresh_download(&mut self, group: &GroupId) -> Result<Value> {
         if let Some(plan) = self.settings.download_plans.get(group).cloned() {
-            return self.download_plan(&plan.kind, &plan.key, plan.minutes);
+            return self.download_plan(plan.kind, &plan.key, plan.minutes);
         }
-        let (kind, key) = group
-            .split_once(':')
-            .ok_or(Error::Input("Download group no longer exists"))?;
-        self.download_plan(kind, key, 0)
+        self.download_plan(group.kind, &group.key, 0)
     }
-    pub(crate) fn play_download(&mut self, group: &str) -> Result<Value> {
+    pub(crate) fn play_download(&mut self, group: &GroupId) -> Result<Value> {
         let keys = self
             .settings
             .download_groups
@@ -547,9 +728,12 @@ impl Core {
         {
             if !track.parent_rating_key.is_empty() {
                 catalogue
-                    .entry(("album".into(), track.parent_rating_key.clone()))
+                    .entry((
+                        crate::model::ItemKind::Album,
+                        track.parent_rating_key.clone(),
+                    ))
                     .or_insert_with(|| Item {
-                        kind: "album".into(),
+                        kind: crate::model::ItemKind::Album,
                         rating_key: track.parent_rating_key.clone(),
                         title: track.parent_title.clone(),
                         parent_rating_key: track.grandparent_rating_key.clone(),
@@ -560,9 +744,12 @@ impl Core {
             }
             if !track.grandparent_rating_key.is_empty() {
                 catalogue
-                    .entry(("artist".into(), track.grandparent_rating_key.clone()))
+                    .entry((
+                        crate::model::ItemKind::Artist,
+                        track.grandparent_rating_key.clone(),
+                    ))
                     .or_insert_with(|| Item {
-                        kind: "artist".into(),
+                        kind: crate::model::ItemKind::Artist,
                         rating_key: track.grandparent_rating_key.clone(),
                         title: track.grandparent_title.clone(),
                         ..Default::default()
@@ -597,20 +784,26 @@ impl Core {
             .as_ref()
             .map_or_else(Vec::new, |index| index.items.clone())
     }
-    pub(crate) fn offline_search(&self, query: &str, kind: &str, start: usize) -> Result<Value> {
-        if !matches!(kind, "" | "artist" | "album" | "track") || query.len() > 512 {
+    pub(crate) fn offline_search(
+        &self,
+        query: &str,
+        kind: &crate::model::ItemKind,
+        start: usize,
+    ) -> Result<Value> {
+        if !(kind.is_empty() || kind.is_music()) || query.len() > 512 {
             return Err(Error::Input("Choose a music item"));
         }
         self.ensure_offline_index();
         let index = self.offline_index.borrow();
         let index = index.as_ref().ok_or(Error::Input("Choose a music item"))?;
-        let total = index.search(query, kind).count();
-        let page: Vec<_> = index
-            .search(query, kind)
-            .skip(start)
-            .take(100)
-            .map(|item| self.display_item(item))
-            .collect();
+        let mut total = 0;
+        let mut page = Vec::new();
+        for item in index.search(query, kind) {
+            if total >= start && page.len() < 100 {
+                page.push(self.display_item(item));
+            }
+            total += 1;
+        }
         let received = page.len();
         Ok(crate::pagination::page(
             page,
@@ -663,14 +856,12 @@ impl Core {
                         | "home.recentlyPlayed"
                 );
             for item in hub.items.into_iter().take(12) {
-                let station = item.kind == "playlist"
+                let station = item.kind == crate::model::ItemKind::Playlist
                     && item.radio
                     && item.key.starts_with("/library/")
                     && crate::plex::advertised_path(&self.base()?, &item.key).is_ok();
-                if !matches!(
-                    item.kind.as_str(),
-                    "artist" | "album" | "track" | "playlist"
-                ) || (!station && crate::numeric(&item.rating_key).is_err())
+                if !(item.kind.is_music() || item.kind == crate::model::ItemKind::Playlist)
+                    || (!station && crate::numeric(&item.rating_key).is_err())
                 {
                     continue;
                 }
@@ -688,8 +879,12 @@ impl Core {
             json!({"items":items,"start":0,"next":0,"hasMore":false,"offline":offline,"discoveryHome":true,"discoveryHubs":options,"discoveryLayout":layout}),
         )
     }
-    pub(crate) fn sonic_neighbors(&self, key: &str, kind: &str) -> Result<Value> {
-        if !matches!(kind, "artist" | "album" | "track") {
+    pub(crate) fn sonic_neighbors(
+        &self,
+        key: &str,
+        kind: &crate::model::ItemKind,
+    ) -> Result<Value> {
+        if !kind.is_music() {
             return Err(Error::Input("Choose a music item"));
         }
         let seed = self.metadata_item(key, kind)?;
@@ -720,7 +915,7 @@ impl Core {
         if page
             .items
             .iter()
-            .any(|i| i.kind != "track" || i.play_queue_item_id.is_none())
+            .any(|i| i.kind != crate::model::ItemKind::Track || i.play_queue_item_id.is_none())
         {
             return Err(Error::ProtocolAt("radio queue tracks"));
         }
@@ -759,10 +954,9 @@ impl Core {
         )?;
         if container.items.len() > 100
             || container.total_size.is_some_and(|n| n > 100)
-            || container
-                .items
-                .iter()
-                .any(|i| i.kind != "track" || crate::numeric(&i.rating_key).is_err())
+            || container.items.iter().any(|i| {
+                i.kind != crate::model::ItemKind::Track || crate::numeric(&i.rating_key).is_err()
+            })
         {
             return Err(Error::ProtocolAt("sonic adventure"));
         }
@@ -772,5 +966,87 @@ impl Core {
             .map(|i| self.display_item(i))
             .collect();
         Ok(json!({"items":items,"start":0,"next":0,"hasMore":false,"offline":offline}))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn group_ids_keep_their_string_form_and_order() {
+        let raw = [
+            "album:3",
+            "album_radio:4",
+            "artist_radio:1",
+            "playlist:10",
+            "playlist:5",
+            "station:0123abcd",
+            "track:7",
+            "track_radio:2",
+        ];
+        let mut sorted = raw.to_vec();
+        sorted.sort();
+        let mut groups: Vec<GroupId> = raw.iter().map(|g| g.parse().unwrap()).collect();
+        groups.reverse();
+        groups.sort();
+        assert_eq!(
+            groups.iter().map(GroupId::to_string).collect::<Vec<_>>(),
+            sorted
+        );
+        for group in &groups {
+            let value = serde_json::to_value(group).unwrap();
+            assert_eq!(value, json!(group.to_string()));
+            assert_eq!(serde_json::from_value::<GroupId>(value).unwrap(), *group);
+        }
+        for bad in ["", "playlist", "genre:1", ":5"] {
+            assert!(bad.parse::<GroupId>().is_err(), "{bad}");
+        }
+        assert_eq!(
+            GroupId::plan(DownloadKind::Station, "/library/metadata/1/station/x").to_string(),
+            format!(
+                "station:{}",
+                crate::cache::namespace("/library/metadata/1/station/x", "station")
+            )
+        );
+        // Settings maps keep their on-disk keys; an unparseable legacy entry
+        // is dropped instead of discarding the whole session document.
+        let settings: crate::store::Settings = serde_json::from_value(json!({
+            "downloadGroups": {"playlist:5": ["1"], "bogus": ["2"]},
+            "downloadTitles": {"playlist:5": "Mix"},
+            "downloadPlans": {
+                "playlist:5": {"kind":"playlist","key":"5","minutes":0,"refreshedAt":1},
+                "album:9": {"kind":"nonsense","key":"9","minutes":0,"refreshedAt":1}
+            }
+        }))
+        .unwrap();
+        let saved = serde_json::to_value(&settings).unwrap();
+        assert_eq!(saved["downloadGroups"], json!({"playlist:5": ["1"]}));
+        assert_eq!(saved["downloadTitles"], json!({"playlist:5": "Mix"}));
+        assert_eq!(
+            saved["downloadPlans"],
+            json!({"playlist:5": {"kind":"playlist","key":"5","minutes":0,"refreshedAt":1}})
+        );
+    }
+
+    #[test]
+    fn download_kind_minute_rules() {
+        for kind in DownloadKind::iter() {
+            let radio = kind.radio_seed().is_some() || kind == DownloadKind::Station;
+            assert_eq!(kind.minutes().contains(&0), !radio, "{kind}");
+            assert!(kind.minutes().contains(&480), "{kind}");
+            assert!(!kind.minutes().contains(&481), "{kind}");
+            assert_eq!(kind.minutes().contains(&29), !radio, "{kind}");
+            assert!(kind.minutes().contains(&30), "{kind}");
+            let name = kind.to_string();
+            assert_eq!(serde_json::to_value(kind).unwrap(), json!(name));
+            assert_eq!(name.parse::<DownloadKind>().unwrap(), kind);
+        }
+        assert_eq!(
+            DownloadKind::TrackRadio.radio_seed(),
+            Some(crate::model::ItemKind::Track)
+        );
+        assert_eq!(DownloadKind::Station.radio_seed(), None);
     }
 }

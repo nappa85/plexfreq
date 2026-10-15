@@ -3,7 +3,7 @@ use plexfreq_core::{model::Item, queue::Queue};
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         duration: 120000,
         ..Default::default()
     }
@@ -38,9 +38,9 @@ fn trim_history_bounds_shuffled_radio_growth() {
     // Radio trims to the last 100 tracks behind current.
     q.trim_history(100);
     assert!(
-        q.items.len() <= 101,
+        q.items().len() <= 101,
         "shuffled history must stay bounded, kept {} items",
-        q.items.len()
+        q.items().len()
     );
     q.validate().unwrap();
 }
@@ -156,7 +156,7 @@ fn queue_append_enforces_maximum_without_corrupting_persisted_state() {
     );
     // Persisted state must stay valid.
     q.validate().unwrap();
-    assert_eq!(q.items.len(), 10000);
+    assert_eq!(q.items().len(), 10000);
 }
 
 // Production review: Cache::schedule allows 1021 tracks while its own error
@@ -286,7 +286,7 @@ fn saveplayback_preserves_position_when_duration_unknown() {
     .unwrap();
     let item = Item {
         rating_key: "0".into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         title: "Zero".into(),
         duration: 0,
         media: vec![Media {

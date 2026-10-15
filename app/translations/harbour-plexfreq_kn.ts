@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="kn">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>ವರ್ಣಮಾಲೆ</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · ಆಡಿಯೋ · ವಿರಾಮರಹಿತ · PCM · ಔಟ್‌ಪುಟ್</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>ಕ್ರಾಸ್‌ಫೇಡ್</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · ಸೆಕೆಂಡುಗಳು</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>ಕ್ರಾಸ್‌ಫೇಡ್</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>ಸೇರಿಸು · ಮೇಲೆ · 1000 · ಹಾಡುಗಳು</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>ಆಲ್ಬಮ್ · ಮಿತಿ · ರೇಡಿಯೋ · ಹಾಡು</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>ಮಾನ್ಯ · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ಆನ್‌ಲೈನ್</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>ಸ್ವಯಂ ಪ್ಲೇ · ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಅವಧಿ</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಅವಧಿ</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>ರಿಫ್ರೆಶ್‌ಮಾಡು · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>ರೇಡಿಯೋ · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಅವಧಿ</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>ರೇಡಿಯೋ · ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಅವಧಿ</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>ಮೇಲೆ · ಮುಂದಿನದು</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>ರೇಡಿಯೋ</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>ಆಫ್‌ಲೈನ್ · ಉಳಿಸಲಾಗಿದೆ · ಗ್ರಂಥಾಲಯ · ಮೆಟಾಡೇಟಾ</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>ಸಂಗ್ರಹ · ಆಡಿಯೋ</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · ಹಾಡುಗಳು · ಸಿದ್ಧ · ಆಫ್‌ಲೈನ್</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>ಗ್ರಂಥಾಲಯ</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>ಹುಡುಕು</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>ಕಲಾವಿದರು</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>ಹಾಡುಗಳು</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>ಶೀರ್ಷಿಕೆ</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>ವರ್ಷ</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>ಹುಡುಕು · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಹಾಡುಗಳು</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>ಗ್ರಂಥಾಲಯ</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>ವಿಂಗಡಿಸು</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>ಸೇರಿಸು · Sonic · ಮೂಲ</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>ತೆಗೆದುಹಾಕು · ಸರದಿ</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>ಮೇಲೆ · ಮುಂದಿನದು</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>ರೇಡಿಯೋ</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>ಆಫ್‌ಲೈನ್ · ಉಳಿಸಲಾಗಿದೆ · ಗ್ರಂಥಾಲಯ · ಮೆಟಾಡೇಟಾ</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>ಸಂಗ್ರಹ · ಆಡಿಯೋ</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · ಹಾಡುಗಳು · ಸಿದ್ಧ · ಆಫ್‌ಲೈನ್</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>ಹುಡುಕು</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>ಕಲಾವಿದರು</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>ಆಲ್ಬಮ್‌ಗಳು</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>ಶೀರ್ಷಿಕೆ</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>ವರ್ಷ</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>ಹುಡುಕು · ಕಲಾವಿದರು · ಆಲ್ಬಮ್‌ಗಳು · ಹಾಡುಗಳು</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>ಗ್ರಂಥಾಲಯ</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ವಿಂಗಡಿಸು</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>ಸೇರಿಸು · Sonic · ಮೂಲ</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>ಸ್ಮಾರ್ಟ್ · ಫಿಲ್ಟರ್ · ಸೆಟ್ಟಿಂಗ್‌ಗಳು</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>ಆಡಿಯೋ · ಹೋಲುವ</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>ಆರಂಭಿಸು · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · ಹಾಡು</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ರೇಡಿಯೋ · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>ಪ್ಲೇಮಾಡು · ಮುಂದಿನದು</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>ಸೇರಿಸು · ಸರದಿ</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>ಸೇರಿಸು · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>ರಚಿಸು · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>ಸೇರಿಸು · ಮಿಶ್ರಣ</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>ಹೆಸರು ಬದಲಿಸು · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>ಅಳಿಸು · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>ಸ್ಥಳಾಂತರಿಸು · ಪ್ಲೇಪಟ್ಟಿ · ಮೇಲೆ</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>ಸ್ಥಳಾಂತರಿಸು · ಪ್ಲೇಪಟ್ಟಿ · ಕೆಳಗೆ</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>ತೆಗೆದುಹಾಕು · ಪ್ಲೇಪಟ್ಟಿ</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>ತೆಗೆದುಹಾಕು</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>ಸೇರಿಸು · ಮೆಚ್ಚಿನವು</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>ಉಳಿಸುವುದನ್ನು ನಿಲ್ಲಿಸು · ಡೌನ್‌ಲೋಡ್‌ಗಳು</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಉಳಿಸು · ಆಫ್‌ಲೈನ್ · ಇತಿಹಾಸ</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>ಸ್ಥಳಾಂತರಿಸು · ಮೇಲೆ</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>ಸ್ಥಳಾಂತರಿಸು · ಕೆಳಗೆ</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>ತೆಗೆದುಹಾಕು · ಸರದಿ</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>ಯಾದೃಚ್ಛಿಕ</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>ಪುನರಾವರ್ತಿಸು</translation>
+      <source>Repeat one</source>
+      <translation>ಪುನರಾವರ್ತನೆ: ಒಂದು</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>ಪುನರಾವರ್ತನೆ: ಎಲ್ಲಾ</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>ಪುನರಾವರ್ತನೆ: ಆಫ್</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>ತೆರವುಗೊಳಿಸು · ಸಂಗ್ರಹ · ನಿಲ್ಲಿಸು · ಪ್ಲೇಮಾಡು</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · ಆಡಿಯೋ · ಪ್ಲೇಮಾಡು</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · ನೇರ ಸ್ಟ್ರೀಮಿಂಗ್ ಸಂಗೀತ ಪ್ಲೇಯರ್</translation>
     </message>
   </context>
   <context>

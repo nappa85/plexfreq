@@ -38,6 +38,8 @@ ApplicationWindow {
     Connections {target:session;onEditPlaylistRequested:playlistEditor.open();onOpenDownloads:downloadManager.open()}
     Connections {target:session;onOpenPlayer:nowPlaying.open()}
     Connections { target:session; onResetView:list.positionViewAtBeginning() }
+    ItemActions {id:itemActions;music:session}
+    GridPosition {id:gridPosition;listView:list;artistBrowse:session.artistBrowse;alphabet:session.alphabet;hasMore:!!backend.state.hasMore}
 
     ColumnLayout {
         anchors.fill: parent; anchors.margins: 24; spacing: 14
@@ -109,45 +111,13 @@ ApplicationWindow {
         ListView {
             id:list;objectName:"libraryList";Layout.fillWidth:true;Layout.fillHeight:true;clip:true;spacing:5
             model: session.gridBrowse ? null : session.rows
-            property real gridContentY: 0
-            property bool restoreGridContentY: false
-            property int pendingArtistIndex: -1
-            property string activeArtistLetter: ""
             function checkMore() { session.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
-            function positionArtist(index) {
-                pendingArtistIndex=index
-                Qt.callLater(tryPositionArtist)
-            }
-            function tryPositionArtist() {
-                var grid=footerItem ? footerItem.grid : null
-                if(pendingArtistIndex<0 || !grid || grid.columns<1 || grid.cellHeight<=0)return
-                if(pendingArtistIndex>=grid.count && backend.state.hasMore)return
-                if(grid.height>height && contentHeight<=height)return
-                var target=Math.min(pendingArtistIndex,Math.max(0,grid.count-1))
-                var point=grid.mapToItem(contentItem,0,Math.floor(target/grid.columns)*grid.cellHeight)
-                contentY=Math.max(originY,Math.min(point.y,Math.max(originY,contentHeight-height)))
-                pendingArtistIndex=-1
-                updateArtistLetter()
-            }
-            function updateArtistLetter() {
-                var grid=footerItem ? footerItem.grid : null
-                if(!session.artistBrowse || !session.alphabet.length || !grid || grid.count===0){activeArtistLetter="";return}
-                var localY=grid.mapFromItem(list,0,0).y
-                var first=Math.max(0,Math.min(grid.count-1,Math.floor(Math.max(0,localY)/grid.cellHeight)*grid.columns))
-                var letter=session.alphabet[0].letter
-                for(var i=0;i<session.alphabet.length;i++)if(session.alphabet[i].offset<=first)letter=session.alphabet[i].letter;else break
-                activeArtistLetter=letter
-            }
-            function retainGridPosition() {
-                if(!restoreGridContentY)return
-                Qt.callLater(function(){contentY=Math.max(originY,Math.min(gridContentY,Math.max(originY,contentHeight-height)));restoreGridContentY=false})
-            }
-            onContentYChanged:{moreTimer.restart();updateArtistLetter()}
-            onContentHeightChanged:Qt.callLater(tryPositionArtist)
+            onContentYChanged:{moreTimer.restart();gridPosition.updateArtistLetter()}
+            onContentHeightChanged:gridPosition.schedulePosition()
             onCountChanged:moreTimer.restart()
             onHeightChanged:moreTimer.restart()
             Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(session.gridBrowse){list.gridContentY=list.contentY;list.restoreGridContentY=true}moreTimer.restart()} }
+            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(session.gridBrowse)gridPosition.rememberGridPosition();moreTimer.restart()} }
             ScrollBar.vertical: ScrollBar {}
             section.property:session.homeView ? "groupTitle" : session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
             section.delegate:RowLayout {
@@ -183,30 +153,7 @@ ApplicationWindow {
                     Label { text:qsTr("Downloaded"); visible:itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0; color:"#ebad3d" }
                     RadioAction { actionName: session.radioActionText(itemData); visible: !session.artistBrowse && session.canRadio(itemData); enabled: !backend.busy; onClicked: session.startRadio(itemData) }
                     Button {text:"⋮";onClicked:entryMenu.open()
-                        Menu {id:entryMenu
-                            MenuItem {text:qsTr("Add sonic waypoint");visible:itemData.type==="track";enabled:session.journeyTracks.length<8;onTriggered:session.addJourneyTrack(itemData)}
-                            MenuItem {text:qsTr("Edit smart filters");visible:itemData.type==="playlist" && !!itemData.smart && !itemData.station;enabled:!backend.state.offlineMode;onTriggered:session.editFilters("update",itemData)}
-                            MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(itemData);onTriggered:session.sonicNeighbors(itemData)}
-                            MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onTriggered:session.adventureStart=itemData}
-                            MenuItem {text:qsTr("Sonic Adventure to this track");visible:itemData.type==="track" && !!session.adventureStart;onTriggered:session.sonicAdventure(itemData)}
-                            MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);visible:itemData.station || session.canRadio(itemData);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
-                            MenuItem {text:qsTr("Download %1 minutes").arg(session.downloadMinutes);visible:itemData.type==="playlist" && !itemData.station;enabled:!backend.state.offlineMode;onTriggered:backend.command("download_plan",{kind:"playlist",key:itemData.ratingKey,minutes:session.downloadMinutes})}
-                            MenuItem {text:qsTr("Play next");visible:!session.showQueue;onTriggered:session.enqueue(itemData,true)}
-                            MenuItem {text:qsTr("Add to queue");visible:!session.showQueue;onTriggered:session.enqueue(itemData,false)}
-                            MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.playlistEditor("add",itemData)}
-                            MenuItem {text:qsTr("Create playlist from this");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.playlistEditor("create",itemData)}
-                            MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onTriggered:session.addMixSeed(itemData)}
-                            MenuItem {text:qsTr("Rename playlist");visible:itemData.type==="playlist" && !itemData.station;onTriggered:session.playlistEditor("rename",itemData)}
-                            MenuItem {text:qsTr("Delete playlist");visible:itemData.type==="playlist" && !itemData.station;onTriggered:backend.command("playlist_edit",{action:"delete",key:itemData.ratingKey})}
-                            MenuItem {text:qsTr("Move playlist entry up");visible:!!session.playlist && !session.playlist.smart;enabled:index>0;onTriggered:session.playlistMove(index,false)}
-                            MenuItem {text:qsTr("Move playlist entry down");visible:!!session.playlist && !session.playlist.smart;enabled:index+1<session.items.length;onTriggered:session.playlistMove(index,true)}
-                            MenuItem {text:qsTr("Remove from playlist");visible:!!session.playlist && !session.playlist.smart;onTriggered:backend.command("playlist_edit",{action:"remove",key:session.playlist.ratingKey,item_id:itemData.playlistItemId})}
-                            MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onTriggered:session.favorite(itemData)}
-                            MenuItem {text:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)>=0?qsTr("Unpin download"):qsTr("Pin for offline listening");visible:!itemData.station && (itemData.type==="track" || itemData.type==="album" || itemData.type==="playlist");onTriggered:backend.command("pin",{key:itemData.ratingKey,kind:itemData.type,enabled:backend.cache.pinnedGroups.indexOf(itemData.type+":"+itemData.ratingKey)<0})}
-                            MenuItem {text:qsTr("Move up");visible:session.showQueue;enabled:index>0;onTriggered:session.moveQueue(index,index-1)}
-                            MenuItem {text:qsTr("Move down");visible:session.showQueue;enabled:index+1<backend.state.queue.items.length;onTriggered:session.moveQueue(index,index+1)}
-                            MenuItem {text:qsTr("Remove from queue");visible:session.showQueue;onTriggered:backend.command("queue_remove",{index:index})}
-                        }
+                        ItemMenu {id:entryMenu;actions:itemActions;actionIds:itemActions.rowActions;item:itemData;itemIndex:index}
                     }
                 }
                 GridView {
@@ -221,13 +168,7 @@ ApplicationWindow {
                             Label {x:8;width:parent.width-16;text:card.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:cardMenu.open()
-                            Menu {id:cardMenu
-                                MenuItem {text:qsTr("Play next");visible:card.type==="track" || card.type==="album";onTriggered:session.enqueue(card,true)}
-                                MenuItem {text:qsTr("Add to queue");visible:card.type==="track" || card.type==="album";onTriggered:session.enqueue(card,false)}
-                                MenuItem {text:qsTr("Add to playlist");visible:card.type==="track" || card.type==="album";enabled:!backend.state.offlineMode;onTriggered:session.playlistEditor("add",card)}
-                                MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(card);onTriggered:session.sonicNeighbors(card)}
-                                MenuItem {text:card.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:card.type==="track";onTriggered:session.favorite(card)}
-                            }
+                            ItemMenu {id:cardMenu;actions:itemActions;actionIds:itemActions.cardActions;item:card;itemIndex:modelData.sourceIndex}
                         }
                     }
                 }
@@ -242,9 +183,9 @@ ApplicationWindow {
                 GridView {
                     id:artistGrid;objectName:"routeGrid";width:parent.width;height:visible ? Math.ceil(count/columns)*cellHeight : 0
                     visible:session.gridBrowse;model:visible ? session.rows : null;interactive:false
-                    onCountChanged:{list.retainGridPosition();list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
-                    onColumnsChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
-                    onHeightChanged:{list.updateArtistLetter();Qt.callLater(list.tryPositionArtist)}
+                    onCountChanged:{gridPosition.retainGridPosition();gridPosition.relayout()}
+                    onColumnsChanged:gridPosition.relayout()
+                    onHeightChanged:gridPosition.relayout()
                     property int columns:Math.max(1,Math.floor(width/170))
                     cellWidth:width/columns;cellHeight:180
                     delegate:ItemDelegate {
@@ -257,16 +198,7 @@ ApplicationWindow {
                             Label {x:8;width:parent.width-16;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:artistMenu.open()
-                            Menu {id:artistMenu
-                                MenuItem {text:qsTr("Play next");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.enqueue(itemData,true)}
-                                MenuItem {text:qsTr("Add to queue");visible:itemData.type==="track" || itemData.type==="album";onTriggered:session.enqueue(itemData,false)}
-                                MenuItem {text:qsTr("Add to playlist");visible:itemData.type==="track" || itemData.type==="album";enabled:!backend.state.offlineMode;onTriggered:session.playlistEditor("add",itemData)}
-                                MenuItem {text:qsTr("Sonically similar");visible:session.canRadio(itemData);onTriggered:session.sonicNeighbors(itemData)}
-                                MenuItem {text:qsTr("Start sonic adventure here");visible:itemData.type==="track";onTriggered:session.adventureStart=itemData}
-                                MenuItem {text:qsTr("Download radio · %1 minutes").arg(session.downloadMinutes);visible:session.canRadio(itemData);enabled:!backend.state.offlineMode;onTriggered:session.downloadRadio(itemData)}
-                                MenuItem {text:qsTr("Add as mix seed");visible:itemData.type==="artist" || itemData.type==="album";onTriggered:session.addMixSeed(itemData)}
-                                MenuItem {text:itemData.userRating>=10?qsTr("Remove favorite"):qsTr("Add to favorites");visible:itemData.type==="track";onTriggered:session.favorite(itemData)}
-                            }
+                            ItemMenu {id:artistMenu;actions:itemActions;actionIds:itemActions.gridActions;item:itemData;itemIndex:index}
                         }
                     }
                 }
@@ -282,8 +214,8 @@ ApplicationWindow {
                 color: "#9eaabd"; width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
             }
         }
-        Connections {target:session;onArtistJumped:list.positionArtist(index)}
-        AlphabetRail {objectName:"libraryAlphabet";groups:session.alphabet;current:list.activeArtistLetter;visible:session.artistBrowse && groups.length>0;Layout.preferredWidth:Math.max(44,implicitWidth);Layout.fillHeight:true;color:"#9eaabd";highlightColor:"#ebad3d";fontSize:16;onChosen:session.jump(letter)}
+        Connections {target:session;onArtistJumped:gridPosition.positionArtist(index)}
+        AlphabetRail {objectName:"libraryAlphabet";groups:session.alphabet;current:gridPosition.activeArtistLetter;visible:session.artistBrowse && groups.length>0;Layout.preferredWidth:Math.max(44,implicitWidth);Layout.fillHeight:true;color:"#9eaabd";highlightColor:"#ebad3d";fontSize:16;onChosen:session.jump(letter)}
         }
         Rectangle { Layout.fillWidth: true; height: 1; color: "#303c4c" }
         RowLayout {
@@ -297,7 +229,7 @@ ApplicationWindow {
             Button { text: backend.playing ? "⏸" : "▶"; onClicked: backend.togglePlayback() }
             Button { text: "⏭"; enabled: !backend.busy; onClicked: backend.command("next", {automatic:false}) }
             Button { text: qsTr("Shuffle"); checkable: true; checked: !!backend.state.queue.shuffled; enabled: !backend.busy && !backend.state.radio; onClicked: backend.command("shuffle", {enabled: !backend.state.queue.shuffled}) }
-            Button { text: qsTr("Repeat") + ": " + backend.state.queue.repeat; enabled: !backend.busy && !backend.state.radio; onClicked: backend.command("repeat", {mode: backend.state.queue.repeat === "off" ? "all" : backend.state.queue.repeat === "all" ? "one" : "off"}) }
+            Button { text: backend.state.queue.repeat === "one" ? qsTr("Repeat one") : backend.state.queue.repeat === "all" ? qsTr("Repeat all") : qsTr("Repeat off"); enabled: !backend.busy && !backend.state.radio; onClicked: backend.command("repeat", {mode: backend.state.queue.repeat === "off" ? "all" : backend.state.queue.repeat === "all" ? "one" : "off"}) }
         }
         RowLayout {
             Label { text: session.time(backend.position) }
@@ -371,7 +303,7 @@ ApplicationWindow {
             Button {text:qsTr("Audio settings");onClicked:session.openAudioSettings()}
             Switch {text:qsTr("Autoplay related music at queue end");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}
             Switch { text:qsTr("Cache queued audio automatically"); checked:backend.cache.enabled; enabled:!backend.busy; onClicked:backend.command("cache_config", {enabled:checked, limit_mb:backend.cache.limitMb, ahead:backend.cache.ahead}) }
-            ComboBox { model:[128,256,512,1024,2048]; enabled:!backend.busy; displayText:qsTr("Cache limit") + ": " + backend.cache.limitMb + " MiB"; onActivated:backend.command("cache_config", {enabled:backend.cache.enabled, limit_mb:model[currentIndex], ahead:backend.cache.ahead}) }
+            ComboBox { textRole:"text"; valueRole:"value"; model:[128,256,512,1024,2048].map(function(mb){return {value:mb,text:mb + " MiB"}}); currentIndex:count>0 ? indexOfValue(backend.cache.limitMb) : -1; enabled:!backend.busy; displayText:qsTr("Cache limit") + ": " + backend.cache.limitMb + " MiB"; onActivated:backend.command("cache_config", {enabled:backend.cache.enabled, limit_mb:currentValue, ahead:backend.cache.ahead}) }
             Label { text:qsTr("%1 tracks downloaded · %2 MiB used").arg(backend.cache.tracks).arg(Math.round(backend.cache.bytes / 1048576)); Layout.fillWidth:true }
             Label { text:backend.cache.error; visible:text.length>0; color:"#ff998b"; wrapMode:Text.Wrap; Layout.fillWidth:true }
             Button { text:qsTr("Clear cache and stop playback"); enabled:!backend.busy; onClicked:backend.command("clear_cache") }

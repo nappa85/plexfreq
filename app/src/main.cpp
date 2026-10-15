@@ -12,6 +12,9 @@
 #include <QDir>
 #include <qqml.h>
 #include <memory>
+#ifndef PLEXFREQ_VERSION
+#error "PLEXFREQ_VERSION must be defined by the build system (qmake VERSION / CMake project version)"
+#endif
 #ifdef SAILFISH
 #include <sailfishapp.h>
 #include <QQuickView>
@@ -46,7 +49,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<QGuiApplication> applicationOwner(application);
     application->setOrganizationName("org.plexfreq");
     application->setApplicationName("harbour-plexfreq");
-    application->setApplicationVersion("0.1.3");
+    application->setApplicationVersion(QStringLiteral(PLEXFREQ_VERSION));
     application->setWindowIcon(QIcon(QStringLiteral(":/icons/plexfreq.png")));
 #ifdef SAILFISH
     diagnostics.reset(installPersistentLogging());

@@ -1,11 +1,97 @@
 use serde::{Deserialize, Serialize};
 
-pub(crate) fn music_kind_code(kind: &str) -> crate::Result<&'static str> {
+pub(crate) fn music_kind_code(kind: &ItemKind) -> crate::Result<&'static str> {
     match kind {
-        "artist" => Ok("8"),
-        "album" => Ok("9"),
-        "track" => Ok("10"),
-        _ => Err(crate::Error::Input("Unknown music type")),
+        ItemKind::Artist => Ok("8"),
+        ItemKind::Album => Ok("9"),
+        ItemKind::Track => Ok("10"),
+        ItemKind::Playlist | ItemKind::Other(_) => Err(crate::Error::Input("Unknown music type")),
+    }
+}
+
+/// Plex metadata `type` (also a library section's top-level type). Unknown
+/// types keep their exact spelling so items round-trip unchanged through
+/// session files, caches and the Qt model; the default is the empty type.
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Deserialize,
+    Serialize,
+    strum::Display,
+    strum::EnumString,
+    strum::IntoStaticStr,
+)]
+#[serde(from = "String", into = "String")]
+#[strum(serialize_all = "lowercase")]
+pub enum ItemKind {
+    Artist,
+    Album,
+    Track,
+    Playlist,
+    #[strum(default)]
+    Other(String),
+}
+
+impl ItemKind {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Other(raw) => raw,
+            known => known.into(),
+        }
+    }
+    /// Artist, album or track: the kinds music browsing/filters accept.
+    pub fn is_music(&self) -> bool {
+        matches!(self, Self::Artist | Self::Album | Self::Track)
+    }
+    /// The empty type (an unset optional kind on the wire).
+    pub fn is_empty(&self) -> bool {
+        matches!(self, Self::Other(raw) if raw.is_empty())
+    }
+}
+
+impl Default for ItemKind {
+    fn default() -> Self {
+        Self::Other(String::new())
+    }
+}
+
+impl From<String> for ItemKind {
+    fn from(raw: String) -> Self {
+        match raw.parse() {
+            Ok(kind) => kind,
+            Err(_) => Self::Other(raw),
+        }
+    }
+}
+
+impl From<ItemKind> for String {
+    fn from(kind: ItemKind) -> Self {
+        match kind {
+            ItemKind::Other(raw) => raw,
+            known => known.to_string(),
+        }
+    }
+}
+
+impl PartialEq<str> for ItemKind {
+    fn eq(&self, other: &str) -> bool {
+        self.as_str() == other
+    }
+}
+
+/// Ordered by spelling, as the former string field was (catalogue sort and
+/// `(kind, key)` map iteration order are unchanged).
+impl Ord for ItemKind {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.as_str().cmp(other.as_str())
+    }
+}
+impl PartialOrd for ItemKind {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -22,16 +108,16 @@ pub struct Item {
     pub summary: String,
     #[serde(deserialize_with = "null_default")]
     pub art: String,
-    #[serde(deserialize_with = "lenient_i32")]
+    #[serde(deserialize_with = "lenient")]
     pub year: i32,
-    #[serde(deserialize_with = "lenient_i32")]
+    #[serde(deserialize_with = "lenient")]
     pub index: i32,
-    #[serde(deserialize_with = "lenient_i32")]
+    #[serde(deserialize_with = "lenient")]
     pub parent_index: i32,
     #[serde(rename = "Image", deserialize_with = "lenient_vec")]
     pub images: Vec<ArtworkImage>,
     #[serde(rename = "type", deserialize_with = "null_default")]
-    pub kind: String,
+    pub kind: ItemKind,
     #[serde(deserialize_with = "null_default")]
     pub parent_title: String,
     #[serde(deserialize_with = "null_default")]
@@ -42,16 +128,16 @@ pub struct Item {
     pub thumb: String,
     #[serde(deserialize_with = "null_default")]
     pub parent_thumb: String,
-    #[serde(deserialize_with = "lenient_u64")]
+    #[serde(deserialize_with = "lenient")]
     pub duration: u64,
-    #[serde(deserialize_with = "optional_usize")]
+    #[serde(deserialize_with = "optional")]
     pub leaf_count: Option<usize>,
-    #[serde(deserialize_with = "optional_u64")]
+    #[serde(deserialize_with = "optional")]
     pub duration_in_seconds: Option<u64>,
     #[serde(
         rename = "playlistItemID",
         alias = "playlistItemId",
-        deserialize_with = "optional_u64"
+        deserialize_with = "optional"
     )]
     pub playlist_item_id: Option<u64>,
     #[serde(deserialize_with = "radio_flag")]
@@ -70,13 +156,13 @@ pub struct Item {
     pub subformats: Vec<Tag>,
     #[serde(deserialize_with = "lenient_f64")]
     pub user_rating: f64,
-    #[serde(deserialize_with = "lenient_u32")]
+    #[serde(deserialize_with = "lenient")]
     pub music_analysis_version: u32,
     #[serde(deserialize_with = "null_default")]
     pub parent_rating_key: String,
     #[serde(deserialize_with = "null_default")]
     pub grandparent_rating_key: String,
-    #[serde(rename = "playQueueItemID", deserialize_with = "optional_u64")]
+    #[serde(rename = "playQueueItemID", deserialize_with = "optional")]
     pub play_queue_item_id: Option<u64>,
     #[serde(rename = "Stations")]
     pub stations: serde_json::Value,
@@ -106,104 +192,47 @@ where
     Ok(Option::<T>::deserialize(deserializer)?.unwrap_or_default())
 }
 
-fn f64_to_i32(v: f64) -> Option<i32> {
-    // `as` saturates floats; out-of-range Plex numbers must default instead
-    // of clamping to MAX/MIN.
-    if v.is_finite() && v >= i32::MIN as f64 && v <= i32::MAX as f64 {
-        Some(v as i32)
-    } else {
-        None
+/// Integer from a JSON number or numeric string; fractions truncate toward
+/// zero. Values outside `T` yield None: `as` would saturate floats, and
+/// out-of-range Plex numbers must default instead of clamping to MAX/MIN.
+fn lenient_integer<T: TryFrom<i128>>(value: &serde_json::Value) -> Option<T> {
+    fn from_float(v: f64) -> Option<i128> {
+        // i128::MAX as f64 is 2^127 (exclusive bound); i128::MIN is exact.
+        (v.is_finite() && v >= i128::MIN as f64 && v < i128::MAX as f64).then_some(v as i128)
     }
-}
-
-fn f64_to_u32(v: f64) -> Option<u32> {
-    if v.is_finite() && v >= 0.0 && v <= u32::MAX as f64 {
-        Some(v as u32)
-    } else {
-        None
-    }
-}
-
-fn f64_to_u64(v: f64) -> Option<u64> {
-    if v.is_finite() && v >= 0.0 && v <= u64::MAX as f64 {
-        Some(v as u64)
-    } else {
-        None
-    }
-}
-
-fn lenient_i32<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<i32, D::Error> {
-    let value = serde_json::Value::deserialize(deserializer)?;
-    Ok(match value {
-        serde_json::Value::Null => 0,
+    let wide = match value {
         serde_json::Value::Number(n) => n
             .as_i64()
-            .and_then(|v| i32::try_from(v).ok())
-            .or_else(|| n.as_u64().and_then(|v| i32::try_from(v).ok()))
-            .or_else(|| n.as_f64().and_then(f64_to_i32))
-            .unwrap_or_default(),
-        serde_json::Value::String(s) => s
-            .trim()
-            .parse::<i32>()
-            .or_else(|_| s.trim().parse::<f64>().ok().and_then(f64_to_i32).ok_or(()))
-            .unwrap_or_default(),
-        _ => 0,
-    })
-}
-
-fn lenient_u32<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<u32, D::Error> {
-    let value = serde_json::Value::deserialize(deserializer)?;
-    Ok(match value {
-        serde_json::Value::Null => 0,
-        serde_json::Value::Number(n) => n
-            .as_u64()
-            .and_then(|v| u32::try_from(v).ok())
-            .or_else(|| n.as_i64().and_then(|v| u32::try_from(v).ok()))
-            .or_else(|| n.as_f64().and_then(f64_to_u32))
-            .unwrap_or_default(),
+            .map(i128::from)
+            .or_else(|| n.as_u64().map(i128::from))
+            .or_else(|| n.as_f64().and_then(from_float)),
         serde_json::Value::String(s) => {
             let s = s.trim();
-            s.parse::<u32>()
-                .or_else(|_| s.parse::<f64>().ok().and_then(f64_to_u32).ok_or(()))
-                .or_else(|_| {
-                    s.parse::<i64>()
-                        .ok()
-                        .and_then(|v| u32::try_from(v).ok())
-                        .ok_or(())
-                })
-                .unwrap_or_default()
+            s.parse::<i128>()
+                .ok()
+                .or_else(|| s.parse::<f64>().ok().and_then(from_float))
         }
-        _ => 0,
-    })
+        _ => None,
+    }?;
+    T::try_from(wide).ok()
 }
 
-fn lenient_u64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<u64, D::Error> {
-    let value = serde_json::Value::deserialize(deserializer)?;
-    Ok(match value {
-        serde_json::Value::Null => 0,
-        serde_json::Value::Number(n) => n
-            .as_u64()
-            .or_else(|| n.as_i64().and_then(|v| u64::try_from(v).ok()))
-            .or_else(|| n.as_f64().and_then(f64_to_u64))
-            .unwrap_or_default(),
-        serde_json::Value::String(s) => {
-            let s = s.trim();
-            s.parse::<u64>()
-                .or_else(|_| s.parse::<f64>().ok().and_then(f64_to_u64).ok_or(()))
-                .or_else(|_| {
-                    s.parse::<i64>()
-                        .ok()
-                        .and_then(|v| u64::try_from(v).ok())
-                        .ok_or(())
-                })
-                .unwrap_or_default()
-        }
-        _ => 0,
-    })
+fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: TryFrom<i128> + Default,
+{
+    Ok(optional(deserializer)?.unwrap_or_default())
 }
 
-fn lenient_usize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
-    Ok(usize::try_from(lenient_u64(deserializer)?).unwrap_or_default())
+fn optional<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: TryFrom<i128>,
+{
+    Ok(lenient_integer(&serde_json::Value::deserialize(
+        deserializer,
+    )?))
 }
 
 fn lenient_f64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<f64, D::Error> {
@@ -219,43 +248,6 @@ fn lenient_f64<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<f64,
             .unwrap_or_default(),
         _ => 0.0,
     })
-}
-
-fn optional_u64<'de, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<u64>, D::Error> {
-    let value =
-        Option::<serde_json::Value>::deserialize(deserializer)?.unwrap_or(serde_json::Value::Null);
-    Ok(match value {
-        serde_json::Value::Null => None,
-        serde_json::Value::Number(n) => n
-            .as_u64()
-            .or_else(|| n.as_i64().and_then(|v| u64::try_from(v).ok()))
-            .or_else(|| n.as_f64().and_then(f64_to_u64)),
-        serde_json::Value::String(s) => {
-            let s = s.trim();
-            if s.is_empty() {
-                None
-            } else {
-                s.parse::<u64>()
-                    .or_else(|_| {
-                        s.parse::<i64>()
-                            .ok()
-                            .and_then(|v| u64::try_from(v).ok())
-                            .ok_or(())
-                    })
-                    .or_else(|_| s.parse::<f64>().ok().and_then(f64_to_u64).ok_or(()))
-                    .ok()
-            }
-        }
-        _ => None,
-    })
-}
-
-fn optional_usize<'de, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<usize>, D::Error> {
-    Ok(optional_u64(deserializer)?.and_then(|v| usize::try_from(v).ok()))
 }
 
 fn lenient_vec<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
@@ -308,7 +300,7 @@ fn optional_gain<'de, D: serde::Deserializer<'de>>(
 pub struct Media {
     #[serde(deserialize_with = "null_default")]
     pub audio_codec: String,
-    #[serde(deserialize_with = "lenient_u32")]
+    #[serde(deserialize_with = "lenient")]
     pub bitrate: u32,
     #[serde(rename = "Part", deserialize_with = "lenient_vec")]
     pub parts: Vec<Part>,
@@ -319,7 +311,7 @@ pub struct Media {
 pub struct Part {
     #[serde(deserialize_with = "null_default")]
     pub key: String,
-    #[serde(deserialize_with = "optional_u64")]
+    #[serde(deserialize_with = "optional")]
     pub size: Option<u64>,
     #[serde(rename = "Stream", deserialize_with = "lenient_vec")]
     pub streams: Vec<Stream>,
@@ -330,7 +322,7 @@ pub struct Part {
 pub struct Stream {
     #[serde(deserialize_with = "null_default")]
     pub key: String,
-    #[serde(deserialize_with = "lenient_u32")]
+    #[serde(deserialize_with = "lenient")]
     pub stream_type: u32,
     #[serde(deserialize_with = "null_default")]
     pub format: String,
@@ -362,9 +354,10 @@ pub struct Section {
     pub key: String,
     #[serde(deserialize_with = "null_default")]
     pub title: String,
+    /// The section's top-level item type ("artist" for music libraries).
     #[serde(rename = "type", deserialize_with = "null_default")]
-    pub kind: String,
-    #[serde(deserialize_with = "lenient_usize")]
+    pub kind: ItemKind,
+    #[serde(deserialize_with = "lenient")]
     pub size: usize,
 }
 
@@ -448,17 +441,17 @@ pub struct Container {
     pub items: Vec<Item>,
     #[serde(rename = "Directory", deserialize_with = "lenient_vec")]
     pub sections: Vec<Section>,
-    #[serde(deserialize_with = "lenient_usize")]
+    #[serde(deserialize_with = "lenient")]
     pub size: usize,
-    #[serde(deserialize_with = "optional_usize")]
+    #[serde(deserialize_with = "optional")]
     pub total_size: Option<usize>,
-    #[serde(deserialize_with = "lenient_usize")]
+    #[serde(deserialize_with = "lenient")]
     pub offset: usize,
     #[serde(deserialize_with = "null_default")]
     pub machine_identifier: String,
-    #[serde(rename = "playQueueID", deserialize_with = "optional_u64")]
+    #[serde(rename = "playQueueID", deserialize_with = "optional")]
     pub play_queue_id: Option<u64>,
-    #[serde(rename = "playQueueSelectedItemID", deserialize_with = "optional_u64")]
+    #[serde(rename = "playQueueSelectedItemID", deserialize_with = "optional")]
     pub play_queue_selected_item_id: Option<u64>,
 }
 
@@ -466,4 +459,43 @@ pub struct Container {
 pub struct Envelope {
     #[serde(rename = "MediaContainer")]
     pub container: Container,
+}
+
+#[cfg(test)]
+mod kind_tests {
+    use super::*;
+
+    #[test]
+    fn item_kind_strum_and_serde_spellings_agree() {
+        for raw in ["artist", "album", "track", "playlist", "", "photo", "Track"] {
+            let kind = ItemKind::from(raw.to_owned());
+            assert_eq!(kind.to_string(), raw);
+            assert_eq!(kind.as_str(), raw);
+            assert_eq!(serde_json::to_value(&kind).unwrap(), raw);
+            assert_eq!(
+                serde_json::from_value::<ItemKind>(serde_json::json!(raw)).unwrap(),
+                kind
+            );
+        }
+        assert_eq!("track".parse::<ItemKind>().unwrap(), ItemKind::Track);
+        assert_eq!(
+            ItemKind::from("photo".to_owned()),
+            ItemKind::Other("photo".into())
+        );
+        assert_eq!(ItemKind::default().as_str(), "");
+        let mut kinds: Vec<_> = ["track", "album", "playlist", "artist"]
+            .map(|raw| ItemKind::from(raw.to_owned()))
+            .into();
+        kinds.sort();
+        assert_eq!(
+            kinds.iter().map(ItemKind::as_str).collect::<Vec<_>>(),
+            ["album", "artist", "playlist", "track"]
+        );
+        // Unknown Plex types and null deserialize leniently inside an item.
+        let item: Item = serde_json::from_value(serde_json::json!({"type":"clip"})).unwrap();
+        assert_eq!(item.kind, ItemKind::Other("clip".into()));
+        let item: Item = serde_json::from_value(serde_json::json!({"type":null})).unwrap();
+        assert!(item.kind.is_empty());
+        assert_eq!(serde_json::to_value(&item).unwrap()["type"], "");
+    }
 }

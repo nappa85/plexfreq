@@ -57,7 +57,7 @@ fn failed_track_resolution_and_reconnect_preserve_current_session() {
     .unwrap();
     let playable = Item {
         rating_key: "1".into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         media: vec![Media {
             parts: vec![Part {
                 key: "/library/parts/1/file.flac".into(),
@@ -70,7 +70,7 @@ fn failed_track_resolution_and_reconnect_preserve_current_session() {
     };
     let missing = Item {
         rating_key: "2".into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         ..Default::default()
     };
     core.execute(Command::Play {

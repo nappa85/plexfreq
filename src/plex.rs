@@ -3,54 +3,112 @@ use crate::{
     Error, Result,
 };
 use reqwest::{
-    blocking::Client,
     header::{HeaderMap, HeaderValue},
-    Method,
+    Client, Method, RequestBuilder, Response,
 };
 use serde::de::DeserializeOwned;
-use std::{io::Read, time::Duration};
+use std::{
+    future::Future,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex, OnceLock,
+    },
+    time::Duration,
+};
+use tokio::sync::watch;
 use url::Url;
 
 pub(crate) const JSON_LIMIT: usize = 8 * 1024 * 1024;
+/// Outcome of a view-bound request aborted because the user navigated away.
+/// Callers never present it: the runtime turns it into a discarded reply.
+pub(crate) const CANCELLED: Error = Error::Input(CANCELLED_MESSAGE);
+const CANCELLED_MESSAGE: &str = "Request cancelled by navigation";
 
 pub(crate) fn audio_mime(mime: &str) -> bool {
+    audio_mime_type(mime).is_some()
+}
+
+/// Normalized essence (lowercase, parameters stripped) of an acceptable
+/// audio Content-Type, or None for non-audio content.
+fn audio_mime_type(mime: &str) -> Option<String> {
     let mime = mime
         .split(';')
         .next()
         .unwrap_or("")
         .trim()
         .to_ascii_lowercase();
-    mime.is_empty()
+    (mime.is_empty()
         || mime.starts_with("audio/")
         || matches!(
             mime.as_str(),
             "application/octet-stream" | "application/binary" | "video/mp4"
-        )
+        ))
+    .then_some(mime)
+}
+
+fn status(code: u16) -> Result<()> {
+    match code {
+        200..=299 => Ok(()),
+        401 | 403 => Err(Error::Unauthorized),
+        code => Err(Error::Http(code)),
+    }
+}
+
+/// Read at most `limit` body bytes; `Err(None)` when the body exceeds it.
+pub(crate) async fn bounded_body(
+    response: &mut Response,
+    limit: usize,
+) -> std::result::Result<Vec<u8>, Option<Error>> {
+    if response.content_length().is_some_and(|n| n > limit as u64) {
+        return Err(None);
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await.map_err(|_| Some(Error::Network))? {
+        if bytes.len().saturating_add(chunk.len()) > limit {
+            return Err(None);
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    Ok(bytes)
 }
 
 pub(crate) async fn bounded_json<T: DeserializeOwned>(
     mut response: reqwest::Response,
     context: &'static str,
 ) -> Result<T> {
-    if response
-        .content_length()
-        .is_some_and(|n| n > JSON_LIMIT as u64)
-    {
-        return Err(Error::ProtocolAt(context));
-    }
-    let mut bytes = Vec::new();
-    while let Some(chunk) = response.chunk().await.map_err(|_| Error::Network)? {
-        if bytes.len().saturating_add(chunk.len()) > JSON_LIMIT {
-            return Err(Error::ProtocolAt(context));
-        }
-        bytes.extend_from_slice(&chunk);
-    }
+    let bytes = bounded_body(&mut response, JSON_LIMIT)
+        .await
+        .map_err(|error| error.unwrap_or(Error::ProtocolAt(context)))?;
     serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
 }
 
+/// One pooled async client for every Plex API caller in the process (Core,
+/// plan refresh, artwork), so keep-alive connections to the server are reused.
+pub(crate) fn client() -> &'static Client {
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        // `timeout` bounds the whole small-JSON request (headers + body),
+        // so a stalled timeline/library call cannot block the worker beyond
+        // 15s. `connect_timeout` fails fast on unreachable hosts. Redirects
+        // stay disabled: credentials travel in headers.
+        Client::builder()
+            .timeout(Duration::from_secs(15))
+            .connect_timeout(Duration::from_secs(5))
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap_or_default()
+    })
+}
+
+/// Navigation generation a view-bound request belongs to.
+type Scope = (watch::Receiver<u64>, u64);
+
 pub struct Plex {
     client: Client,
+    headers: HeaderMap,
     pub account_url: Url,
+    scope: Mutex<Option<Scope>>,
+    cancelled: AtomicBool,
 }
 
 impl Plex {
@@ -69,23 +127,79 @@ impl Plex {
                     .map_err(|_| Error::Input("Invalid client identifier"))?,
             );
         }
-        // `timeout` bounds the whole small-JSON request (headers + body),
-        // so a stalled timeline/library call cannot block the worker beyond
-        // 15s. `connect_timeout` fails fast on unreachable hosts.
-        let client = Client::builder()
-            .default_headers(headers)
-            .timeout(Duration::from_secs(15))
-            .connect_timeout(Duration::from_secs(5))
-            .redirect(reqwest::redirect::Policy::none())
-            .build()
-            .map_err(|_| Error::Network)?;
         Ok(Self {
-            client,
+            client: client().clone(),
+            headers,
             account_url,
+            scope: Mutex::new(None),
+            cancelled: AtomicBool::new(false),
         })
     }
 
-    fn request<T: DeserializeOwned>(
+    /// Bind following requests to a navigation generation: once `navigation`
+    /// moves past `view`, in-flight and later requests end with [`CANCELLED`].
+    /// `None` unbinds. Used by the runtime around view-bound commands.
+    pub(crate) fn bind_view(&self, scope: Option<Scope>) {
+        *crate::mutex_lock(&self.scope) = scope;
+        self.cancelled.store(false, Ordering::SeqCst);
+    }
+    /// Whether a request was cancelled by navigation since `bind_view`.
+    pub(crate) fn cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::SeqCst)
+    }
+
+    /// Drive one request on the shared runtime from the synchronous Core.
+    fn run<T: Send>(&self, step: impl Future<Output = Result<T>> + Send) -> Result<T> {
+        let scope = crate::mutex_lock(&self.scope).clone();
+        let Some((mut navigation, view)) = scope else {
+            return crate::rt::block_on(step);
+        };
+        if *navigation.borrow() != view {
+            self.cancelled.store(true, Ordering::SeqCst);
+            return Err(CANCELLED);
+        }
+        let result = crate::rt::block_on(async move {
+            tokio::select! {
+                result = step => result,
+                stale = async { navigation.wait_for(|current| *current != view).await.is_ok() } => {
+                    if stale {
+                        Err(CANCELLED)
+                    } else {
+                        // The navigation owner is gone: nothing can go stale.
+                        std::future::pending().await
+                    }
+                }
+            }
+        });
+        if matches!(result, Err(Error::Input(message)) if message == CANCELLED_MESSAGE) {
+            self.cancelled.store(true, Ordering::SeqCst);
+        }
+        result
+    }
+
+    /// Every server/account request goes through here so the credential
+    /// header is attached in one place (never in the URL or logs).
+    fn builder(&self, method: Method, url: Url, token: &str) -> RequestBuilder {
+        let builder = self
+            .client
+            .request(method, url)
+            .headers(self.headers.clone());
+        if token.is_empty() {
+            builder
+        } else {
+            builder.header("X-Plex-Token", token)
+        }
+    }
+
+    fn send(&self, method: Method, url: Url, token: &str) -> Result<()> {
+        let request = self.builder(method, url, token);
+        self.run(async move {
+            let response = request.send().await.map_err(|_| Error::Network)?;
+            status(response.status().as_u16())
+        })
+    }
+
+    fn request<T: DeserializeOwned + Send>(
         &self,
         method: Method,
         url: Url,
@@ -93,35 +207,20 @@ impl Plex {
         form: &[(&str, &str)],
         context: &'static str,
     ) -> Result<T> {
-        let mut request = self.client.request(method, url);
-        if !token.is_empty() {
-            request = request.header("X-Plex-Token", token);
-        }
+        let mut request = self.builder(method, url, token);
         if !form.is_empty() {
             request = request.form(form);
         }
-        let response = request.send().map_err(|_| Error::Network)?;
-        match response.status().as_u16() {
-            200..=299 => {
-                if response
-                    .content_length()
-                    .is_some_and(|n| n > JSON_LIMIT as u64)
-                {
-                    return Err(Error::ProtocolAt(context));
-                }
-                let mut bytes = Vec::new();
-                response
-                    .take(JSON_LIMIT as u64 + 1)
-                    .read_to_end(&mut bytes)
-                    .map_err(|_| Error::Network)?;
-                if bytes.len() > JSON_LIMIT {
-                    return Err(Error::ProtocolAt(context));
-                }
-                serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
-            }
-            401 | 403 => Err(Error::Unauthorized),
-            code => Err(Error::Http(code)),
-        }
+        // Only the transfer runs inside the future; decoding stays on the
+        // calling thread after it.
+        let bytes = self.run(async move {
+            let mut response = request.send().await.map_err(|_| Error::Network)?;
+            status(response.status().as_u16())?;
+            bounded_body(&mut response, JSON_LIMIT)
+                .await
+                .map_err(|error| error.unwrap_or(Error::ProtocolAt(context)))
+        })?;
+        serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
     }
 
     pub fn pin(&self) -> Result<Pin> {
@@ -160,14 +259,11 @@ impl Plex {
                     .is_some_and(|p| p.split(',').any(|capability| capability.trim() == "server"))
             })
             .collect();
-        let mut valid = Vec::with_capacity(servers.len());
-        for r in servers.iter() {
-            match serde_json::from_value::<Resource>(r.clone()) {
-                Ok(resource) if !resource.access_token.is_empty() => valid.push(resource),
-                Ok(_) => continue,
-                Err(_) => continue,
-            }
-        }
+        let valid: Vec<Resource> = servers
+            .iter()
+            .filter_map(|r| serde_json::from_value::<Resource>(r.clone()).ok())
+            .filter(|resource| !resource.access_token.is_empty())
+            .collect();
         if valid.is_empty() && !servers.is_empty() {
             return Err(Error::ProtocolAt("server discovery"));
         }
@@ -200,14 +296,6 @@ impl Plex {
             self.request(Method::POST, url, token, &[], "radio queue creation")?;
         Ok(envelope.container)
     }
-    fn status(code: u16) -> Result<()> {
-        match code {
-            200..=299 => Ok(()),
-            401 | 403 => Err(Error::Unauthorized),
-            code => Err(Error::Http(code)),
-        }
-    }
-
     pub fn mutate(
         &self,
         base: &Url,
@@ -219,12 +307,7 @@ impl Plex {
         let mut url = server_path(base, path)?;
         url.query_pairs_mut()
             .extend_pairs(params.iter().map(|(k, v)| (*k, v.as_str())));
-        let mut builder = self.client.request(method, url);
-        if !token.is_empty() {
-            builder = builder.header("X-Plex-Token", token);
-        }
-        let response = builder.send().map_err(|_| Error::Network)?;
-        Self::status(response.status().as_u16())
+        self.send(method, url, token).map(drop)
     }
     pub fn create_playlist(
         &self,
@@ -241,87 +324,75 @@ impl Plex {
     }
 
     pub fn timeline(&self, base: &Url, token: &str, params: &[(&str, String)]) -> Result<()> {
-        let mut url = server_path(base, "/:/timeline")?;
-        url.query_pairs_mut()
-            .extend_pairs(params.iter().map(|(k, v)| (*k, v.as_str())));
-        let mut builder = self.client.post(url);
-        if !token.is_empty() {
-            builder = builder.header("X-Plex-Token", token);
-        }
-        let response = builder.send().map_err(|_| Error::Network)?;
-        Self::status(response.status().as_u16())
+        self.mutate(base, token, Method::POST, "/:/timeline", params)
     }
     pub fn rate(&self, base: &Url, token: &str, key: &str, rating: u8) -> Result<()> {
-        let mut url = server_path(base, "/:/rate")?;
-        url.query_pairs_mut().extend_pairs([
-            ("key", key),
-            ("identifier", "com.plexapp.plugins.library"),
-            ("rating", &rating.to_string()),
-        ]);
-        let mut builder = self.client.put(url);
-        if !token.is_empty() {
-            builder = builder.header("X-Plex-Token", token);
-        }
-        let response = builder.send().map_err(|_| Error::Network)?;
-        Self::status(response.status().as_u16())
+        self.mutate(
+            base,
+            token,
+            Method::PUT,
+            "/:/rate",
+            &[
+                ("key", key.to_owned()),
+                ("identifier", "com.plexapp.plugins.library".to_owned()),
+                ("rating", rating.to_string()),
+            ],
+        )
     }
     pub fn text(&self, base: &Url, token: &str, path: &str) -> Result<String> {
-        let mut builder = self.client.get(server_path(base, path)?);
-        if !token.is_empty() {
-            builder = builder.header("X-Plex-Token", token);
-        }
-        let response = builder.send().map_err(|_| Error::Network)?;
-        let code = response.status().as_u16();
-        if !(200..300).contains(&code) {
-            return Err(if code == 401 || code == 403 {
-                Error::Unauthorized
-            } else {
-                Error::Http(code)
-            });
-        }
-        let mut bytes = Vec::new();
-        std::io::Read::take(response, 512 * 1024 + 1).read_to_end(&mut bytes)?;
-        if bytes.len() > 512 * 1024 {
-            return Err(Error::Input("Lyrics exceed the size limit"));
-        }
+        let request = self.builder(Method::GET, server_path(base, path)?, token);
+        let bytes = self.run(async move {
+            let mut response = request.send().await.map_err(|_| Error::Network)?;
+            status(response.status().as_u16())?;
+            bounded_body(&mut response, 512 * 1024)
+                .await
+                .map_err(|error| error.unwrap_or(Error::Input("Lyrics exceed the size limit")))
+        })?;
         String::from_utf8(bytes).map_err(|_| Error::ProtocolAt("lyrics text"))
     }
     pub(crate) fn probe_audio(&self, url: Url, token: &str) -> Result<(usize, String)> {
-        let mut builder = self.client.get(url);
-        if !token.is_empty() {
-            builder = builder.header("X-Plex-Token", token);
-        }
-        let response = builder
-            .header("Accept", "*/*")
-            .header("Accept-Encoding", "identity")
-            .send()
-            .map_err(|_| Error::Network)?;
-        if !response.status().is_success() {
-            return Err(Error::Http(response.status().as_u16()));
-        }
-        let mime = response
-            .headers()
-            .get("Content-Type")
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("")
-            .split(';')
-            .next()
-            .unwrap_or("")
-            .trim()
-            .to_ascii_lowercase();
-        if !audio_mime(&mime) {
-            return Err(Error::Input(
+        // `headers` replaces the default JSON Accept instead of appending.
+        let request = self
+            .builder(Method::GET, url, token)
+            .headers(HeaderMap::from_iter([
+                (reqwest::header::ACCEPT, HeaderValue::from_static("*/*")),
+                (
+                    reqwest::header::ACCEPT_ENCODING,
+                    HeaderValue::from_static("identity"),
+                ),
+            ]));
+        self.run(async move {
+            let mut response = request.send().await.map_err(|_| Error::Network)?;
+            if !response.status().is_success() {
+                return Err(Error::Http(response.status().as_u16()));
+            }
+            let mime = audio_mime_type(
+                response
+                    .headers()
+                    .get("Content-Type")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or(""),
+            )
+            .ok_or(Error::Input(
                 "Server returned non-audio content for this track",
-            ));
-        }
-        let mut bytes = Vec::new();
-        response.take(256 * 1024).read_to_end(&mut bytes)?;
-        if bytes.is_empty() {
-            return Err(Error::Input(
-                "Audio download is incomplete; waiting to resume",
-            ));
-        }
-        Ok((bytes.len(), mime))
+            ))?;
+            // A bounded prefix proves the media is readable; the rest of the
+            // body is abandoned with the response.
+            let mut read = 0usize;
+            while read < 256 * 1024 {
+                match response.chunk().await {
+                    Ok(Some(chunk)) => read += chunk.len(),
+                    Ok(None) => break,
+                    Err(error) => return Err(std::io::Error::other(error).into()),
+                }
+            }
+            if read == 0 {
+                return Err(Error::Input(
+                    "Audio download is incomplete; waiting to resume",
+                ));
+            }
+            Ok((read.min(256 * 1024), mime))
+        })
     }
 }
 
@@ -402,7 +473,11 @@ pub(crate) fn advertised_path(base: &Url, key: &str) -> Result<Url> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{io::Write, net::TcpListener, thread};
+    use std::{
+        io::{Read, Write},
+        net::TcpListener,
+        thread,
+    };
 
     #[test]
     fn json_body_limit_checks_streamed_bytes_and_declared_length() {

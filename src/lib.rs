@@ -2,6 +2,7 @@ pub mod audio;
 mod bluetooth;
 pub mod cache;
 mod catalogue;
+mod command;
 mod daily;
 mod diagnostics;
 mod discovery;
@@ -18,14 +19,16 @@ pub mod quality;
 pub mod queue;
 pub mod radio;
 mod refresh;
+mod rt;
 pub mod runtime;
 pub mod store;
 
-use model::{Item, Pin, Resource};
+pub use command::{CollectionView, Command, DownloadAction, PlaylistAction, SmartAction};
+pub use daily::{DownloadKind, GroupId};
+use model::{Item, ItemKind, Pin, Resource};
 use plex::{authenticated_url, server_url, Plex};
 use queue::{Queue, Repeat};
 use radio::{Radio, RadioKind, Source};
-use serde::Deserialize;
 use serde_json::{json, Value};
 use std::{
     path::PathBuf,
@@ -130,308 +133,30 @@ pub(crate) fn numeric(value: &str) -> Result<&str> {
     }
 }
 
-#[derive(Deserialize)]
-#[serde(tag = "op", rename_all = "snake_case")]
-pub enum Command {
-    Status,
-    RefreshPolicy {
-        enabled: bool,
-        interval_hours: u32,
-    },
-    RefreshDownloads,
-    SmartRules {
-        key: String,
-    },
-    DiscoveryConfig {
-        section: String,
-        hidden: Vec<String>,
-        order: Vec<String>,
-    },
-    HubItems {
-        key: String,
-        #[serde(default)]
-        start: usize,
-    },
-    ListeningInsights {
-        days: u32,
-    },
-    SonicJourney {
-        section: String,
-        keys: Vec<String>,
-    },
-    FilterOptions {
-        section: String,
-        kind: String,
-        field: String,
-    },
-    FilteredBrowse {
-        section: String,
-        kind: String,
-        sort: String,
-        filters: filters::Music,
-        #[serde(default)]
-        start: usize,
-    },
-    SmartPlaylist {
-        action: String,
-        #[serde(default)]
-        key: String,
-        section: String,
-        #[serde(default)]
-        title: String,
-        sort: String,
-        limit: usize,
-        filters: filters::Music,
-    },
-    QualityConfig {
-        config: quality::Config,
-    },
-    TranscodedPlayback,
-    ProbeQuality {
-        key: String,
-        kbps: u32,
-    },
-    ProbePlayback {
-        key: String,
-        kbps: u32,
-    },
-    DownloadStation {
-        key: String,
-        title: String,
-        minutes: u32,
-    },
-    Station {
-        key: String,
-        title: String,
-    },
-    DownloadPlan {
-        kind: String,
-        key: String,
-        #[serde(default)]
-        minutes: u32,
-    },
-    PlayDownload {
-        group: String,
-    },
-    OfflineSearch {
-        query: String,
-        #[serde(default)]
-        kind: String,
-        #[serde(default)]
-        start: usize,
-    },
-    DiscoveryHome {
-        section: String,
-    },
-    SonicNeighbors {
-        key: String,
-        kind: String,
-    },
-    SonicAdventure {
-        section: String,
-        start_key: String,
-        end_key: String,
-    },
-    PlaylistChoices,
-    PlaylistEdit {
-        action: String,
-        #[serde(default)]
-        key: String,
-        #[serde(default)]
-        title: String,
-        #[serde(default)]
-        items: Vec<Item>,
-        #[serde(default)]
-        item_id: Option<u64>,
-        #[serde(default)]
-        after: Option<u64>,
-    },
-    PlaylistItems {
-        key: String,
-        #[serde(default)]
-        start: usize,
-    },
-    LibraryBrowse {
-        section: String,
-        kind: String,
-        sort: String,
-        #[serde(default)]
-        start: usize,
-    },
-    ArtistAlbums {
-        key: String,
-    },
-    Downloads,
-    DownloadPolicy {
-        wifi_only: bool,
-        paused: bool,
-    },
-    DownloadAction {
-        group: String,
-        action: String,
-    },
-    NetworkState {
-        wifi: bool,
-        online: bool,
-        #[serde(default)]
-        live_hint: bool,
-    },
-    Autoplay {
-        enabled: bool,
-    },
-    Mix {
-        seeds: Vec<Item>,
-    },
-    PlaybackEvent {
-        key: String,
-        occurrence: String,
-        listened: u64,
-        duration: u64,
-    },
-    SyncHistory,
-    OfflineMode {
-        enabled: bool,
-    },
-    OfflineBrowse {
-        kind: String,
-    },
-    CacheArtwork {
-        items: Vec<Item>,
-    },
-    Pin {
-        key: String,
-        kind: String,
-        enabled: bool,
-    },
-    Lyrics {
-        key: String,
-    },
-    Search {
-        query: String,
-    },
-    Collection {
-        section: String,
-        view: String,
-        #[serde(default)]
-        start: usize,
-    },
-    Favorite {
-        key: String,
-        enabled: bool,
-    },
-    Login,
-    PollLogin,
-    Servers,
-    Connect {
-        url: String,
-        token: String,
-    },
-    SelectServer {
-        index: usize,
-    },
-    Libraries,
-    Browse {
-        section: String,
-        kind: String,
-        #[serde(default)]
-        query: String,
-        #[serde(default)]
-        start: usize,
-    },
-    Alphabet {
-        section: String,
-    },
-    JumpArtist {
-        section: String,
-        letter: String,
-    },
-    Children {
-        key: String,
-        #[serde(default)]
-        start: usize,
-    },
-    Detail {
-        key: String,
-        #[serde(default)]
-        start: usize,
-    },
-    SimilarArtists {
-        key: String,
-    },
-    Playlists {
-        #[serde(default)]
-        start: usize,
-    },
-    Play {
-        items: Vec<Item>,
-        index: usize,
-    },
-    Enqueue {
-        items: Vec<Item>,
-        #[serde(default)]
-        next: bool,
-    },
-    EnqueueAlbum {
-        key: String,
-        #[serde(default)]
-        next: bool,
-    },
-    PlayAlbum {
-        key: String,
-    },
-    QueueRemove {
-        index: usize,
-    },
-    QueueMove {
-        from: usize,
-        to: usize,
-    },
-    Resume,
-    SavePlayback {
-        key: String,
-        position: u64,
-        #[serde(default)]
-        generation: Option<u64>,
-    },
-    Radio {
-        key: String,
-        kind: RadioKind,
-    },
-    StopRadio,
-    Timeline {
-        state: String,
-        position: u64,
-        duration: u64,
-        #[serde(default)]
-        continuing: bool,
-    },
-    CacheStatus,
-    CacheConfig {
-        enabled: bool,
-        limit_mb: u64,
-        ahead: usize,
-    },
-    CacheTracks {
-        items: Vec<Item>,
-    },
-    CachedTracks,
-    CachedPlayback,
-    ClearCache,
-    SelectTrack {
-        index: usize,
-    },
-    Next {
-        #[serde(default)]
-        automatic: bool,
-    },
-    Previous,
-    Shuffle {
-        enabled: bool,
-    },
-    Repeat {
-        mode: String,
-    },
-    Logout,
+/// Where the current track's audio comes from (`playbackSource` in plans and
+/// the presented model).
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    strum::Display,
+    strum::EnumString,
+    strum::IntoStaticStr,
+    strum::EnumIter,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum PlaybackSource {
+    /// A completed cache entry (offline-capable).
+    Cache,
+    /// The original file streamed from the server.
+    Stream,
+    /// A server transcode at the mobile bitrate.
+    Transcode,
 }
 
 pub struct Core {
@@ -476,7 +201,7 @@ impl Core {
             || self.queue.at_end()
                 && self.radio.is_none()
                 && !self.settings.autoplay
-                && self.queue.repeat == Repeat::Off
+                && self.queue.repeat() == Repeat::Off
         {
             return Ok(None);
         }
@@ -490,7 +215,7 @@ impl Core {
         let prepared = match result {
             Ok(mut plan) if queue.track().is_some() => {
                 let q = queue.presentation();
-                plan["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":queue.shuffled});
+                plan["queue"] = json!({"items":q.items().iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current(),"repeat":q.repeat(),"shuffled":queue.shuffled()});
                 Ok(Some(Prepared {
                     queue,
                     radio: next_radio,
@@ -545,16 +270,23 @@ impl Core {
         Self::build(dir, url::Url::parse("https://plex.tv/")?, false)
     }
     fn build(dir: PathBuf, account_url: url::Url, downloads: bool) -> Result<Self> {
+        if downloads {
+            store::remove_stale_temps(&dir);
+        }
+        // Read-only inspection (refresh worker) never writes, migrates or
+        // compacts session files; only the owner repairs them.
         let mut settings = store::load(&dir)?;
         if settings.client_identifier.is_empty() {
             settings.client_identifier = uuid::Uuid::new_v4().to_string();
-            store::save(&dir, &settings)?;
+            if downloads {
+                store::save(&dir, &settings)?;
+            }
         }
         let plex = Plex::new(&settings.client_identifier, account_url)?;
         if settings.playback.queue.validate().is_err() {
             settings.playback = store::Playback::default();
         }
-        if settings.playback.queue.current.is_some() && settings.playback.occurrence.is_empty() {
+        if settings.playback.queue.current().is_some() && settings.playback.occurrence.is_empty() {
             settings.playback.occurrence = uuid::Uuid::new_v4().to_string();
         }
         // Older pins predate durable refresh recipes; retain their membership
@@ -563,23 +295,20 @@ impl Core {
             .download_groups
             .keys()
             .filter(|group| {
-                group.starts_with("playlist:") && !settings.download_plans.contains_key(*group)
+                group.kind == DownloadKind::Playlist
+                    && !settings.download_plans.contains_key(*group)
             })
             .cloned()
             .collect();
         for group in legacy {
-            if let Some((kind, key)) = group.split_once(':') {
-                if numeric(key).is_ok() {
-                    settings.download_plans.insert(
-                        group.clone(),
-                        daily::DownloadPlan {
-                            kind: kind.into(),
-                            key: key.into(),
-                            minutes: 0,
-                            refreshed_at: history::now(),
-                        },
-                    );
-                }
+            if numeric(&group.key).is_ok() {
+                let plan = daily::DownloadPlan {
+                    kind: group.kind,
+                    key: group.key.clone(),
+                    minutes: 0,
+                    refreshed_at: history::now(),
+                };
+                settings.download_plans.insert(group, plan);
             }
         }
         let queue = settings.playback.queue.clone();
@@ -592,17 +321,37 @@ impl Core {
             settings.cache = cache::Config::default();
             // Best-effort repair so the next launch starts clean; failures are
             // non-fatal (in-memory fallback already applies).
-            let _ = store::save(&dir, &settings);
+            if downloads {
+                let _ = store::save(&dir, &settings);
+            }
         }
         // Corrupt persisted audio/quality configs must not silently misbehave
         // (e.g. headroom 999 muting output). Fall back to defaults.
         if settings.audio.validate().is_err() {
             settings.audio = audio::dsp::Config::default();
-            let _ = store::save(&dir, &settings);
+            if downloads {
+                let _ = store::save(&dir, &settings);
+            }
         }
         if settings.quality.validate().is_err() {
             settings.quality = quality::Config::default();
-            let _ = store::save(&dir, &settings);
+            if downloads {
+                let _ = store::save(&dir, &settings);
+            }
+        }
+        // An interval of 0 would make every plan permanently stale.
+        if settings.refresh_policy.validate().is_err() {
+            settings.refresh_policy = refresh::Policy::default();
+            if downloads {
+                let _ = store::save(&dir, &settings);
+            }
+        }
+        // Migrate an old all-in-one session and compact damaged/oversized
+        // logs once; failures retry at the next checkpoint.
+        if downloads && store::needs_maintenance(&settings) {
+            if let Err(error) = store::save(&dir, &settings) {
+                diagnostics::event(format_args!("session maintenance not saved: {error}"));
+            }
         }
         let cache = if downloads {
             cache::Cache::new(
@@ -693,7 +442,15 @@ impl Core {
         let items: Vec<Value> = c
             .items
             .iter()
-            .filter(|i| matches!(i.kind.as_str(), "artist" | "album" | "track" | "playlist"))
+            .filter(|i| {
+                matches!(
+                    i.kind,
+                    crate::model::ItemKind::Artist
+                        | crate::model::ItemKind::Album
+                        | crate::model::ItemKind::Track
+                        | crate::model::ItemKind::Playlist
+                )
+            })
             .map(|i| self.display_item(i))
             .collect();
         Ok(pagination::page(
@@ -742,9 +499,7 @@ impl Core {
         if let Some(index) = self.artist_indexes.get(section) {
             return Ok(index.clone());
         }
-        let c = self.plex.container(
-            &self.base()?,
-            &self.settings.server_token,
+        let (c, offline) = self.container_cached(
             &format!("/library/sections/{section}/firstCharacter"),
             &[("type", "8".into()), ("sort", "titleSort:asc".into())],
         )?;
@@ -764,7 +519,10 @@ impl Core {
                 .ok_or(Error::ProtocolAt("artist alphabet index"))?;
         }
         let result = json!({"alphabet":groups,"alphabetSection":section});
-        self.artist_indexes.insert(section.into(), result.clone());
+        // A saved fallback index is not memoized; refetch once back online.
+        if !offline {
+            self.artist_indexes.insert(section.into(), result.clone());
+        }
         Ok(result)
     }
     fn display_item(&self, item: &Item) -> Value {
@@ -788,13 +546,13 @@ impl Core {
             }
         };
         value["artwork"] = json!(artwork);
-        if item.kind == "track" {
+        if item.kind == crate::model::ItemKind::Track {
             if let Some(object) = value.as_object_mut() {
                 object.remove("playlistItemID");
             }
             value["playlistItemId"] = json!(item.playlist_item_id);
         }
-        if item.kind == "playlist" {
+        if item.kind == crate::model::ItemKind::Playlist {
             value["totalDuration"] = json!(if item.duration > 0 || item.leaf_count == Some(0) {
                 Some(item.duration)
             } else {
@@ -829,10 +587,10 @@ impl Core {
         }
         value["photos"] = json!(photos);
         value["background"] = json!(image_url(&item.art).unwrap_or_default());
-        if item.kind == "album" {
+        if item.kind == crate::model::ItemKind::Album {
             value["albumType"] = json!(features::album_type(item));
         }
-        if item.kind == "track" {
+        if item.kind == crate::model::ItemKind::Track {
             value["albumArtwork"] = json!(image_url(&item.parent_thumb).unwrap_or(artwork));
         }
         value["cached"] = json!(self
@@ -859,7 +617,11 @@ impl Core {
                 .as_ref()
                 .and_then(|c| {
                     c.items.iter().find(|i| {
-                        i.rating_key == id && matches!(i.kind.as_str(), "artist" | "album")
+                        i.rating_key == id
+                            && matches!(
+                                i.kind,
+                                crate::model::ItemKind::Artist | crate::model::ItemKind::Album
+                            )
                     })
                 })
                 .cloned()
@@ -867,17 +629,23 @@ impl Core {
                     known
                         .iter()
                         .find(|i| {
-                            i.rating_key == id && matches!(i.kind.as_str(), "artist" | "album")
+                            i.rating_key == id
+                                && matches!(
+                                    i.kind,
+                                    crate::model::ItemKind::Artist | crate::model::ItemKind::Album
+                                )
                         })
                         .cloned()
                 })
                 .or_else(|| {
                     known
                         .iter()
-                        .find(|i| i.kind == "track" && i.parent_rating_key == id)
+                        .find(|i| {
+                            i.kind == crate::model::ItemKind::Track && i.parent_rating_key == id
+                        })
                         .map(|i| Item {
                             rating_key: id.into(),
-                            kind: "album".into(),
+                            kind: crate::model::ItemKind::Album,
                             title: i.parent_title.clone(),
                             thumb: i.parent_thumb.clone(),
                             parent_rating_key: i.grandparent_rating_key.clone(),
@@ -892,8 +660,10 @@ impl Core {
                 .iter()
                 .filter(|i| {
                     i.parent_rating_key == id
-                        && (item.kind == "artist" && i.kind == "album"
-                            || item.kind == "album" && i.kind == "track")
+                        && (item.kind == crate::model::ItemKind::Artist
+                            && i.kind == crate::model::ItemKind::Album
+                            || item.kind == crate::model::ItemKind::Album
+                                && i.kind == crate::model::ItemKind::Track)
                 })
                 .cloned()
                 .collect();
@@ -946,7 +716,13 @@ impl Core {
             let item = c
                 .items
                 .iter()
-                .find(|i| i.rating_key == id && matches!(i.kind.as_str(), "artist" | "album"))
+                .find(|i| {
+                    i.rating_key == id
+                        && matches!(
+                            i.kind,
+                            crate::model::ItemKind::Artist | crate::model::ItemKind::Album
+                        )
+                })
                 .ok_or(Error::Input("Artist or album details are unavailable"))?;
             metadata = Some(self.display_item(item));
         }
@@ -978,7 +754,7 @@ impl Core {
             .items
             .iter()
             .filter(|i| {
-                i.kind == "artist"
+                i.kind == crate::model::ItemKind::Artist
                     && i.rating_key != id
                     && numeric(&i.rating_key).is_ok()
                     && seen.insert(i.rating_key.clone())
@@ -1022,9 +798,7 @@ impl Core {
             .flatten()
         {
             cached.play_queue_item_id = track.play_queue_item_id;
-            if let Some(index) = self.queue.current {
-                self.queue.items[index] = cached.clone();
-            }
+            self.queue.replace_track(cached.clone());
             self.cached_playback = true;
             if schedule {
                 self.schedule_cache();
@@ -1033,8 +807,11 @@ impl Core {
                 .map_err(|_| Error::Input("Invalid cached audio path"))?
                 .to_string();
             return Ok(
-                json!({"queue":self.queue,"radio":self.radio_summary(),"track":self.display_item(&cached),"stream":stream,"playbackSource":"cache","cache":self.cache_status()}),
+                json!({"queue":self.queue,"radio":self.radio_summary(),"track":self.display_item(&cached),"stream":stream,"playbackSource":PlaybackSource::Cache,"cache":self.cache_status()}),
             );
+        }
+        if self.offline_mode {
+            return Err(Error::Input("This track has not been downloaded"));
         }
         if track.media.first().and_then(|m| m.parts.first()).is_none() {
             let key = numeric(&track.rating_key)?;
@@ -1047,7 +824,7 @@ impl Core {
             track = c
                 .items
                 .into_iter()
-                .find(|i| i.kind == "track")
+                .find(|i| i.kind == crate::model::ItemKind::Track)
                 .ok_or(Error::Protocol)?;
         }
         let part = track
@@ -1055,9 +832,6 @@ impl Core {
             .first()
             .and_then(|m| m.parts.first())
             .ok_or(Error::Input("This track has no playable media part"))?;
-        if self.offline_mode {
-            return Err(Error::Input("This track has not been downloaded"));
-        }
         let kbps = self.settings.quality.streaming(self.network_wifi);
         let transcode = force_transcode
             || kbps > 0
@@ -1075,16 +849,16 @@ impl Core {
         } else {
             authenticated_url(&self.base()?, &part.key, &self.settings.server_token)?
         };
-        if let Some(index) = self.queue.current {
-            track.play_queue_item_id = self.queue.items[index].play_queue_item_id;
-            self.queue.items[index] = track.clone();
+        if let Some(current) = self.queue.track() {
+            track.play_queue_item_id = current.play_queue_item_id;
+            self.queue.replace_track(track.clone());
         }
         self.cached_playback = false;
         if schedule {
             self.schedule_cache();
         }
         Ok(
-            json!({"queue": self.queue, "radio":self.radio_summary(), "track": self.display_item(&track), "stream": stream,"playbackSource":if transcode {"transcode"}else{"stream"},"streamKbps":if transcode {if kbps>0 {kbps}else{192}}else{0},"cache":self.cache_status()}),
+            json!({"queue": self.queue, "radio":self.radio_summary(), "track": self.display_item(&track), "stream": stream,"playbackSource":if transcode {PlaybackSource::Transcode}else{PlaybackSource::Stream},"streamKbps":if transcode {if kbps>0 {kbps}else{192}}else{0},"cache":self.cache_status()}),
         )
     }
 
@@ -1101,7 +875,7 @@ impl Core {
                 .is_some_and(|r| r.kind == RadioKind::Album)
                 || self
                     .queue
-                    .items
+                    .items()
                     .iter()
                     .all(|i| i.parent_rating_key == album))
     }
@@ -1169,31 +943,11 @@ impl Core {
 
     fn album_tracks(&self, album: &Item) -> Result<Vec<Item>> {
         let id = numeric(&album.rating_key)?;
-        let mut items = Vec::new();
-        loop {
-            let start = items.len();
-            let (c, _) = self.container_cached(
-                &format!("/library/metadata/{id}/children"),
-                &[
-                    ("X-Plex-Container-Start", start.to_string()),
-                    ("X-Plex-Container-Size", "100".into()),
-                ],
-            )?;
-            let count = c.items.len();
-            if c.items.iter().any(|i| i.kind != "track") {
-                return Err(Error::ProtocolAt("album radio tracks"));
-            }
-            items.extend(c.items);
-            if items.len() > 1000 {
-                return Err(Error::Input("Album exceeds the radio track limit"));
-            }
-            if count == 0
-                || c.total_size
-                    .map_or(count < 100, |total| items.len() >= total)
-            {
-                break;
-            }
-        }
+        let items = self.paged_tracks(
+            &format!("/library/metadata/{id}/children"),
+            0,
+            daily::Paging::Album,
+        )?;
         if items.is_empty() {
             return Err(Error::Input("This album contains no playable tracks"));
         }
@@ -1227,7 +981,7 @@ impl Core {
         let seed = c
             .items
             .into_iter()
-            .find(|i| i.rating_key == key && i.kind == kind.item_type())
+            .find(|i| i.rating_key == key && i.kind == kind.item_kind())
             .ok_or(Error::Input(
                 "Radio seed does not match the selected music type",
             ))?;
@@ -1246,7 +1000,7 @@ impl Core {
             if queue
                 .items
                 .iter()
-                .any(|i| i.kind != "track" || i.play_queue_item_id.is_none())
+                .any(|i| i.kind != crate::model::ItemKind::Track || i.play_queue_item_id.is_none())
             {
                 return Err(Error::ProtocolAt("radio queue tracks"));
             }
@@ -1329,10 +1083,9 @@ impl Core {
                 if c.play_queue_id.is_some_and(|id| id != *queue_id) {
                     return Err(Error::ProtocolAt("radio queue continuation"));
                 }
-                if c.items
-                    .iter()
-                    .any(|i| i.kind != "track" || i.play_queue_item_id.is_none())
-                {
+                if c.items.iter().any(|i| {
+                    i.kind != crate::model::ItemKind::Track || i.play_queue_item_id.is_none()
+                }) {
                     return Err(Error::ProtocolAt("radio queue continuation"));
                 }
                 c.items
@@ -1340,7 +1093,7 @@ impl Core {
                     .filter(|i| {
                         !self
                             .queue
-                            .items
+                            .items()
                             .iter()
                             .any(|known| known.play_queue_item_id == i.play_queue_item_id)
                     })
@@ -1401,14 +1154,14 @@ impl Core {
             && self.queue.at_end()
             && self.radio.is_none()
             && self.settings.autoplay
-            && self.queue.repeat == Repeat::Off
+            && self.queue.repeat() == Repeat::Off
             && !self.offline_mode
         {
             if let Some(seed) = self.queue.track().cloned() {
                 if let Ok(neighbors) = self.nearest(&seed) {
                     let known: std::collections::BTreeSet<_> = self
                         .queue
-                        .items
+                        .items()
                         .iter()
                         .rev()
                         .take(200)
@@ -1428,7 +1181,7 @@ impl Core {
                 }
             }
         }
-        if self.radio.is_some() && !(automatic && self.queue.repeat == Repeat::One) {
+        if self.radio.is_some() && !(automatic && self.queue.repeat() == Repeat::One) {
             let disconnected = self.offline_mode || (self.network_known && !self.network_online);
             if disconnected {
                 self.advance_cached_radio()?;
@@ -1473,14 +1226,14 @@ impl Core {
     fn advance_cached_radio(&mut self) -> Result<()> {
         let ordered = self.queue.presentation();
         let current = ordered
-            .current
+            .current()
             .ok_or(Error::Input("This track has not been downloaded"))?;
         let namespace = self.cache_namespace();
-        for offset in 1..=ordered.items.len() {
-            let index = (current + offset) % ordered.items.len();
+        for offset in 1..=ordered.items().len() {
+            let index = (current + offset) % ordered.items().len();
             if self
                 .cache
-                .lookup(&namespace, &ordered.items[index], false)
+                .lookup(&namespace, &ordered.items()[index], false)
                 .is_some()
             {
                 self.queue.select(self.queue.physical_index(index)?)?;
@@ -1544,7 +1297,7 @@ impl Core {
                         play.delivered = true;
                     }
                 }
-                store::save(&self.dir, &self.settings)?;
+                store::save_journals(&self.dir, &self.settings)?;
             }
         }
         Ok(json!({}))
@@ -1566,25 +1319,37 @@ impl Core {
         let mut settings = self.settings.clone();
         settings.server_url = base.to_string();
         settings.server_token = token;
-        settings.playback = store::Playback::default();
-        settings.download_groups.clear();
-        settings.download_titles.clear();
-        settings.downloads.clear();
-        settings.download_plans.clear();
+        // Same URL and token address the same cache namespace: its pins,
+        // downloaded audio and queue remain valid and are kept.
+        let switched = cache::namespace(&settings.server_url, &settings.server_token)
+            != self.cache_namespace();
+        if switched {
+            settings.playback = store::Playback::default();
+            settings.download_groups.clear();
+            settings.download_titles.clear();
+            settings.downloads.clear();
+            settings.download_plans.clear();
+        }
         store::save(&self.dir, &settings)?;
-        self.refresh.reset();
         self.settings = settings;
         self.library
             .save(&self.cache_namespace(), "/library/sections", &[], &c);
-        self.queue = Queue::default();
-        self.radio = None;
-        self.cache.cancel();
-        self.artwork.cancel();
-        self.manual_cache.clear();
+        if switched {
+            self.refresh.reset();
+            self.queue = Queue::default();
+            self.radio = None;
+            self.resume_position = 0;
+            self.cache.cancel();
+            self.artwork.cancel();
+            self.manual_cache.clear();
+        } else {
+            self.refresh.reconnect();
+            self.schedule_cache();
+        }
         self.artist_indexes.clear();
         self.offline_mode = false;
         Ok(
-            json!({"libraries": c.sections.into_iter().filter(|s| s.kind == "artist").collect::<Vec<_>>(), "serverUrl": self.settings.server_url,"radio":null,"cache":self.cache_status(),"offlineMode":false,"offline":false}),
+            json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(), "serverUrl": self.settings.server_url,"radio":self.radio_summary(),"cache":self.cache_status(),"offlineMode":false,"offline":false}),
         )
     }
     pub fn execute(&mut self, command: Command) -> Result<Value> {
@@ -1668,11 +1433,16 @@ impl Core {
                 listened: self.settings.playback.listened,
             };
             self.settings.downloads = self.manual_cache.clone();
-            store::save(&self.dir, &self.settings)?;
+            // The command already took effect in memory (queue, pins, stream
+            // plan). Failing it now would hide a plan the UI must follow; keep
+            // the consistent in-memory state and retry at the next checkpoint.
+            if let Err(error) = store::save(&self.dir, &self.settings) {
+                diagnostics::event(format_args!("session checkpoint not saved: {error}"));
+            }
         }
         if result.get("queue").is_some() {
             let q = self.queue.presentation();
-            result["queue"] = json!({"items":q.items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current,"repeat":q.repeat,"shuffled":self.queue.shuffled});
+            result["queue"] = json!({"items":q.items().iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current(),"repeat":q.repeat(),"shuffled":self.queue.shuffled()});
         }
         Ok(result)
     }
@@ -1711,7 +1481,7 @@ impl Core {
                 sort,
                 limit,
                 filters,
-            } => self.smart_playlist(&action, (&key, &section), &title, &sort, limit, &filters),
+            } => self.smart_playlist(action, (&key, &section), &title, &sort, limit, &filters),
             Command::RefreshPolicy {
                 enabled,
                 interval_hours,
@@ -1736,9 +1506,7 @@ impl Core {
                 minutes,
             } => self.download_station(&key, &title, minutes),
             Command::Station { key, title } => self.start_station(&key, &title),
-            Command::DownloadPlan { kind, key, minutes } => {
-                self.download_plan(&kind, &key, minutes)
-            }
+            Command::DownloadPlan { kind, key, minutes } => self.download_plan(kind, &key, minutes),
             Command::PlayDownload { group } => self.play_download(&group),
             Command::OfflineSearch { query, kind, start } => {
                 self.offline_search(&query, &kind, start)
@@ -1771,7 +1539,7 @@ impl Core {
                 items,
                 item_id,
                 after,
-            } => self.edit_playlist(&action, &key, &title, items, item_id, after),
+            } => self.edit_playlist(action, &key, &title, items, item_id, after),
             Command::PlaylistItems { key, start } => self.playlist_items(&key, start),
             Command::LibraryBrowse {
                 section,
@@ -1795,7 +1563,7 @@ impl Core {
                 self.schedule_cache();
                 Ok(json!({"cache":self.cache_status(),"downloads":self.download_rows()}))
             }
-            Command::DownloadAction { group, action } => self.download_action(&group, &action),
+            Command::DownloadAction { group, action } => self.download_action(&group, action),
             Command::NetworkState {
                 wifi,
                 online,
@@ -1837,10 +1605,10 @@ impl Core {
             Command::SyncHistory => self.sync_history(),
             Command::Pin { key, kind, enabled } => {
                 numeric(&key)?;
-                if !matches!(kind.as_str(), "album" | "track" | "playlist") {
+                let Some(pinned) = DownloadKind::pinned(&kind) else {
                     return Err(Error::Input("Choose a track, album or playlist to pin"));
-                }
-                let group = format!("{kind}:{key}");
+                };
+                let group = GroupId::new(pinned, key.clone());
                 if enabled {
                     self.refresh.cancel();
                     if !self.settings.cache.enabled {
@@ -1848,44 +1616,21 @@ impl Core {
                             "Enable audio caching before pinning downloads",
                         ));
                     }
-                    let items = match kind.as_str() {
-                        "album" => self.album_tracks(&Item {
+                    let items = match kind {
+                        ItemKind::Album => self.album_tracks(&Item {
                             rating_key: key.clone(),
                             ..Default::default()
                         })?,
-                        "playlist" => {
-                            let mut tracks = Vec::new();
-                            loop {
-                                let start = tracks.len();
-                                let (c, _) = self.container_cached(
-                                    &format!("/playlists/{key}/items"),
-                                    &[
-                                        ("X-Plex-Container-Start", start.to_string()),
-                                        ("X-Plex-Container-Size", "100".into()),
-                                    ],
-                                )?;
-                                let count = c.items.len();
-                                if c.items.iter().any(|i| i.kind != "track") {
-                                    return Err(Error::Input(
-                                        "Only audio playlists can be downloaded",
-                                    ));
-                                }
-                                tracks.extend(c.items.into_iter().filter(|i| i.kind == "track"));
-                                if count < 100
-                                    || c.total_size.is_some_and(|total| start + count >= total)
-                                {
-                                    break;
-                                }
-                                if tracks.len() >= 1000 {
-                                    return Err(Error::Input("Download plan exceeds 1000 tracks"));
-                                }
-                            }
-                            tracks
+                        ItemKind::Playlist => {
+                            self.bounded_tracks(&format!("/playlists/{key}/items"), 0)?
                         }
                         _ => {
                             let (c, _) =
                                 self.container_cached(&format!("/library/metadata/{key}"), &[])?;
-                            c.items.into_iter().filter(|i| i.kind == "track").collect()
+                            c.items
+                                .into_iter()
+                                .filter(|i| i.kind == crate::model::ItemKind::Track)
+                                .collect()
                         }
                     };
                     let mut plan = self.manual_cache.clone();
@@ -1898,19 +1643,18 @@ impl Core {
                         items.iter().map(|i| i.rating_key.clone()).collect();
                     let mut groups = self.settings.download_groups.clone();
                     groups.insert(group.clone(), unique.into_iter().collect());
-                    let keep: std::collections::BTreeSet<_> =
-                        groups.values().flatten().cloned().collect();
+                    let keep = daily::pinned_keys(&groups);
                     plan.retain(|i| keep.contains(&i.rating_key));
                     if plan.len() > 1000 || items.is_empty() {
                         return Err(Error::Input("Pin up to 1000 playable tracks"));
                     }
-                    let title = if kind == "playlist" {
+                    let title = if kind == ItemKind::Playlist {
                         self.playlist_metadata(&key)?.title
                     } else {
                         items
                             .first()
                             .map(|i| {
-                                if kind == "track" {
+                                if kind == ItemKind::Track {
                                     i.title.clone()
                                 } else {
                                     i.parent_title.clone()
@@ -1918,15 +1662,13 @@ impl Core {
                             })
                             .unwrap_or_default()
                     };
-                    self.settings
-                        .download_titles
-                        .insert(format!("{kind}:{key}"), title);
+                    self.settings.download_titles.insert(group.clone(), title);
                     self.settings.download_groups = groups;
-                    if kind == "playlist" {
+                    if kind == ItemKind::Playlist {
                         self.settings.download_plans.insert(
                             group.clone(),
                             daily::DownloadPlan {
-                                kind: kind.clone(),
+                                kind: DownloadKind::Playlist,
                                 key: key.clone(),
                                 minutes: 0,
                                 refreshed_at: history::now(),
@@ -1938,13 +1680,7 @@ impl Core {
                     self.settings.download_groups.remove(&group);
                     self.settings.download_titles.remove(&group);
                     self.settings.download_plans.remove(&group);
-                    let keep: std::collections::BTreeSet<_> = self
-                        .settings
-                        .download_groups
-                        .values()
-                        .flatten()
-                        .cloned()
-                        .collect();
+                    let keep = daily::pinned_keys(&self.settings.download_groups);
                     self.manual_cache.retain(|i| keep.contains(&i.rating_key));
                 }
                 self.cache.cancel();
@@ -1981,7 +1717,7 @@ impl Core {
                 Ok(json!({"offlineMode":enabled}))
             }
             Command::OfflineBrowse { kind } => {
-                if !matches!(kind.as_str(), "artist" | "album" | "track") {
+                if !kind.is_music() {
                     return Err(Error::Input("Unknown offline music type"));
                 }
                 let mut items = self.offline_catalogue();
@@ -2008,7 +1744,7 @@ impl Core {
                 let stream = c
                     .items
                     .iter()
-                    .filter(|i| i.kind == "track" && i.rating_key == id)
+                    .filter(|i| i.kind == crate::model::ItemKind::Track && i.rating_key == id)
                     .flat_map(|i| &i.media)
                     .flat_map(|m| &m.parts)
                     .flat_map(|p| &p.streams)
@@ -2031,7 +1767,7 @@ impl Core {
                     return Ok(json!({"items":[],"start":0,"next":0,"hasMore":false}));
                 }
                 if self.offline_mode {
-                    return self.offline_search(&query, "", 0);
+                    return self.offline_search(&query, &ItemKind::default(), 0);
                 }
                 let (c, _) = self.container_cached(
                     "/hubs/search",
@@ -2044,8 +1780,12 @@ impl Core {
                     .flat_map(|h| &h.items)
                     .chain(&c.items)
                     .filter(|i| {
-                        matches!(i.kind.as_str(), "artist" | "album" | "track")
-                            && numeric(&i.rating_key).is_ok()
+                        matches!(
+                            i.kind,
+                            crate::model::ItemKind::Artist
+                                | crate::model::ItemKind::Album
+                                | crate::model::ItemKind::Track
+                        ) && numeric(&i.rating_key).is_ok()
                             && seen.insert((i.kind.clone(), i.rating_key.clone()))
                     })
                     .map(|i| self.display_item(i))
@@ -2058,23 +1798,27 @@ impl Core {
                 start,
             } => {
                 let section = numeric(&section)?;
-                let params = match view.as_str() {
-                    "favorites" => vec![
+                let params = match view {
+                    CollectionView::Favorites => vec![
                         ("type", "10".into()),
                         ("userRating", "10".into()),
                         ("sort", "titleSort:asc".into()),
                     ],
-                    "added" => vec![("type", "9".into()), ("sort", "addedAt:desc".into())],
-                    "played" => vec![
+                    CollectionView::Added => {
+                        vec![("type", "9".into()), ("sort", "addedAt:desc".into())]
+                    }
+                    CollectionView::Played => vec![
                         ("type", "10".into()),
                         ("sort", "lastViewedAt:desc".into()),
                         ("viewCount>>", "0".into()),
                     ],
-                    _ => return Err(Error::Input("Unknown discovery view")),
                 };
                 self.page(&format!("/library/sections/{section}/all"), params, start)
             }
             Command::Favorite { key, enabled } => {
+                if self.offline_mode {
+                    return Err(Error::Input("Go online"));
+                }
                 self.plex.rate(
                     &self.base()?,
                     &self.settings.server_token,
@@ -2086,11 +1830,11 @@ impl Core {
                     &key,
                     if enabled { 10. } else { 0. },
                 );
-                for item in &mut self.queue.items {
+                self.queue.update_items(|item| {
                     if item.rating_key == key {
                         item.user_rating = if enabled { 10. } else { 0. };
                     }
-                }
+                });
                 Ok(
                     json!({"ratedKey":key,"userRating":if enabled{10}else{0},"queue":self.queue,"track":self.queue.track().map(|i|self.display_item(i))}),
                 )
@@ -2163,7 +1907,7 @@ impl Core {
                 self.queue.physical_index(from)?;
                 self.queue.physical_index(to)?;
                 if from == to {
-                    return Ok(json!({"queue":self.queue,"radio":self.radio}));
+                    return Ok(json!({"queue":self.queue,"radio":self.radio_summary()}));
                 }
                 let mut queue = self.queue.presentation();
                 queue.move_item(from, to)?;
@@ -2213,9 +1957,9 @@ impl Core {
                 }
                 if items.is_empty()
                     || items.len() > 1000
-                    || items
-                        .iter()
-                        .any(|i| i.kind != "track" || numeric(&i.rating_key).is_err())
+                    || items.iter().any(|i| {
+                        i.kind != crate::model::ItemKind::Track || numeric(&i.rating_key).is_err()
+                    })
                 {
                     return Err(Error::Input("Choose up to 1000 valid tracks to download"));
                 }
@@ -2232,7 +1976,7 @@ impl Core {
                 }
                 for item in items {
                     self.settings.download_groups.insert(
-                        format!("track:{}", item.rating_key),
+                        GroupId::new(DownloadKind::Track, item.rating_key.clone()),
                         vec![item.rating_key.clone()],
                     );
                     if !self
@@ -2274,11 +2018,17 @@ impl Core {
                 self.playback()
             }
             Command::ClearCache => {
+                // Plans and titles go too: an orphaned plan would be refreshed
+                // and silently re-download what the user just cleared.
+                self.refresh.reset();
                 self.cache.clear()?;
                 self.manual_cache.clear();
                 self.settings.download_groups.clear();
+                self.settings.download_titles.clear();
+                self.settings.download_plans.clear();
                 self.queue = Queue::default();
                 self.radio = None;
+                self.resume_position = 0;
                 Ok(
                     json!({"queue":self.queue,"radio":null,"track":null,"stream":"","cache":self.cache_status()}),
                 )
@@ -2345,7 +2095,7 @@ impl Core {
                     self.offline_mode = true;
                 }
                 Ok(
-                    json!({"libraries": c.sections.into_iter().filter(|s| s.kind == "artist").collect::<Vec<_>>(),"offline":offline,"offlineMode":self.offline_mode}),
+                    json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(),"offline":offline,"offlineMode":self.offline_mode}),
                 )
             }
             Command::Browse {
@@ -2391,18 +2141,15 @@ impl Core {
             }
             Command::Children { key, start } => {
                 // Item keys vary: playlists use /playlists/N/items; artists/albums use metadata children.
-                let path = if key.starts_with("/playlists/") && key.ends_with("/items") {
-                    numeric(
-                        key.trim_start_matches("/playlists/")
-                            .trim_end_matches("/items"),
-                    )?;
-                    key
+                let path = if let Some(id) = key
+                    .strip_prefix("/playlists/")
+                    .and_then(|rest| rest.strip_suffix("/items"))
+                {
+                    format!("/playlists/{}/items", numeric(id)?)
                 } else {
-                    let id = key
-                        .trim_start_matches("/library/metadata/")
-                        .trim_end_matches("/children");
-                    numeric(id)?;
-                    format!("/library/metadata/{id}/children")
+                    let id = key.strip_prefix("/library/metadata/").unwrap_or(&key);
+                    let id = id.strip_suffix("/children").unwrap_or(id);
+                    format!("/library/metadata/{}/children", numeric(id)?)
                 };
                 self.page(&path, vec![], start)
             }
@@ -2427,6 +2174,7 @@ impl Core {
             Command::StopRadio => {
                 self.radio = None;
                 self.queue = Queue::default();
+                self.resume_position = 0;
                 self.cache.cancel();
                 self.playback()
             }
@@ -2452,6 +2200,7 @@ impl Core {
                     ));
                 }
                 self.queue.shuffle(enabled);
+                self.schedule_cache();
                 Ok(json!({"queue": self.queue}))
             }
             Command::Repeat { mode } => {
@@ -2460,14 +2209,20 @@ impl Core {
                         "Radio continues automatically; stop radio to repeat",
                     ));
                 }
-                self.queue.repeat = match mode.as_str() {
-                    "off" => Repeat::Off,
-                    "all" => Repeat::All,
-                    "one" => Repeat::One,
-                    _ => return Err(Error::Input("Unknown repeat mode")),
-                };
+                self.queue.set_repeat(mode);
+                self.schedule_cache();
                 Ok(json!({"queue": self.queue}))
             }
+            Command::AudioConfig { config } => {
+                self.set_audio_config(config.clone())?;
+                Ok(json!({"audioConfig":config}))
+            }
+            Command::AudioPause
+            | Command::AudioStop
+            | Command::AudioSeek { .. }
+            | Command::AudioVolume { .. }
+            | Command::AudioPlay
+            | Command::AudioToggle => Err(Error::Input("Unknown audio command")),
             Command::Logout => {
                 self.refresh.reset();
                 let settings = store::Settings {
@@ -2480,6 +2235,7 @@ impl Core {
                 self.servers.clear();
                 self.queue = Queue::default();
                 self.radio = None;
+                self.resume_position = 0;
                 self.cache.clear()?;
                 self.manual_cache.clear();
                 self.artist_indexes.clear();

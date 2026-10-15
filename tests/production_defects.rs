@@ -218,11 +218,14 @@ fn queue_reorder_must_drop_dangling_current() {
     let mut queue = plexfreq_core::queue::Queue::default();
     queue.replace(vec![a, b], 0).unwrap();
     // Corrupt the persisted selection without touching the valid order.
-    queue.current = Some(99);
+    let mut value = serde_json::to_value(&queue).unwrap();
+    value["current"] = serde_json::json!(99);
+    let mut queue: plexfreq_core::queue::Queue = serde_json::from_value(value).unwrap();
     // Non-shuffled reorder must not retain the out-of-bounds selection.
     queue.shuffle(false);
     assert_eq!(
-        queue.current, None,
+        queue.current(),
+        None,
         "dangling current must be dropped, not retained as Some(99)"
     );
     assert!(queue.track().is_none());
@@ -244,12 +247,12 @@ fn queue_trim_history_must_work_after_natural_end() {
         queue.advance(false);
     }
     assert!(queue.track().is_none());
-    let before = queue.items.len();
+    let before = queue.items().len();
     queue.trim_history(2);
     assert!(
-        queue.items.len() < before,
+        queue.items().len() < before,
         "trim_history after natural end must drop old history (was {before}, now {})",
-        queue.items.len()
+        queue.items().len()
     );
 }
 

@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="lt">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Abėcėlė</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Garsas · Be tarpų · PCM · Išvestis</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Persidengimas</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Sekundės</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Persidengimas</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Pridėti · Aukštyn · 1000 · Takeliai</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Albumas · Riba · Radijas · Takelis</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Tinkama · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Prisijungus</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Automatinis grojimas · Atnaujinti · Atsiuntimai</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Atnaujinti · Trukmė</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Atnaujinti · Trukmė</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Atnaujinti · Atsiuntimai · Įkeliama</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Radijas · Atsiuntimai · Trukmė</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radijas · Atsiuntimai · Trukmė</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Aukštyn · Kitas</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radijas</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Neprisijungus · Įrašyta · Biblioteka · Metaduomenys</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Podėlis · Garsas</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Takeliai · Paruošta · Neprisijungus</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Biblioteka</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Paieška</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Atlikėjai</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Albumai</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Takeliai</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Pavadinimas</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Neseniai pridėta</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Metai</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Paieška · Atlikėjai · Albumai · Takeliai</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Biblioteka</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Rikiuoti</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Pridėti · Sonic · Šaltinis</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Pašalinti · Eilė</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Aukštyn · Kitas</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radijas</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Neprisijungus · Įrašyta · Biblioteka · Metaduomenys</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Podėlis · Garsas</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Takeliai · Paruošta · Neprisijungus</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Biblioteka</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Paieška</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Atlikėjai</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumai</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Takeliai</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Pavadinimas</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Neseniai pridėta</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Metai</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Paieška · Atlikėjai · Albumai · Takeliai</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Biblioteka</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Rikiuoti</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Atsiųsta</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Pridėti · Sonic · Šaltinis</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Išmanus · Filtras · Nuostatos</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Garsas · Panašus</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Pradėti · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Takelis</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Atsiuntimai · Radijas · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Atsiuntimai · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Groti · Kitas</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Pridėti · Eilė</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Pridėti · Grojaraštis</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Sukurti · Grojaraštis</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Pridėti · Mišinys</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Pervadinti · Grojaraštis</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Ištrinti · Grojaraštis</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Perkelti · Grojaraštis · Aukštyn</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Perkelti · Grojaraštis · Žemyn</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Pašalinti · Grojaraštis</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Pašalinti</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Pridėti · Mėgstami</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Nebelaikyti · Atsiuntimai</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Laikyti neprisijungus · Neprisijungus · Istorija</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Perkelti · Aukštyn</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Perkelti · Žemyn</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Pašalinti · Eilė</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Bandyti dar kartą · Įkeliama</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Maišyti</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Kartoti</translation>
+      <source>Repeat one</source>
+      <translation>Kartojimas: vienas</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Kartojimas: visi</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Kartojimas: išjungtas</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Išvalyti · Podėlis · Stabdyti · Groti</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Garsas · Groti</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Tiesioginio srautinio perdavimo muzikos grotuvas</translation>
     </message>
   </context>
   <context>

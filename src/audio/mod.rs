@@ -11,6 +11,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use tokio::sync::watch;
 
 pub const RATE: u32 = 48000;
 const CHANNELS: usize = 2;
@@ -72,6 +73,32 @@ pub struct Snapshot {
     pub seekable: bool,
     pub error: String,
 }
+/// The transport fields that external presenters (MPRIS, diagnostics) react
+/// to. Position is deliberately absent: it changes continuously and is read on
+/// demand, so publishing it would turn change notification back into polling.
+#[derive(Clone, Copy, Default, PartialEq, Debug)]
+pub(crate) struct Change {
+    pub id: u64,
+    pub playing: bool,
+    pub paused: bool,
+    pub buffering: bool,
+    pub loaded: bool,
+    pub volume: u64,
+    pub seekable: bool,
+}
+impl From<&Snapshot> for Change {
+    fn from(state: &Snapshot) -> Self {
+        Self {
+            id: state.id,
+            playing: state.playing,
+            paused: state.paused,
+            buffering: state.buffering,
+            loaded: state.loaded,
+            volume: state.volume.to_bits(),
+            seekable: state.seekable,
+        }
+    }
+}
 #[derive(Debug)]
 pub enum Event {
     Transition {
@@ -117,6 +144,7 @@ pub struct Handle {
     state: Arc<Mutex<Snapshot>>,
     capture: Arc<Mutex<Vec<f32>>>,
     volume: Arc<Mutex<Option<f64>>>,
+    changes: Arc<watch::Sender<Change>>,
 }
 impl Handle {
     fn send(&self, control: Control) -> Result<()> {
@@ -172,6 +200,10 @@ impl Handle {
     pub fn captured(&self) -> Vec<f32> {
         lock_capture(&self.capture).clone()
     }
+    /// Notified only when a [`Change`] field differs, never for position.
+    pub(crate) fn changes(&self) -> watch::Receiver<Change> {
+        self.changes.subscribe()
+    }
 }
 pub struct Engine {
     pub handle: Handle,
@@ -207,16 +239,22 @@ impl Engine {
         }));
         let capture = Arc::new(Mutex::new(Vec::new()));
         let volume = Arc::new(Mutex::new(None));
+        let changes = Arc::new(watch::channel(Change::from(&*lock_state(&state))).0);
         let handle = Handle {
             tx,
             state: state.clone(),
             capture: capture.clone(),
             volume: volume.clone(),
+            changes: changes.clone(),
         };
         let closer = http::SessionCloser::new()?;
         let worker = thread::Builder::new()
             .name("plexfreq-audio".into())
-            .spawn(move || Actor::new(sink, state, capture, events, closer).run(rx, volume))?;
+            .spawn(move || {
+                let mut actor = Actor::new(sink, state, capture, events, closer);
+                actor.changes = changes;
+                actor.run(rx, volume)
+            })?;
         Ok(Self {
             handle,
             events: receiver,
@@ -613,8 +651,7 @@ impl Output {
                             let sample = sink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
                             let buffer = sample.buffer().ok_or(gst::FlowError::Error)?;
                             let map = buffer.map_readable().map_err(|_| gst::FlowError::Error)?;
-                            let mut pcm =
-                                capture.lock().unwrap_or_else(|poison| poison.into_inner());
+                            let mut pcm = lock_capture(&capture);
                             if pcm.len() < RATE as usize * 120 * 2 {
                                 pcm.extend(
                                     map.as_slice()
@@ -729,12 +766,8 @@ impl Output {
             let buffer = buffer
                 .get_mut()
                 .ok_or(Error::Input("Audio buffer allocation failed"))?;
-            buffer.set_pts(gst::ClockTime::from_nseconds(
-                self.frames * 1_000_000_000 / RATE as u64,
-            ));
-            buffer.set_duration(gst::ClockTime::from_nseconds(
-                frames * 1_000_000_000 / RATE as u64,
-            ));
+            buffer.set_pts(frames_to_time(self.frames));
+            buffer.set_duration(frames_to_time(frames));
             let mut map = buffer
                 .map_writable()
                 .map_err(|_| Error::Input("Audio buffer allocation failed"))?;
@@ -761,6 +794,11 @@ impl Output {
             .map(|p| ((u128::from(p.nseconds()) * u128::from(RATE)) / 1_000_000_000) as u64);
         self.position_clock.observe(raw, self.frames)
     }
+}
+/// Frame count to stream time without overflowing on multi-day sessions.
+fn frames_to_time(frames: u64) -> gst::ClockTime {
+    let nanoseconds = u128::from(frames) * 1_000_000_000 / u128::from(RATE);
+    gst::ClockTime::from_nseconds(nanoseconds.min(u128::from(u64::MAX)) as u64)
 }
 fn pulse_properties(os_release: &str) -> gst::Structure {
     // Sailfish mainvolume/stream-restore recognizes x-maemo, not the generic
@@ -805,6 +843,7 @@ struct Actor {
     ended: bool,
     fade: Option<(usize, usize)>,
     diagnostics: ProgressDiagnostics,
+    changes: Arc<watch::Sender<Change>>,
 }
 struct ProgressDiagnostics {
     sampled: Instant,
@@ -900,7 +939,17 @@ impl Actor {
             ended: false,
             fade: None,
             diagnostics: ProgressDiagnostics::new(),
+            changes: Arc::new(watch::channel(Change::default()).0),
         }
+    }
+    /// Wake change subscribers only when a presented transport field changed.
+    fn announce(&self) {
+        let change = Change::from(&*lock_state(&self.state));
+        self.changes.send_if_modified(|current| {
+            let modified = *current != change;
+            *current = change;
+            modified
+        });
     }
     fn load(&mut self, source: Source, paused: bool) -> Result<()> {
         self.intent = source.id;
@@ -925,6 +974,41 @@ impl Actor {
         self.processor = dsp::Processor::new(RATE, &self.config);
         Ok(())
     }
+    fn prepare(&mut self, source: Option<Source>) {
+        // A replaced successor restarts any crossfade from silence; the old
+        // fade's progress belongs to frames the new successor never mixed.
+        self.fade = None;
+        self.next = None;
+        let Some(next) = source else {
+            return;
+        };
+        let id = next.id;
+        match Decoder::new(next, &self.closer) {
+            Ok(decoder) => self.next = Some(decoder),
+            Err(_) => {
+                // A bad successor must never kill current playback;
+                // report it like a decode-fill failure and keep playing.
+                let _ = self.events.send(Event::Error {
+                    id,
+                    message: "Next track decoding failed",
+                });
+            }
+        }
+    }
+    /// Detach the prepared successor before reloading the audible track: an
+    /// untouched decoder is kept, a partly consumed one restarts from its source.
+    fn take_successor(&mut self) -> Option<std::result::Result<Decoder, Source>> {
+        if let Some(successor) = self.segments.get(1) {
+            // The successor already took over decoding but is not audible yet.
+            return Some(Err(successor.source.clone()));
+        }
+        let next = self.next.take()?;
+        Some(if next.frames == 0 {
+            Ok(next)
+        } else {
+            Err(next.source.clone())
+        })
+    }
     fn control(&mut self, control: Control) -> Result<bool> {
         match control {
             Control::Load(source, paused) => self.load(source, paused)?,
@@ -933,23 +1017,7 @@ impl Actor {
                     "audio prepare occurrence={:?}",
                     source.as_ref().map(|s| s.id)
                 ));
-                if let Some(next) = source {
-                    let id = next.id;
-                    match Decoder::new(next, &self.closer) {
-                        Ok(decoder) => self.next = Some(decoder),
-                        Err(_) => {
-                            // A bad successor must never kill current playback;
-                            // report it like a decode-fill failure and keep playing.
-                            self.next = None;
-                            let _ = self.events.send(Event::Error {
-                                id,
-                                message: "Next track decoding failed",
-                            });
-                        }
-                    }
-                } else {
-                    self.next = None;
-                }
+                self.prepare(source);
             }
             Control::Play => {
                 crate::diagnostics::event(format_args!(
@@ -1022,7 +1090,13 @@ impl Actor {
                         position
                     };
                     source.listened = lock_state(&self.state).listened;
+                    let successor = self.take_successor();
                     self.load(source, !self.desired)?;
+                    match successor {
+                        Some(Ok(decoder)) => self.next = Some(decoder),
+                        Some(Err(source)) => self.prepare(Some(source)),
+                        None => {}
+                    }
                     let _ = self.events.send(Event::Seeked(position));
                 }
             }
@@ -1032,7 +1106,8 @@ impl Actor {
             }
             Control::Configure(config) => {
                 crate::diagnostics::event(format_args!("audio DSP configuration changed"));
-                self.processor = dsp::Processor::new(RATE, &config);
+                // Keep EQ filter history so a gain change does not click.
+                self.processor.reconfigure(RATE, &config);
                 self.config = config;
             }
             Control::Wake => {}
@@ -1082,7 +1157,7 @@ impl Actor {
             {
                 0
             }
-            (Some(_), Some(next)) if next.eof => tail.min(next.remaining().max(1).min(tail.max(1))),
+            (Some(_), Some(next)) if next.eof => tail.min(next.remaining().max(1)),
             _ => tail,
         };
         // When the successor is empty, fall back to a gapless handoff.
@@ -1123,7 +1198,10 @@ impl Actor {
             return Ok(());
         };
         let available = current.remaining();
-        if current.eof
+        // After EOS was queued, the output cannot accept a successor's PCM;
+        // the natural End then lets the runtime start it on a fresh output.
+        if !self.ended
+            && current.eof
             && self.next.is_some()
             && (available == 0 || eff_tail > 0 && available <= eff_tail)
         {
@@ -1170,7 +1248,8 @@ impl Actor {
                 let Some(mut next) = self.next.take() else {
                     return Err(Error::Input("Audio output is unavailable"));
                 };
-                let overlap = self.fade.take().map_or(0, |(total, _)| total as u64);
+                // Backdate only by frames the successor actually overlapped.
+                let overlap = self.fade.take().map_or(0, |(_, done)| done as u64);
                 if let Some(segment) = self.segments.back_mut() {
                     segment.end = Some(output.frames);
                 }
@@ -1214,7 +1293,7 @@ impl Actor {
             );
             output.push(&pcm)?;
             output.state(gst::State::Playing)?;
-        } else if current.eof && current.remaining() == 0 && self.next.is_none() {
+        } else if current.eof && current.remaining() == 0 && (self.next.is_none() || self.ended) {
             if !self.ended {
                 let _ = output.source.end_of_stream();
                 if let Some(segment) = self.segments.back_mut() {
@@ -1352,6 +1431,7 @@ impl Actor {
                 }
             }
             self.publish();
+            self.announce();
             self.diagnose();
             // Idle/paused actors wake on commands rather than spinning at 200 Hz.
             let wait = Duration::from_millis(if self.desired && !self.recording {
@@ -1430,6 +1510,7 @@ mod tests {
             state: Arc::new(Mutex::new(Snapshot::default())),
             capture: Arc::new(Mutex::new(Vec::new())),
             volume: Arc::new(Mutex::new(None)),
+            changes: Arc::new(watch::channel(Change::default()).0),
         };
         for n in 0..10000 {
             handle.volume(n as f64 / 10000.).unwrap();
@@ -1716,5 +1797,43 @@ mod tests {
             safe_uri("https://fixture.invalid/audio?x=1&X-Plex-Token=fixture-secret").unwrap();
         assert_eq!(token, "fixture-secret");
         assert_eq!(uri, "https://fixture.invalid/audio?x=1");
+    }
+}
+
+#[cfg(test)]
+mod review_tests {
+    use super::*;
+
+    // BUG (Output::push, src/audio/mod.rs:732-736): the PTS is computed as
+    // `self.frames * 1_000_000_000` in u64, which overflows once one
+    // continuous output has carried u64::MAX / 1e9 frames (~106.7 hours at
+    // 48kHz, e.g. a radio session joined gaplessly for 4.5 days). Debug builds
+    // panic on the audio thread; release builds wrap the timestamp back near
+    // zero so the synchronized sink treats every later buffer as late.
+    // Output::position already uses u128 for the inverse conversion.
+    #[test]
+    fn output_timestamps_do_not_overflow_on_long_continuous_sessions() {
+        gst::init().unwrap();
+        let mut output = Output::new(Sink::Capture, Arc::new(Mutex::new(Vec::new()))).unwrap();
+        let (sent, received) = mpsc::channel();
+        output.source.static_pad("src").unwrap().add_probe(
+            gst::PadProbeType::BUFFER,
+            move |_, info| {
+                if let Some(gst::PadProbeData::Buffer(buffer)) = &info.data {
+                    let _ = sent.send(buffer.pts());
+                }
+                gst::PadProbeReturn::Ok
+            },
+        );
+        output.frames = u64::MAX / 1_000_000_000 + 1;
+        let expected = (u128::from(output.frames) * 1_000_000_000 / u128::from(RATE)) as u64;
+        output.state(gst::State::Playing).unwrap();
+        let pushed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            output.push(&[0.; BLOCK * CHANNELS])
+        }));
+        assert!(pushed.is_ok(), "PTS computation overflowed");
+        pushed.unwrap().unwrap();
+        let pts = received.recv_timeout(Duration::from_secs(2)).unwrap();
+        assert_eq!(pts, Some(gst::ClockTime::from_nseconds(expected)));
     }
 }

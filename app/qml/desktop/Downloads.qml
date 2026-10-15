@@ -8,10 +8,14 @@ Dialog {
     title:qsTr("Download manager");standardButtons:Dialog.Close
     contentItem:ColumnLayout {
         Switch {text:qsTr("Automatically refresh download plans");checked:!!backend.cache.autoRefresh;onClicked:backend.command("refresh_policy",{enabled:checked,interval_hours:backend.cache.refreshHours || 6})}
-        ComboBox {Layout.fillWidth:true;visible:!!backend.cache.autoRefresh;model:[1,6,12,24];displayText:qsTr("Refresh interval")+": "+qsTr("%1 hours").arg(backend.cache.refreshHours || 6);onActivated:backend.command("refresh_policy",{enabled:true,interval_hours:model[currentIndex]})}
+        ComboBox {Layout.fillWidth:true;visible:!!backend.cache.autoRefresh;textRole:"text";valueRole:"value"
+            model:[1,6,12,24].map(function(hours){return {value:hours,text:qsTr("%1 hours").arg(hours)}})
+            currentIndex:count>0 ? indexOfValue(backend.cache.refreshHours || 6) : -1;displayText:qsTr("Refresh interval")+": "+qsTr("%1 hours").arg(backend.cache.refreshHours || 6);onActivated:backend.command("refresh_policy",{enabled:true,interval_hours:currentValue})}
         Label {Layout.fillWidth:true;visible:!!backend.cache.refreshingGroup;text:qsTr("Refreshing download plans…");wrapMode:Text.Wrap}
         Label {Layout.fillWidth:true;text:backend.cache.refreshError || "";visible:text.length>0;wrapMode:Text.Wrap;color:"#ff998b"}
-        ComboBox {Layout.fillWidth:true;model:[30,60,120,240,480];displayText:qsTr("Radio download length")+": "+qsTr("%1 minutes").arg(music.downloadMinutes);onActivated:music.downloadMinutes=model[currentIndex]}
+        ComboBox {Layout.fillWidth:true;textRole:"text";valueRole:"value"
+            model:[30,60,120,240,480].map(function(minutes){return {value:minutes,text:qsTr("%1 minutes").arg(minutes)}})
+            currentIndex:count>0 ? indexOfValue(music.downloadMinutes) : -1;displayText:qsTr("Radio download length")+": "+qsTr("%1 minutes").arg(music.downloadMinutes);onActivated:music.downloadMinutes=currentValue}
         Switch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
         Button {text:backend.cache.paused ? qsTr("Resume downloads") : qsTr("Pause downloads");onClicked:backend.command("download_policy",{wifi_only:!!backend.cache.wifiOnly,paused:!backend.cache.paused})}
         Label {Layout.fillWidth:true;text:backend.cache.waitingForWifi ? qsTr("Waiting for confirmed Wi-Fi; streaming remains available.") : qsTr("%1 MiB audio cache used").arg(Math.round(backend.cache.bytes/1048576));wrapMode:Text.Wrap}

@@ -26,11 +26,15 @@ Dialog {
                 onTextChanged:{music.filterValue("yearFrom",text.length ? Number(text) : null);dialog.validate()}}
             TextField {id:to;Layout.fillWidth:true;enabled:music.filterKind!=="artist";placeholderText:qsTr("Year to");text:music.filterText("yearTo");validator:IntValidator {bottom:1;top:9999}
                 onTextChanged:{music.filterValue("yearTo",text.length ? Number(text) : null);dialog.validate()}}
-            ComboBox {Layout.fillWidth:true;model:[0,5,8,10];displayText:qsTr("Minimum rating")+": "+(music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10");onActivated:music.filterValue("minRating",model[currentIndex] || null)}
+            ComboBox {Layout.fillWidth:true;textRole:"text";valueRole:"value"
+                model:[0,5,8,10].map(function(rating){return {value:rating,text:rating ? rating+"/10" : qsTr("Any")}})
+                currentIndex:count>0 ? indexOfValue(music.filterValues.minRating || 0) : -1;displayText:qsTr("Minimum rating")+": "+(music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10");onActivated:music.filterValue("minRating",currentValue || null)}
             Switch {text:qsTr("Unplayed only");checked:!!music.filterValues.unplayed;onClicked:music.filterValue("unplayed",checked)}
-            ComboBox {Layout.fillWidth:true;model:["title","newest","year","played","popular","random"];displayText:qsTr("Sort")+": "+music.filterSortText(music.filterSort);onActivated:music.filterSort=model[currentIndex]}
+            ComboBox {Layout.fillWidth:true;textRole:"text";valueRole:"value"
+                model:["title","newest","year","played","popular","random"].map(function(sort){return {value:sort,text:music.filterSortText(sort)}})
+                currentIndex:count>0 ? indexOfValue(music.filterSort) : -1;displayText:qsTr("Sort")+": "+music.filterSortText(music.filterSort);onActivated:music.filterSort=currentValue}
             TextField {id:count;Layout.fillWidth:true;visible:music.filterAction!=="browse";placeholderText:qsTr("Maximum tracks");text:""+music.filterLimit;validator:IntValidator {bottom:1;top:1000}
-                onTextChanged:{music.filterLimit=Number(text);dialog.validate()}}
+                onTextChanged:{if(acceptableInput)music.filterLimit=Number(text);dialog.validate()}}
         }
     }
 }

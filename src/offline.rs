@@ -9,14 +9,12 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs::{self},
-    io::Read,
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
-        mpsc, Arc, Mutex,
+        Arc, Mutex,
     },
-    thread,
 };
 
 fn hash(value: &str) -> String {
@@ -61,11 +59,47 @@ fn prune_excluding(root: &Path, extra: u64, limit: u64, exclude: Option<&Path>) 
     Ok(())
 }
 
+/// Reads refresh a file's mtime (the prune age signal) at most this often, so
+/// frequently read snapshots are not evicted first without a write per read.
+const READ_TOUCH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 60);
+
 pub struct Library {
     root: PathBuf,
     writable: bool,
 }
 impl Library {
+    /// Mark a file as recently used for oldest-first pruning.
+    fn touch(&self, path: &Path) {
+        if !self.writable {
+            return;
+        }
+        let now = std::time::SystemTime::now();
+        let stale = fs::metadata(path)
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| now.duration_since(t).ok())
+            .is_some_and(|age| age >= READ_TOUCH_INTERVAL);
+        if stale {
+            if let Ok(file) = fs::File::options().write(true).open(path) {
+                let _ = file.set_modified(now);
+            }
+        }
+    }
+    /// Metadata snapshots of a namespace, excluding its lyrics files.
+    fn snapshots(&self, namespace: &str) -> impl Iterator<Item = PathBuf> {
+        let prefix = format!("{namespace}-");
+        let lyrics = format!("{namespace}-lyrics-");
+        fs::read_dir(&self.root)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter(move |entry| {
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                name.starts_with(&prefix) && !name.starts_with(&lyrics)
+            })
+            .map(|entry| entry.path())
+    }
     pub(crate) fn catalogue_stamp(&self) -> Option<std::time::SystemTime> {
         fs::metadata(&self.root).ok()?.modified().ok()
     }
@@ -117,19 +151,15 @@ impl Library {
         path: &str,
         params: &[(&str, String)],
     ) -> Option<Container> {
-        serde_json::from_slice(&fs::read(self.path(namespace, path, params)).ok()?).ok()
+        let file = self.path(namespace, path, params);
+        let container = serde_json::from_slice(&fs::read(&file).ok()?).ok()?;
+        self.touch(&file);
+        Some(container)
     }
     pub fn items(&self, namespace: &str) -> Vec<Item> {
         let mut items = std::collections::BTreeMap::new();
-        for entry in fs::read_dir(&self.root).into_iter().flatten().flatten() {
-            if !entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with(&format!("{namespace}-"))
-            {
-                continue;
-            }
-            if let Some(c) = fs::read(entry.path())
+        for path in self.snapshots(namespace) {
+            if let Some(c) = fs::read(path)
                 .ok()
                 .and_then(|b| serde_json::from_slice::<Container>(&b).ok())
             {
@@ -138,7 +168,12 @@ impl Library {
                     .into_iter()
                     .chain(c.hubs.into_iter().flat_map(|h| h.items))
                 {
-                    if matches!(i.kind.as_str(), "artist" | "album" | "track") {
+                    if matches!(
+                        i.kind,
+                        crate::model::ItemKind::Artist
+                            | crate::model::ItemKind::Album
+                            | crate::model::ItemKind::Track
+                    ) {
                         items
                             .entry((i.kind.clone(), i.rating_key.clone()))
                             .or_insert(i);
@@ -180,33 +215,35 @@ impl Library {
         if !self.writable {
             return;
         }
-        for entry in fs::read_dir(&self.root).into_iter().flatten().flatten() {
-            if !entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with(&format!("{namespace}-"))
-            {
-                continue;
-            }
-            if let Some(mut c) = fs::read(entry.path())
+        for path in self.snapshots(namespace) {
+            if let Some(mut c) = fs::read(&path)
                 .ok()
                 .and_then(|b| serde_json::from_slice::<Container>(&b).ok())
             {
+                let mut changed = false;
                 for i in c
                     .items
                     .iter_mut()
                     .chain(c.hubs.iter_mut().flat_map(|h| &mut h.items))
                 {
-                    if i.rating_key == key {
+                    if i.rating_key == key && i.user_rating != rating {
                         i.user_rating = rating;
+                        changed = true;
                     }
                 }
-                let _ = write_json(&entry.path(), &c);
+                // Rewriting untouched snapshots resets their prune age and
+                // wears flash for nothing.
+                if changed {
+                    let _ = write_json(&path, &c);
+                }
             }
         }
     }
     pub fn lyrics(&self, namespace: &str, key: &str) -> Option<Vec<crate::lyrics::Line>> {
-        serde_json::from_slice(&fs::read(self.lyrics_file(namespace, key)).ok()?).ok()
+        let file = self.lyrics_file(namespace, key);
+        let lines = serde_json::from_slice(&fs::read(&file).ok()?).ok()?;
+        self.touch(&file);
+        Some(lines)
     }
     fn lyrics_file(&self, namespace: &str, key: &str) -> PathBuf {
         // Keys are numeric ratingKeys in production, but the storage layer must
@@ -246,6 +283,62 @@ impl Library {
     }
 }
 
+/// Download one image: image content type only, at most 4 MiB.
+async fn fetch(client: &reqwest::Client, job: &Job) -> Result<Vec<u8>> {
+    let url = advertised_path(&server_url(&job.server)?, &job.path)?;
+    let mut response = client
+        .get(url)
+        .header("X-Plex-Token", &job.token)
+        .timeout(std::time::Duration::from_secs(5))
+        .send()
+        .await
+        .map_err(|_| Error::Network)?;
+    if !response.status().is_success()
+        || !response
+            .headers()
+            .get("content-type")
+            .and_then(|h| h.to_str().ok())
+            .map(|s| {
+                s.split(';')
+                    .next()
+                    .unwrap_or("")
+                    .trim()
+                    .to_ascii_lowercase()
+            })
+            .is_some_and(|s| s.starts_with("image/"))
+    {
+        return Err(Error::ProtocolAt("artwork"));
+    }
+    let bytes = crate::plex::bounded_body(&mut response, 4 * 1024 * 1024)
+        .await
+        .map_err(|error| error.unwrap_or(Error::Input("Artwork exceeds size limit")))?;
+    if bytes.is_empty() {
+        return Err(Error::Input("Artwork exceeds size limit"));
+    }
+    Ok(bytes)
+}
+/// Persist a downloaded image unless its generation was cancelled meanwhile.
+fn store(
+    file: &Path,
+    epoch: u64,
+    bytes: &[u8],
+    active: &Mutex<BTreeMap<PathBuf, u64>>,
+    generation: &AtomicU64,
+) -> Result<()> {
+    // file is always root.join(hash); parent is root. Skip defensively.
+    let Some(root) = file.parent() else {
+        return Ok(());
+    };
+    // Reuse the bounded library prune: oldest-first until the incoming image
+    // fits in the 128 MiB artwork budget.
+    prune_excluding(root, bytes.len() as u64, 128 * 1024 * 1024, Some(file))?;
+    let _guard = crate::mutex_lock(active);
+    if epoch != generation.load(Ordering::SeqCst) {
+        return Ok(());
+    }
+    write_bytes(file, bytes)
+}
+
 struct Job {
     epoch: u64,
     server: String,
@@ -256,9 +349,9 @@ struct Job {
 pub struct Artwork {
     gate: Option<Arc<crate::cache::Gate>>,
     root: PathBuf,
-    jobs: Option<mpsc::SyncSender<Job>>,
+    jobs: Option<tokio::sync::mpsc::Sender<Job>>,
     pending: Arc<Mutex<BTreeMap<PathBuf, u64>>>,
-    worker: Option<thread::JoinHandle<()>>,
+    worker: Option<crate::rt::Task>,
     stopping: Arc<AtomicBool>,
     generation: Arc<AtomicU64>,
 }
@@ -273,20 +366,14 @@ impl Artwork {
         let generation = Arc::new(AtomicU64::new(0));
         let gen = generation.clone();
         let stop = stopping.clone();
-        let (tx, rx) = mpsc::sync_channel::<Job>(128);
+        let (tx, mut rx) = tokio::sync::mpsc::channel::<Job>(128);
         let active = pending.clone();
-        let worker = if writable {
-            Some(thread::spawn(move || {
-                let client = match reqwest::blocking::Client::builder()
-                    .connect_timeout(std::time::Duration::from_secs(3))
-                    .timeout(std::time::Duration::from_secs(5))
-                    .redirect(reqwest::redirect::Policy::none())
-                    .build()
-                {
-                    Ok(c) => c,
-                    Err(_) => return,
-                };
-                while let Ok(job) = rx.recv() {
+        // One task on the shared runtime with the pooled Plex client; the
+        // prune/write step runs on the blocking pool.
+        let worker = writable.then(|| {
+            crate::rt::spawn(async move {
+                let client = crate::plex::client().clone();
+                while let Some(job) = rx.recv().await {
                     if stop.load(Ordering::SeqCst) {
                         break;
                     }
@@ -299,66 +386,21 @@ impl Artwork {
                         }
                         continue;
                     }
-                    let result = (|| -> Result<()> {
-                        let url = advertised_path(&server_url(&job.server)?, &job.path)?;
-                        let response = client
-                            .get(url)
-                            .header("X-Plex-Token", &job.token)
-                            .send()
-                            .map_err(|_| Error::Network)?;
-                        if !response.status().is_success()
-                            || !response
-                                .headers()
-                                .get("content-type")
-                                .and_then(|h| h.to_str().ok())
-                                .map(|s| {
-                                    s.split(';')
-                                        .next()
-                                        .unwrap_or("")
-                                        .trim()
-                                        .to_ascii_lowercase()
-                                })
-                                .is_some_and(|s| s.starts_with("image/"))
-                        {
-                            return Err(Error::ProtocolAt("artwork"));
-                        }
-                        let mut bytes = Vec::new();
-                        response.take(4 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
-                        if bytes.is_empty() || bytes.len() > 4 * 1024 * 1024 {
-                            return Err(Error::Input("Artwork exceeds size limit"));
-                        }
-                        // job.file is always root.join(hash); parent is root.
-                        // Skip defensively without a new user-facing string
-                        // (this closure's error is ignored by design).
-                        let Some(root) = job.file.parent() else {
-                            return Ok(());
-                        };
-                        // Reuse the bounded library prune: oldest-first until
-                        // the incoming image fits in the 128 MiB artwork budget.
-                        prune_excluding(
-                            root,
-                            bytes.len() as u64,
-                            128 * 1024 * 1024,
-                            Some(&job.file),
-                        )?;
-                        let _guard = crate::mutex_lock(&active);
-                        if job.epoch != gen.load(Ordering::SeqCst) {
-                            return Ok(());
-                        }
-                        write_bytes(&job.file, &bytes)
-                    })();
-                    let _ = result;
-                    {
-                        let mut active = crate::mutex_lock(&active);
-                        if active.get(&job.file).is_some_and(|e| *e == job.epoch) {
-                            active.remove(&job.file);
-                        }
+                    if let Ok(bytes) = fetch(&client, &job).await {
+                        let (active, gen, file, epoch) =
+                            (active.clone(), gen.clone(), job.file.clone(), job.epoch);
+                        // The result is ignored by design.
+                        let _ =
+                            crate::rt::unblock(move || store(&file, epoch, &bytes, &active, &gen))
+                                .await;
+                    }
+                    let mut active = crate::mutex_lock(&active);
+                    if active.get(&job.file).is_some_and(|e| *e == job.epoch) {
+                        active.remove(&job.file);
                     }
                 }
-            }))
-        } else {
-            None
-        };
+            })
+        });
         Ok(Self {
             gate: None,
             root,
@@ -448,7 +490,10 @@ impl Drop for Artwork {
         self.stopping.store(true, Ordering::SeqCst);
         self.jobs.take();
         if let Some(worker) = self.worker.take() {
-            let _ = worker.join();
+            // Shutdown does not wait out an artwork download; a store step
+            // already handed to the blocking pool completes atomically.
+            worker.abort();
+            worker.join(Some(std::time::Duration::from_secs(1)));
         }
     }
 }

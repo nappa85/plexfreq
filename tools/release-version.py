@@ -32,7 +32,6 @@ def main():
     for path, pattern in [
         ("app/harbour-plexfreq.pro", r"^VERSION\s*=\s*(\S+)\s*$"),
         ("app/rpm/harbour-plexfreq.spec", r"^Version:\s*(\S+)\s*$"),
-        ("app/src/main.cpp", r'setApplicationVersion\("([^"\n]+)"\)'),
         ("CMakeLists.txt", r"project\(PlexFreq VERSION (\S+) LANGUAGES"),
     ]:
         match = re.search(pattern, read_text(path), re.MULTILINE)

@@ -16,7 +16,7 @@ use std::{
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         duration: 120_000,
         ..Default::default()
     }
@@ -84,7 +84,7 @@ fn queue_advance_repeat_all_after_natural_end_restarts() {
     assert!(q.advance(false).is_some());
     assert!(q.advance(false).is_none());
     assert!(q.track().is_none());
-    q.repeat = Repeat::All;
+    q.set_repeat(Repeat::All);
     let restarted = q.advance(false);
     assert!(
         restarted.is_some(),
@@ -194,10 +194,13 @@ fn queue_presentation_corrupt_cursor_mismatch_does_not_point_to_wrong_track() {
     let presented = corrupt.presentation();
     // q.items from order [1,0] is ["1","0"]; current 0 lives at index 1.
     assert_eq!(
-        presented.current,
+        presented.current(),
         Some(1),
         "corrupt cursor must not invent selection {:?} pointing at wrong track",
-        presented.current
+        presented.current()
     );
-    assert_eq!(presented.items[presented.current.unwrap()].rating_key, "0");
+    assert_eq!(
+        presented.items()[presented.current().unwrap()].rating_key,
+        "0"
+    );
 }

@@ -16,6 +16,10 @@ Dialog {
             }
             Repeater {model:[{field:"genre",label:qsTr("Genre")},{field:"mood",label:qsTr("Mood")},{field:"style",label:qsTr("Style")}]
                 ComboBox {id:picker;property string field:modelData.field;property var choices:[{key:"",title:qsTr("Any")}].concat(music.filterChoices[field] || []);width:body.width;label:modelData.label;currentIndex:music.filterChoiceIndex(choices,music.filterValues[field]);enabled:choices.length>1
+                    // Selecting a menu entry assigns currentIndex and drops the binding.
+                    function sync() {currentIndex=music.filterChoiceIndex(choices,music.filterValues[field])}
+                    onChoicesChanged:sync()
+                    Connections {target:music;onFilterValuesChanged:picker.sync()}
                     menu:ContextMenu {Repeater {model:picker.choices;MenuItem {text:modelData.title;onClicked:music.filterValue(picker.field,modelData.key)}}}
                 }
             }
@@ -27,12 +31,14 @@ Dialog {
             ComboBox {width:parent.width;label:qsTr("Minimum rating");value:music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10"
                 menu:ContextMenu {Repeater {model:[0,5,8,10];MenuItem {text:modelData ? modelData+"/10" : qsTr("Any");onClicked:music.filterValue("minRating",modelData || null)}}}
             }
-            TextSwitch {text:qsTr("Unplayed only");checked:!!music.filterValues.unplayed;onClicked:music.filterValue("unplayed",checked)}
+            TextSwitch {id:unplayed;text:qsTr("Unplayed only");checked:!!music.filterValues.unplayed;onClicked:music.filterValue("unplayed",checked)
+                Connections {target:music;onFilterValuesChanged:unplayed.checked=!!music.filterValues.unplayed}
+            }
             ComboBox {width:parent.width;label:qsTr("Sort");value:music.filterSortText(music.filterSort)
                 menu:ContextMenu {Repeater {model:["title","newest","year","played","popular","random"];MenuItem {text:music.filterSortText(modelData);onClicked:music.filterSort=modelData}}}
             }
             TextField {id:count;width:parent.width;visible:music.filterAction!=="browse";label:qsTr("Maximum tracks");text:""+music.filterLimit;inputMethodHints:Qt.ImhDigitsOnly;validator:IntValidator {bottom:1;top:1000}
-                onTextChanged:music.filterLimit=Number(text)}
+                onTextChanged:if(acceptableInput)music.filterLimit=Number(text)}
         }
         VerticalScrollDecorator {}
     }

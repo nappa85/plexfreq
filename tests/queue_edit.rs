@@ -4,7 +4,7 @@ use serde_json::json;
 fn track(id: &str) -> Item {
     Item {
         rating_key: id.into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         duration: 120000,
         ..Default::default()
     }
@@ -29,7 +29,7 @@ fn edits_preserve_current_occurrence_and_next_order_under_shuffle() {
     let mut shown = queue.presentation();
     shown.move_item(1, 3).unwrap();
     assert_eq!(shown.track().unwrap().rating_key, "2");
-    assert!(!shown.shuffled);
+    assert!(!shown.shuffled());
     shown.remove(1).unwrap();
     assert_eq!(shown.track().unwrap().rating_key, "2");
     shown.validate().unwrap();
@@ -71,10 +71,9 @@ fn queue_and_resume_survive_restart_without_autoplay_or_authenticated_urls() {
         core.execute(Command::Status).unwrap()["queue"]["items"][0]["ratingKey"],
         "2"
     );
+    // The queue is persisted in queue.json (session.json keeps the rest).
     let stored: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(dir.path().join("session.json")).unwrap()).unwrap();
-    assert!(stored["playback"]["queue"]["items"][0]
-        .get("artwork")
-        .is_none());
-    assert_eq!(stored["playback"]["queue"]["current"], json!(null));
+        serde_json::from_slice(&std::fs::read(dir.path().join("queue.json")).unwrap()).unwrap();
+    assert!(stored["queue"]["items"][0].get("artwork").is_none());
+    assert_eq!(stored["queue"]["current"], json!(null));
 }

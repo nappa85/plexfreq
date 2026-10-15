@@ -26,14 +26,18 @@ impl Index {
             .collect();
         Self { stamp, items, text }
     }
-    pub fn search<'a>(&'a self, query: &str, kind: &'a str) -> impl Iterator<Item = &'a Item> {
+    pub fn search<'a>(
+        &'a self,
+        query: &str,
+        kind: &'a crate::model::ItemKind,
+    ) -> impl Iterator<Item = &'a Item> {
         let terms: Vec<_> = query.split_whitespace().map(str::to_lowercase).collect();
         self.items
             .iter()
             .zip(&self.text)
             .filter(move |(item, text)| {
                 !terms.is_empty()
-                    && (kind.is_empty() || item.kind == kind)
+                    && (kind.is_empty() || item.kind == *kind)
                     && terms.iter().all(|term| text.contains(term))
             })
             .map(|(item, _)| item)

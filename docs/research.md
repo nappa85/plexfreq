@@ -2112,3 +2112,15 @@ replaced in this iteration.
 - Final decoder-session UUID isolation regression and complete host/SDK rerun pass.
   Temporary phone files were removed; the normal session bus still reports the
   existing user player as PID 64815. The prepared package was not installed over it.
+
+## Persistence and async runtime notes (2026-10-15)
+
+- JSON Lines logs append with O_APPEND + `fdatasync` per record and compact by
+  atomic rename. Lines are parsed one at a time: `serde_json::StreamDeserializer`
+  cannot resynchronize after a malformed record.
+- zbus 4 `connection::Builder::internal_executor(false)` plus an external
+  `executor().tick()` task removes per-connection executor threads; the async-io
+  reactor thread remains unless zbus uses its `tokio` feature.
+- tokio `Handle::block_on` on a current-thread runtime needs another thread to be
+  inside `Runtime::block_on` to drive I/O. reqwest `RequestBuilder::header` appends
+  while `headers` replaces.

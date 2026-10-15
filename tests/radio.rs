@@ -112,7 +112,9 @@ fn artist_station_uses_advertised_key_continues_by_queue_item_id_and_reports_tim
     .unwrap();
     assert!(core.execute(Command::Shuffle { enabled: true }).is_err());
     assert!(core
-        .execute(Command::Repeat { mode: "all".into() })
+        .execute(Command::Repeat {
+            mode: plexfreq_core::queue::Repeat::All,
+        })
         .is_err());
     let stopped = core.execute(Command::StopRadio).unwrap();
     assert_eq!(stopped["radio"], Value::Null);
@@ -309,7 +311,7 @@ fn radio_history_is_bounded_without_losing_current_track_or_order() {
         .collect();
     queue.replace(items, 199).unwrap();
     queue.trim_history(100);
-    assert_eq!(queue.items.len(), 101);
+    assert_eq!(queue.items().len(), 101);
     assert_eq!(queue.track().unwrap().rating_key, "199");
     queue
         .append(vec![serde_json::from_value(track("200", None)).unwrap()])

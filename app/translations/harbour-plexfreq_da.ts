@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="da">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Alfabet</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Lyd · Uden pauser · PCM · Udgang</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Overtoning</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Sekunder</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Overtoning</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Tilføj · Op · 1000 · Numre</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Album · Grænse · Radio · Nummer</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Gyldig · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Online</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Automatisk afspilning · Opdater · Downloads</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Opdater · Varighed</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Opdater · Varighed</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Opdater · Downloads · Indlæser</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Radio · Downloads · Varighed</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Downloads · Varighed</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Op · Næste</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Gemt · Bibliotek · Metadata</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Cache · Lyd</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Numre · Klar · Offline</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Bibliotek</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Søg</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Kunstnere</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Album</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Numre</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Titel</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nyligt tilføjet</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>År</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Søg · Kunstnere · Album · Numre</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Bibliotek</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Sorter</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Tilføj · Sonic · Kilde</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Fjern · Kø</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Op · Næste</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Offline · Gemt · Bibliotek · Metadata</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Cache · Lyd</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Numre · Klar · Offline</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Søg</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Kunstnere</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Album</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Numre</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Titel</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nyligt tilføjet</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>År</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Søg · Kunstnere · Album · Numre</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotek</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Sorter</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Downloadet</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Tilføj · Sonic · Kilde</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Smart · Filter · Indstillinger</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Lyd · Lignende</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Start · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Nummer</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Downloads · Radio · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Downloads · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Afspil · Næste</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Tilføj · Kø</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Tilføj · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Opret · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Tilføj · Mix</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Omdøb · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Slet · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Flyt · Afspilningsliste · Op</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Flyt · Afspilningsliste · Ned</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Fjern · Afspilningsliste</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Fjern</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Tilføj · Favoritter</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Stop opbevaring · Downloads</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Behold offline · Offline · Historik</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Flyt · Op</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Flyt · Ned</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Fjern · Kø</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Prøv igen · Indlæser</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Bland</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Gentag</translation>
+      <source>Repeat one</source>
+      <translation>Gentag: én</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Gentag: alle</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Gentag: fra</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Tøm · Cache · Stop · Afspil</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Lyd · Afspil</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Musikafspiller med direkte streaming</translation>
     </message>
   </context>
   <context>

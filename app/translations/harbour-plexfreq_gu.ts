@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="gu">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>વર્ણમાળા</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · ઑડિયો · વિરામ વગર · PCM · આઉટપુટ</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>ક્રૉસફેડ</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · સેકન્ડ</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>ક્રૉસફેડ</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>ઉમેરો · ઉપર · 1000 · ગીતો</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>આલ્બમ · મર્યાદા · રેડિયો · ગીત</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>માન્ય · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>ઑનલાઇન</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>આપમેળે વગાડો · તાજું કરો · ડાઉનલોડ</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>તાજું કરો · અવધિ</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>તાજું કરો · અવધિ</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>તાજું કરો · ડાઉનલોડ · લોડ થઈ રહ્યું છે</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>રેડિયો · ડાઉનલોડ · અવધિ</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>રેડિયો · ડાઉનલોડ · અવધિ</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>ઉપર · આગળ</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>રેડિયો</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>ઑફલાઇન · સાચવેલું · લાઇબ્રેરી · મેટાડેટા</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>કૅશ · ઑડિયો</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · ગીતો · તૈયાર · ઑફલાઇન</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>લાઇબ્રેરી</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>શોધ</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>કલાકારો</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>આલ્બમો</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>ગીતો</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>શીર્ષક</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>તાજેતરમાં ઉમેરાયેલું</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>વર્ષ</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>શોધ · કલાકારો · આલ્બમો · ગીતો</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>લાઇબ્રેરી</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>ક્રમમાં ગોઠવો</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>ઉમેરો · Sonic · સ્રોત</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>દૂર કરો · કતાર</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>ઉપર · આગળ</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>રેડિયો</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>ઑફલાઇન · સાચવેલું · લાઇબ્રેરી · મેટાડેટા</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>કૅશ · ઑડિયો</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · ગીતો · તૈયાર · ઑફલાઇન</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>લાઇબ્રેરી</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>શોધ</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>કલાકારો</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>આલ્બમો</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>ગીતો</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>શીર્ષક</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>તાજેતરમાં ઉમેરાયેલું</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>વર્ષ</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>શોધ · કલાકારો · આલ્બમો · ગીતો</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>લાઇબ્રેરી</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ક્રમમાં ગોઠવો</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>ડાઉનલોડ થયેલું</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>ઉમેરો · Sonic · સ્રોત</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>સ્માર્ટ · ફિલ્ટર · સેટિંગ્સ</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>ઑડિયો · સમાન</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>શરૂ કરો · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · ગીત</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>ડાઉનલોડ · રેડિયો · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>ડાઉનલોડ · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>વગાડો · આગળ</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>ઉમેરો · કતાર</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>ઉમેરો · પ્લેલિસ્ટ</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>બનાવો · પ્લેલિસ્ટ</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>ઉમેરો · મિશ્રણ</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>નામ બદલો · પ્લેલિસ્ટ</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>મિટાવો · પ્લેલિસ્ટ</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>ખસેડો · પ્લેલિસ્ટ · ઉપર</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>ખસેડો · પ્લેલિસ્ટ · નીચે</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>દૂર કરો · પ્લેલિસ્ટ</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>દૂર કરો</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>ઉમેરો · મનપસંદ</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>રાખવાનું બંધ કરો · ડાઉનલોડ</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>ઑફલાઇન રાખો · ઑફલાઇન · ઇતિહાસ</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>ખસેડો · ઉપર</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>ખસેડો · નીચે</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>દૂર કરો · કતાર</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>ફરી પ્રયાસ કરો · લોડ થઈ રહ્યું છે</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>રેન્ડમ</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>પુનરાવર્તન</translation>
+      <source>Repeat one</source>
+      <translation>પુનરાવર્તન: એક</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>પુનરાવર્તન: બધા</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>પુનરાવર્તન: બંધ</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>સાફ કરો · કૅશ · બંધ કરો · વગાડો</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · ઑડિયો · વગાડો</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · સીધું સ્ટ્રીમિંગ મ્યુઝિક પ્લેયર</translation>
     </message>
   </context>
   <context>

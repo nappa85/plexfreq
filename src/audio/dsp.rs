@@ -117,6 +117,18 @@ impl Processor {
             headroom: 10f32.powf(-headroom_db / 20.),
         }
     }
+    /// Apply a new configuration mid-stream. Filter history is retained while
+    /// the EQ stays enabled, so changing band gains alters the response
+    /// without the discontinuity of restarting every biquad from silence.
+    pub fn reconfigure(&mut self, rate: u32, config: &Config) {
+        let mut next = Self::new(rate, config);
+        if self.eq_enabled && next.eq_enabled {
+            for (filter, previous) in next.filters.iter_mut().zip(&self.filters) {
+                filter.z = previous.z;
+            }
+        }
+        *self = next;
+    }
     pub fn process(&mut self, pcm: &mut [f32], gain_db: f32, volume: f32) {
         let gain = amplitude(gain_db) * volume.clamp(0., 1.) * self.headroom;
         for (i, sample) in pcm.iter_mut().enumerate() {
@@ -196,6 +208,45 @@ mod tests {
         assert!((out[2] - std::f32::consts::FRAC_1_SQRT_2).abs() < 1e-6);
         crossfade(&old, &new, &mut out, 2, 2);
         assert!(out[0].abs() < 1e-6);
+    }
+    #[test]
+    fn reconfiguring_gains_keeps_filter_history() {
+        let mut config = Config::default();
+        config.eq[0] = 6.;
+        let signal: Vec<f32> = (0..4800)
+            .flat_map(|n| {
+                let x = 0.5 * (2. * std::f32::consts::PI * 40. * n as f32 / 48000.).sin();
+                [x, x]
+            })
+            .collect();
+        let (first, second) = signal.split_at(signal.len() / 2);
+        let mut continuous = Processor::new(48000, &config);
+        let mut expected = signal.clone();
+        continuous.process(&mut expected, 0., 1.);
+        // Re-applying the same gains (e.g. a headroom-only change) is seamless.
+        let mut reconfigured = Processor::new(48000, &config);
+        let mut out = first.to_vec();
+        reconfigured.process(&mut out, 0., 1.);
+        reconfigured.reconfigure(48000, &config);
+        let mut tail = second.to_vec();
+        reconfigured.process(&mut tail, 0., 1.);
+        out.extend(tail);
+        assert_eq!(out, expected);
+        // A gain change continues from the filter state instead of restarting
+        // the low band from zero, which would step the output at the seam.
+        let mut reset = Processor::new(48000, &config);
+        let mut warm = first.to_vec();
+        reset.process(&mut warm, 0., 1.);
+        config.eq[0] = 3.;
+        let mut kept = reset.filters;
+        reset.reconfigure(48000, &config);
+        assert_eq!(reset.filters[0].z, kept[0].z);
+        kept = Processor::new(48000, &config).filters;
+        assert_eq!(kept[0].z, [[0.; 2]; 2]);
+        // Disabling and re-enabling EQ never resumes stale history.
+        reset.reconfigure(48000, &Config::default());
+        reset.reconfigure(48000, &config);
+        assert_eq!(reset.filters[0].z, [[0.; 2]; 2]);
     }
     #[test]
     fn eq_changes_target_band_and_is_stable() {

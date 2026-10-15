@@ -16,7 +16,7 @@ fn tracks() -> Vec<Item> {
     (0..4)
         .map(|i| Item {
             rating_key: i.to_string(),
-            kind: "track".into(),
+            kind: plexfreq_core::model::ItemKind::Track,
             title: format!("Track {i}"),
             ..Default::default()
         })
@@ -60,15 +60,15 @@ fn queue_repeat_manual_skip_and_end() {
     assert!(q.advance(true).is_none());
     assert!(q.replace(tracks(), 8).is_err());
     q.replace(tracks(), 2).unwrap();
-    q.repeat = Repeat::One;
+    q.set_repeat(Repeat::One);
     assert_eq!(q.advance(true).unwrap().rating_key, "2");
     assert_eq!(q.advance(false).unwrap().rating_key, "3");
-    q.repeat = Repeat::Off;
+    q.set_repeat(Repeat::Off);
     assert!(q.advance(true).is_none());
     // After natural end, previous resumes the last audible track.
     assert_eq!(q.previous().unwrap().rating_key, "3");
     q.select(3).unwrap();
-    q.repeat = Repeat::All;
+    q.set_repeat(Repeat::All);
     assert_eq!(q.advance(true).unwrap().rating_key, "0");
 }
 
@@ -77,7 +77,7 @@ fn shuffle_is_permutation_preserving_current_and_history() {
     let mut q = Queue::default();
     q.replace(tracks(), 2).unwrap();
     q.shuffle(true);
-    assert_eq!(q.current, Some(2));
+    assert_eq!(q.current(), Some(2));
     let mut seen = vec![q.track().unwrap().rating_key.clone()];
     for _ in 0..3 {
         seen.push(q.advance(false).unwrap().rating_key.clone());
@@ -85,9 +85,9 @@ fn shuffle_is_permutation_preserving_current_and_history() {
     seen.sort();
     assert_eq!(seen, vec!["0", "1", "2", "3"]);
     q.previous();
-    let current = q.current;
+    let current = q.current();
     q.shuffle(false);
-    assert_eq!(q.current, current);
+    assert_eq!(q.current(), current);
     assert!(q.select(9).is_err());
 }
 
@@ -148,7 +148,7 @@ fn music_browse_play_and_persistent_session() {
     let page = core
         .execute(Command::Browse {
             section: "1".into(),
-            kind: "track".into(),
+            kind: plexfreq_core::model::ItemKind::Track,
             query: "Björk & friends".into(),
             start: 100,
         })
@@ -174,7 +174,7 @@ fn music_browse_play_and_persistent_session() {
     assert!(restored
         .execute(Command::Browse {
             section: "../1".into(),
-            kind: "track".into(),
+            kind: plexfreq_core::model::ItemKind::Track,
             query: String::new(),
             start: 0
         })
@@ -431,7 +431,7 @@ fn artist_alphabet_offsets_jump_to_server_sorted_page_and_search_is_encoded() {
         .is_err());
     core.execute(Command::Browse {
         section: "1".into(),
-        kind: "artist".into(),
+        kind: plexfreq_core::model::ItemKind::Artist,
         query: "Björk & friends".into(),
         start: 0,
     })
@@ -464,7 +464,7 @@ fn unfiltered_artist_browse_returns_first_page_for_background_loading() {
     let page = core
         .execute(Command::Browse {
             section: "1".into(),
-            kind: "artist".into(),
+            kind: plexfreq_core::model::ItemKind::Artist,
             query: String::new(),
             start: 0,
         })

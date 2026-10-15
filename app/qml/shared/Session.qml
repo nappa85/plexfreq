@@ -287,6 +287,9 @@ Item {
         interval: 2000; repeat: true; running: session.polling
         onTriggered: if (!backend.busy) backend.command("poll_login")
     }
+    // Qt 5.6 has no Qt.callLater: defer (and coalesce) the artist prefetch
+    // until the completed() handlers of every view have run.
+    Timer {id:moreLater;interval:0;onTriggered:session.more()}
     Connections {
         target: backend
         onCompleted: {
@@ -315,7 +318,7 @@ Item {
                 if (ok && op === "browse" && query.length === 0 && indexedSection !== section) {
                     indexedSection = section; backend.command("alphabet", {section:section})
                 }
-                if(ok && op==="browse" && artistBrowse && query.length===0 && backend.state.hasMore)Qt.callLater(more)
+                if(ok && op==="browse" && artistBrowse && query.length===0 && backend.state.hasMore)moreLater.restart()
             }
             if(op==="playlist_edit" && ok) {
                 if(playlist && data.playlistChanged===playlist.ratingKey && !data.playlistDeleted)load("playlist_items",{key:playlist.ratingKey,start:0},heading,false,playlist)

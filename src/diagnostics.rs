@@ -4,10 +4,7 @@ use std::{
     io::{self, Read, Write},
     os::unix::{fs::OpenOptionsExt, fs::PermissionsExt, io::FromRawFd},
     path::PathBuf,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
+    sync::atomic::{AtomicBool, Ordering},
     thread,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
@@ -207,7 +204,8 @@ impl DailyWriter {
 pub struct Log {
     saved: [File; 2],
     worker: Option<thread::JoinHandle<()>>,
-    stop: Arc<AtomicBool>,
+    /// eventfd waking the capture thread for shutdown.
+    stop: File,
 }
 impl Log {
     pub fn install(directory: PathBuf) -> io::Result<Self> {
@@ -248,11 +246,15 @@ impl Log {
         }
         let reader = unsafe { File::from_raw_fd(fds[0]) };
         let write = unsafe { File::from_raw_fd(fds[1]) };
-        let stop = Arc::new(AtomicBool::new(false));
-        let stopping = stop.clone();
+        let stop = unsafe { libc::eventfd(0, libc::EFD_CLOEXEC) };
+        if stop < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let stop = unsafe { File::from_raw_fd(stop) };
+        let stopping = stop.try_clone()?;
         let worker = thread::Builder::new()
             .name("plexfreq-log".into())
-            .spawn(move || capture(reader, writer, stopping))?;
+            .spawn(move || capture(reader, writer, Some(stopping)))?;
         use std::os::fd::AsRawFd;
         unsafe {
             libc::fflush(std::ptr::null_mut());
@@ -288,32 +290,42 @@ impl Drop for Log {
                 libc::dup2(original.as_raw_fd(), index as i32 + 1);
             }
         }
-        self.stop.store(true, Ordering::SeqCst);
+        let _ = (&self.stop).write_all(&1u64.to_ne_bytes());
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
         }
         ENABLED.store(false, Ordering::SeqCst);
     }
 }
-fn capture(mut reader: File, mut writer: DailyWriter, stop: Arc<AtomicBool>) {
+/// Event-driven: sleeps in poll(2) until output arrives, the pipe closes, or
+/// `stop` (an eventfd) is signalled. Queued output is drained before stopping.
+fn capture(mut reader: File, mut writer: DailyWriter, stop: Option<File>) {
     use std::os::fd::AsRawFd;
     let mut pending = Vec::new();
     let mut bytes = [0; 4096];
     let mut discarding = false;
     loop {
-        let mut poll = libc::pollfd {
-            fd: reader.as_raw_fd(),
-            events: libc::POLLIN,
-            revents: 0,
-        };
-        let ready = unsafe { libc::poll(&mut poll, 1, 100) };
-        if ready == 0 {
-            if stop.load(Ordering::SeqCst) {
-                break;
-            }
+        let mut poll = [
+            libc::pollfd {
+                fd: reader.as_raw_fd(),
+                events: libc::POLLIN,
+                revents: 0,
+            },
+            libc::pollfd {
+                // poll(2) ignores negative descriptors.
+                fd: stop.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                events: libc::POLLIN,
+                revents: 0,
+            },
+        ];
+        let ready = unsafe { libc::poll(poll.as_mut_ptr(), 2, -1) };
+        if ready < 0 {
             continue;
         }
-        if ready < 0 {
+        if poll[0].revents == 0 {
+            if poll[1].revents != 0 {
+                break;
+            }
             continue;
         }
         let count = match reader.read(&mut bytes) {
@@ -473,7 +485,7 @@ mod tests {
         assert_eq!(unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC) }, 0);
         let read = unsafe { File::from_raw_fd(fds[0]) };
         let mut write = unsafe { File::from_raw_fd(fds[1]) };
-        let worker = thread::spawn(move || capture(read, writer, Arc::new(AtomicBool::new(false))));
+        let worker = thread::spawn(move || capture(read, writer, None));
         write
             .write_all(b"framework https://fixture.invalid/?X-Plex-To")
             .unwrap();

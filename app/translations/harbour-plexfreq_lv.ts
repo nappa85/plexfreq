@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="lv">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Alfabēts</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Audio · Bez pauzēm · PCM · Izvade</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Pārklājoša pāreja</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Sekundes</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Pārklājoša pāreja</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Pievienot · Augšup · 1000 · Dziesmas</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Albums · Ierobežojums · Radio · Dziesma</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Derīgs · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>Tiešsaistē</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Automātiska atskaņošana · Atsvaidzināt · Lejupielādes</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Atsvaidzināt · Ilgums</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Atsvaidzināt · Ilgums</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Atsvaidzināt · Lejupielādes · Ielādē</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Radio · Lejupielādes · Ilgums</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Radio · Lejupielādes · Ilgums</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Augšup · Nākamais</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Radio</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Bezsaistē · Saglabāts · Bibliotēka · Metadati</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Kešatmiņa · Audio</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Dziesmas · Gatavs · Bezsaistē</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Bibliotēka</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Meklēt</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Izpildītāji</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Albumi</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Dziesmas</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Nosaukums</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Nesen pievienots</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Gads</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Meklēt · Izpildītāji · Albumi · Dziesmas</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Bibliotēka</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Kārtot</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Pievienot · Sonic · Avots</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Noņemt · Rinda</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Augšup · Nākamais</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Radio</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Bezsaistē · Saglabāts · Bibliotēka · Metadati</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Kešatmiņa · Audio</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Dziesmas · Gatavs · Bezsaistē</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Bibliotēka</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Meklēt</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Izpildītāji</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Albumi</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Dziesmas</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Nosaukums</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Nesen pievienots</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Gads</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Meklēt · Izpildītāji · Albumi · Dziesmas</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Bibliotēka</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Kārtot</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Lejupielādēts</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Pievienot · Sonic · Avots</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Viedais · Filtrs · Iestatījumi</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Audio · Līdzīgs</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Sākt · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Dziesma</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Lejupielādes · Radio · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Lejupielādes · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Atskaņot · Nākamais</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Pievienot · Rinda</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Pievienot · Atskaņošanas saraksts</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Izveidot · Atskaņošanas saraksts</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Pievienot · Mikss</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Pārdēvēt · Atskaņošanas saraksts</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Dzēst · Atskaņošanas saraksts</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Pārvietot · Atskaņošanas saraksts · Augšup</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Pārvietot · Atskaņošanas saraksts · Lejup</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Noņemt · Atskaņošanas saraksts</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Noņemt</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Pievienot · Izlase</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Nepaturēt · Lejupielādes</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Paturēt bezsaistē · Bezsaistē · Vēsture</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Pārvietot · Augšup</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Pārvietot · Lejup</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Noņemt · Rinda</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Mēģināt vēlreiz · Ielādē</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Jaukt</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Atkārtot</translation>
+      <source>Repeat one</source>
+      <translation>Atkārtot: vienu</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Atkārtot: visus</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Atkārtot: izslēgts</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Notīrīt · Kešatmiņa · Apturēt · Atskaņot</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Audio · Atskaņot</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Mūzikas atskaņotājs ar tiešo straumēšanu</translation>
     </message>
   </context>
   <context>

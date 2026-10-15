@@ -39,8 +39,8 @@ Clean runners bootstrap pinned Qt Linguist 6.11.2 from PySide6-Essentials using
 
 `release.yml` reuses CI before SDK app/device-fixture and desktop builds. `v*` tags publish
 Sailfish aarch64 RPM and Linux amd64 tar.gz assets; manual runs only upload artifacts. Tags must equal `v` plus
-the committed version. `tools/release-version.py` checks Cargo/.pro/spec/main.cpp/
-CMake versions without rewriting source/lock files. Package filenames use the
+the committed version. `tools/release-version.py` checks Cargo/.pro/spec/
+CMake versions; `main.cpp` receives `PLEXFREQ_VERSION` from CMake/qmake, without rewriting source/lock files. Package filenames use the
 verified version. Build permissions are contents:read; only publication gets write.
 CI does not claim phone audio routing, physical-key or live-account validation.
 

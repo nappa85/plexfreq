@@ -17,7 +17,7 @@ use std::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc, Mutex,
     },
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::{mpsc, watch};
 use url::Url;
@@ -92,7 +92,7 @@ struct Partial {
     quality_kbps: u32,
     total: Option<u64>,
     validator: Option<String>,
-    extension: String,
+    // Older records also carry an unused `extension`; serde ignores it.
     #[serde(default)]
     namespace: String,
     #[serde(default)]
@@ -112,6 +112,83 @@ struct State {
     error: String,
     errors: BTreeMap<String, String>,
     active_key: String,
+    lru_saved: Instant,
+}
+
+/// Playback lookups update LRU timestamps in memory; persist them at most this
+/// often so a killed process keeps recent usage without rewriting the index
+/// on every hit.
+const LRU_PERSIST_INTERVAL: Duration = Duration::from_secs(60);
+/// Keep unindexed media after an index corruption for this long so it can be
+/// inspected/recovered, then resume normal orphan reclamation.
+const CORRUPT_PRESERVE_WINDOW: Duration = Duration::from_secs(7 * 24 * 60 * 60);
+
+/// Download failure classification, mapped to the user-facing [`Error`] at
+/// the worker boundary. Retryability must not depend on message text.
+#[derive(Debug)]
+enum Failure {
+    /// Transient: the connection dropped mid-body.
+    Interrupted,
+    /// Transient: the body ended before the declared size.
+    Incomplete,
+    /// Transient: the partial was discarded and must restart from zero.
+    Restart,
+    /// A newer schedule/cancel superseded the batch while awaiting the network.
+    Cancelled,
+    Other(Error),
+}
+impl From<Error> for Failure {
+    fn from(error: Error) -> Self {
+        Self::Other(error)
+    }
+}
+impl From<std::io::Error> for Failure {
+    fn from(error: std::io::Error) -> Self {
+        Self::Other(error.into())
+    }
+}
+impl Failure {
+    fn retryable(&self) -> bool {
+        match self {
+            Self::Interrupted | Self::Incomplete | Self::Restart => true,
+            Self::Cancelled => false,
+            Self::Other(error) => matches!(error, Error::Network | Error::Http(500..=599)),
+        }
+    }
+    fn into_error(self) -> Error {
+        match self {
+            Self::Interrupted => {
+                Error::Input("Download interrupted; it will retry when the connection improves")
+            }
+            Self::Incomplete => Error::Input("Audio download is incomplete; waiting to resume"),
+            Self::Restart => Error::Input(
+                "Audio changed or server returned the wrong byte range; retrying from the beginning",
+            ),
+            Self::Cancelled => Error::Input("Cache request cancelled"),
+            Self::Other(error) => error,
+        }
+    }
+}
+
+impl State {
+    fn new(config: Config) -> Self {
+        Self {
+            catalogue_revision: 0,
+            gate: Arc::new(Gate::default()),
+            manifest: Manifest::default(),
+            config,
+            pinned: BTreeSet::new(),
+            permanent: BTreeSet::new(),
+            downloading: false,
+            pending: 0,
+            received: 0,
+            total: None,
+            error: String::new(),
+            errors: BTreeMap::new(),
+            active_key: String::new(),
+            lru_saved: Instant::now(),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -175,7 +252,7 @@ pub struct Cache {
     epoch: Arc<AtomicU64>,
     cancel: watch::Sender<u64>,
     jobs: Option<mpsc::UnboundedSender<Batch>>,
-    worker: Option<std::thread::JoinHandle<()>>,
+    worker: Option<crate::rt::Task>,
     _lock: Option<fs::File>,
     read_only: bool,
 }
@@ -243,6 +320,71 @@ fn disk_bytes(root: &Path) -> u64 {
 fn save(root: &Path, state: &State) -> Result<()> {
     atomic_json(&root.join("index.json"), &state.manifest)
 }
+/// Resumable downloads on disk: `(<id>.part path, its bytes, resume record)`.
+/// A `.part` without a readable record yields a default (unowned) record.
+fn partials(root: &Path) -> Vec<(PathBuf, u64, Partial)> {
+    fs::read_dir(root)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().ends_with(".part"))
+        .filter_map(|e| {
+            let meta = fs::symlink_metadata(e.path())
+                .ok()
+                .filter(|m| m.is_file())?;
+            let info = fs::read(resume_path(&e.path()))
+                .ok()
+                .and_then(|b| serde_json::from_slice(&b).ok())
+                .unwrap_or_default();
+            Some((e.path(), meta.len(), info))
+        })
+        .collect()
+}
+/// Resume records, including those whose `.part` bytes were discarded.
+fn resume_records(root: &Path) -> Vec<(PathBuf, Partial)> {
+    fs::read_dir(root)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().ends_with(".resume.json"))
+        .filter_map(|e| {
+            let info = serde_json::from_slice(&fs::read(e.path()).ok()?).ok()?;
+            Some((e.path(), info))
+        })
+        .collect()
+}
+fn resume_path(part: &Path) -> PathBuf {
+    part.with_extension("resume.json")
+}
+fn part_path(resume: &Path) -> PathBuf {
+    let name = resume.file_name().unwrap_or_default().to_string_lossy();
+    resume.with_file_name(name.replace(".resume.json", ".part"))
+}
+fn discard_partial(resume: &Path) {
+    let _ = fs::remove_file(part_path(resume));
+    let _ = fs::remove_file(resume);
+}
+fn protected(state: &State, namespace: &str, rating_key: &str) -> bool {
+    let key = (namespace.to_owned(), rating_key.to_owned());
+    state.pinned.contains(&key) || state.permanent.contains(&key)
+}
+fn partial_protected(state: &State, info: &Partial) -> bool {
+    info.item
+        .as_ref()
+        .is_some_and(|i| protected(state, &info.namespace, &i.rating_key))
+}
+/// True when a completed, usable entry already satisfies this partial.
+fn superseded(root: &Path, manifest: &Manifest, info: &Partial) -> bool {
+    info.item.as_ref().is_some_and(|item| {
+        manifest.entries.values().any(|e| {
+            e.namespace == info.namespace
+                && e.quality_kbps == info.quality_kbps
+                && e.item.rating_key == item.rating_key
+                && part_key(&e.item) == part_key(item)
+                && usable(root, e)
+        })
+    })
+}
 
 impl Cache {
     pub fn new(root: PathBuf, config: Config, client_id: &str) -> Result<Self> {
@@ -289,7 +431,9 @@ impl Cache {
             Err(error) => return Err(error.into()),
         };
         manifest.entries.retain(|_, e| usable(&root, e));
-        // Retain unindexed media evidence across reopen while quarantine exists.
+        // Retain unindexed media evidence across reopen while a recent
+        // quarantine exists. Bounded in time: a permanent flag would disable
+        // orphan reclamation forever and leave the quota stuck at "full".
         let preserve_orphans = recovered
             || fs::read_dir(&root)
                 .into_iter()
@@ -299,6 +443,12 @@ impl Cache {
                     file.file_name()
                         .to_string_lossy()
                         .starts_with("index.json.corrupt-")
+                        && file
+                            .metadata()
+                            .and_then(|m| m.modified())
+                            .ok()
+                            .and_then(|t| t.elapsed().ok())
+                            .is_none_or(|age| age < CORRUPT_PRESERVE_WINDOW)
                 });
         // A crash between temp write and rename can leave orphan `*.tmp` files
         // (old `index.<uuid>.tmp` naming included) plus unindexed hash files.
@@ -327,20 +477,21 @@ impl Cache {
                 let _ = fs::remove_file(file.path());
             }
         }
+        if !read_only {
+            for (resume, info) in resume_records(&root) {
+                if superseded(&root, &manifest, &info) {
+                    // Completed elsewhere; the partial only consumes quota.
+                    discard_partial(&resume);
+                } else if info.quality_kbps > 0 {
+                    // Transcodes always restart from zero; keep the record so
+                    // the track stays pending, but release the dead bytes.
+                    let _ = fs::remove_file(part_path(&resume));
+                }
+            }
+        }
         let state = Arc::new(Mutex::new(State {
-            catalogue_revision: 0,
-            gate: Arc::new(Gate::default()),
             manifest,
-            config,
-            pinned: BTreeSet::new(),
-            permanent: BTreeSet::new(),
-            downloading: false,
-            pending: 0,
-            received: 0,
-            total: None,
-            error: String::new(),
-            errors: BTreeMap::new(),
-            active_key: String::new(),
+            ..State::new(config)
         }));
         let epoch = Arc::new(AtomicU64::new(0));
         let (cancel, changed) = watch::channel(0);
@@ -349,29 +500,18 @@ impl Cache {
         let worker_state = state.clone();
         let worker_epoch = epoch.clone();
         let client_id = client_id.to_owned();
-        let worker = if read_only {
-            None
-        } else {
-            Some(
-                std::thread::Builder::new()
-                    .name("plexfreq-cache".into())
-                    .spawn(move || {
-                        if let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
-                            .enable_all()
-                            .build()
-                        {
-                            runtime.block_on(worker(
-                                worker_root,
-                                worker_state,
-                                worker_epoch,
-                                receiver,
-                                changed,
-                                &client_id,
-                            ));
-                        }
-                    })?,
-            )
-        };
+        // A task on the shared runtime; filesystem work inside it is handed
+        // to the blocking pool so it cannot stall audio/D-Bus I/O.
+        let worker = (!read_only).then(|| {
+            crate::rt::spawn(worker(
+                worker_root,
+                worker_state,
+                worker_epoch,
+                receiver,
+                changed,
+                client_id,
+            ))
+        });
         Ok(Self {
             root,
             state,
@@ -488,9 +628,9 @@ impl Cache {
             return Ok(());
         }
         if items.len() > 1000
-            || items
-                .iter()
-                .any(|i| i.kind != "track" || crate::numeric(&i.rating_key).is_err())
+            || items.iter().any(|i| {
+                i.kind != crate::model::ItemKind::Track || crate::numeric(&i.rating_key).is_err()
+            })
         {
             return Err(Error::Input(
                 "Cache requests require up to 1000 valid music tracks",
@@ -549,8 +689,13 @@ impl Cache {
             entry.used = now();
         }
         let result = (self.root.join(&entry.file), entry.item.clone());
-        // Persist LRU with the next manifest mutation or orderly shutdown;
-        // playback lookups must not rewrite the index for every hit.
+        // Persist LRU with manifest mutations, orderly shutdown and at most
+        // once per interval here, so playback hits don't rewrite the index
+        // each time yet a killed process keeps recent usage.
+        if touch && !self.read_only && state.lru_saved.elapsed() >= LRU_PERSIST_INTERVAL {
+            state.lru_saved = Instant::now();
+            let _ = save(&self.root, &state);
+        }
         Some(result)
     }
     pub fn items(&self, namespace: &str) -> Vec<Item> {
@@ -592,18 +737,29 @@ impl Cache {
                 }
             }
         }
+        // A resumable partial would otherwise resurrect the removed download
+        // via pending_items() on the next start or cache reconfiguration.
+        for (resume, info) in resume_records(&self.root) {
+            if info.namespace == namespace
+                && info
+                    .item
+                    .as_ref()
+                    .is_some_and(|i| i.rating_key == rating_key)
+            {
+                discard_partial(&resume);
+            }
+        }
         save(&self.root, &state)
     }
     pub fn pending_items(&self, namespace: &str) -> Vec<Item> {
-        fs::read_dir(&self.root)
+        let state = crate::mutex_lock(&self.state);
+        let mut seen = BTreeSet::new();
+        resume_records(&self.root)
             .into_iter()
-            .flatten()
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_name().to_string_lossy().ends_with(".resume.json"))
-            .filter_map(|e| fs::read(e.path()).ok())
-            .filter_map(|b| serde_json::from_slice::<Partial>(&b).ok())
-            .filter(|p| p.namespace == namespace)
+            .map(|(_, info)| info)
+            .filter(|p| p.namespace == namespace && !superseded(&self.root, &state.manifest, p))
             .filter_map(|p| p.item)
+            .filter(|i| seen.insert(i.rating_key.clone()))
             .collect()
     }
     pub fn status(&self, namespace: &str) -> Value {
@@ -630,7 +786,9 @@ impl Drop for Cache {
         self.cancel();
         self.jobs.take();
         if let Some(worker) = self.worker.take() {
-            let _ = worker.join();
+            // Cancellation is cooperative (network awaits observe `cancel`);
+            // in-flight filesystem steps complete before the task ends.
+            worker.join(None);
         }
         if !self.read_only {
             let _ = save(&self.root, &crate::mutex_lock(&self.state));
@@ -644,7 +802,7 @@ async fn worker(
     epoch: Arc<AtomicU64>,
     mut jobs: mpsc::UnboundedReceiver<Batch>,
     mut changed: watch::Receiver<u64>,
-    client_id: &str,
+    client_id: String,
 ) {
     let gate = state
         .lock()
@@ -686,9 +844,23 @@ async fn worker(
                     s.active_key = item.rating_key.clone();
                 }
                 let session = uuid::Uuid::new_v4().to_string();
-                let result = tokio::select! {
-                    _=changed.changed()=>None,
-                    result=download(&client,&root,&state,&epoch,&batch,item.clone(),(client_id,&session))=>Some(result),
+                // Cancellation interrupts network awaits only. Filesystem steps
+                // run on the blocking pool and are never abandoned mid-way, so
+                // a superseding batch cannot race a detached partial write.
+                let result = match download(
+                    &client,
+                    &root,
+                    &state,
+                    &epoch,
+                    &mut changed,
+                    &batch,
+                    item.clone(),
+                    (&client_id, &session),
+                )
+                .await
+                {
+                    Err(Failure::Cancelled) => None,
+                    result => Some(result),
                 };
                 if batch.quality_kbps > 0 {
                     if let Ok(uri) = crate::quality::transcode_url(
@@ -710,8 +882,8 @@ async fn worker(
                 let Some(result) = result else { break };
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
-                        let retryable = matches!(error, Error::Network | Error::Http(500..=599))
-                            || matches!(&error, Error::Input("Download interrupted; it will retry when the connection improves" | "Audio download is incomplete; waiting to resume" | "Audio changed or server returned the wrong byte range; retrying from the beginning"));
+                        let retryable = error.retryable();
+                        let error = error.into_error();
                         failed |= retryable;
                         if !retryable {
                             terminal.insert(item.rating_key.clone());
@@ -746,27 +918,57 @@ async fn worker(
     }
 }
 
+const CACHE_FULL: Error = Error::Input("Cache is full; increase its limit or clear cached audio");
+
+fn evictable_entry(state: &State, key: &str, entry: &Entry, current_key: &str) -> bool {
+    key != current_key && !protected(state, &entry.namespace, &entry.item.rating_key)
+}
+fn evictable_partial(state: &State, part: &Path, info: &Partial, current_key: &str) -> bool {
+    part.file_name()
+        .is_some_and(|n| n.to_string_lossy() != format!("{current_key}.part"))
+        && !partial_protected(state, info)
+}
+/// Bytes room() could reclaim without touching protected or active audio.
+fn evictable_bytes(root: &Path, state: &State, current_key: &str) -> u64 {
+    let entries: u64 = state
+        .manifest
+        .entries
+        .iter()
+        .filter(|(k, e)| evictable_entry(state, k, e, current_key) && safe_file(&e.file))
+        .filter_map(|(_, e)| fs::symlink_metadata(root.join(&e.file)).ok())
+        .filter(|m| m.is_file())
+        .map(|m| m.len())
+        .sum();
+    let partials: u64 = partials(root)
+        .iter()
+        .filter(|(path, _, info)| evictable_partial(state, path, info, current_key))
+        .map(|(_, bytes, _)| bytes)
+        .sum();
+    entries.saturating_add(partials)
+}
+
 fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result<()> {
     let limit = state.config.limit_mb * 1024 * 1024;
     if extra > limit {
         return Err(Error::Input("Audio file exceeds the cache limit"));
     }
-    let mut evicted = false;
     let mut used = disk_bytes(root);
+    if used.saturating_add(extra) <= limit {
+        return Ok(());
+    }
+    // Reject before deleting anything when protected/active data alone cannot
+    // fit; otherwise a doomed request would evict every unprotected track.
+    let fixed = used.saturating_sub(evictable_bytes(root, state, current_key));
+    if fixed.saturating_add(extra) > limit {
+        return Err(CACHE_FULL);
+    }
+    let mut evicted = false;
     while used.saturating_add(extra) > limit {
         let old = state
             .manifest
             .entries
             .iter()
-            .filter(|(k, e)| {
-                k.as_str() != current_key
-                    && !state
-                        .pinned
-                        .contains(&(e.namespace.clone(), e.item.rating_key.clone()))
-                    && !state
-                        .permanent
-                        .contains(&(e.namespace.clone(), e.item.rating_key.clone()))
-            })
+            .filter(|(k, e)| evictable_entry(state, k, e, current_key))
             .min_by_key(|(_, e)| e.used)
             .map(|(k, _)| k.clone());
         if let Some(old) = old {
@@ -781,33 +983,12 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
                 }
             }
         } else {
-            let partial = fs::read_dir(root)?
-                .filter_map(|e| e.ok())
-                .find(|e| {
-                    let name = e.file_name().to_string_lossy().into_owned();
-                    if !name.ends_with(".part") || name == format!("{current_key}.part") {
-                        return false;
-                    }
-                    let meta = root.join(name.replace(".part", ".resume.json"));
-                    let info: Partial = fs::read(meta)
-                        .ok()
-                        .and_then(|b| serde_json::from_slice(&b).ok())
-                        .unwrap_or_default();
-                    !info.item.is_some_and(|i| {
-                        state
-                            .pinned
-                            .contains(&(info.namespace.clone(), i.rating_key.clone()))
-                            || state
-                                .permanent
-                                .contains(&(info.namespace.clone(), i.rating_key.clone()))
-                    })
-                })
-                .ok_or(Error::Input(
-                    "Cache is full; increase its limit or clear cached audio",
-                ))?;
-            let _ = fs::remove_file(partial.path().with_extension("resume.json"));
-            let bytes = partial.metadata()?.len();
-            fs::remove_file(partial.path())?;
+            let (part, bytes, _) = partials(root)
+                .into_iter()
+                .find(|(path, _, info)| evictable_partial(state, path, info, current_key))
+                .ok_or(CACHE_FULL)?;
+            let _ = fs::remove_file(resume_path(&part));
+            fs::remove_file(&part)?;
             used = used.saturating_sub(bytes);
         }
         evicted = true;
@@ -822,15 +1003,38 @@ fn room(root: &Path, state: &mut State, extra: u64, current_key: &str) -> Result
     }
 }
 
+/// Await a network step unless a newer schedule/cancel supersedes the batch.
+async fn cancellable<T>(
+    changed: &mut watch::Receiver<u64>,
+    step: impl std::future::Future<Output = T>,
+) -> std::result::Result<T, Failure> {
+    tokio::select! {
+        _ = changed.changed() => Err(Failure::Cancelled),
+        value = step => Ok(value),
+    }
+}
+
+/// Delete a partial download and its resume record off the I/O thread.
+async fn remove_partial(partial: &Path, meta: &Path) {
+    let (partial, meta) = (partial.to_path_buf(), meta.to_path_buf());
+    crate::rt::unblock(move || {
+        let _ = fs::remove_file(partial);
+        let _ = fs::remove_file(meta);
+    })
+    .await;
+}
+
+#[allow(clippy::too_many_arguments)]
 async fn download(
     client: &reqwest::Client,
     root: &Path,
     state: &Arc<Mutex<State>>,
-    epoch: &AtomicU64,
+    epoch: &Arc<AtomicU64>,
+    changed: &mut watch::Receiver<u64>,
     batch: &Batch,
     mut item: Item,
     identity: (&str, &str),
-) -> Result<()> {
+) -> std::result::Result<(), Failure> {
     let (client_id, session) = identity;
     {
         let s = state.lock().unwrap_or_else(|poison| poison.into_inner());
@@ -849,24 +1053,30 @@ async fn download(
             &batch.base,
             &format!("/library/metadata/{}", item.rating_key),
         )?;
-        let response = client
-            .get(url)
-            .header("Accept", "application/json")
-            .header("X-Plex-Token", &batch.token)
-            .header("X-Plex-Client-Identifier", client_id)
-            .send()
-            .await
-            .map_err(|_| Error::Network)?;
+        let response = cancellable(
+            changed,
+            client
+                .get(url)
+                .header("Accept", "application/json")
+                .header("X-Plex-Token", &batch.token)
+                .header("X-Plex-Client-Identifier", client_id)
+                .send(),
+        )
+        .await?
+        .map_err(|_| Error::Network)?;
         if !response.status().is_success() {
-            return Err(Error::Http(response.status().as_u16()));
+            return Err(Error::Http(response.status().as_u16()).into());
         }
-        let envelope: Envelope =
-            crate::plex::bounded_json(response, "cache track metadata").await?;
+        let envelope: Envelope = cancellable(
+            changed,
+            crate::plex::bounded_json(response, "cache track metadata"),
+        )
+        .await??;
         item = envelope
             .container
             .items
             .into_iter()
-            .find(|i| i.kind == "track" && i.rating_key == item.rating_key)
+            .find(|i| i.kind == crate::model::ItemKind::Track && i.rating_key == item.rating_key)
             .ok_or(Error::ProtocolAt("cache track metadata"))?;
     }
     let part = part_key(&item).ok_or(Error::Input("Track has no downloadable media part"))?;
@@ -883,11 +1093,37 @@ async fn download(
     };
     let partial_path = root.join(format!("{id}.part"));
     let meta_path = root.join(format!("{id}.resume.json"));
-    let old: Partial = fs::read(&meta_path)
-        .ok()
-        .and_then(|b| serde_json::from_slice(&b).ok())
-        .unwrap_or_default();
-    let mut offset = fs::metadata(&partial_path).map_or(0, |m| m.len());
+    // Partials of this track at another quality/part can never complete this
+    // request and would otherwise count toward the quota indefinitely. The
+    // directory scan and record reads stay off the shared I/O thread: on a
+    // large cache on phone flash they could otherwise stall audio streaming.
+    let (old, mut offset): (Partial, u64) = {
+        let (root, namespace, rating_key) = (
+            root.to_path_buf(),
+            batch.namespace.clone(),
+            item.rating_key.clone(),
+        );
+        let (partial_path, meta_path) = (partial_path.clone(), meta_path.clone());
+        crate::rt::unblock(move || {
+            for (resume, info) in resume_records(&root) {
+                if resume != meta_path
+                    && info.namespace == namespace
+                    && info
+                        .item
+                        .as_ref()
+                        .is_some_and(|i| i.rating_key == rating_key)
+                {
+                    discard_partial(&resume);
+                }
+            }
+            let old: Partial = fs::read(&meta_path)
+                .ok()
+                .and_then(|b| serde_json::from_slice(&b).ok())
+                .unwrap_or_default();
+            (old, fs::metadata(&partial_path).map_or(0, |m| m.len()))
+        })
+        .await
+    };
     if batch.quality_kbps > 0
         || old.quality_kbps != batch.quality_kbps
         || old.validator.is_none()
@@ -895,28 +1131,41 @@ async fn download(
     {
         offset = 0;
     }
-    let mut request = client
-        .get(url)
-        .header("Accept", "*/*")
-        .header("Accept-Encoding", "identity")
-        .header("X-Plex-Token", &batch.token)
-        .header("X-Plex-Client-Identifier", client_id);
-    if offset > 0 {
-        // offset>0 implies old.validator.is_some() via the reset above, but
-        // don't panic the worker if that invariant ever breaks: fall back to
-        // a full download instead of resurrecting an unwrap.
-        if let Some(validator) = old.validator.as_deref() {
-            request = request
-                .header("Range", format!("bytes={offset}-"))
-                .header("If-Range", validator);
-        } else {
-            offset = 0;
+    let mut response = loop {
+        let mut request = client
+            .get(url.clone())
+            .header("Accept", "*/*")
+            .header("Accept-Encoding", "identity")
+            .header("X-Plex-Token", &batch.token)
+            .header("X-Plex-Client-Identifier", client_id);
+        if offset > 0 {
+            // offset>0 implies old.validator.is_some() via the reset above, but
+            // don't panic the worker if that invariant ever breaks: fall back to
+            // a full download instead of resurrecting an unwrap.
+            if let Some(validator) = old.validator.as_deref() {
+                request = request
+                    .header("Range", format!("bytes={offset}-"))
+                    .header("If-Range", validator);
+            } else {
+                offset = 0;
+            }
         }
-    }
-    let mut response = request.send().await.map_err(|_| Error::Network)?;
+        let response = cancellable(changed, request.send())
+            .await?
+            .map_err(|_| Error::Network)?;
+        if offset > 0 && response.status().as_u16() == 416 {
+            // The partial can never be extended (e.g. an unknown-length
+            // download that got every byte but died before the rename).
+            // Repeating the range would fail forever: restart from zero.
+            remove_partial(&partial_path, &meta_path).await;
+            offset = 0;
+            continue;
+        }
+        break response;
+    };
     let status = response.status().as_u16();
     if !matches!(status, 200 | 206) {
-        return Err(Error::Http(status));
+        return Err(Error::Http(status).into());
     }
     let headers = response.headers();
     if headers
@@ -924,7 +1173,7 @@ async fn download(
         .and_then(|h| h.to_str().ok())
         .is_some_and(|h| !h.eq_ignore_ascii_case("identity"))
     {
-        return Err(Error::Input("Cache requires an unencoded audio response"));
+        return Err(Error::Input("Cache requires an unencoded audio response").into());
     }
     let mime = headers
         .get("Content-Type")
@@ -936,9 +1185,7 @@ async fn download(
         .trim()
         .to_ascii_lowercase();
     if !crate::plex::audio_mime(&mime) {
-        return Err(Error::Input(
-            "Server returned non-audio content for this track",
-        ));
+        return Err(Error::Input("Server returned non-audio content for this track").into());
     }
     let validator = response_validator(headers);
     let total = if status == 206 {
@@ -956,15 +1203,14 @@ async fn download(
                 .as_ref()
                 .is_some_and(|v| offset > 0 && validator.as_ref().is_some_and(|new| new != v))
         {
-            let _ = fs::remove_file(&partial_path);
-            let _ = fs::remove_file(&meta_path);
-            return Err(Error::Input("Audio changed or server returned the wrong byte range; retrying from the beginning"));
+            remove_partial(&partial_path, &meta_path).await;
+            return Err(Failure::Restart);
         }
         if response
             .content_length()
             .is_some_and(|length| length != end - start + 1)
         {
-            return Err(Error::Input("Resumed audio length is inconsistent"));
+            return Err(Error::Input("Resumed audio length is inconsistent").into());
         }
         Some(total)
     } else {
@@ -977,108 +1223,138 @@ async fn download(
         extension(part, mime.as_str())
     };
     let mut file = {
-        let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
-        if epoch.load(Ordering::SeqCst) != batch.epoch {
-            return Err(Error::Input("Cache request cancelled"));
-        }
-        if offset == 0 {
-            let _ = fs::remove_file(&partial_path);
-        }
-        if let Some(total) = total {
-            room(root, &mut s, total.saturating_sub(offset), &id)?;
-        }
+        let (root, state, epoch, id) =
+            (root.to_path_buf(), state.clone(), epoch.clone(), id.clone());
+        let (batch_epoch, quality_kbps, namespace) =
+            (batch.epoch, batch.quality_kbps, batch.namespace.clone());
+        let (partial_path, meta_path) = (partial_path.clone(), meta_path.clone());
         let mut saved = item.clone();
         saved.stations = Value::Null;
-        atomic_json(
-            &meta_path,
-            &Partial {
-                quality_kbps: batch.quality_kbps,
-                total,
-                validator,
-                extension: extension.clone(),
-                namespace: batch.namespace.clone(),
-                item: Some(saved),
-            },
-        )?;
-        s.downloading = true;
-        s.received = offset;
-        s.total = total;
-        OpenOptions::new()
-            .create(true)
-            .write(true)
-            .truncate(offset == 0)
-            .append(offset > 0)
-            .mode(0o600)
-            .open(&partial_path)?
+        crate::rt::unblock(move || -> std::result::Result<fs::File, Failure> {
+            let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
+            if epoch.load(Ordering::SeqCst) != batch_epoch {
+                return Err(Error::Input("Cache request cancelled").into());
+            }
+            if offset == 0 {
+                let _ = fs::remove_file(&partial_path);
+            }
+            if let Some(total) = total {
+                room(&root, &mut s, total.saturating_sub(offset), &id)?;
+            }
+            atomic_json(
+                &meta_path,
+                &Partial {
+                    quality_kbps,
+                    total,
+                    validator,
+                    namespace,
+                    item: Some(saved),
+                },
+            )?;
+            s.downloading = true;
+            s.received = offset;
+            s.total = total;
+            Ok(OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(offset == 0)
+                .append(offset > 0)
+                .mode(0o600)
+                .open(&partial_path)?)
+        })
+        .await?
     };
     let mut received = offset;
     let mut reserved_until = total.unwrap_or(offset);
-    while let Some(bytes) = response.chunk().await.map_err(|_| {
-        Error::Input("Download interrupted; it will retry when the connection improves")
-    })? {
+    while let Some(bytes) = cancellable(changed, response.chunk())
+        .await?
+        .map_err(|_| Failure::Interrupted)?
+    {
         if epoch.load(Ordering::SeqCst) != batch.epoch {
-            return Err(Error::Input("Cache request cancelled"));
+            return Err(Error::Input("Cache request cancelled").into());
         }
-        if total.is_some_and(|n| received.saturating_add(bytes.len() as u64) > n) {
-            return Err(Error::Input("Audio response exceeds its declared size"));
+        let length = bytes.len() as u64;
+        if total.is_some_and(|n| received.saturating_add(length) > n) {
+            return Err(Error::Input("Audio response exceeds its declared size").into());
         }
-        if total.is_none() && received.saturating_add(bytes.len() as u64) > reserved_until {
-            let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
-            // Amortize filesystem accounting across 4 MiB windows. If a
-            // protected cache cannot reserve headroom, admit just this chunk.
-            let reserve = (4 * 1024 * 1024).max(bytes.len() as u64);
-            let admitted = if room(root, &mut s, reserve, &id).is_ok() {
-                reserve
-            } else {
-                room(root, &mut s, bytes.len() as u64, &id)?;
-                bytes.len() as u64
-            };
+        let reserve = total.is_none() && received.saturating_add(length) > reserved_until;
+        let (job_root, job_state, job_id) = (root.to_path_buf(), state.clone(), id.clone());
+        // Each chunk is written before the next is read, as before; only the
+        // thread changes. A write is never abandoned half-way.
+        let (returned, written) = crate::rt::unblock(move || {
+            let written = (|| -> std::result::Result<Option<u64>, Failure> {
+                let mut admitted = None;
+                if reserve {
+                    let mut s = job_state
+                        .lock()
+                        .unwrap_or_else(|poison| poison.into_inner());
+                    // Amortize filesystem accounting across 4 MiB windows. If a
+                    // protected cache cannot reserve headroom, admit just this chunk.
+                    let window = (4 * 1024 * 1024).max(length);
+                    admitted = Some(if room(&job_root, &mut s, window, &job_id).is_ok() {
+                        window
+                    } else {
+                        room(&job_root, &mut s, length, &job_id)?;
+                        length
+                    });
+                }
+                file.write_all(&bytes)?;
+                Ok(admitted)
+            })();
+            (file, written)
+        })
+        .await;
+        file = returned;
+        if let Some(admitted) = written? {
             reserved_until = received.saturating_add(admitted);
         }
-        file.write_all(&bytes)?;
-        received += bytes.len() as u64;
+        received += length;
         state
             .lock()
             .unwrap_or_else(|poison| poison.into_inner())
             .received = received;
     }
     if received == 0 || total.is_some_and(|n| received != n) {
-        return Err(Error::Input(
-            "Audio download is incomplete; waiting to resume",
-        ));
+        return Err(Failure::Incomplete);
     }
-    file.sync_all()?;
-    drop(file);
-    let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
-    if epoch.load(Ordering::SeqCst) != batch.epoch {
-        return Err(Error::Input("Cache request cancelled"));
-    }
-    let filename = format!("{id}.{extension}");
-    fs::rename(&partial_path, root.join(&filename))?;
-    let _ = fs::remove_file(meta_path);
     // PMS database sizes can differ from the actual served representation.
     // Framing/validators determine completion; retain that actual size locally.
     if let Some(part) = item.media.first_mut().and_then(|m| m.parts.first_mut()) {
         part.size = Some(received);
     }
     item.stations = Value::Null;
-    s.manifest.entries.insert(
-        id,
-        Entry {
-            quality_kbps: batch.quality_kbps,
-            namespace: batch.namespace.clone(),
-            item,
-            file: filename,
-            bytes: received,
-            used: now(),
-        },
-    );
-    s.catalogue_revision = s.catalogue_revision.wrapping_add(1);
-    s.error.clear();
-    s.downloading = false;
-    save(root, &s)?;
-    fs::File::open(root)?.sync_all()?;
-    Ok(())
+    let (root, state, epoch) = (root.to_path_buf(), state.clone(), epoch.clone());
+    let (batch_epoch, quality_kbps, namespace) =
+        (batch.epoch, batch.quality_kbps, batch.namespace.clone());
+    crate::rt::unblock(move || -> std::result::Result<(), Failure> {
+        file.sync_all()?;
+        drop(file);
+        let mut s = state.lock().unwrap_or_else(|poison| poison.into_inner());
+        if epoch.load(Ordering::SeqCst) != batch_epoch {
+            return Err(Error::Input("Cache request cancelled").into());
+        }
+        let filename = format!("{id}.{extension}");
+        fs::rename(&partial_path, root.join(&filename))?;
+        let _ = fs::remove_file(meta_path);
+        s.manifest.entries.insert(
+            id,
+            Entry {
+                quality_kbps,
+                namespace,
+                item,
+                file: filename,
+                bytes: received,
+                used: now(),
+            },
+        );
+        s.catalogue_revision = s.catalogue_revision.wrapping_add(1);
+        s.error.clear();
+        s.downloading = false;
+        save(&root, &s)?;
+        fs::File::open(&root)?.sync_all()?;
+        Ok(())
+    })
+    .await
 }
 
 pub(crate) fn parse_range(value: &str) -> Option<(u64, u64, u64)> {
@@ -1175,7 +1451,7 @@ mod tests {
                     namespace: "scope".into(),
                     item: Item {
                         rating_key: id.into(),
-                        kind: "track".into(),
+                        kind: crate::model::ItemKind::Track,
                         ..Default::default()
                     },
                     file: filename,
@@ -1197,5 +1473,246 @@ mod tests {
             .unwrap_or_else(|poison| poison.into_inner());
         assert!(room(dir.path(), &mut state, 40 * 1024 * 1024, "new").is_err());
         assert!(state.manifest.entries.contains_key(&hash("2")));
+    }
+}
+
+#[cfg(test)]
+mod review_tests {
+    use super::*;
+
+    fn entry(dir: &Path, state: &mut State, id: &str, used: u64) {
+        let filename = format!("{}.wav", hash(id));
+        let file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(dir.join(&filename))
+            .unwrap();
+        file.set_len(40 * 1024 * 1024).unwrap();
+        state.manifest.entries.insert(
+            hash(id),
+            Entry {
+                quality_kbps: 0,
+                namespace: "scope".into(),
+                item: Item {
+                    rating_key: id.into(),
+                    kind: crate::model::ItemKind::Track,
+                    ..Default::default()
+                },
+                file: filename,
+                bytes: 40 * 1024 * 1024,
+                used,
+            },
+        );
+    }
+
+    // configure() runs room() eagerly and only restores the old config when
+    // room() fails. A limit that pinned/permanent downloads cannot fit into
+    // first evicts every unprotected track, then errors and reverts the limit:
+    // the user sees "Cache is full" yet has lost all auto-cached audio.
+    #[test]
+    fn rejected_cache_limit_does_not_evict_tracks() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::new(
+            dir.path().into(),
+            Config {
+                enabled: true,
+                limit_mb: 256,
+                ahead: 5,
+            },
+            "fixture",
+        )
+        .unwrap();
+        {
+            let mut state = crate::mutex_lock(&cache.state);
+            entry(dir.path(), &mut state, "1", 1);
+            entry(dir.path(), &mut state, "2", 2);
+            entry(dir.path(), &mut state, "3", 3);
+        }
+        cache.protect(
+            "scope",
+            &[
+                Item {
+                    rating_key: "2".into(),
+                    ..Default::default()
+                },
+                Item {
+                    rating_key: "3".into(),
+                    ..Default::default()
+                },
+            ],
+        );
+        let rejected = cache.configure(
+            Config {
+                enabled: true,
+                limit_mb: 64,
+                ahead: 5,
+            },
+            None,
+        );
+        assert!(rejected.is_err());
+        assert_eq!(cache.config().limit_mb, 256);
+        assert!(
+            crate::mutex_lock(&cache.state)
+                .manifest
+                .entries
+                .contains_key(&hash("1")),
+            "failed configure() still evicted an unprotected track"
+        );
+    }
+}
+
+#[cfg(test)]
+mod maintenance_tests {
+    use super::*;
+
+    fn track(id: &str) -> Item {
+        Item {
+            rating_key: id.into(),
+            kind: crate::model::ItemKind::Track,
+            media: vec![crate::model::Media {
+                parts: vec![crate::model::Part {
+                    key: format!("/library/parts/{id}/file.wav"),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        }
+    }
+    fn seed_partial(dir: &Path, id: &str, quality_kbps: u32, item: &Item, bytes: usize) {
+        fs::write(dir.join(format!("{id}.part")), vec![0; bytes]).unwrap();
+        atomic_json(
+            &dir.join(format!("{id}.resume.json")),
+            &Partial {
+                quality_kbps,
+                total: None,
+                validator: Some("\"v\"".into()),
+                namespace: "scope".into(),
+                item: Some(item.clone()),
+            },
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn retryability_is_structural_not_textual() {
+        for failure in [Failure::Interrupted, Failure::Incomplete, Failure::Restart] {
+            assert!(failure.retryable());
+            assert!(matches!(failure.into_error(), Error::Input(_)));
+        }
+        assert!(Failure::Other(Error::Network).retryable());
+        assert!(Failure::Other(Error::Http(503)).retryable());
+        assert!(!Failure::Other(Error::Http(404)).retryable());
+        // The same text through a different path must not become retryable.
+        assert!(!Failure::Other(Error::Input(
+            "Audio download is incomplete; waiting to resume"
+        ))
+        .retryable());
+    }
+
+    #[test]
+    fn stale_corrupt_backup_no_longer_blocks_orphan_cleanup() {
+        let dir = tempfile::tempdir().unwrap();
+        let orphan = dir.path().join(format!("{}.wav", "a".repeat(64)));
+        fs::write(&orphan, b"orphan").unwrap();
+        let backup = dir.path().join("index.json.corrupt-old");
+        fs::write(&backup, b"{broken").unwrap();
+        fs::File::options()
+            .write(true)
+            .open(&backup)
+            .unwrap()
+            .set_modified(SystemTime::now() - CORRUPT_PRESERVE_WINDOW - Duration::from_secs(60))
+            .unwrap();
+        drop(Cache::new(dir.path().into(), Config::default(), "fixture").unwrap());
+        assert!(
+            !orphan.exists(),
+            "old quarantine must not preserve orphans forever"
+        );
+        assert!(backup.exists(), "the corrupt evidence itself is kept");
+    }
+
+    #[test]
+    fn pending_items_are_deduplicated_and_skip_completed_or_dead_partials() {
+        let dir = tempfile::tempdir().unwrap();
+        let song = track("1");
+        seed_partial(dir.path(), &hash("p0"), 0, &song, 4);
+        seed_partial(dir.path(), &hash("p320"), 320, &song, 4);
+        // Track 2 is already cached at quality 0: its partial is stale.
+        let done = track("2");
+        seed_partial(dir.path(), &hash("p2"), 0, &done, 4);
+        let file = format!("{}.wav", hash("e2"));
+        fs::write(dir.path().join(&file), b"cached").unwrap();
+        let mut manifest = Manifest::default();
+        manifest.entries.insert(
+            hash("e2"),
+            Entry {
+                quality_kbps: 0,
+                namespace: "scope".into(),
+                item: done,
+                file,
+                bytes: 6,
+                used: 1,
+            },
+        );
+        atomic_json(&dir.path().join("index.json"), &manifest).unwrap();
+        let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+        let pending = cache.pending_items("scope");
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].rating_key, "1");
+        // Superseded partial removed entirely; non-resumable transcode bytes
+        // released while its record keeps the track pending.
+        assert!(!dir.path().join(format!("{}.part", hash("p2"))).exists());
+        assert!(!dir
+            .path()
+            .join(format!("{}.resume.json", hash("p2")))
+            .exists());
+        assert!(!dir.path().join(format!("{}.part", hash("p320"))).exists());
+        assert!(dir
+            .path()
+            .join(format!("{}.resume.json", hash("p320")))
+            .exists());
+        assert!(dir.path().join(format!("{}.part", hash("p0"))).exists());
+    }
+
+    #[test]
+    fn legacy_resume_records_with_extension_still_load() {
+        let info: Partial = serde_json::from_value(json!({
+            "quality_kbps": 0, "total": 10, "validator": "\"v\"", "extension": "wav",
+            "namespace": "scope", "item": track("1"),
+        }))
+        .unwrap();
+        assert_eq!(info.total, Some(10));
+    }
+
+    #[test]
+    fn lru_touches_are_persisted_periodically() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+        let song = track("1");
+        let file = format!("{}.wav", hash("e1"));
+        fs::write(dir.path().join(&file), b"cached").unwrap();
+        {
+            let mut state = crate::mutex_lock(&cache.state);
+            state.manifest.entries.insert(
+                hash("e1"),
+                Entry {
+                    quality_kbps: 0,
+                    namespace: "scope".into(),
+                    item: song.clone(),
+                    file,
+                    bytes: 6,
+                    used: 1,
+                },
+            );
+            save(dir.path(), &state).unwrap();
+            state.lru_saved = Instant::now()
+                .checked_sub(LRU_PERSIST_INTERVAL)
+                .unwrap_or(state.lru_saved);
+        }
+        assert!(cache.lookup("scope", &song, true).is_some());
+        // Read the index without dropping the cache (Drop would also save).
+        let saved: Manifest =
+            serde_json::from_slice(&fs::read(dir.path().join("index.json")).unwrap()).unwrap();
+        assert!(saved.entries[&hash("e1")].used > 1);
     }
 }

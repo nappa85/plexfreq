@@ -11,7 +11,7 @@ Item {
     property bool touching: false
     property real minimumTouchWidth: 44
     Accessible.role: Accessible.List
-    Accessible.name: "Alphabet"
+    Accessible.name: qsTr("Alphabet")
     signal chosen(string letter)
     function selectAt(y) {
         if (!groups.length || height<=0) return

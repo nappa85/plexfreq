@@ -8,6 +8,9 @@
 <file>qml/shared/RadioIcon.qml</file>
 <file>qml/shared/IntrinsicLoader.qml</file>
 <file>qml/shared/AlphabetRail.qml</file>
+<file>qml/shared/ItemActions.qml</file>
+<file>qml/shared/GridPosition.qml</file>
+<file>qml/desktop/ItemMenu.qml</file>
 <file>qml/desktop/RadioAction.qml</file>
 <file>qml/desktop/DetailHeader.qml</file>
 <file>qml/desktop/NowPlaying.qml</file>

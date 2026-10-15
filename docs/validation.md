@@ -1,5 +1,20 @@
 # Validation record
 
+## Typed commands / worker channel / string enums — 2026-10-15
+
+| Check | Actual result |
+| --- | --- |
+| `cargo fmt --all --check` | Passed |
+| `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed (strum 0.27.2 added to Cargo.lock) |
+| `cargo test --locked --all-features --no-fail-fast` | Passed: 286 tests, 0 failed. An earlier full run under host load ~7 timed out six localhost `audio::http` tests; they passed alone and in the next full run (timing-sensitive, unrelated) |
+| New `tests/runtime_routing.rs` against the pre-change tree (admission block removed, echo relaxed to `op`) | Passed: page/append/replace, `_pageStart`, `_refresh`/`_background`/`_replace`, correlated `lyricsKey`/`filter*`/`smartKey` unchanged |
+| `bash tools/build-qm.sh --check` | Passed: 39 locales (no Core string added or removed) |
+| `cmake --build build/desktop --parallel 8 && ctest --test-dir build/desktop` | Passed 2/2 |
+
+Wire changes: event `request` echoes no longer contain `_view`/`_foreground`/`_page`
+(Qt reads only `op`); malformed requests fail at submit instead of as an async
+error event. No Sailfish package build or hardware run was made for this refactor.
+
 ## Car reconnect / output clock regression — 2026-10-15
 
 | Check | Actual result |
@@ -1503,3 +1518,53 @@ SDK builds passed again. Phone checks above cover the preceding parser-corrected
 build; the UUID race has local protocol regression coverage. The temporary phone
 directory was removed. The existing player remains the normal-session MPRIS owner
 (PID 64815); the new package/bundle is prepared, not installed over that player.
+
+## Production review 2026-10-15
+
+A code review added 33 regression tests (`tests/review_*.rs` and `review_tests`
+modules in `src/audio/mod.rs`, `src/cache.rs`, `src/runtime/platform.rs`), first
+confirmed failing, then fixed. Fixes cover core dispatch (ClearCache/connect state,
+offline alphabet/favorite/playback plan, single bounded paging helper, refresh
+policy validation, shared atomic session writes and stale token-bearing temp
+cleanup), audio (seek keeps the prepared successor, Prepare restarts crossfade,
+no handoff after queued EOS, u128 timestamps, bounded unproven HTTP retries,
+Content-Range `*`, libpulse RefCell callback state and bounded prepare/poll/dispatch),
+runtime (timed async ConnMan/NM queries re-queried on change signals, unknown
+network is not offline, startup failure/panic release busy state, ordered
+checkpoints, MPRIS Seek on unseekable tracks), cache/offline (partials removed
+with downloads, rejected limits evict nothing, 416 restarts, typed retry
+classification, ratings never rewrite lyrics/unrelated snapshots), domain (queue
+next after natural end, LRC offset sign/ID tags/untimed order, out-of-range
+numbers) and QML/tooling (no `Qt.callLater`, Sailfish RPM excludes desktop QML,
+shared item actions, Silica control re-sync, pinned actions/SDK digest/wheel hashes).
+
+Checks (host only): `cargo fmt --check`, `cargo clippy --all-targets -D warnings`,
+`cargo test --all-features` (two full runs, 0 failures), `build-qm.sh --check`
+(39 locales), desktop CMake Release + ctest 2/2. Qt `readOnlyNetworkFacts` skips on
+hosts without ConnMan/NetworkManager. Several timing tests (audio preroll, private
+D-Bus network facts, ctest timeouts) failed only under load average ~40 from
+parallel builds and passed when rerun. `mb2 qmake` confirmed the RPM installs only
+`qml/harbour-plexfreq.qml`, `qml/pages` and `qml/shared`. Not validated on the phone:
+Silica ContextMenu Repeater/control re-sync, Qt 5.6 Timer deferral, libpulse
+iteration under Sailjail, ConnMan signal watching, and new non-English strings.
+
+### Session split and shared runtime (2026-10-15)
+
+Checkpoint cost at caps (10k listens, 2k history; release, desktop): 1000-track queue
+9,146,910 B / 130 ms per checkpoint before, ~1,031 B / 17.7 ms after; 10k-track queue
+26,876,910 B / 158 ms before, ~1,030 B / 16 ms after. `Queue` fields are private and
+every mutation replaces a random revision, so the queue change check is a comparison
+(~60 ns instead of ~23 ms of serialization hashing at 10k tracks). Bench:
+`cargo test --release --lib store::tests::bench -- --ignored --nocapture`.
+Threads added by a running Runtime (`tests/runtime_threads.rs`): 18 before, 6 after
+(plexfreq-audio, -core, -record, -rt and two transient -rt-blk pool threads); zbus uses
+its `tokio` feature, removing its async-io reactor and executor threads. Test fixtures
+built with zbus's blocking API need `drive_blocking_zbus()`: with the tokio feature
+that API runs on a private current-thread runtime that only progresses during calls.
+The cache downloader's pre-request directory scan/resume-record reads moved to the
+blocking pool so a large cache on flash cannot stall the shared I/O thread.
+Shared I/O thread timer lateness stayed below 1.5 ms under twelve 4 MiB write+fsync
+jobs. MPRIS: changes emitted under 400 ms, at most 4 wakeups in 2 s idle (polling was
+20). `tests/runtime_cancel.rs`: navigation discards a stalled view request in under 2 s
+and closes its connection. Host checks after merge: fmt, clippy -D warnings, full
+`cargo test`, desktop CMake + ctest 2/2 passed. No SDK package build or phone test.

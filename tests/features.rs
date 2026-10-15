@@ -135,7 +135,7 @@ fn global_music_search_collections_and_favorites_use_documented_requests() {
     for view in ["favorites", "added", "played"] {
         core.execute(Command::Collection {
             section: "1".into(),
-            view: view.into(),
+            view: view.parse().unwrap(),
             start: 0,
         })
         .unwrap();
@@ -260,7 +260,7 @@ fn cover_album_artwork_prefers_album_thumb_and_confines_its_origin() {
     pause_cache(&mut core);
     let item = plexfreq_core::model::Item {
         rating_key: "3".into(),
-        kind: "track".into(),
+        kind: plexfreq_core::model::ItemKind::Track,
         thumb: "/track/thumb".into(),
         parent_thumb: "/album/thumb".into(),
         ..Default::default()
@@ -302,7 +302,7 @@ fn playlist_edit(
     after: Option<u64>,
 ) -> Command {
     Command::PlaylistEdit {
-        action: action.into(),
+        action: action.parse().unwrap(),
         key: if action == "create" {
             "".into()
         } else {
@@ -574,8 +574,8 @@ fn wifi_policy_defers_jobs_until_confirmed_and_manager_removes_files() {
         1
     );
     core.execute(Command::DownloadAction {
-        group: "track:1".into(),
-        action: "remove".into(),
+        group: "track:1".parse().unwrap(),
+        action: plexfreq_core::DownloadAction::Remove,
     })
     .unwrap();
     assert_eq!(
@@ -652,12 +652,12 @@ fn multi_seed_mix_deduplicates_tracks_and_autoplay_uses_real_neighbors() {
     let seeds = vec![
         plexfreq_core::model::Item {
             rating_key: "10".into(),
-            kind: "artist".into(),
+            kind: plexfreq_core::model::ItemKind::Artist,
             ..Default::default()
         },
         plexfreq_core::model::Item {
             rating_key: "20".into(),
-            kind: "album".into(),
+            kind: plexfreq_core::model::ItemKind::Album,
             ..Default::default()
         },
     ];
@@ -701,10 +701,13 @@ fn album_track_browsing_and_artist_grouping_use_metadata_types() {
     let dir = tempfile::tempdir().unwrap();
     let mut core = Core::new(dir.path().into()).unwrap();
     connect(&mut core, &fixture.url);
-    for kind in ["album", "track"] {
+    for kind in [
+        plexfreq_core::model::ItemKind::Album,
+        plexfreq_core::model::ItemKind::Track,
+    ] {
         core.execute(Command::LibraryBrowse {
             section: "1".into(),
-            kind: kind.into(),
+            kind,
             sort: "year".into(),
             start: 0,
         })
@@ -755,7 +758,7 @@ fn saved_artist_album_pages_and_private_artwork_are_available_without_server() {
     let page = core
         .execute(Command::Browse {
             section: "1".into(),
-            kind: "artist".into(),
+            kind: plexfreq_core::model::ItemKind::Artist,
             query: String::new(),
             start: 0,
         })
@@ -773,7 +776,7 @@ fn saved_artist_album_pages_and_private_artwork_are_available_without_server() {
     loop {
         let status = core
             .execute(Command::OfflineBrowse {
-                kind: "artist".into(),
+                kind: plexfreq_core::model::ItemKind::Artist,
             })
             .unwrap();
         if status["items"][0]["artwork"]
@@ -832,7 +835,7 @@ fn pinned_album_plan_survives_restart_and_unpin_releases_it() {
     connect(&mut core, &fixture.url);
     core.execute(Command::Pin {
         key: "2".into(),
-        kind: "album".into(),
+        kind: plexfreq_core::model::ItemKind::Album,
         enabled: true,
     })
     .unwrap();
@@ -844,7 +847,7 @@ fn pinned_album_plan_survives_restart_and_unpin_releases_it() {
     assert_eq!(status["cache"]["pinnedKeys"][0], "3");
     core.execute(Command::Pin {
         key: "2".into(),
-        kind: "album".into(),
+        kind: plexfreq_core::model::ItemKind::Album,
         enabled: false,
     })
     .unwrap();

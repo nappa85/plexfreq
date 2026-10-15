@@ -1,6 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" sourcelanguage="en" language="ru">
   <context>
+    <name>AlphabetRail</name>
+    <message>
+      <source>Alphabet</source>
+      <translation>Алфавит</translation>
+    </message>
+  </context>
+  <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
@@ -35,16 +42,16 @@
       <translation>Rust · Звук · Без пауз · PCM · Вывод</translation>
     </message>
     <message>
-      <source>Crossfade</source>
-      <translation>Плавный переход</translation>
-    </message>
-    <message>
       <source>%1 seconds</source>
       <translation>%1 · Секунды</translation>
     </message>
     <message>
       <source>Off</source>
       <translation>off</translation>
+    </message>
+    <message>
+      <source>Crossfade</source>
+      <translation>Плавный переход</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -187,10 +194,6 @@
     <message>
       <source>Add up to 1000 tracks at a time</source>
       <translation>Добавить · Вверх · 1000 · Треки</translation>
-    </message>
-    <message>
-      <source>Album exceeds the radio track limit</source>
-      <translation>Альбом · Ограничение · Радио · Трек</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
@@ -411,6 +414,10 @@
     <message>
       <source>Expected a server-relative Plex path</source>
       <translation>Корректно · Plex</translation>
+    </message>
+    <message>
+      <source>Go online</source>
+      <translation>В сети</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
@@ -861,24 +868,24 @@
       <translation>Автовоспроизведение · Обновить · Загрузки</translation>
     </message>
     <message>
-      <source>Refresh interval</source>
-      <translation>Обновить · Длительность</translation>
-    </message>
-    <message>
       <source>%1 hours</source>
       <translation>%1 · h</translation>
+    </message>
+    <message>
+      <source>Refresh interval</source>
+      <translation>Обновить · Длительность</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
       <translation>Обновить · Загрузки · Загрузка</translation>
     </message>
     <message>
-      <source>Radio download length</source>
-      <translation>Радио · Загрузки · Длительность</translation>
-    </message>
-    <message>
       <source>%1 minutes</source>
       <translation>%1 · min</translation>
+    </message>
+    <message>
+      <source>Radio download length</source>
+      <translation>Радио · Загрузки · Длительность</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -1277,71 +1284,7 @@
     </message>
   </context>
   <context>
-    <name>LibraryPage</name>
-    <message>
-      <source>Up next</source>
-      <translation>Вверх · Далее</translation>
-    </message>
-    <message>
-      <source>Radio</source>
-      <translation>Радио</translation>
-    </message>
-    <message>
-      <source>Offline · showing saved library metadata</source>
-      <translation>Без сети · Сохранено · Медиатека · Метаданные</translation>
-    </message>
-    <message>
-      <source>Caching audio…</source>
-      <translation>Кэш · Звук</translation>
-    </message>
-    <message>
-      <source>%1 tracks ready offline</source>
-      <translation>%1 · Треки · Готово · Без сети</translation>
-    </message>
-    <message>
-      <source>Library</source>
-      <translation>Медиатека</translation>
-    </message>
-    <message>
-      <source>Search</source>
-      <translation>Поиск</translation>
-    </message>
-    <message>
-      <source>Artists</source>
-      <translation>Исполнители</translation>
-    </message>
-    <message>
-      <source>Albums</source>
-      <translation>Альбомы</translation>
-    </message>
-    <message>
-      <source>Tracks</source>
-      <translation>Треки</translation>
-    </message>
-    <message>
-      <source>Title</source>
-      <translation>Название</translation>
-    </message>
-    <message>
-      <source>Recently added</source>
-      <translation>Недавно добавлено</translation>
-    </message>
-    <message>
-      <source>Year</source>
-      <translation>Год</translation>
-    </message>
-    <message>
-      <source>Search artists, albums and tracks</source>
-      <translation>Поиск · Исполнители · Альбомы · Треки</translation>
-    </message>
-    <message>
-      <source>Browse</source>
-      <translation>Медиатека</translation>
-    </message>
-    <message>
-      <source>Sort</source>
-      <translation>Сортировать</translation>
-    </message>
+    <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
       <translation>Добавить · Sonic · Источник</translation>
@@ -1437,6 +1380,73 @@
     <message>
       <source>Remove from queue</source>
       <translation>Убрать · Очередь</translation>
+    </message>
+  </context>
+  <context>
+    <name>LibraryPage</name>
+    <message>
+      <source>Up next</source>
+      <translation>Вверх · Далее</translation>
+    </message>
+    <message>
+      <source>Radio</source>
+      <translation>Радио</translation>
+    </message>
+    <message>
+      <source>Offline · showing saved library metadata</source>
+      <translation>Без сети · Сохранено · Медиатека · Метаданные</translation>
+    </message>
+    <message>
+      <source>Caching audio…</source>
+      <translation>Кэш · Звук</translation>
+    </message>
+    <message>
+      <source>%1 tracks ready offline</source>
+      <translation>%1 · Треки · Готово · Без сети</translation>
+    </message>
+    <message>
+      <source>Library</source>
+      <translation>Медиатека</translation>
+    </message>
+    <message>
+      <source>Search</source>
+      <translation>Поиск</translation>
+    </message>
+    <message>
+      <source>Artists</source>
+      <translation>Исполнители</translation>
+    </message>
+    <message>
+      <source>Albums</source>
+      <translation>Альбомы</translation>
+    </message>
+    <message>
+      <source>Tracks</source>
+      <translation>Треки</translation>
+    </message>
+    <message>
+      <source>Title</source>
+      <translation>Название</translation>
+    </message>
+    <message>
+      <source>Recently added</source>
+      <translation>Недавно добавлено</translation>
+    </message>
+    <message>
+      <source>Year</source>
+      <translation>Год</translation>
+    </message>
+    <message>
+      <source>Search artists, albums and tracks</source>
+      <translation>Поиск · Исполнители · Альбомы · Треки</translation>
+    </message>
+    <message>
+      <source>Browse</source>
+      <translation>Медиатека</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>Сортировать</translation>
     </message>
     <message>
       <source>Open artist</source>
@@ -1550,102 +1560,6 @@
       <translation>Загружено</translation>
     </message>
     <message>
-      <source>Add sonic waypoint</source>
-      <translation>Добавить · Sonic · Источник</translation>
-    </message>
-    <message>
-      <source>Edit smart filters</source>
-      <translation>Умный · Фильтр · Настройки</translation>
-    </message>
-    <message>
-      <source>Sonically similar</source>
-      <translation>Звук · Похожий</translation>
-    </message>
-    <message>
-      <source>Start sonic adventure here</source>
-      <translation>Начать · Sonic · Adventure</translation>
-    </message>
-    <message>
-      <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Трек</translation>
-    </message>
-    <message>
-      <source>Download radio · %1 minutes</source>
-      <translation>Загрузки · Радио · %1 · min</translation>
-    </message>
-    <message>
-      <source>Download %1 minutes</source>
-      <translation>Загрузки · %1 · min</translation>
-    </message>
-    <message>
-      <source>Play next</source>
-      <translation>Воспроизвести · Далее</translation>
-    </message>
-    <message>
-      <source>Add to queue</source>
-      <translation>Добавить · Очередь</translation>
-    </message>
-    <message>
-      <source>Add to playlist</source>
-      <translation>Добавить · Плейлист</translation>
-    </message>
-    <message>
-      <source>Create playlist from this</source>
-      <translation>Создать · Плейлист</translation>
-    </message>
-    <message>
-      <source>Add as mix seed</source>
-      <translation>Добавить · Микс</translation>
-    </message>
-    <message>
-      <source>Rename playlist</source>
-      <translation>Переименовать · Плейлист</translation>
-    </message>
-    <message>
-      <source>Delete playlist</source>
-      <translation>Удалить · Плейлист</translation>
-    </message>
-    <message>
-      <source>Move playlist entry up</source>
-      <translation>Переместить · Плейлист · Вверх</translation>
-    </message>
-    <message>
-      <source>Move playlist entry down</source>
-      <translation>Переместить · Плейлист · Вниз</translation>
-    </message>
-    <message>
-      <source>Remove from playlist</source>
-      <translation>Убрать · Плейлист</translation>
-    </message>
-    <message>
-      <source>Remove favorite</source>
-      <translation>Убрать</translation>
-    </message>
-    <message>
-      <source>Add to favorites</source>
-      <translation>Добавить · Избранное</translation>
-    </message>
-    <message>
-      <source>Unpin download</source>
-      <translation>Не сохранять без сети · Загрузки</translation>
-    </message>
-    <message>
-      <source>Pin for offline listening</source>
-      <translation>Сохранить без сети · Без сети · История</translation>
-    </message>
-    <message>
-      <source>Move up</source>
-      <translation>Переместить · Вверх</translation>
-    </message>
-    <message>
-      <source>Move down</source>
-      <translation>Переместить · Вниз</translation>
-    </message>
-    <message>
-      <source>Remove from queue</source>
-      <translation>Убрать · Очередь</translation>
-    </message>
-    <message>
       <source>Retry loading</source>
       <translation>Повторить попытку · Загрузка</translation>
     </message>
@@ -1670,8 +1584,16 @@
       <translation>Перемешать</translation>
     </message>
     <message>
-      <source>Repeat</source>
-      <translation>Повторить</translation>
+      <source>Repeat one</source>
+      <translation>Повтор: один</translation>
+    </message>
+    <message>
+      <source>Repeat all</source>
+      <translation>Повтор: все</translation>
+    </message>
+    <message>
+      <source>Repeat off</source>
+      <translation>Повтор: выкл.</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2230,8 +2152,8 @@
       <translation>Очистить · Кэш · Остановить · Воспроизвести</translation>
     </message>
     <message>
-      <source>PlexFreq 0.1.3 · Direct-stream music player</source>
-      <translation>PlexFreq · 0.1.3 · Звук · Воспроизвести</translation>
+      <source>PlexFreq %1 · Direct-stream music player</source>
+      <translation>PlexFreq %1 · Музыкальный плеер с прямой потоковой передачей</translation>
     </message>
   </context>
   <context>

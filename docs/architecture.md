@@ -1,5 +1,39 @@
 # Architecture
 
+## Typed command admission / worker channel (2026-10-15)
+
+`Runtime::submit` (and MPRIS/Bluetooth through `Shared::send`) parses the wire
+JSON into `crate::Command` (`src/command.rs`) once, at admission. Malformed,
+unknown and `_`-prefixed ops now fail synchronously there (`accepted:false`);
+transport controls (`audio_pause/stop/seek/volume/play/toggle`) are `Command`
+variants executed on the calling thread. `Command::class()` is an exhaustive
+match (no wildcard) giving listing/view-bound/passive/transport/re-prepare/
+session-reset/engine routing, so a new op cannot be added unclassified; `op()`
+comes from strum. The worker channel is `WorkerMsg { Request(Box<Request>),
+Checkpoint(Checkpoint), Shutdown }`: `Request` carries the `Command`, the request
+as submitted (echoed as the event's `request`; Qt reads only `op`) and typed
+routing facts (view generation, busy/page counters, page start, start-paused).
+QML's `_background`/`_refresh`/`_replace` stay wire flags read once at
+admission; `_paused` is now a typed MPRIS argument. Events carry their view
+generation beside the JSON (`Outgoing`) for delivery-time discard. Event and
+reply shapes (`_update`, `_audio_error`, `_discarded`, `_pageStart`,
+`_listAction`, correlated keys) are unchanged.
+
+Fixed-value strings are enums with serde spellings identical to the old
+strings: `model::ItemKind` (Plex `type` of items and library sections; unknown
+types keep their exact spelling in `Other(String)` and order by spelling),
+`queue::Repeat`, `radio::RadioKind`, `CollectionView`, `DownloadAction`,
+`PlaylistAction`, `SmartAction`, `features::AlbumType` (also the Qt
+"AlbumType" key), `PlaybackSource` (written by Core, read back by the runtime's
+decode-failure fallback), `DownloadKind` (plan/group kinds with exhaustive
+minute ranges and radio seeds) and `GroupId` (`kind:key`, persisted as that
+string; its derived order equals string order so `session.json` maps iterate
+unchanged; unparseable persisted entries are dropped instead of rejecting the
+document). The `strum` crate (0.27, derive) provides Display/FromStr/
+IntoStaticStr/EnumIter; tests round-trip every variant through strum and serde.
+Specific user-facing messages for unknown enum values ("Unknown repeat mode",
+"Unknown download action", ...) are mapped at admission.
+
 ## Output position domain across sink resets (2026-10-15)
 
 Each Rust Output owns a position clock mapping queried sink frames into its
@@ -553,7 +587,8 @@ to backend commands.
 
 ## Command contract
 
-Requests are JSON objects with `op` in snake_case. Returns
+Requests are JSON objects with `op` in snake_case, parsed into `Command` at
+runtime admission (invalid requests are rejected synchronously). Returns
 `{"ok":true,"data":{...}}` or `{"ok":false,"error":"human-readable"}`.
 
 Operations: `status`, `login`, `poll_login`, `servers`, `select_server` (index),
@@ -856,3 +891,35 @@ thread-confined. GUI policy observation never changes system network settings.
 
 See `audio-engine-plan.md` for the current Rust/C++ boundary and a proposed future
 Rust-controlled audio pipeline. The current engine remains Qt Multimedia.
+
+## Session persistence split (2026-10-15)
+
+Session state is split: `session.json` (small settings and checkpoint, written
+atomically only when its bytes change), `queue.json` (queue + Radio, rewritten only
+when the queue's revision (replaced by every `Queue` mutation) or the Radio
+fingerprint changes; its revision is mirrored in `session.json` and
+a mismatch drops the stale position), and append-only `listens.jsonl` /
+`history.jsonl` (newest record per namespace+occurrence wins on replay, replay uses
+the same cap eviction as memory, damaged lines are skipped, atomic compaction when
+damaged, above 2x cap or diverged). A checkpoint writes at most one log line (with
+`sync_data`) plus ~0.7 KB `session.json`. The owner migrates old all-in-one sessions
+at startup by writing the new files first. `Core::inspect` never writes.
+
+## Shared I/O runtime (2026-10-15)
+
+One process-wide tokio current-thread runtime (thread `plexfreq-rt`, `src/rt.rs`)
+runs D-Bus observers, MPRIS, the diagnostic heartbeat, cache/artwork downloads and
+audio HTTP readers as tasks; filesystem and libpulse steps use the bounded blocking
+pool (`rt::unblock`). Core stays synchronous and drives Plex requests (one pooled
+async reqwest client) with `rt::block_on` on its own thread. Owners stop tasks
+deterministically (Halt watch where async D-Bus cleanup is needed, abort otherwise);
+zbus (tokio feature) runs its internal tasks on the shared runtime. No blocking
+filesystem/D-Bus/libpulse call may run on `plexfreq-rt`; use `rt::unblock`. MPRIS emits on an audio transport change
+watch (position excluded), model revisions and seeks, with a 1 s fallback. View-bound
+commands abort in-flight HTTP when navigation moves past their view; the reply is
+discarded. The GStreamer actor, libpulse recording mainloop, log capture and Core
+worker remain dedicated threads.
+Decision (2026-10-15): stay on one current-thread runtime. Throughput is ample; the
+risk is a blocking call landing on `plexfreq-rt`. If audio stalls or I/O latency
+show up on the phone, switch to a 2-worker multi-thread runtime (tokio feature
+`rt-multi-thread`, builder change in `src/rt.rs`; tasks are already `Send`).

@@ -110,9 +110,20 @@ pub fn parse(text: &str) -> Vec<Line> {
         if inner.trim().is_empty() {
             return true;
         }
-        inner.contains(':')
+        // Only real LRC ID tags ([ar:..], [length:..], [#:comment]) are
+        // metadata: a short lowercase identifier without spaces before the
+        // colon. Section annotations like [Verse 1: Artist] are content.
+        inner.split_once(':').is_some_and(|(id, _)| {
+            (1..=8).contains(&id.len())
+                && id
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'#')
+        })
     }
+    // (sort anchor, line): an untimed line inherits the anchor of the closest
+    // preceding timed source line so a stable sort keeps it in place.
     let mut lines = Vec::new();
+    let mut anchor = 0u64;
     let mut offset = 0i64;
     for raw in text.trim_start_matches('\u{feff}').lines().take(10000) {
         let mut rest = raw.trim();
@@ -138,27 +149,40 @@ pub fn parse(text: &str) -> Vec<Line> {
             times.push(minutes * 60000 + (seconds * 1000.0).round() as u64);
             rest = tag.1.trim_start();
         }
-        if !times.is_empty() {
+        if let Some(first) = times.first() {
+            anchor = *first;
             for time in times {
-                lines.push(Line {
-                    time: Some(time),
-                    text: rest.into(),
-                });
+                lines.push((
+                    time,
+                    Line {
+                        time: Some(time),
+                        text: rest.into(),
+                    },
+                ));
             }
         } else if !rest.is_empty() && !is_metadata_tag(rest) {
-            lines.push(Line {
-                time: None,
-                text: rest.into(),
-            });
+            lines.push((
+                anchor,
+                Line {
+                    time: None,
+                    text: rest.into(),
+                },
+            ));
         }
     }
-    for line in &mut lines {
-        if let Some(time) = line.time {
-            line.time = Some((time as i64 + offset).max(0) as u64);
-        }
-    }
-    lines.sort_by_key(|line| line.time.unwrap_or(0));
+    // Stable: equal anchors keep source order. The uniform offset (clamped
+    // at 0) is monotonic, so sorting by the raw time stays correct after it.
+    lines.sort_by_key(|(anchor, _)| *anchor);
     lines
+        .into_iter()
+        .map(|(_, mut line)| {
+            // LRC: a positive offset makes lyrics appear sooner.
+            line.time = line
+                .time
+                .map(|time| (time as i64).saturating_sub(offset).max(0) as u64);
+            line
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -170,7 +194,7 @@ mod tests {
             parse("[ar:Fixture]\n[offset:-100]\n[00:02.50][00:04.000]Repeated\n[00:01]First");
         assert_eq!(
             lines.iter().map(|l| l.time.unwrap()).collect::<Vec<_>>(),
-            vec![900, 2400, 3900]
+            vec![1100, 2600, 4100]
         );
         assert_eq!(parse("plain\nlyrics")[1].text, "lyrics");
     }

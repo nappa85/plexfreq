@@ -36,8 +36,9 @@ try:
     _, body = fetch("/playlists?playlistType=audio&X-Plex-Container-Size=100")
     playlists = json.loads(body)["MediaContainer"].get("Metadata", [])
     print(json.dumps({"playlistCount": len(playlists), "playlistFieldTypes": shape(playlists[0]) if playlists else {}, "countsPresent": sum(isinstance(item.get("leafCount"), int) for item in playlists), "durationsPresent": sum(isinstance(item.get("duration"), int) for item in playlists), "missingDurationEmptyCount": sum(item.get("leafCount") == 0 for item in playlists if not isinstance(item.get("duration"), int))}))
-    playback = state.get("playback", {})
-    queue = playback.get("queue", {})
+    # The queue lives in queue.json; older all-in-one sessions kept it in session.json.
+    queue_path = pathlib.Path.home() / ".local/share/org.plexfreq/harbour-plexfreq/queue.json"
+    queue = json.loads(queue_path.read_text()).get("queue", {}) if queue_path.exists() else state.get("playback", {}).get("queue", {})
     current = queue.get("current")
     items = queue.get("items", [])
     if isinstance(current, int) and 0 <= current < len(items):

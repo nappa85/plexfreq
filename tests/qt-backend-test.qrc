@@ -16,6 +16,9 @@
 <file alias="shared/IntrinsicLoader.qml">../app/qml/shared/IntrinsicLoader.qml</file>
 <file alias="shared/BrowsePageView.qml">../app/qml/shared/BrowsePageView.qml</file>
 <file alias="shared/AlphabetRail.qml">../app/qml/shared/AlphabetRail.qml</file>
+<file alias="shared/ItemActions.qml">../app/qml/shared/ItemActions.qml</file>
+<file alias="shared/GridPosition.qml">../app/qml/shared/GridPosition.qml</file>
+<file alias="desktop/ItemMenu.qml">../app/qml/desktop/ItemMenu.qml</file>
 <file alias="desktop/RadioAction.qml">../app/qml/desktop/RadioAction.qml</file>
 <file alias="desktop/DetailHeader.qml">../app/qml/desktop/DetailHeader.qml</file>
 <file alias="desktop/NowPlaying.qml">../app/qml/desktop/NowPlaying.qml</file>

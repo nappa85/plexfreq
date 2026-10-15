@@ -3,6 +3,10 @@ import Sailfish.Silica 1.0
 
 Page {
     property var music
+    // Silica switches toggle `checked` themselves on click, dropping the
+    // binding; re-sync them whenever the backend publishes new state.
+    Connections {target:backend;onStateChanged:autoplay.checked=!!backend.state.autoplay}
+    Connections {target:backend;onCacheChanged:{wifiOnly.checked=!!backend.cache.wifiOnly;cacheEnabled.checked=!!backend.cache.enabled}}
     SilicaFlickable {
         anchors.fill: parent; contentHeight: column.height
         Column {
@@ -65,10 +69,10 @@ Page {
             Button { anchors.horizontalCenter: parent.horizontalCenter; text: qsTr("Sign out"); enabled: !backend.busy; onClicked: { backend.command("logout"); token.text = "" } }
             SectionHeader { text: qsTr("Offline audio cache") }
             Button {anchors.horizontalCenter:parent.horizontalCenter;text:qsTr("Audio settings");onClicked:music.openAudioSettings()}
-            TextSwitch {text:qsTr("Autoplay related music when queue ends");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}
-            TextSwitch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
+            TextSwitch {id:autoplay;text:qsTr("Autoplay related music when queue ends");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}
+            TextSwitch {id:wifiOnly;text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
             Button {anchors.horizontalCenter:parent.horizontalCenter;text:qsTr("Open download manager");onClicked:music.openDownloads()}
-            TextSwitch { text: qsTr("Cache queued audio automatically"); checked: backend.cache.enabled; enabled: !backend.busy; onClicked: backend.command("cache_config", {enabled:checked, limit_mb:backend.cache.limitMb, ahead:backend.cache.ahead}) }
+            TextSwitch { id: cacheEnabled; text: qsTr("Cache queued audio automatically"); checked: !!backend.cache.enabled; enabled: !backend.busy; onClicked: backend.command("cache_config", {enabled:checked, limit_mb:backend.cache.limitMb, ahead:backend.cache.ahead}) }
             ComboBox {
                 width: parent.width; label: qsTr("Cache limit"); value: backend.cache.limitMb + " MiB"; enabled: !backend.busy
                 menu: ContextMenu { Repeater { model:[128,256,512,1024,2048]; MenuItem { text:modelData + " MiB"; onClicked: backend.command("cache_config", {enabled:backend.cache.enabled, limit_mb:modelData, ahead:backend.cache.ahead}) } } }
@@ -77,7 +81,7 @@ Page {
             Label { x:Theme.horizontalPageMargin; width:parent.width-2*x; text:backend.cache.error; visible:text.length>0; wrapMode:Text.Wrap; color:Theme.errorColor }
             Label { x:Theme.horizontalPageMargin; width:parent.width-2*x; text:qsTr("The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.").arg(backend.cache.ahead); wrapMode:Text.Wrap; font.pixelSize:Theme.fontSizeExtraSmall; color:Theme.secondaryColor }
             Button { anchors.horizontalCenter:parent.horizontalCenter; text:qsTr("Clear cache and stop playback"); enabled:!backend.busy; onClicked:backend.command("clear_cache") }
-            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: qsTr("PlexFreq 0.1.3 · Direct-stream music player"); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; wrapMode: Text.Wrap }
+            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: qsTr("PlexFreq %1 · Direct-stream music player").arg(Qt.application.version); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; wrapMode: Text.Wrap }
         }
         VerticalScrollDecorator {}
     }

@@ -18,24 +18,32 @@ fn output(value: serde_json::Value) -> *mut c_char {
         .into_raw()
 }
 
+/// Construct a boxed handle from a C directory path. Null, non-UTF-8 paths,
+/// initialization failures and panics all return null.
+/// # Safety
+/// `dir` is null or a valid NUL-terminated string for the duration of this call.
+unsafe fn construct<T, E>(dir: *const c_char, new: impl FnOnce(PathBuf) -> Result<T, E>) -> *mut T {
+    if dir.is_null() {
+        return ptr::null_mut();
+    }
+    catch_unwind(AssertUnwindSafe(|| {
+        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
+        new(PathBuf::from(path))
+            .ok()
+            .map(Box::new)
+            .map(Box::into_raw)
+    }))
+    .ok()
+    .flatten()
+    .unwrap_or(ptr::null_mut())
+}
+
 /// # Safety
 /// `dir` is valid UTF-8 C text. Install once before runtime startup; free after
 /// runtime/Qt teardown, with no concurrent logger install/free calls.
 #[no_mangle]
 pub unsafe extern "C" fn pf_log_new(dir: *const c_char) -> *mut crate::diagnostics::Log {
-    if dir.is_null() {
-        return ptr::null_mut();
-    }
-    catch_unwind(|| {
-        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
-        crate::diagnostics::Log::install(PathBuf::from(path))
-            .ok()
-            .map(Box::new)
-            .map(Box::into_raw)
-    })
-    .ok()
-    .flatten()
-    .unwrap_or(ptr::null_mut())
+    unsafe { construct(dir, crate::diagnostics::Log::install) }
 }
 /// # Safety
 /// Free one live logger after all application workers have stopped.
@@ -50,19 +58,7 @@ pub unsafe extern "C" fn pf_log_free(log: *mut crate::diagnostics::Log) {
 /// `dir` is a valid NUL-terminated UTF-8 string. Runtime is owned by its GUI bridge.
 #[no_mangle]
 pub unsafe extern "C" fn pf_runtime_new(dir: *const c_char) -> *mut crate::runtime::Runtime {
-    if dir.is_null() {
-        return ptr::null_mut();
-    }
-    catch_unwind(|| {
-        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
-        crate::runtime::Runtime::new(PathBuf::from(path))
-            .ok()
-            .map(Box::new)
-            .map(Box::into_raw)
-    })
-    .ok()
-    .flatten()
-    .unwrap_or(ptr::null_mut())
+    unsafe { construct(dir, crate::runtime::Runtime::new) }
 }
 /// # Safety
 /// `runtime` is live, exclusively used by its bridge; request is valid UTF-8 C text.
@@ -112,19 +108,7 @@ pub unsafe extern "C" fn pf_runtime_free(runtime: *mut crate::runtime::Runtime) 
 /// `dir` must be a valid NUL-terminated UTF-8 string for the duration of this call.
 #[no_mangle]
 pub unsafe extern "C" fn pf_new(dir: *const c_char) -> *mut Core {
-    if dir.is_null() {
-        return ptr::null_mut();
-    }
-    catch_unwind(|| {
-        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
-        Core::new(PathBuf::from(path))
-            .ok()
-            .map(Box::new)
-            .map(Box::into_raw)
-    })
-    .ok()
-    .flatten()
-    .unwrap_or(ptr::null_mut())
+    unsafe { construct(dir, Core::new) }
 }
 
 /// Create a diagnostic core without media prefetch/recovery.
@@ -132,19 +116,7 @@ pub unsafe extern "C" fn pf_new(dir: *const c_char) -> *mut Core {
 /// `dir` must be a valid NUL-terminated UTF-8 string for the duration of this call.
 #[no_mangle]
 pub unsafe extern "C" fn pf_new_inspect(dir: *const c_char) -> *mut Core {
-    if dir.is_null() {
-        return ptr::null_mut();
-    }
-    catch_unwind(|| {
-        let path = unsafe { CStr::from_ptr(dir) }.to_str().ok()?;
-        Core::inspect(PathBuf::from(path))
-            .ok()
-            .map(Box::new)
-            .map(Box::into_raw)
-    })
-    .ok()
-    .flatten()
-    .unwrap_or(ptr::null_mut())
+    unsafe { construct(dir, Core::inspect) }
 }
 
 /// Clone a cancellation-only handle while Core is exclusively borrowed.

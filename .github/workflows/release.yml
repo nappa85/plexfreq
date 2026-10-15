@@ -36,8 +36,11 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell
           sudo apt-get clean
           df -h
-      - uses: dtolnay/rust-toolchain@stable
+      # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
+      - id: toolchain
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
         with:
+          toolchain: stable
           targets: aarch64-unknown-linux-gnu
       - uses: actions/setup-python@v5
         with:
@@ -48,7 +51,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target/aarch64-unknown-linux-gnu
-          key: ${{ runner.os }}-sailfish-5.2-audio-${{ hashFiles('Cargo.lock', 'tools/audio-sdk.Dockerfile') }}
+          key: ${{ runner.os }}-sailfish-5.2-audio-${{ steps.toolchain.outputs.cachekey }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'tools/audio-sdk.Dockerfile') }}
       - uses: actions/cache@v4
         with:
           path: ~/.cache/qt-tools
@@ -92,7 +95,11 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || '' }}
         run: python3 tools/release-version.py --tag "$RELEASE_TAG"
-      - uses: dtolnay/rust-toolchain@stable
+      # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
+      - id: toolchain
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        with:
+          toolchain: stable
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -150,7 +157,8 @@ jobs:
         with:
           name: desktop-${{ needs.build.outputs.version }}
           path: packages/desktop
-      - uses: softprops/action-gh-release@v2
+      # softprops/action-gh-release v2.6.2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           files: |
             packages/sailfish/RPMS/*.rpm
