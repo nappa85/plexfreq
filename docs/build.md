@@ -60,6 +60,11 @@ so an incremental Rust-only change forces the Qt executable to relink.
 Do not replace this with a modern Ubuntu cross-linker: the final binary must
 link against the actual Sailfish target libraries.
 
+`tools/check-harbour.sh` runs `mb2 check --suites harbour` on the RPM in
+`build/sailfish/RPMS`. CI (`harbour` job) and `release.yml` run it after
+`build-sailfish.sh`. Launcher icons ship in 86/108/128/172 px
+(`tools/build-icons.py`).
+
 Overrides: `SDK_IMAGE`, `SDK_TARGET`. If the image is updated, re-check Qt/glibc
 versions and record the image digest. The compiler wrapper assumes Cargo's
 sources reside under CARGO_HOME and outputs under the project root. Run the

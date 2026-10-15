@@ -1568,3 +1568,11 @@ jobs. MPRIS: changes emitted under 400 ms, at most 4 wakeups in 2 s idle (pollin
 20). `tests/runtime_cancel.rs`: navigation discards a stalled view request in under 2 s
 and closes its connection. Host checks after merge: fmt, clippy -D warnings, full
 `cargo test`, desktop CMake + ctest 2/2 passed. No SDK package build or phone test.
+
+### Harbour validation (2026-10-15)
+
+`tools/build-sailfish.sh` (0.1.3-3) passed rpmlint (0 errors, existing no-url-tag
+warning). `mb2 check --suites harbour` FAILED: the binary links and the RPM requires
+`libgstreamer-1.0.so.0`, `libgstbase-1.0.so.0` and `libgstapp-1.0.so.0`, which Harbour
+does not allow; `libpulse` passed. Missing 86/108/128 px launcher icons (warning) are
+now packaged. The CI `harbour` job is red until the GStreamer dependency is resolved.

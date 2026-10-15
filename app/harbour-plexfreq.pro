@@ -1,5 +1,5 @@
 TARGET = harbour-plexfreq
-VERSION = 0.1.3
+VERSION = 0.1.4
 # sailfishapp would install the whole qml/ tree, including the desktop
 # QtQuick.Controls 2 sources; ship only the Silica entry point and its imports.
 CONFIG += sailfishapp sailfishapp_no_deploy_qml c++11
@@ -20,6 +20,9 @@ LIBS += -lsailfishapp -lmdeclarativecache5
 QMAKE_LFLAGS += -pie
 PRE_TARGETDEPS += $$PWD/thirdparty/libplexfreq_core.a
 DISTFILES += harbour-plexfreq.desktop rpm/harbour-plexfreq.spec qml/harbour-plexfreq.qml qml/pages/*.qml qml/shared/*.qml
-launchericon.files = icons/172x172/harbour-plexfreq.png
-launchericon.path = /usr/share/icons/hicolor/172x172/apps
-INSTALLS += launchericon
+# Launcher icons in every size Harbour validation expects.
+for(size, $$list(86 108 128 172)) {
+    icon$${size}.files = icons/$${size}x$${size}/harbour-plexfreq.png
+    icon$${size}.path = /usr/share/icons/hicolor/$${size}x$${size}/apps
+    INSTALLS += icon$${size}
+}
