@@ -59,6 +59,7 @@ jobs:
       - name: Build with documented SDK scripts
         run: |
           ./tools/build-sailfish.sh
+          ./tools/check-harbour.sh
           ./tools/build-device-tests.sh
       - name: Check RPM version and architecture
         env:
