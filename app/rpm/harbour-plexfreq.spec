@@ -1,6 +1,6 @@
 Name: harbour-plexfreq
 Version: 0.1.3
-Release: 1
+Release: 3
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
 Source0: %{name}-%{version}.tar.bz2
@@ -36,6 +36,8 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/172x172/apps/%{name}.png
 
 %changelog
+* Thu Oct 15 2026 PlexFreq contributors - 0.1.3-3
+- Preserve output position across sink clock resets and diagnose raw clock queries
 * Tue Oct 13 2026 PlexFreq contributors - 0.1.3-2
 - Preserve resume position across idle restart and show saved playback progress
 * Tue Oct 13 2026 PlexFreq contributors - 0.1.3-1

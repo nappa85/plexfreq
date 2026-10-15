@@ -1,5 +1,36 @@
 # Research log
 
+## Car reconnect / stale occurrence and silence — 2026-10-15
+
+- Read-only SSH recovered the installed 0.1.3-2 log. At 08:38:37 Bluetooth
+  disconnect paused occurrence 22 at 56,333 ms. At 08:45:42 Play resumed PCM
+  delivery, but published position/listened became zero. Occurrence 22 remained
+  shown while the decoder advanced into prepared occurrence 23. By 08:51:15
+  that decoder was empty/EOF, with no successor, no queued output and no bus EOS.
+  Pause/Play at 08:52:20/21 did not repair this. Clean restart at 08:55 restored
+  occurrence 22's song; manual Next selected the following song, matching the report.
+- PulseAudio remained uncorked/unmuted on the running Bluetooth sink during
+  playback; no fatal HTTP/decoder/output error appears in this interval. These
+  observations establish an app timeline/transition failure, not acoustic delivery.
+  The old log does not retain raw position query success/value, so a backwards
+  sink clock versus failed queries cannot be distinguished conclusively.
+- Consulted Output::position, Actor::publish/pump and runtime Transition handling,
+  and upstream AudioBaseSink clock reset/calibration implementation:
+  https://raw.githubusercontent.com/GStreamer/gstreamer/main/subprojects/gst-plugins-base/gst-libs/gst/audio/gstaudiobasesink.c
+  The clocks guide endpoint returned HTTP 503. Upstream discusses clocks restarting
+  at format negotiation and compensating their offset; it does not prove the exact
+  phone-side reset mechanism in this incident.
+- Rust now retains the last position on a failed query, clamps minor backwards
+  jitter, and rebases backwards jumps of at least one second into the existing
+  appsrc/segment frame domain. Explicit load/seek creates a fresh tracker. Frame
+  conversion uses u128 intermediates. Heartbeats retain query availability/raw
+  frames/offset, and reset events diagnose rebasing. Persistent query failure still
+  requires further investigation; no wall-clock or submitted-PCM fake progress is used.
+- A synthetic long-session clock regression failed before repair and passes after
+  it, covering missing queries, jitter, reconnect resets, repeated reset and queued
+  frame bounds. It does not reproduce the physical sink's reset. Full host checks
+  pass; installed reconnect/audible continuation remains the required field check.
+
 ## Installed resume follow-up / startup display — 2026-10-13
 
 - User's normal install/seek/close/reopen test still restarted at zero. The new

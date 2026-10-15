@@ -542,6 +542,38 @@ struct Output {
     eof: bool,
     warnings: u64,
     qos: u64,
+    position_clock: PositionClock,
+}
+
+#[derive(Default)]
+struct PositionClock {
+    raw: u64,
+    offset: u64,
+    position: u64,
+    available: bool,
+}
+impl PositionClock {
+    fn observe(&mut self, raw: Option<u64>, submitted: u64) -> u64 {
+        self.available = raw.is_some();
+        if let Some(raw) = raw {
+            // Sink routing can reset its clock while appsrc and our gapless
+            // segments retain absolute frame coordinates. Preserve that domain.
+            // Small backwards query jitter is clamped, not accumulated as drift.
+            if raw.saturating_add(u64::from(RATE)) <= self.raw {
+                self.offset = self.position.saturating_sub(raw);
+                crate::diagnostics::event(format_args!(
+                    "output position clock reset previous_frames={} raw_frames={raw} offset_frames={}",
+                    self.raw, self.offset
+                ));
+            }
+            self.raw = raw;
+            self.position = self
+                .position
+                .max(raw.saturating_add(self.offset))
+                .min(submitted);
+        }
+        self.position
+    }
 }
 impl Output {
     fn new(mode: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Result<Self> {
@@ -611,6 +643,7 @@ impl Output {
             eof: false,
             warnings: 0,
             qos: 0,
+            position_clock: PositionClock::default(),
         })
     }
     fn state(&self, state: gst::State) -> Result<()> {
@@ -721,11 +754,12 @@ impl Output {
         self.frames += frames;
         Ok(())
     }
-    fn position(&self) -> u64 {
-        self.pipeline
+    fn position(&mut self) -> u64 {
+        let raw = self
+            .pipeline
             .query_position::<gst::ClockTime>()
-            .map_or(0, |p| p.nseconds() * RATE as u64 / 1_000_000_000)
-            .min(self.frames)
+            .map(|p| ((u128::from(p.nseconds()) * u128::from(RATE)) / 1_000_000_000) as u64);
+        self.position_clock.observe(raw, self.frames)
     }
 }
 fn pulse_properties(os_release: &str) -> gst::Structure {
@@ -1194,7 +1228,7 @@ impl Actor {
         Ok(())
     }
     fn publish(&mut self) {
-        let Some(output) = &self.output else {
+        let Some(output) = &mut self.output else {
             let mut state = lock_state(&self.state);
             state.playing = false;
             state.paused = false;
@@ -1348,13 +1382,14 @@ impl Actor {
         let out = self.output.as_ref();
         let decoder = self.current.as_ref();
         crate::diagnostics::event(format_args!(
-            "audio snapshot reason={reason} occurrence={} desired={} playing={} buffering={} position_ms={} heard_ms={} no_progress_ms={} pipeline={:?} output_frames={} output_queue_bytes={} output_eof={} decoder_pcm_frames={} decoder_eof={} decoder_warnings={} http_received_and_queue_bytes={:?} next_pcm_frames={} output_warnings={} qos={}",
+            "audio snapshot reason={reason} occurrence={} desired={} playing={} buffering={} position_ms={} heard_ms={} no_progress_ms={} pipeline={:?} output_frames={} output_queue_bytes={} output_eof={} decoder_pcm_frames={} decoder_eof={} decoder_warnings={} http_received_and_queue_bytes={:?} next_pcm_frames={} output_warnings={} qos={} output_clock={:?}",
             state.id, self.desired, state.playing, state.buffering, state.position, state.listened,
             now.duration_since(self.diagnostics.progressed).as_millis(), out.map(|o| o.pipeline.current_state()),
             out.map_or(0, |o| o.frames), out.map_or(0, |o| o.source.current_level_bytes()), out.is_some_and(|o| o.eof),
             decoder.map_or(0, Decoder::remaining), decoder.is_some_and(|d| d.eof), decoder.map_or(0, |d| d.warnings),
             decoder.and_then(|d| d.http.as_ref().map(http::Reader::diagnostics)), self.next.as_ref().map_or(0, Decoder::remaining),
-            out.map_or(0, |o| o.warnings), out.map_or(0, |o| o.qos)
+            out.map_or(0, |o| o.warnings), out.map_or(0, |o| o.qos),
+            out.map(|o| (o.position_clock.available, o.position_clock.raw, o.position_clock.offset))
         ));
     }
 }
@@ -1362,6 +1397,31 @@ impl Actor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn output_clock_reset_keeps_gapless_occurrence_time_advancing() {
+        let mut clock = PositionClock::default();
+        let rate = u64::from(RATE);
+        let before = 5_333 * rate;
+        let submitted = before + rate;
+        assert_eq!(clock.observe(Some(before), submitted), before);
+        assert_eq!(clock.observe(None, submitted), before);
+        assert_eq!(clock.observe(Some(before - 10), submitted), before);
+        assert_eq!(clock.offset, 0);
+        // A route reconnect can restart the sink position without resetting
+        // the appsrc timestamps or the gapless segment start coordinates.
+        assert_eq!(clock.observe(Some(0), submitted), before);
+        assert_eq!(clock.observe(Some(0), submitted), before);
+        assert_eq!(clock.observe(Some(rate / 2), submitted), before + rate / 2);
+        assert_eq!(clock.observe(Some(rate), submitted), submitted);
+        // Repeated resets retain progress; queued frames are never heard early.
+        assert_eq!(clock.observe(Some(0), submitted), submitted);
+        assert_eq!(clock.observe(Some(rate), submitted), submitted);
+        assert_eq!(
+            clock.observe(Some(rate), submitted + rate),
+            submitted + rate
+        );
+    }
+
     #[test]
     fn volume_flood_leaves_room_for_transport_and_retains_latest_value() {
         let (tx, rx) = mpsc::sync_channel(128);

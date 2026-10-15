@@ -1,5 +1,24 @@
 # Validation record
 
+## Car reconnect / output clock regression — 2026-10-15
+
+| Check | Actual result |
+| --- | --- |
+| Read-only phone SSH / package / same-date logs | Installed 0.1.3-2; 08:45 resume resets published position to zero, stale occurrence through prepared decoder exhaustion at 08:51; restart/Next recover at 08:55 |
+| Synthetic output-clock regression before repair | Failed: expected 255,984,000 retained frames, got zero after reset |
+| First full host gate | New repeated-reset boundary assertion failed: exactly one-second backwards jump was excluded; corrected inclusive boundary |
+| `XDG_RUNTIME_DIR=/tmp/opencode CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: fmt/Clippy, 200 Rust tests, 39 locales/548 messages, desktop build and CTest 2/2 (21.53s) |
+| `./tools/build-sailfish.sh` | Passed GNU aarch64/Qt5.6 RPM 0.1.3-3; initial changelog version warning corrected, final zero errors / existing no-url-tag warning |
+| Phone artifact transfer / SHA256 | Host and phone match: `42c63d934b012a1eb12b7fb10ac496aea8c557bc542fe138c602bbe1dd0a4e86` |
+
+Clock fixture uses synthetic observations; existing generated-audio gapless/pause/
+resume tests also pass. Raw sink position/query success was absent in the incident
+log, so the precise platform trigger remains unproven. New diagnostics retain it.
+Phone inspection issued no transport/service/install commands. Normally installed
+car reconnect and audible continuation are still pending.
+Delivered `/home/defaultuser/Downloads/harbour-plexfreq-0.1.3-3.aarch64.rpm`;
+installation and normal app restart remain user-led.
+
 ## Installed resume follow-up / startup progress — 2026-10-13
 
 | Check | Actual result |

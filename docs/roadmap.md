@@ -1,5 +1,16 @@
 # Development roadmap
 
+Car reconnect follow-up (2026-10-15): installed 0.1.3-2 logs show zero playback
+time after the 08:45 reconnect, stale occurrence while prepared audio continues,
+then silence after its exhaustion at 08:51. Rust output position tracking now
+retains failed-query position and rebases large backwards clock jumps; synthetic
+reset regression and 200-test/full host/desktop gate pass. Raw query diagnostics
+were added because the old trace cannot distinguish clock reset from query failure.
+Next: normally installed reconnect/long gapless retest; persistent failed queries
+would need a separately validated recovery path. Packaging does not prove a cure.
+GNU/Qt5.6 RPM 0.1.3-3 built and copied to phone Downloads with matching checksum;
+normal installation/restart and user retest are pending.
+
 Resume delivery/display follow-up (2026-10-13): the user's restart test still
 ran a different 0.1.3-1 executable than the delivered fix, confirmed by file digests.
 Package release is now 0.1.3-2 for an unambiguous upgrade. Rust also projects saved

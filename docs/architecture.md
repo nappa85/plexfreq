@@ -1,5 +1,16 @@
 # Architecture
 
+## Output position domain across sink resets (2026-10-15)
+
+Each Rust Output owns a position clock mapping queried sink frames into its
+appsrc/gapless segment coordinate domain. Failed queries retain the last position;
+minor backwards jitter is clamped. A backwards jump of at least one second rebases
+the offset at the last observed position. Results never exceed submitted frames.
+Load/seek replaces Output and its mapping. No wall-clock progress is fabricated.
+Raw query availability/frame/offset diagnostics distinguish a reset from ongoing
+query failure on the next installed incident. This is local reset-path hardening;
+the Oct 15 phone trace establishes broken timing but lacks raw query evidence.
+
 ## Restored playback presentation (2026-10-13)
 
 Runtime::poll projects Core's saved resumePosition and selected track duration
