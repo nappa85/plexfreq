@@ -42,7 +42,7 @@ jobs:
         with:
           toolchain: stable
           targets: aarch64-unknown-linux-gnu
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - uses: actions/cache@v4
@@ -75,7 +75,7 @@ jobs:
             test "$(rpm -qp --qf '%{ARCH}' "$package")" = aarch64
           done
           test "$found" = 1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sailfish-${{ steps.version.outputs.version }}
           if-no-files-found: error
@@ -101,7 +101,7 @@ jobs:
         uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
         with:
           toolchain: stable
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install Qt, audio and packaging dependencies
@@ -136,7 +136,7 @@ jobs:
           file "$executable" | grep -q 'ELF 64-bit.*x86-64'
           test -f "$stage/$bundle/share/doc/plexfreq/README.md"
           dbus-run-session -- bash tools/smoke-test.sh "$executable"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: desktop-${{ steps.version.outputs.version }}
           if-no-files-found: error
