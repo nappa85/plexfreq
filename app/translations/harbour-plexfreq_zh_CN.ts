@@ -512,6 +512,10 @@
       <translation>无 · 队列</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>离线数据超出存储上限</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>只读 · 音频 · 播放列表 · 已下载</translation>
     </message>

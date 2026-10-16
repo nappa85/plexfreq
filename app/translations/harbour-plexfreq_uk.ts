@@ -512,6 +512,10 @@
       <translation>Немає · Черга</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Офлайн-дані перевищують ліміт сховища</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Лише читання · Звук · Списки відтворення · Завантажено</translation>
     </message>

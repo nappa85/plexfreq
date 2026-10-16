@@ -42,6 +42,45 @@ jobs:
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - run: cargo test --locked --all-features
 
+  pulse:
+    name: PulseAudio output against a headless server
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
+      - id: toolchain
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        with:
+          toolchain: stable
+      - name: Install PulseAudio daemon and client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pulseaudio pulseaudio-utils pkg-config libpulse-dev
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-rust-pulse-${{ steps.toolchain.outputs.cachekey }}-${{ hashFiles('Cargo.lock', 'Cargo.toml') }}
+      - name: Build tests
+        run: cargo test --locked --all-features --lib --no-run
+      # Private daemon (two null sinks, isolated socket); skipping is a failure.
+      - name: Engine and output tests through libpulse (memfd/srbchannel)
+        env:
+          PLEXFREQ_PULSE_BACKEND: native
+          PLEXFREQ_REQUIRE_PULSE: '1'
+        run: tools/pulse-test-server.sh cargo test --locked --all-features --lib audio::pulse -- --nocapture
+      # Socket-only transport: one mainloop iteration then reads about one
+      # packet, which exposed the single-iteration dispatch underflows.
+      - name: Engine and output tests through libpulse (socket only, no shm)
+        env:
+          PLEXFREQ_PULSE_BACKEND: native
+          PLEXFREQ_PULSE_SHM: '0'
+          PLEXFREQ_REQUIRE_PULSE: '1'
+        run: tools/pulse-test-server.sh cargo test --locked --all-features --lib audio::pulse -- --nocapture
+
   qt:
     name: Desktop Qt integration and QML smoke
     runs-on: ubuntu-24.04
@@ -109,6 +148,9 @@ jobs:
           path: ~/.cache/qt-tools
           key: ${{ runner.os }}-linguist-6.11.2
       - run: bash tools/build-qm.sh --check
+      - name: Review tooling tests (snapshot sanitization, fallback order)
+        working-directory: tools
+        run: python3 -m unittest test_external_review
 
   harbour:
     name: Sailfish RPM build and Harbour validation (aarch64)

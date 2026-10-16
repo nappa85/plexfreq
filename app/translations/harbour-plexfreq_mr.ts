@@ -512,6 +512,10 @@
       <translation>काहीही नाही · रांग</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ऑफलाइन डेटा संचय मर्यादेपेक्षा जास्त आहे</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>फक्त वाचण्यासाठी · ऑडिओ · प्लेलिस्ट · डाउनलोड झाले</translation>
     </message>

@@ -27,9 +27,13 @@ silent fixture sink; production uses PulseAudio with media.role=music.
 ## GitHub Actions
 
 The reference CI/release split is replicated in `.github/workflows`. Branch pushes,
-PRs and manual runs execute five independent `ci.yml` jobs:
+PRs and manual runs execute six independent `ci.yml` jobs:
 
 - Rust fmt, locked all-feature/all-target Clippy, locked all-feature tests.
+- Real libpulse output: apt `pulseaudio`/`pulseaudio-utils`, then
+  `tools/pulse-test-server.sh` runs the `audio::pulse` tests with
+  `PLEXFREQ_REQUIRE_PULSE=1`, once with memfd/srbchannel and once socket-only
+  (see Host checks).
 - Qt6 release build/CTest (offscreen, isolated D-Bus, fake audio, local fixtures).
 - Qt5 qmllint syntax for all QML, including Silica without SDK imports.
 - TS/QM/resource freshness and placeholders for 39 locales.
@@ -51,6 +55,39 @@ CI does not claim phone audio routing, physical-key or live-account validation.
 `tools/check.sh` runs formatting, Clippy, Rust tests, a release desktop build and
 CTest QML loading. `cargo test --locked` can run without Qt. CMake regenerates the
 Rust staticlib when sources/manifests change. Cargo.lock is part of the source.
+
+### Server-backed audio tests (real libpulse output)
+
+`src/audio/pulse_server_tests.rs` drives `audio::Engine` with `Sink::Pulse` against
+a private headless PulseAudio daemon. Run them with:
+
+```
+tools/pulse-test-server.sh cargo test --locked --lib audio::pulse -- --nocapture
+```
+
+The script creates a fresh temporary directory, starts a daemon there with no
+hardware (null sinks `plexfreq_a` (default) and `plexfreq_b`, each kept running by a
+silent `pacat`), runs the command with `PULSE_SERVER` and
+`PLEXFREQ_PULSE_TEST_SERVER` set to that unix socket, `PLEXFREQ_PULSE_ISOLATED=1`,
+autospawn off and a private cookie, then stops the
+daemon and removes the directory (also on Ctrl-C/TERM); the command's exit status
+is returned. It needs `pactl`/`pacat`/`parec` and libpulse on the host, plus either
+the `pulseaudio` binary (`PLEXFREQ_PULSE_BACKEND=native`, used in CI) or Docker
+(`docker`: PulseAudio 16.1 from `tools/pulse-test.Dockerfile`, Ubuntu 24.04 as on
+the runner, `--network none`, run as your uid). `auto` (default) prefers the
+binary. PipeWire desktops without a `pulseaudio` binary use Docker; the desktop's
+own server is never contacted. PipeWire's pulse server was not used: it needs a
+session manager to link streams, and WirePlumber would enumerate the real devices.
+
+Without the script (plain `cargo test`) these tests print a skip message and pass;
+they never move streams on a real desktop server. Under `cfg(test)` the libpulse
+connection and the tests' `pactl`/`parec` use `PLEXFREQ_PULSE_TEST_SERVER`, because
+other unit tests repoint the process-wide `PULSE_SERVER` while they run. `PLEXFREQ_REQUIRE_PULSE=1` (set in
+CI) turns every skip into a failure. `PLEXFREQ_PULSE_SHM=0` disables shared memory on
+daemon and client, so everything uses the socket (CI runs both transports).
+`PLEXFREQ_PULSE_KEEP_PCM=<dir>` keeps the raw sink-monitor recordings (s16le mono
+48 kHz) for inspection. The tests serialize on one lock; the module takes about
+125 s per transport (one 62 s soak).
 
 ## Sailfish build
 

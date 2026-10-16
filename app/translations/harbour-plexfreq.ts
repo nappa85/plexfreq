@@ -512,6 +512,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation type="unfinished" />
     </message>

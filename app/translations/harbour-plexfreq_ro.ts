@@ -512,6 +512,10 @@
       <translation>Nimic · Coadă</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Datele offline depășesc limita de stocare</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Doar citire · Audio · Liste de redare · Descărcat</translation>
     </message>

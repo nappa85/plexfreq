@@ -512,6 +512,10 @@
       <translation>Puudub · Järjekord</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Võrguühenduseta andmed ületavad salvestuspiirangu</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Ainult lugemiseks · Heli · Esitusloendid · Alla laaditud</translation>
     </message>

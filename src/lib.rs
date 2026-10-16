@@ -58,6 +58,27 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Fault injection for unit tests: panic inside `Core::execute` after a
+/// command already changed in-memory state but before it was persisted.
+#[cfg(test)]
+pub(crate) mod test_hooks {
+    use std::path::{Path, PathBuf};
+    static PANIC_AFTER: std::sync::Mutex<Vec<(PathBuf, &'static str)>> =
+        std::sync::Mutex::new(Vec::new());
+    /// Arm one panic for the next `op` executed by the Core owning `dir`.
+    pub(crate) fn panic_after(dir: &Path, op: &'static str) {
+        crate::mutex_lock(&PANIC_AFTER).push((dir.to_path_buf(), op));
+    }
+    pub(crate) fn check(dir: &Path, op: &str) {
+        let mut armed = crate::mutex_lock(&PANIC_AFTER);
+        if let Some(index) = armed.iter().position(|(d, o)| d == dir && *o == op) {
+            armed.remove(index);
+            drop(armed);
+            panic!("injected Core panic after {op}");
+        }
+    }
+}
+
 /// Lock a mutex, recovering from poisoning instead of panicking worker threads.
 /// A poisoned mutex means another thread panicked while holding it; the data
 /// itself is still usable, so continue with it rather than crashing audio,
@@ -281,6 +302,12 @@ impl Core {
             if downloads {
                 store::save(&dir, &settings)?;
             }
+        }
+        // Legacy station download groups were keyed by station path only;
+        // scope them to this server/account at startup (owner only).
+        let namespace = cache::namespace(&settings.server_url, &settings.server_token);
+        if downloads && daily::migrate_station_groups(&mut settings, &namespace) {
+            store::save(&dir, &settings)?;
         }
         let plex = Plex::new(&settings.client_identifier, account_url)?;
         if settings.playback.queue.validate().is_err() {
@@ -896,6 +923,8 @@ impl Core {
         value["refreshHours"] = json!(self.settings.refresh_policy.interval_hours);
         value["refreshingGroup"] = json!(self.refresh.pending);
         value["refreshError"] = json!(self.refresh.error);
+        // Lyric/snapshot save health, so quota or I/O failures are visible.
+        value["offlineStore"] = self.library.store_status();
         value
     }
     fn schedule_cache(&self) {
@@ -1398,7 +1427,11 @@ impl Core {
             &command,
             Command::Resume | Command::CachedPlayback | Command::TranscodedPlayback
         );
+        #[cfg(test)]
+        let op = command.op();
         let mut result = self.execute_inner(command)?;
+        #[cfg(test)]
+        test_hooks::check(&self.dir, op);
         if catalogue_change {
             self.catalogue_epoch = self.catalogue_epoch.wrapping_add(1);
         }

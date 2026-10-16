@@ -512,6 +512,10 @@
       <translation>Ingen · Kø</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Frakoblede data overskrider lagringsgrensen</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Skrivebeskyttet · Lyd · Spillelister · Lastet ned</translation>
     </message>

@@ -1616,3 +1616,29 @@ them on exit. `bluez_disconnect_signal_pauses_audio_even_with_a_full_metadata_qu
 now emits 200 PropertiesChanged signals before the disconnect; it failed before the
 fix ("Audio profile removal did not pause audio") and passed 3/3 after; full
 `cargo test` green on the committed tree plus this fix. Not yet re-validated on phone.
+
+### Stutter and stuck playback on the phone (0.1.5-1, 2026-10-16)
+
+Read-only SSH log of a 15:38–15:55 car drive (Bluetooth sink, cached MP3s): 324
+PulseAudio underflows, one every ~1.5 s, position advancing ~8.9 s per 10 s, the
+state flipping between playing and buffering. The engine's own estimate
+(submitted − `pa_stream_get_time`) held at ~24,000 frames (0.5 s, the backpressure
+cap), while the server reported only 100–116 ms buffered for our stream (plus 44–49 ms
+sink latency). After the 15:47 Bluetooth disconnect (auto-pause worked) the stream
+moved sink 4 → 5 and its queued audio was discarded without advancing stream time.
+From 15:50:22 the server held 21 ms, `output_running=false` and the estimate still
+claimed ~0.5 s: the prebuffering stream and the writer waited on each other, so Play
+did nothing. Skipping created a fresh stream, which played until the same drift
+returned.
+
+Fix: the actor writes while `pa_stream_writable_size()` > 0 (PulseAudio's own flow
+control); the submitted-minus-played cap remains only for the Fake/Capture test sinks.
+`PA_STREAM_ADJUST_LATENCY` is no longer set: with it the 300 ms target was the total
+latency, so the sink's share came out of our buffer (170 ms queued on the desktop,
+~100 ms on the phone). Underflow diagnostics now also log `server_writable_bytes`.
+`audio::pulse::tests::server_flow_control_survives_discarded_queue` (needs a running
+PulseAudio server, skips otherwise) fills a corked stream, flushes it, and checks
+that the server asks for a full refill while the old estimate still claims a full
+buffer; it passed 3/3 on the desktop. Desktop `pulse-play` of a 44.1 kHz FLAC:
+real-time position, no buffering flicker, pause/resume/seek correct. Full
+`cargo test`, fmt and clippy pass. Not yet re-validated in the car.

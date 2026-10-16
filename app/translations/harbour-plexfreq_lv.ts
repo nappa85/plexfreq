@@ -512,6 +512,10 @@
       <translation>Nav · Rinda</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Bezsaistes dati pārsniedz krātuves ierobežojumu</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Tikai lasīšanai · Audio · Atskaņošanas saraksti · Lejupielādēts</translation>
     </message>

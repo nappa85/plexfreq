@@ -512,6 +512,10 @@
       <translation>Geen · Wachtrij</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Offlinegegevens overschrijden de opslaglimiet</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Alleen-lezen · Audio · Afspeellijsten · Gedownload</translation>
     </message>

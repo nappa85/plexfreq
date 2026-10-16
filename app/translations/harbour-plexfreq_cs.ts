@@ -512,6 +512,10 @@
       <translation>Žádné · Fronta</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Offline data překračují limit úložiště</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Jen pro čtení · Zvuk · Seznamy skladeb · Staženo</translation>
     </message>

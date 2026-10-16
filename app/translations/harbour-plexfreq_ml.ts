@@ -512,6 +512,10 @@
       <translation>ഒന്നുമില്ല · ക്യൂ</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ഓഫ്‌ലൈൻ ഡാറ്റ സംഭരണ പരിധി കവിഞ്ഞു</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>വായന മാത്രം · ഓഡിയോ · പ്ലേലിസ്റ്റുകൾ · ഡൗൺലോഡ് ചെയ്തു</translation>
     </message>

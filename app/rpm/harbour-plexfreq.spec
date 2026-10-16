@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.5
+Version: 0.1.6
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,8 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Fri Oct 16 2026 PlexFreq contributors - 0.1.6-1
+- Fix stutter and stuck playback: use PulseAudio flow control, own 300 ms buffer
 * Fri Oct 16 2026 PlexFreq contributors - 0.1.5-1
 - Pure-Rust audio engine (Symphonia decoding, PulseAudio output); Harbour validation passes
 - Fix Bluetooth disconnect auto-pause stalling after signal bursts

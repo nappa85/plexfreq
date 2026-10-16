@@ -3,7 +3,7 @@ use crate::{plex::server_path, Error, Result};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-const BITRATES: &[u32] = &[64, 96, 128, 160, 192, 256, 320];
+pub(crate) const BITRATES: &[u32] = &[64, 96, 128, 160, 192, 256, 320];
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(default, rename_all = "camelCase")]

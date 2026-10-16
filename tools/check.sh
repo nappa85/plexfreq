@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# Every user-visible Core/QML string needs all 39 translations (CI gate).
+bash "$root/tools/build-qm.sh" --check
 cargo fmt --manifest-path "$root/Cargo.toml" --all --check
 cargo clippy --manifest-path "$root/Cargo.toml" --locked --all-targets --all-features -- -D warnings
 cargo test --manifest-path "$root/Cargo.toml" --locked --all-features

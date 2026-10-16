@@ -512,6 +512,10 @@
       <translation>ಯಾವುದೂ ಇಲ್ಲ · ಸರದಿ</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ಆಫ್‌ಲೈನ್ ಡೇಟಾ ಸಂಗ್ರಹಣಾ ಮಿತಿಯನ್ನು ಮೀರಿದೆ</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>ಓದಲು ಮಾತ್ರ · ಆಡಿಯೋ · ಪ್ಲೇಪಟ್ಟಿಗಳು · ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
     </message>

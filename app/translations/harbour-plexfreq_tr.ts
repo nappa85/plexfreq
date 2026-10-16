@@ -512,6 +512,10 @@
       <translation>Yok · Kuyruk</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Çevrimdışı veriler depolama sınırını aşıyor</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Salt okunur · Ses · Çalma listeleri · İndirildi</translation>
     </message>

@@ -54,6 +54,11 @@ gain and EQ are unchanged; only the decoder, HTTP input and output sink were rep
   application.id=harbour-plexfreq. Policy request-cork clears play intent; request-uncork
   is ignored (as REQUEST_STATE was). Stream failure (daemon restart, kill) reports
   "Audio output is unavailable"; the next load reconnects. Volume stays Rust DSP gain.
+  Each actor service dispatches the mainloop until no event source fires (at most
+  64 iterations): on the socket-only transport (no shm/srbchannel) one iteration
+  reads about one server packet, and a single one per pump left write requests stale
+  behind timing replies after a seek (underflow ~300 ms into most new streams, found
+  by the server-backed tests, 2026-10-16; not reproducible with memfd/srbchannel).
 - Position: `pa_stream_get_time` (server read index minus sink latency, interpolated)
   in frames, through the unchanged PositionClock (failed query keeps the last value,
   jitter clamped, ≥1 s backwards jumps rebased, capped at submitted frames). Queued

@@ -512,6 +512,10 @@
       <translation>કોઈ નહીં · કતાર</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ઑફલાઇન ડેટા સંગ્રહ મર્યાદા કરતાં વધી ગયો છે</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>ફક્ત વાંચવા માટે · ઑડિયો · પ્લેલિસ્ટો · ડાઉનલોડ થયેલું</translation>
     </message>

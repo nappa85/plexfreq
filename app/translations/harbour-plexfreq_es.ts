@@ -512,6 +512,10 @@
       <translation>Ninguno · Cola</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Los datos sin conexión superan su límite de almacenamiento</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Solo lectura · Audio · Listas de reproducción · Descargado</translation>
     </message>

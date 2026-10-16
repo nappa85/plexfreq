@@ -512,6 +512,10 @@
       <translation>Ei mitään · Jono</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Offline-tiedot ylittävät tallennusrajan</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Vain luku · Ääni · Soittolistat · Ladattu</translation>
     </message>

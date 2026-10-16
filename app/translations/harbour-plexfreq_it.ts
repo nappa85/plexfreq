@@ -512,6 +512,10 @@
       <translation>La coda è vuota</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>I dati offline superano il limite di archiviazione</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Sola lettura · Audio · Playlist · Scaricato</translation>
     </message>

@@ -512,6 +512,10 @@
       <translation>ఏదీ లేదు · వరుస</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ఆఫ్‌లైన్ డేటా నిల్వ పరిమితిని మించింది</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>చదవడానికి మాత్రమే · ఆడియో · ప్లేలిస్ట్‌లు · డౌన్‌లోడ్ అయింది</translation>
     </message>

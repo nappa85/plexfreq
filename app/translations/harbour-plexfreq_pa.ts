@@ -512,6 +512,10 @@
       <translation>ਕੋਈ ਨਹੀਂ · ਕਤਾਰ</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ਆਫ਼ਲਾਈਨ ਡਾਟਾ ਸਟੋਰੇਜ ਸੀਮਾ ਤੋਂ ਵੱਧ ਹੈ</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>ਸਿਰਫ਼ ਪੜ੍ਹਨ ਲਈ · ਆਡੀਓ · ਪਲੇਲਿਸਟਾਂ · ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
     </message>

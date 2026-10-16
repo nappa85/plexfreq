@@ -512,6 +512,10 @@
       <translation>Nėra · Eilė</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Neprisijungus pasiekiami duomenys viršija saugyklos ribą</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Tik skaityti · Garsas · Grojaraščiai · Atsiųsta</translation>
     </message>

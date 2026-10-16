@@ -597,6 +597,48 @@ fn log_bluetooth(facts: &Option<crate::bluetooth::Facts>, reason: &str) {
 /// D-Bus address variables are process-global: serialize fixtures using them.
 #[cfg(test)]
 static BUS_ENV: std::sync::Mutex<()> = std::sync::Mutex::new(());
+/// Points the libpulse observers (recording subscription, diagnostic
+/// snapshot) at a socket that does not exist, so a fixture behaves the same
+/// whether or not the host runs PulseAudio/PipeWire with active recordings.
+/// Process-global like the bus variables: hold `BUS_ENV` while it lives.
+#[cfg(test)]
+pub(crate) struct IsolatedPulse {
+    saved: Vec<(&'static str, Option<std::ffi::OsString>)>,
+    _runtime: tempfile::TempDir,
+}
+#[cfg(test)]
+impl IsolatedPulse {
+    pub(crate) fn new() -> Self {
+        let runtime = tempfile::tempdir().unwrap();
+        let keys = ["XDG_RUNTIME_DIR", "PULSE_SERVER"];
+        let saved = keys
+            .into_iter()
+            .map(|key| (key, std::env::var_os(key)))
+            .collect();
+        std::env::set_var("XDG_RUNTIME_DIR", runtime.path());
+        std::env::set_var(
+            "PULSE_SERVER",
+            format!("unix:{}", runtime.path().join("pulse/native").display()),
+        );
+        // Both libpulse paths now fail fast instead of reaching the host.
+        assert!(super::pulse::snapshot(&AtomicBool::new(false)).is_err());
+        Self {
+            saved,
+            _runtime: runtime,
+        }
+    }
+}
+#[cfg(test)]
+impl Drop for IsolatedPulse {
+    fn drop(&mut self) {
+        for (key, value) in self.saved.drain(..) {
+            match value {
+                Some(value) => std::env::set_var(key, value),
+                None => std::env::remove_var(key),
+            }
+        }
+    }
+}
 #[cfg(test)]
 /// zbus (tokio feature) runs its blocking API on a private current-thread
 /// runtime that only progresses while some thread blocks on it, so blocking
@@ -695,6 +737,9 @@ mod bluetooth_tests {
     #[test]
     fn bluez_disconnect_signal_pauses_audio_even_with_a_full_metadata_queue() {
         let _serial = BUS_ENV.lock().unwrap_or_else(|p| p.into_inner());
+        // A host recording stream would hold (pause) the fixture's audio
+        // through the recording observer; never consult the host's server.
+        let _pulse = IsolatedPulse::new();
         let mut process = std::process::Command::new("dbus-daemon")
             .args(["--session", "--nofork", "--print-address=1"])
             .stdout(std::process::Stdio::piped())
@@ -1325,6 +1370,7 @@ mod mpris_tests {
     #[test]
     fn state_changes_emit_promptly_and_idle_player_does_not_poll() {
         let _serial = BUS_ENV.lock().unwrap_or_else(|p| p.into_inner());
+        let _pulse = IsolatedPulse::new();
         let mut process = std::process::Command::new("dbus-daemon")
             .args(["--session", "--nofork", "--print-address=1"])
             .stdout(std::process::Stdio::piped())

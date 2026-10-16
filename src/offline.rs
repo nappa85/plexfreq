@@ -63,11 +63,67 @@ fn prune_excluding(root: &Path, extra: u64, limit: u64, exclude: Option<&Path>) 
 /// frequently read snapshots are not evicted first without a write per read.
 const READ_TOUCH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 60);
 
+/// Outcome of offline lyric/snapshot writes, readable by the UI through
+/// [`Library::store_status`]. Failures (quota prune, oversize, I/O) are
+/// counted and reported instead of being dropped silently.
+#[derive(Default)]
+struct Health {
+    failures: u64,
+    /// The latest save failed (cleared by the next successful one).
+    failing: bool,
+    last_error: String,
+    last_kind: &'static str,
+    last_at: u64,
+}
+
+/// Snapshot/lyrics budget shared by the library directory.
+const LIBRARY_LIMIT: u64 = 64 * 1024 * 1024;
+
 pub struct Library {
     root: PathBuf,
     writable: bool,
+    health: Mutex<Health>,
 }
 impl Library {
+    /// Bounded, prune-first atomic write of one library file; the outcome is
+    /// recorded for [`Library::store_status`] and diagnostics.
+    fn store(&self, kind: &'static str, target: &Path, bytes: Result<Vec<u8>>) {
+        let result = bytes.and_then(|bytes| {
+            if bytes.len() as u64 > LIBRARY_LIMIT {
+                return Err(Error::Input("Offline data exceeds its storage limit"));
+            }
+            prune_excluding(&self.root, bytes.len() as u64, LIBRARY_LIMIT, Some(target))?;
+            write_bytes(target, &bytes)
+        });
+        let mut health = crate::mutex_lock(&self.health);
+        match result {
+            Ok(()) => health.failing = false,
+            Err(error) => {
+                health.failures += 1;
+                health.failing = true;
+                health.last_error = error.to_string();
+                health.last_kind = kind;
+                health.last_at = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+                drop(health);
+                crate::diagnostics::event(format_args!("offline {kind} not saved: {error}"));
+            }
+        }
+    }
+    /// `{ok, failures, lastError, lastKind, lastAt}` of offline lyric and
+    /// metadata snapshot saves since this library was opened.
+    pub fn store_status(&self) -> serde_json::Value {
+        let health = crate::mutex_lock(&self.health);
+        serde_json::json!({
+            "ok": !health.failing,
+            "failures": health.failures,
+            "lastError": health.last_error,
+            "lastKind": health.last_kind,
+            "lastAt": health.last_at,
+        })
+    }
     /// Mark a file as recently used for oldest-first pruning.
     fn touch(&self, path: &Path) {
         if !self.writable {
@@ -108,7 +164,11 @@ impl Library {
             fs::create_dir_all(&root)?;
             fs::set_permissions(&root, fs::Permissions::from_mode(0o700))?;
         }
-        Ok(Self { root, writable })
+        Ok(Self {
+            root,
+            writable,
+            health: Mutex::default(),
+        })
     }
     fn path(&self, namespace: &str, path: &str, params: &[(&str, String)]) -> PathBuf {
         // Params are simple string pairs; serialization cannot fail in practice.
@@ -129,20 +189,8 @@ impl Library {
     ) {
         if self.writable {
             let target = self.path(namespace, path, params);
-            let Ok(bytes) = serde_json::to_vec(container) else {
-                return;
-            };
-            if prune_excluding(
-                &self.root,
-                bytes.len() as u64,
-                64 * 1024 * 1024,
-                Some(&target),
-            )
-            .is_err()
-            {
-                return;
-            }
-            let _ = write_bytes(&target, &bytes);
+            let bytes = serde_json::to_vec(container).map_err(Error::from);
+            self.store("snapshot", &target, bytes);
         }
     }
     pub fn load(
@@ -265,20 +313,8 @@ impl Library {
     pub fn save_lyrics(&self, namespace: &str, key: &str, lines: &[crate::lyrics::Line]) {
         if self.writable {
             let target = self.lyrics_file(namespace, key);
-            let Ok(bytes) = serde_json::to_vec(lines) else {
-                return;
-            };
-            if prune_excluding(
-                &self.root,
-                bytes.len() as u64,
-                64 * 1024 * 1024,
-                Some(&target),
-            )
-            .is_err()
-            {
-                return;
-            }
-            let _ = write_bytes(&target, &bytes);
+            let bytes = serde_json::to_vec(lines).map_err(Error::from);
+            self.store("lyrics", &target, bytes);
         }
     }
 }
@@ -525,5 +561,70 @@ mod artwork_pending_tests {
             !pending.contains_key(&file),
             "cancel must clear pending, otherwise reschedule after cancel is silently dropped"
         );
+    }
+}
+
+#[cfg(test)]
+mod store_health_tests {
+    use super::*;
+
+    #[test]
+    fn failed_lyric_and_snapshot_saves_are_observable() {
+        let dir = tempfile::tempdir().unwrap();
+        let library = Library::new(dir.path().into(), true).unwrap();
+        assert_eq!(library.store_status()["ok"], true);
+        assert_eq!(library.store_status()["failures"], 0);
+        // A read-only directory makes the atomic write fail.
+        fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o500)).unwrap();
+        if fs::write(dir.path().join("probe"), b"x").is_ok() {
+            return; // Privileged runner: permissions are not enforced.
+        }
+        let line = crate::lyrics::Line {
+            time: None,
+            text: "fixture".into(),
+        };
+        library.save_lyrics("ns", "5", std::slice::from_ref(&line));
+        let status = library.store_status();
+        assert_eq!(status["ok"], false);
+        assert_eq!(status["failures"], 1);
+        assert_eq!(status["lastKind"], "lyrics");
+        assert!(!status["lastError"].as_str().unwrap().is_empty());
+        library.save("ns", "/library/metadata/1", &[], &Container::default());
+        let status = library.store_status();
+        assert_eq!(status["failures"], 2);
+        assert_eq!(status["lastKind"], "snapshot");
+        fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        library.save_lyrics("ns", "5", std::slice::from_ref(&line));
+        let status = library.store_status();
+        assert_eq!(
+            status["ok"], true,
+            "a later success clears the failing state"
+        );
+        assert_eq!(status["failures"], 2);
+        assert_eq!(library.lyrics("ns", "5").unwrap().len(), 1);
+    }
+
+    #[test]
+    fn oversized_saves_are_rejected_without_pruning_and_reported() {
+        let dir = tempfile::tempdir().unwrap();
+        let library = Library::new(dir.path().into(), true).unwrap();
+        let line = crate::lyrics::Line {
+            time: None,
+            text: "keep".into(),
+        };
+        library.save_lyrics("ns", "1", std::slice::from_ref(&line));
+        let huge = crate::lyrics::Line {
+            time: None,
+            text: "x".repeat(LIBRARY_LIMIT as usize + 1),
+        };
+        library.save_lyrics("ns", "2", std::slice::from_ref(&huge));
+        assert!(
+            library.lyrics("ns", "1").is_some(),
+            "oversize save pruned others"
+        );
+        assert!(library.lyrics("ns", "2").is_none());
+        let status = library.store_status();
+        assert_eq!(status["ok"], false);
+        assert_eq!(status["lastKind"], "lyrics");
     }
 }

@@ -512,6 +512,10 @@
       <translation>Brak · Kolejka</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Dane offline przekraczają limit miejsca</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Tylko do odczytu · Dźwięk · Listy odtwarzania · Pobrane</translation>
     </message>

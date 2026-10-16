@@ -106,6 +106,16 @@ enum ListAction {
     None,
 }
 
+/// Plans of the live audio occurrences (the audible one and its prepared
+/// successor) and the occurrence whose identity the UI currently shows. One
+/// lock, so the worker's transition handling and `poll` agree on who
+/// publishes a newly audible track: exactly one of them does.
+#[derive(Default)]
+struct Presented {
+    plans: BTreeMap<u64, Value>,
+    shown: u64,
+}
+
 #[derive(Clone)]
 pub(crate) struct Shared {
     pub(crate) requests: mpsc::SyncSender<WorkerMsg>,
@@ -117,16 +127,21 @@ pub(crate) struct Shared {
     pages: Arc<AtomicUsize>,
     view: Arc<AtomicU64>,
     admission: Arc<Mutex<()>>,
-    plans: Arc<Mutex<BTreeMap<u64, Value>>>,
-    shown: Arc<AtomicU64>,
+    presented: Arc<Mutex<Presented>>,
     pub(crate) seeks: Arc<Mutex<Vec<i64>>>,
-    checkpoint_overflow: Arc<Mutex<Vec<Checkpoint>>>,
+    /// Checkpoints that found the request queue full, coalesced to the newest
+    /// per audio occurrence. Bounded by the number of distinct occurrences,
+    /// which only the worker creates (one active plus one prepared at a time).
+    checkpoint_overflow: Arc<Mutex<BTreeMap<u64, Checkpoint>>>,
     checkpoint_seq: Arc<AtomicU64>,
     /// Bumped on every presented-model write and queued seek, so MPRIS reacts
     /// to changes instead of polling the model.
     revision: Arc<watch::Sender<u64>>,
     /// Mirrors `view` so view-bound HTTP requests can abort when it moves.
     navigation: Arc<watch::Sender<u64>>,
+    /// Gapless transitions committed by the worker.
+    #[cfg(test)]
+    transitions: Arc<AtomicUsize>,
 }
 impl Shared {
     fn new(requests: mpsc::SyncSender<WorkerMsg>, model: Value) -> Self {
@@ -140,13 +155,14 @@ impl Shared {
             pages: Arc::new(AtomicUsize::new(0)),
             view: Arc::new(AtomicU64::new(0)),
             admission: Arc::new(Mutex::new(())),
-            plans: Arc::new(Mutex::new(BTreeMap::new())),
-            shown: Arc::new(AtomicU64::new(0)),
+            presented: Arc::new(Mutex::new(Presented::default())),
             seeks: Arc::new(Mutex::new(Vec::new())),
-            checkpoint_overflow: Arc::new(Mutex::new(Vec::new())),
+            checkpoint_overflow: Arc::new(Mutex::new(BTreeMap::new())),
             checkpoint_seq: Arc::new(AtomicU64::new(0)),
             revision: Arc::new(watch::channel(0).0),
             navigation: Arc::new(watch::channel(0).0),
+            #[cfg(test)]
+            transitions: Arc::new(AtomicUsize::new(0)),
         }
     }
     pub(crate) fn touched(&self) {
@@ -182,8 +198,11 @@ impl Shared {
     fn checkpoint(&self, snapshot: audio::Snapshot, reset: bool) {
         // Checkpoints carry listened/scrobble data: never block the GUI thread
         // on a full request queue, and never silently drop them either.
-        // Fast path is non-blocking; extreme backpressure spills to a bounded
-        // overflow the worker drains every iteration.
+        // Fast path is non-blocking; backpressure spills to an overflow keyed
+        // by occurrence that the worker drains every iteration. Within one
+        // occurrence a newer checkpoint supersedes an older one (listened and
+        // position only grow or are explicitly reset); distinct occurrences
+        // are never evicted.
         // The sequence lets the worker discard a stale queued checkpoint that it
         // reaches after a newer one drained from the overflow.
         let seq = self.checkpoint_seq.fetch_add(1, Ordering::SeqCst) + 1;
@@ -196,13 +215,18 @@ impl Shared {
             self.requests.try_send(WorkerMsg::Checkpoint(checkpoint))
         {
             let mut overflow = crate::mutex_lock(&self.checkpoint_overflow);
-            // Bound overflow: checkpoints are rare (pause/toggle/stop); keep
-            // the latest 16 and drop the oldest rather than growing unbounded
-            // while the worker is stalled on network I/O.
-            if overflow.len() >= 16 {
-                overflow.remove(0);
+            // Concurrent callers (GUI, MPRIS) can reach the lock out of
+            // sequence order: keep the newest by sequence, not by arrival.
+            match overflow.entry(checkpoint.snapshot.id) {
+                std::collections::btree_map::Entry::Occupied(mut entry) => {
+                    if entry.get().seq < checkpoint.seq {
+                        entry.insert(checkpoint);
+                    }
+                }
+                std::collections::btree_map::Entry::Vacant(entry) => {
+                    entry.insert(checkpoint);
+                }
             }
-            overflow.push(checkpoint);
         }
     }
     /// Admit one wire request (QML/FFI JSON), parsed into a `Command` here
@@ -327,6 +351,20 @@ impl Shared {
         accepted["clearError"] = json!(foreground);
         Ok(accepted)
     }
+    #[cfg(test)]
+    fn plan_count(&self) -> usize {
+        crate::mutex_lock(&self.presented).plans.len()
+    }
+    /// Checkpoints that spilled past a full request queue: the newest of each
+    /// occurrence, in sequence order.
+    fn take_checkpoints(&self) -> Vec<Checkpoint> {
+        let mut checkpoints: Vec<_> =
+            std::mem::take(&mut *crate::mutex_lock(&self.checkpoint_overflow))
+                .into_values()
+                .collect();
+        checkpoints.sort_by_key(|checkpoint| checkpoint.seq);
+        checkpoints
+    }
     pub(crate) fn playback(&self) -> audio::Snapshot {
         crate::mutex_lock(&self.audio).as_ref().map_or(
             audio::Snapshot {
@@ -375,6 +413,17 @@ pub struct Runtime {
 }
 impl Runtime {
     pub fn new(directory: PathBuf) -> Result<Self> {
+        let sink = if std::env::var("PLEXFREQ_AUDIO_SINK").as_deref() == Ok("fake") {
+            audio::Sink::Fake
+        } else {
+            audio::Sink::Pulse
+        };
+        Self::spawn(directory, sink, true)
+    }
+    /// Start the Core worker. `observers` starts the platform (D-Bus, MPRIS,
+    /// libpulse recording) observers; fixtures without a session bus or
+    /// PulseAudio leave them off so host state cannot influence playback.
+    pub(crate) fn spawn(directory: PathBuf, sink: audio::Sink, observers: bool) -> Result<Self> {
         let (requests, receiver) = mpsc::sync_channel(256);
         let (events, output) = mpsc::channel();
         let shared = Shared::new(
@@ -384,7 +433,7 @@ impl Runtime {
         let state = shared.clone();
         let worker = thread::Builder::new()
             .name("plexfreq-core".into())
-            .spawn(move || worker(directory, state, receiver, events))?;
+            .spawn(move || worker(directory, sink, observers, state, receiver, events))?;
         Ok(Self {
             shared,
             events: output,
@@ -421,14 +470,17 @@ impl Runtime {
                 }
             }
         }
-        if playback.id != 0 && playback.id != self.shared.shown.load(Ordering::SeqCst) {
-            if let Some(plan) = crate::mutex_lock(&self.shared.plans)
-                .get(&playback.id)
-                .cloned()
-            {
-                self.shared.shown.store(playback.id, Ordering::SeqCst);
-                self.shared.merge(&plan);
-                events.push(update(plan));
+        // The engine switches its occurrence at the audible transition: show
+        // the prepared plan then, even while the worker is busy. The worker
+        // publishes the same transition only if this did not.
+        if playback.id != 0 {
+            let mut presented = crate::mutex_lock(&self.shared.presented);
+            if playback.id != presented.shown {
+                if let Some(plan) = presented.plans.get(&playback.id).cloned() {
+                    presented.shown = playback.id;
+                    self.shared.merge(&plan);
+                    events.push(update(plan));
+                }
             }
         }
         json!({"events":events,"playback":playback,"busy":self.shared.busy(),"loadingMore":self.shared.loading_more()})
@@ -578,20 +630,31 @@ fn record(
     })?;
     Ok(())
 }
+/// Newest applied checkpoint sequence of the most recent occurrences.
+const CHECKPOINT_OCCURRENCES: usize = 8;
 /// Apply a GUI-thread checkpoint unless a newer one for the same occurrence was
 /// already applied. Overflow checkpoints are drained before older queued ones,
-/// so arrival order alone could move the saved position backwards.
+/// so arrival order alone could move the saved position backwards. Sequences
+/// are tracked per occurrence: an interleaved checkpoint of another occurrence
+/// must not re-admit a stale one. Occurrence ids only grow, so the oldest
+/// entries are dropped first.
 fn apply_checkpoint(
     core: &mut Core,
     current: u64,
-    newest: &mut (u64, u64),
+    newest: &mut BTreeMap<u64, u64>,
     checkpoint: &Checkpoint,
 ) {
     let state = &checkpoint.snapshot;
-    if state.id == newest.0 && checkpoint.seq <= newest.1 {
+    if newest
+        .get(&state.id)
+        .is_some_and(|seq| checkpoint.seq <= *seq)
+    {
         return;
     }
-    *newest = (state.id, checkpoint.seq);
+    newest.insert(state.id, checkpoint.seq);
+    while newest.len() > CHECKPOINT_OCCURRENCES {
+        newest.pop_first();
+    }
     let _ = record(
         core,
         state.id,
@@ -603,19 +666,16 @@ fn apply_checkpoint(
 }
 fn worker(
     directory: PathBuf,
+    sink: audio::Sink,
+    observers: bool,
     shared: Shared,
     receiver: mpsc::Receiver<WorkerMsg>,
     events: mpsc::Sender<Outgoing>,
 ) {
-    let sink = if std::env::var("PLEXFREQ_AUDIO_SINK").as_deref() == Ok("fake") {
-        audio::Sink::Fake
-    } else {
-        audio::Sink::Pulse
-    };
     let _exit = Exit(&shared);
     let started = Engine::new(sink).and_then(|engine| {
         *crate::mutex_lock(&shared.audio) = Some(engine.handle.clone());
-        Ok((engine, Core::new(directory)?))
+        Ok((engine, Core::new(directory.clone())?))
     });
     let (engine, mut core) = match started {
         Ok(started) => started,
@@ -623,7 +683,7 @@ fn worker(
     };
     let _ = engine.handle.configure(core.audio_config());
     *crate::mutex_lock(&shared.control) = Some(core.download_control());
-    let platform = platform::start(shared.clone(), events.clone());
+    let platform = observers.then(|| platform::start(shared.clone(), events.clone()));
     let mut current = 0u64;
     let mut serial = 0u64;
     let mut prepared: Option<(u64, Prepared)> = None;
@@ -631,7 +691,7 @@ fn worker(
     let mut maintenance = Instant::now();
     let mut cache_tick = Instant::now();
     let mut history_tick = Instant::now();
-    let mut newest_checkpoint = (0, 0);
+    let mut newest_checkpoint = BTreeMap::new();
     while !shared.stop.load(Ordering::SeqCst) {
         if retry_prepare {
             retry_prepare = !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
@@ -657,8 +717,17 @@ fn worker(
                         if id == new {
                             if let Ok(data) = core.commit_prepared(next) {
                                 current = new;
+                                #[cfg(test)]
+                                shared.transitions.fetch_add(1, Ordering::SeqCst);
+                                let mut presented = crate::mutex_lock(&shared.presented);
+                                // Only the audible occurrence remains; `prepare`
+                                // below adds its successor.
+                                presented.plans.retain(|id, _| *id == new);
                                 shared.merge(&data);
-                                let _ = events.send(update(data).into());
+                                if presented.shown != new {
+                                    presented.shown = new;
+                                    let _ = events.send(update(data).into());
+                                }
                             }
                         }
                     }
@@ -762,10 +831,7 @@ fn worker(
         // Drain non-blocking checkpoint overflow first so pause/stop scrobble
         // data isn't lost when the request queue was momentarily full.
         // The GUI thread never blocks; the worker applies them in order.
-        let overflow = crate::mutex_lock(&shared.checkpoint_overflow)
-            .drain(..)
-            .collect::<Vec<_>>();
-        for checkpoint in overflow {
+        for checkpoint in shared.take_checkpoints() {
             apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint);
         }
         match input {
@@ -802,6 +868,11 @@ fn worker(
                     );
                 }
                 let command_started = Instant::now();
+                let mut recovered = None;
+                // The successor is prepared only after the reply is queued: the
+                // engine cannot make it audible (and `poll` cannot show it)
+                // before the reply presenting its predecessor.
+                let mut reprepare = false;
                 // A view-bound command's Plex requests abort as soon as navigation
                 // makes its reply stale, instead of finishing a discarded transfer.
                 if let Some(view) = view {
@@ -815,11 +886,25 @@ fn worker(
                     })
                 } else {
                     // Contain a Core panic to the request that caused it: the reply
-                    // clears its busy state and the worker keeps serving requests.
-                    catch_unwind(AssertUnwindSafe(|| core.execute(command))).unwrap_or_else(|_| {
-                        crate::diagnostics::event(format_args!("core request panicked op={op}"));
-                        Err(Error::Input("Backend panic"))
-                    })
+                    // clears its busy state, and the Core it may have left
+                    // partially mutated is replaced from persisted state.
+                    match catch_unwind(AssertUnwindSafe(|| core.execute(command))) {
+                        Ok(result) => result,
+                        Err(_) => {
+                            crate::diagnostics::event(format_args!(
+                                "core request panicked op={op}; rebuilding from persisted state"
+                            ));
+                            recovered = Some(recover(
+                                &mut core,
+                                &directory,
+                                &shared,
+                                &engine,
+                                &mut prepared,
+                                current,
+                            ));
+                            Err(Error::Input("Backend panic"))
+                        }
+                    }
                 };
                 let cancelled = core.plex.cancelled();
                 core.plex.bind_view(None);
@@ -849,8 +934,7 @@ fn worker(
                                 current = 0;
                                 prepared = None;
                                 retry_prepare = false;
-                                crate::mutex_lock(&shared.plans).clear();
-                                shared.shown.store(0, Ordering::SeqCst);
+                                *crate::mutex_lock(&shared.presented) = Presented::default();
                                 data["track"] = Value::Null;
                                 data["items"] = json!([]);
                                 data["detail"] = json!({});
@@ -874,22 +958,10 @@ fn worker(
                                 if let Err(error) = started {
                                     audio_failure = Some(error);
                                 } else {
-                                    retry_prepare = !prepare(
-                                        &mut core,
-                                        &shared,
-                                        &engine,
-                                        &mut serial,
-                                        &mut prepared,
-                                    );
+                                    reprepare = true;
                                 }
                             } else if class.reprepare {
-                                retry_prepare = !prepare(
-                                    &mut core,
-                                    &shared,
-                                    &engine,
-                                    &mut serial,
-                                    &mut prepared,
-                                );
+                                reprepare = true;
                             }
                             if let Some((field, key)) = &keyed {
                                 data[*field] = json!(key);
@@ -962,6 +1034,26 @@ fn worker(
                     view,
                     event: json!({"request":echo,"response":response}),
                 });
+                // After the failed reply, present the rebuilt session (queue,
+                // track, settings) so the UI drops whatever the panicking
+                // request may already have shown.
+                if recovered.is_some() {
+                    reprepare = true;
+                }
+                match recovered {
+                    Some(Ok(status)) => {
+                        shared.merge(&status);
+                        let _ = events.send(update(status).into());
+                    }
+                    Some(Err(error)) => {
+                        let _ = events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}).into());
+                    }
+                    None => {}
+                }
+                if reprepare {
+                    retry_prepare =
+                        !prepare(&mut core, &shared, &engine, &mut serial, &mut prepared);
+                }
             }
             None => {}
         }
@@ -1020,6 +1112,56 @@ fn worker(
     ));
     drop(platform);
 }
+/// Replace a Core that panicked mid-command with one loaded from the session
+/// files through the startup path, then re-attach what the worker had wired
+/// to the old one. The audible occurrence keeps playing; its prepared
+/// successor came from the old Core and is prepared again by the caller
+/// once the rebuilt state is published.
+///
+/// The old Core is dropped first (its cache/download workers own the
+/// directory); a read-only `Core::inspect` stands in meanwhile and remains,
+/// persisting nothing, if the writable rebuild fails.
+fn recover(
+    core: &mut Core,
+    directory: &std::path::Path,
+    shared: &Shared,
+    engine: &Engine,
+    prepared: &mut Option<(u64, Prepared)>,
+    current: u64,
+) -> Result<Value> {
+    // The prepared successor holds the old Core's queue.
+    *prepared = None;
+    let _ = engine.handle.prepare(None);
+    crate::mutex_lock(&shared.presented)
+        .plans
+        .retain(|id, _| *id == current);
+    let placeholder = Core::inspect(directory.into())?;
+    drop(std::mem::replace(core, placeholder));
+    let rebuilt = Core::new(directory.into());
+    let rebuilt = rebuilt.inspect_err(|error| {
+        crate::diagnostics::event(format_args!("core rebuild failed: {error}"));
+    })?;
+    *core = rebuilt;
+    let _ = engine.handle.configure(core.audio_config());
+    *crate::mutex_lock(&shared.control) = Some(core.download_control());
+    // Network facts arrive only on change; replay the last known ones.
+    let network = {
+        let model = crate::mutex_lock(&shared.model);
+        (
+            model["networkWifi"].as_bool(),
+            model["networkOnline"].as_bool(),
+        )
+    };
+    if let (Some(wifi), Some(online)) = network {
+        let _ = core.execute(Command::NetworkState {
+            wifi,
+            online,
+            live_hint: false,
+        });
+    }
+    crate::diagnostics::event(format_args!("core rebuilt from persisted state"));
+    core.execute(Command::Status)
+}
 /// Marks the runtime stopped and releases the transport/download handles when
 /// the worker exits, including by unwinding. Platform observers are joined
 /// before this runs; `Platform::drop` raises the same stop flag itself.
@@ -1071,14 +1213,15 @@ fn start_plan(
     };
     *serial += 1;
     let input = source(*serial, data)?;
+    // Hold the presentation lock across the load: `poll` must not see the new
+    // occurrence audible before it is recorded as shown, or the caller's
+    // update would be published twice.
+    let mut presented = crate::mutex_lock(&shared.presented);
     engine.handle.load(input, paused)?;
     *current = *serial;
-    {
-        let mut plans = crate::mutex_lock(&shared.plans);
-        plans.clear();
-        plans.insert(*current, visible_plan(data));
-    }
-    shared.shown.store(*current, Ordering::SeqCst);
+    presented.plans.clear();
+    presented.plans.insert(*current, visible_plan(data));
+    presented.shown = *current;
     Ok(())
 }
 fn prepare(
@@ -1092,7 +1235,10 @@ fn prepare(
         crate::diagnostics::event(format_args!("successor clear failed: {error}"));
         return false;
     }
-    *prepared = None;
+    // A replaced successor's plan is no longer live.
+    if let Some((id, _)) = prepared.take() {
+        crate::mutex_lock(&shared.presented).plans.remove(&id);
+    }
     if let Ok(Some(next)) = core.prepare_next() {
         *serial += 1;
         if let Ok(source) = source(*serial, &next.plan) {
@@ -1100,13 +1246,17 @@ fn prepare(
                 crate::diagnostics::event(format_args!("successor admission failed: {error}"));
                 return false;
             }
-            crate::mutex_lock(&shared.plans).insert(*serial, visible_plan(&next.plan));
+            crate::mutex_lock(&shared.presented)
+                .plans
+                .insert(*serial, visible_plan(&next.plan));
             *prepared = Some((*serial, next));
         }
     }
     true
 }
 
+#[cfg(test)]
+mod fixture_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1142,7 +1292,7 @@ mod tests {
             apply_checkpoint(
                 &mut core,
                 0,
-                &mut (0, 0),
+                &mut BTreeMap::new(),
                 &Checkpoint {
                     snapshot: audio::Snapshot::default(),
                     reset: false,
@@ -1206,7 +1356,7 @@ mod tests {
                 ..Default::default()
             },
         };
-        let mut newest = (0, 0);
+        let mut newest = BTreeMap::new();
         // The worker drains the newer overflow checkpoint before reaching the
         // older one still queued in the request channel.
         apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(2, 600_000));
@@ -1216,6 +1366,16 @@ mod tests {
             600_000
         );
         apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(3, 900_000));
+        assert_eq!(
+            crate::store::load(dir.path()).unwrap().playback.position,
+            900_000
+        );
+        // A checkpoint of another (already audible successor) occurrence
+        // drained in between must not re-admit an older queued one.
+        let mut successor = checkpoint(4, 10);
+        successor.snapshot.id = 8;
+        apply_checkpoint(&mut core, 7, &mut newest, &successor);
+        apply_checkpoint(&mut core, 7, &mut newest, &checkpoint(2, 600_000));
         assert_eq!(
             crate::store::load(dir.path()).unwrap().playback.position,
             900_000

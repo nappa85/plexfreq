@@ -2175,3 +2175,39 @@ replaced in this iteration.
   `async_broadcast` receiver. Every clone must be polled: an idle clone fills its
   queue (64 by default) and blocks the connection's socket reader, stalling all
   method replies on that connection.
+- PulseAudio flow control: write while `pa_stream_writable_size()` > 0. Estimating
+  buffer fill as submitted − `pa_stream_get_time()` drifts on Bluetooth timing and
+  after a sink move discards queued audio. A prebuffering stream then deadlocks.
+  With `PA_STREAM_ADJUST_LATENCY`, `tlength` is the total latency including the
+  sink; without it, `tlength` is the stream's own server-side buffer.
+
+## Headless PulseAudio for server-backed tests (2026-10-16)
+
+- Ubuntu 24.04 (CI runner) ships PulseAudio 16.1 (`pulseaudio`,
+  `pulseaudio-utils`). A user daemon started with `-n` (no default script),
+  `module-native-protocol-unix socket=<private> auth-anonymous=1` and
+  `module-null-sink` needs no hardware, D-Bus or session; checked natively in an
+  `ubuntu:24.04` container and via `tools/pulse-test.Dockerfile` from the host.
+  `--default-sample-rate` etc. are daemon.conf keys, not command-line options.
+- PipeWire's pulse server was rejected for CI/local isolation: streams are linked
+  by a session manager, and an isolated WirePlumber would still enumerate the real
+  ALSA/Bluetooth devices.
+- An idle `module-null-sink` sleeps up to its maximum latency: the first audio
+  after an uncork or a move arrived 0.5–1.5 s late and its monitor emitted almost
+  nothing while idle (160 ms of data in 2 s). A silent low-latency `pacat` per sink
+  keeps them running like a busy hardware sink (move test: max stall 1.5 s → 80 ms).
+- PulseAudio 16.1 `protocol-native.c` `handle_input_underrun()`: while a drain is
+  pending but the sink input is not yet safe to remove, an empty queue posts
+  UNDERFLOW, not DRAIN_ACK. One underflow at the very end of a drained stream is
+  therefore expected (seen 1× per natural end).
+- PulseAudio rescues inputs of an unloaded sink to the default sink in core
+  ("is moving to plexfreq_a, because the old sink became unavailable"); null-sink
+  moves rewind, so they do not discard queued audio. The car's discarded queue is
+  reproduced with `pa_stream_flush` instead.
+- libpulse 16.1 `pstream.c` `do_pstream_read_write()`: with an srbchannel it loops
+  until the ring buffer is empty, but on the plain socket it performs one
+  `do_read()` per I/O event. A local client normally negotiates memfd + srbchannel
+  (also across the container boundary); with `enable-shm = no` or a daemon started
+  `--disable-shm`, one `pa_mainloop` iteration handles about one packet.
+- Sources: PulseAudio 16.1 `src/pulsecore/protocol-native.c` and
+  `src/pulsecore/pstream.c` (GitHub mirror, tag v16.1); daemon debug logs.

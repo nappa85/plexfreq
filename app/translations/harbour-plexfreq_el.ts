@@ -512,6 +512,10 @@
       <translation>Κανένα · Ουρά</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Τα δεδομένα εκτός σύνδεσης υπερβαίνουν το όριο αποθήκευσης</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Μόνο ανάγνωση · Ήχος · Λίστες αναπαραγωγής · Λήφθηκε</translation>
     </message>

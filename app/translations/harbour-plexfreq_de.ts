@@ -512,6 +512,10 @@
       <translation>Keine · Warteschlange</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Offline-Daten überschreiten das Speicherlimit</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Schreibgeschützt · Audio · Wiedergabelisten · Heruntergeladen</translation>
     </message>

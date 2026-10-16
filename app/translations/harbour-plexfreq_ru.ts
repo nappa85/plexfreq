@@ -512,6 +512,10 @@
       <translation>Нет · Очередь</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Офлайн-данные превышают лимит хранилища</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Только чтение · Звук · Плейлисты · Загружено</translation>
     </message>

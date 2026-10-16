@@ -512,6 +512,10 @@
       <translation>Không có · Hàng đợi</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Dữ liệu ngoại tuyến vượt quá giới hạn lưu trữ</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Chỉ đọc · Âm thanh · Danh sách phát · Đã tải</translation>
     </message>

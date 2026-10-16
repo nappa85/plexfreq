@@ -512,6 +512,10 @@
       <translation>Nič · Čakalna vrsta</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Podatki brez povezave presegajo omejitev shrambe</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Samo za branje · Zvok · Seznami predvajanja · Preneseno</translation>
     </message>

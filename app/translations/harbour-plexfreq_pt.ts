@@ -512,6 +512,10 @@
       <translation>Nenhum · Fila</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Os dados offline excedem o limite de armazenamento</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Só de leitura · Áudio · Listas de reprodução · Transferido</translation>
     </message>

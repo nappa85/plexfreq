@@ -1,5 +1,61 @@
 # Development roadmap
 
+## Open items (reviewed 2026-10-16)
+
+This list is authoritative. The dated entries below are history: their "Remaining"
+and "Next" notes predate this review, and items marked done here are finished.
+
+Done since those notes: deadline/cancellation-bound ConnMan and NetworkManager
+calls with stalled-service shutdown fixtures; navigation cancels in-flight view
+HTTP; decoding runs on dedicated decoder threads (Symphonia), with u128
+frame-to-time arithmetic; `crate::mutex_lock` replaces the poison-lock idiom;
+`GroupId`/`daily::pinned_keys` consolidate download-group bookkeeping; Harbour
+validation runs in CI and release; the Linux desktop package is built in CI/release;
+hosted CI runs.
+
+Partly done:
+- Worker panics: a panicking request is answered with an error. Still open:
+  publish the failure and rebuild validated Core state instead of continuing with a
+  possibly partially mutated Core.
+- Listen checkpoints: per-occurrence sequence numbers stop stale checkpoints from
+  rewinding the saved position. Still open: the overflow keeps only the latest 16
+  checkpoints, so durable occurrence-aware checkpoints are still to do.
+- Cache I/O: directory scans and file writes run in the blocking pool. Still open:
+  transactional eviction on partial failure, bounded/coalesced download batches, a
+  recovery/reclamation policy for quarantined unindexed media, and filesystem work
+  outside the shared cache lock.
+
+Engineering:
+- Replace token-bearing artwork DTOs with a Rust-owned credential handle; DTOs must
+  not reach persistence or logs meanwhile.
+- Credential/server-scoped station download group IDs.
+- Observable lyric/snapshot quota failures; bounded indexed search/top-page work.
+- Consolidate time/digest/storage helpers, PCM byte conversion and page-size policy.
+- Gapless queue identity: keep only active/prepared occurrences, update the shown
+  identity at the audible Transition, prove one UI update per transition over long
+  queues.
+- Isolate the Bluetooth fixture from live host PulseAudio state.
+
+Device validation (normally installed RPM under Sailjail):
+- Symphonia/libpulse engine: steady car playback with server flow control (0.1.6),
+  resume after Bluetooth reconnect and sink moves, x-maemo routing/volume keys,
+  call/alarm cork requests, long lock-screen sessions, CPU/battery of decoding plus
+  resampling, Opus/WMA libraries via transcode, iTunes AAC gapless.
+- Connectivity loss and recovery while streaming (progressive transcodes need their
+  own restart policy); live smart-playlist mutations.
+
+Features (before calling this a complete Plexamp clone):
+- Guest DJ, Sonic Sage, broader sonic-radio coverage/weighting.
+- Plex Home managed users/PIN switching, multi-server queue identity, a secure
+  platform credential store and explicit token revocation.
+- Automatic complete offline library sync, richer download management, offline
+  play-history sync.
+- Complex Boolean smart-playlist rule editing; richer personalized hubs/mixes.
+- Throughput-adaptive streaming; release signing; native translation and
+  accessibility review.
+
+## History
+
 GStreamer removal (2026-10-16): Harbour validation now passes. Decoding is Symphonia
 (MP3/FLAC/AAC/ALAC/Vorbis/PCM) with MP4 gapless trimming and rubato resampling;
 output is a libpulse stream. Unsupported/unknown formats stream as server transcodes
@@ -363,7 +419,8 @@ saved session and downloads retained. Interactive visual confirmation remains us
 - Plex Home managed users/PIN switching, multi-server queue identity, secure
   platform credential store adapters and explicit token revocation.
 - Responsive now-playing/lyrics polish, accessibility/native translation review,
-  release signing/Harbour checks, Linux packaging/CI and license distribution.
+  release signing and license distribution (Harbour checks and Linux packaging/CI
+  are done; see Open items).
 
 ## Testing policy
 

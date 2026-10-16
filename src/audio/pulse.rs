@@ -18,6 +18,8 @@ const SETUP: Duration = Duration::from_secs(2);
 const TARGET_MS: u32 = 300;
 const REQUEST_MS: u32 = 20;
 const FRAME_BYTES: u32 = 8;
+/// Upper bound of mainloop iterations per non-blocking dispatch.
+const DISPATCH_ITERATIONS: usize = 64;
 
 fn bytes(milliseconds: u32) -> u32 {
     super::RATE / 1000 * milliseconds * FRAME_BYTES
@@ -98,6 +100,15 @@ impl Connection {
             ("application.id", "harbour-plexfreq"),
         ])
         .ok_or("proplist allocation")?;
+        // Test hook: the server-backed tests pin the private daemon of
+        // tools/pulse-test-server.sh, because other unit tests repoint the
+        // process-wide PULSE_SERVER while they run.
+        #[cfg(test)]
+        let test_server = std::env::var("PLEXFREQ_PULSE_TEST_SERVER")
+            .ok()
+            .and_then(|server| CString::new(server).ok());
+        #[cfg(not(test))]
+        let test_server: Option<CString> = None;
         // SAFETY: objects are created, owned and used only on this thread.
         unsafe {
             connection.mainloop = pa::pa_mainloop_new();
@@ -116,7 +127,9 @@ impl Connection {
             // never spawn a daemon.
             if pa::pa_context_connect(
                 connection.context,
-                ptr::null(),
+                test_server
+                    .as_ref()
+                    .map_or(ptr::null(), |server| server.as_ptr()),
                 pa::PA_CONTEXT_NOAUTOSPAWN,
                 ptr::null(),
             ) < 0
@@ -132,7 +145,9 @@ impl Connection {
                     return Err("connection denied/failed")
                 }
                 _ if Instant::now() >= deadline => return Err("connection timeout"),
-                _ => connection.wait(Duration::from_millis(20))?,
+                _ => {
+                    connection.wait(Duration::from_millis(20))?;
+                }
             }
         }
     }
@@ -143,24 +158,40 @@ impl Connection {
     pub fn ready(&self) -> bool {
         self.state() == pa::PA_CONTEXT_READY
     }
-    /// Dispatch pending events, sleeping at most `timeout` for new ones.
-    fn wait(&self, timeout: Duration) -> Result<(), &'static str> {
+    /// One mainloop iteration, sleeping at most `timeout` for new events;
+    /// returns how many event sources were dispatched.
+    fn wait(&self, timeout: Duration) -> Result<i32, &'static str> {
         let timeout = timeout.as_micros().min(i32::MAX as u128) as i32;
         // SAFETY: live, thread-confined loop; pa_mainloop_iterate in steps.
-        let failed = unsafe {
-            pa::pa_mainloop_prepare(self.mainloop, timeout) < 0
+        let dispatched = unsafe {
+            if pa::pa_mainloop_prepare(self.mainloop, timeout) < 0
                 || pa::pa_mainloop_poll(self.mainloop) < 0
-                || pa::pa_mainloop_dispatch(self.mainloop) < 0
+            {
+                -1
+            } else {
+                pa::pa_mainloop_dispatch(self.mainloop)
+            }
         };
-        if failed {
+        if dispatched < 0 {
             Err("mainloop failed")
         } else {
-            Ok(())
+            Ok(dispatched)
         }
     }
-    /// Run callbacks for everything already received; never blocks.
+    /// Run callbacks for everything already received; never blocks. Without
+    /// shm/srbchannel (socket-only transport) one iteration reads about one
+    /// packet, so a single iteration per actor pump fell behind the timing
+    /// replies and write requests of a fresh stream: `writable()` stayed
+    /// stale and the stream underflowed ~300 ms after most seeks
+    /// (pulse_server_tests.rs, 2026-10-16). Iterate until idle, bounded so a
+    /// flood cannot hold the actor.
     pub fn dispatch(&self) -> Result<(), &'static str> {
-        self.wait(Duration::ZERO)
+        for _ in 0..DISPATCH_ITERATIONS {
+            if self.wait(Duration::ZERO)? == 0 {
+                break;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -308,10 +339,13 @@ impl Stream {
                 stream,
                 ptr::null(),
                 &attributes,
+                // No ADJUST_LATENCY: with it tlength is the *total* latency
+                // and the sink's share comes out of our buffer, which left
+                // ~100 ms queued on the phone's Bluetooth route. Without it
+                // tlength is our own server-side buffer.
                 pa::PA_STREAM_START_CORKED
                     | pa::PA_STREAM_INTERPOLATE_TIMING
-                    | pa::PA_STREAM_AUTO_TIMING_UPDATE
-                    | pa::PA_STREAM_ADJUST_LATENCY,
+                    | pa::PA_STREAM_AUTO_TIMING_UPDATE,
                 ptr::null(),
                 ptr::null_mut(),
             )
@@ -328,7 +362,9 @@ impl Stream {
                     return Err("stream denied/failed")
                 }
                 _ if Instant::now() >= deadline => return Err("stream setup timeout"),
-                _ => output.connection.wait(Duration::from_millis(20))?,
+                _ => {
+                    output.connection.wait(Duration::from_millis(20))?;
+                }
             }
         }
     }
@@ -396,6 +432,26 @@ impl Stream {
             Ok(())
         }
     }
+    /// Test hook: discard the server-side queue without advancing stream
+    /// time, as a sink move or Bluetooth reconnect did in the car.
+    #[cfg(test)]
+    pub fn flush(&mut self) {
+        // SAFETY: live stream; the operation reference is released at once.
+        let flush = unsafe { pa::pa_stream_flush(self.stream, None, ptr::null_mut()) };
+        assert!(!flush.is_null());
+        // SAFETY: owned operation reference.
+        unsafe { pa::pa_operation_unref(flush) };
+    }
+    /// Bytes the server wants now to reach its target fill (tlength), from
+    /// its own read/write indices. Unlike submitted-minus-played, this stays
+    /// right across underruns and sink moves that discard queued audio.
+    pub fn writable(&self) -> usize {
+        // SAFETY: live stream.
+        match unsafe { pa::pa_stream_writable_size(self.stream) } {
+            usize::MAX => 0,
+            bytes => bytes,
+        }
+    }
     /// Audible stream time in frames: data read by the server minus the
     /// sink latency, interpolated between timing updates. None before the
     /// first timing update.
@@ -408,8 +464,75 @@ impl Stream {
 }
 
 #[cfg(test)]
+#[path = "pulse_server_tests.rs"]
+mod server_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Needs a running PulseAudio server (desktop/phone, or the isolated one
+    /// from tools/pulse-test-server.sh); skipped elsewhere unless
+    /// PLEXFREQ_REQUIRE_PULSE=1.
+    /// A flush discards the server's queued audio without advancing stream
+    /// time, like a sink move or Bluetooth reconnect does. The server must
+    /// then ask for data again even though "submitted minus played" still
+    /// claims a full buffer: trusting that estimate starved and finally
+    /// deadlocked a prebuffering stream in the car (2026-10-16).
+    #[test]
+    fn server_flow_control_survives_discarded_queue() {
+        let _server = server_tests::lock_server();
+        let connection = match Connection::new() {
+            Ok(connection) => connection,
+            Err(reason) => {
+                assert!(
+                    !server_tests::require_pulse(),
+                    "PLEXFREQ_REQUIRE_PULSE=1 but no PulseAudio server: {reason}"
+                );
+                eprintln!("no PulseAudio server ({reason}); skipping");
+                return;
+            }
+        };
+        let mut stream = Stream::new(connection.clone(), "").unwrap();
+        let block = vec![0.0f32; 1024 * super::super::CHANNELS];
+        let pump = |stream: &mut Stream, ms: u64| {
+            let end = std::time::Instant::now() + Duration::from_millis(ms);
+            while std::time::Instant::now() < end {
+                stream.service().unwrap();
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        };
+        let mut submitted = 0u64;
+        let fill = |stream: &mut Stream, submitted: &mut u64| {
+            while stream.writable() > 0 {
+                stream.write(&block).unwrap();
+                *submitted += 1024;
+            }
+        };
+        // Corked: the server buffers up to its target without consuming.
+        for _ in 0..20 {
+            fill(&mut stream, &mut submitted);
+            pump(&mut stream, 10);
+        }
+        assert_eq!(stream.writable(), 0, "server target fill reached");
+        let filled = submitted;
+        assert!(
+            filled * 1000 / u64::from(super::super::RATE) >= u64::from(TARGET_MS) * 9 / 10,
+            "the target is our own server-side buffer, not shared with the sink"
+        );
+        stream.flush();
+        pump(&mut stream, 150);
+        let played = stream.played().unwrap_or(0);
+        let estimate_ms = submitted.saturating_sub(played) * 1000 / u64::from(super::super::RATE);
+        assert!(
+            estimate_ms >= u64::from(TARGET_MS) * 9 / 10,
+            "submitted-minus-played still claims a full buffer ({estimate_ms} ms)"
+        );
+        assert!(
+            stream.writable() as u64 >= filled * 8 * 9 / 10,
+            "server must request a full refill after its queue was discarded"
+        );
+    }
 
     #[test]
     fn native_volume_policy_roles_are_platform_specific() {

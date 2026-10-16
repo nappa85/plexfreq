@@ -512,6 +512,10 @@
       <translation>কোনোটিই নয় · সারি</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>অফলাইন ডেটা সঞ্চয়সীমা ছাড়িয়ে গেছে</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>শুধু পড়া · অডিও · প্লেলিস্ট · ডাউনলোড হয়েছে</translation>
     </message>

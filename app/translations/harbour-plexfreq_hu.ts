@@ -512,6 +512,10 @@
       <translation>Nincs · Sor</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Az offline adatok túllépik a tárhelykorlátot</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Csak olvasható · Hang · Lejátszási listák · Letöltve</translation>
     </message>

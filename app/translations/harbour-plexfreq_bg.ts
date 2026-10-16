@@ -512,6 +512,10 @@
       <translation>Няма · Опашка</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Офлайн данните надвишават лимита за съхранение</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Само четене · Звук · Списъци за изпълнение · Изтеглено</translation>
     </message>

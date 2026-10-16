@@ -512,6 +512,10 @@
       <translation>Aucun · File d’attente</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Les données hors ligne dépassent leur limite de stockage</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Lecture seule · Audio · Listes de lecture · Téléchargé</translation>
     </message>

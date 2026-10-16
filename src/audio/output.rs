@@ -13,6 +13,16 @@ use std::{
 /// Captured PCM is bounded (120 seconds of stereo) in long test sessions.
 const CAPTURE_LIMIT: usize = RATE as usize * 120 * CHANNELS;
 
+/// Test hook: PulseAudio underflows reported to any output of this test
+/// process (the server-backed tests serialize and compare before/after).
+#[cfg(test)]
+pub(super) static TEST_UNDERFLOWS: std::sync::atomic::AtomicU64 =
+    std::sync::atomic::AtomicU64::new(0);
+/// Test hook: the next PulseAudio output service flushes its server queue.
+#[cfg(test)]
+pub(super) static TEST_FLUSH: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Default)]
 pub(super) struct PositionClock {
     pub raw: u64,
@@ -142,16 +152,26 @@ impl Output {
             return Err(Error::Input("Audio output is unavailable"));
         }
         if let Backend::Pulse { stream, events } = &mut self.backend {
+            #[cfg(test)]
+            if TEST_FLUSH.swap(false, std::sync::atomic::Ordering::Relaxed) {
+                stream.flush();
+            }
             let facts = stream.service().map_err(|reason| {
                 eprintln!("PlexFreq audio output error: {reason}");
                 Error::Input("Audio output is unavailable")
             })?;
             if facts.underflows != events.underflows {
                 self.warnings += facts.underflows - events.underflows;
+                #[cfg(test)]
+                TEST_UNDERFLOWS.fetch_add(
+                    facts.underflows - events.underflows,
+                    std::sync::atomic::Ordering::Relaxed,
+                );
                 crate::diagnostics::event(format_args!(
-                    "output underflow count={} queued_frames={}",
+                    "output underflow count={} estimated_queued_frames={} server_writable_bytes={}",
                     facts.underflows,
-                    self.frames.saturating_sub(self.position_clock.position)
+                    self.frames.saturating_sub(self.position_clock.position),
+                    stream.writable()
                 ));
             }
             cork_requests += facts.cork_requests;
@@ -282,6 +302,17 @@ impl Output {
     pub fn queued_bytes(&mut self) -> u64 {
         let position = self.position();
         self.frames.saturating_sub(position) * (CHANNELS * 4) as u64
+    }
+    /// Whether the output wants more PCM now. PulseAudio's own flow control
+    /// decides for the real sink: a submitted-minus-played estimate drifts
+    /// (Bluetooth timing, audio dropped when the stream moves between sinks)
+    /// and then starves or deadlocks a prebuffering stream. Test sinks keep
+    /// the deterministic `limit` on queued bytes.
+    pub fn wants_more(&mut self, limit: u64) -> bool {
+        match &self.backend {
+            Backend::Pulse { stream, .. } => stream.writable() > 0,
+            _ => self.queued_bytes() <= limit,
+        }
     }
     /// Uncorked and actually rendering (not prebuffering or underrun).
     pub fn playing(&self) -> bool {

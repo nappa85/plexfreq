@@ -117,13 +117,64 @@ impl GroupId {
             key: key.into(),
         }
     }
-    /// The group of a plan: stations are keyed by their hashed path.
-    pub fn plan(kind: DownloadKind, key: &str) -> Self {
+    /// The group of a plan. Stations are keyed by a hash of their path
+    /// scoped to the server/credential `namespace` (`cache::namespace`), so
+    /// the same station path on another server or account is another group.
+    /// Numeric keys already name one item of the current server.
+    pub fn plan(kind: DownloadKind, key: &str, namespace: &str) -> Self {
         match kind {
-            DownloadKind::Station => Self::new(kind, crate::cache::namespace(key, "station")),
+            DownloadKind::Station => Self::new(
+                kind,
+                crate::cache::namespace(key, &format!("station\0{namespace}")),
+            ),
             _ => Self::new(kind, key),
         }
     }
+    /// Unscoped station group of releases before namespace scoping.
+    fn legacy_station(key: &str) -> Self {
+        Self::new(
+            DownloadKind::Station,
+            crate::cache::namespace(key, "station"),
+        )
+    }
+}
+
+/// Re-key persisted unscoped station groups (`station:<hash(path)>`) to the
+/// current namespace. A legacy group is recognised by its plan, which keeps
+/// the station path: the plan's legacy hash must equal the group key. Groups,
+/// titles and plans move together; an existing scoped entry wins. A station
+/// group without a plan cannot be mapped and keeps working under its old id.
+/// Returns whether anything changed (the caller persists settings).
+pub(crate) fn migrate_station_groups(
+    settings: &mut crate::store::Settings,
+    namespace: &str,
+) -> bool {
+    let legacy: Vec<(GroupId, String)> = settings
+        .download_plans
+        .iter()
+        .filter(|(group, plan)| {
+            plan.kind == DownloadKind::Station && **group == GroupId::legacy_station(&plan.key)
+        })
+        .map(|(group, plan)| (group.clone(), plan.key.clone()))
+        .collect();
+    let mut changed = false;
+    for (old, key) in legacy {
+        let new = GroupId::plan(DownloadKind::Station, &key, namespace);
+        if new == old {
+            continue;
+        }
+        if let Some(plan) = settings.download_plans.remove(&old) {
+            settings.download_plans.entry(new.clone()).or_insert(plan);
+        }
+        if let Some(keys) = settings.download_groups.remove(&old) {
+            settings.download_groups.entry(new.clone()).or_insert(keys);
+        }
+        if let Some(title) = settings.download_titles.remove(&old) {
+            settings.download_titles.entry(new).or_insert(title);
+        }
+        changed = true;
+    }
+    changed
 }
 
 impl std::fmt::Display for GroupId {
@@ -178,6 +229,9 @@ pub struct DownloadPlan {
     pub minutes: u32,
     pub refreshed_at: u64,
 }
+
+/// Offline search/browse page size.
+const OFFLINE_PAGE: usize = 100;
 
 impl Core {
     pub(crate) fn probe_playback(&self, key: &str, kbps: u32) -> Result<Value> {
@@ -248,6 +302,10 @@ impl Core {
         Ok(())
     }
     pub(crate) fn maintain_refresh(&mut self) -> Result<Value> {
+        let namespace = self.cache_namespace();
+        if self.writable && migrate_station_groups(&mut self.settings, &namespace) {
+            crate::store::save(&self.dir, &self.settings)?;
+        }
         let allowed = self.writable
             && self.network_online
             && self.downloads_allowed()
@@ -567,7 +625,7 @@ impl Core {
         self.check_planning()?;
         let collected = match kind {
             DownloadKind::Station => {
-                let group = GroupId::plan(kind, key);
+                let group = GroupId::plan(kind, key, &self.cache_namespace());
                 let title = self
                     .settings
                     .download_titles
@@ -626,7 +684,10 @@ impl Core {
         if tracks.is_empty() {
             return Err(Error::Input("Pin up to 1000 playable tracks"));
         }
-        let group = GroupId::plan(kind, key);
+        // Older sessions may still hold this station under its unscoped id.
+        let namespace = self.cache_namespace();
+        migrate_station_groups(&mut self.settings, &namespace);
+        let group = GroupId::plan(kind, key, &namespace);
         let mut groups = self.settings.download_groups.clone();
         groups.insert(
             group.clone(),
@@ -681,7 +742,7 @@ impl Core {
         minutes: u32,
     ) -> Result<Value> {
         self.download_plan(DownloadKind::Station, key, minutes)?;
-        let group = GroupId::plan(DownloadKind::Station, key);
+        let group = GroupId::plan(DownloadKind::Station, key, &self.cache_namespace());
         self.settings
             .download_titles
             .insert(group, title.chars().take(512).collect());
@@ -796,23 +857,18 @@ impl Core {
         self.ensure_offline_index();
         let index = self.offline_index.borrow();
         let index = index.as_ref().ok_or(Error::Input("Choose a music item"))?;
-        let mut total = 0;
-        let mut page = Vec::new();
-        for item in index.search(query, kind) {
-            if total >= start && page.len() < 100 {
-                page.push(self.display_item(item));
-            }
-            total += 1;
-        }
-        let received = page.len();
-        Ok(crate::pagination::page(
-            page,
-            start,
-            received,
-            100,
-            Some(total),
-            true,
-        ))
+        // Bounded: the index stops once the page is full (plus one row) and
+        // caps results/examined rows per query; see `catalogue`.
+        let page = index.search(query, kind, start, OFFLINE_PAGE);
+        let received = page.items.len();
+        let items = page.items.iter().map(|i| self.display_item(i)).collect();
+        let known = start
+            .saturating_add(received)
+            .saturating_add(usize::from(page.has_more));
+        let mut value =
+            crate::pagination::page(items, start, received, OFFLINE_PAGE, Some(known), true);
+        value["truncated"] = json!(page.truncated);
+        Ok(value)
     }
     pub(crate) fn discovery_home(&self, section: &str) -> Result<Value> {
         crate::numeric(section)?;
@@ -1003,12 +1059,26 @@ mod tests {
         for bad in ["", "playlist", "genre:1", ":5"] {
             assert!(bad.parse::<GroupId>().is_err(), "{bad}");
         }
+        // Station plans are hashed (no raw path) and scoped to the
+        // server/credential namespace; other kinds keep their numeric key.
+        let station = "/library/metadata/1/station/x";
+        let scoped = GroupId::plan(DownloadKind::Station, station, "ns-a");
         assert_eq!(
-            GroupId::plan(DownloadKind::Station, "/library/metadata/1/station/x").to_string(),
+            scoped.to_string(),
             format!(
                 "station:{}",
-                crate::cache::namespace("/library/metadata/1/station/x", "station")
+                crate::cache::namespace(station, "station\0ns-a")
             )
+        );
+        assert!(!scoped.to_string().contains("station/x"));
+        assert_ne!(
+            scoped,
+            GroupId::plan(DownloadKind::Station, station, "ns-b")
+        );
+        assert_ne!(scoped, GroupId::legacy_station(station));
+        assert_eq!(
+            GroupId::plan(DownloadKind::Playlist, "5", "ns-a"),
+            GroupId::plan(DownloadKind::Playlist, "5", "ns-b")
         );
         // Settings maps keep their on-disk keys; an unparseable legacy entry
         // is dropped instead of discarding the whole session document.
@@ -1028,6 +1098,55 @@ mod tests {
             saved["downloadPlans"],
             json!({"playlist:5": {"kind":"playlist","key":"5","minutes":0,"refreshedAt":1}})
         );
+    }
+
+    // Sessions written before namespace scoping keep `station:<hash(path)>`
+    // keys on disk; they load unchanged and migrate to the scoped id with
+    // their plan, member keys and title.
+    #[test]
+    fn legacy_station_groups_load_and_migrate_to_scoped_ids() {
+        let station = "/library/sections/1/station/1";
+        let legacy = format!("station:{}", crate::cache::namespace(station, "station"));
+        let mut settings: crate::store::Settings = serde_json::from_value(json!({
+            "downloadGroups": {legacy.clone(): ["1", "2"], "playlist:5": ["3"],
+                "station:feedface": ["4"]},
+            "downloadTitles": {legacy.clone(): "Library radio", "playlist:5": "Mix"},
+            "downloadPlans": {
+                legacy.clone(): {"kind":"station","key":station,"minutes":30,"refreshedAt":1},
+                "playlist:5": {"kind":"playlist","key":"5","minutes":0,"refreshedAt":1}
+            }
+        }))
+        .unwrap();
+        let old: GroupId = legacy.parse().unwrap();
+        assert!(settings.download_groups.contains_key(&old));
+        assert!(migrate_station_groups(&mut settings, "ns-a"));
+        let new = GroupId::plan(DownloadKind::Station, station, "ns-a");
+        assert!(!settings.download_groups.contains_key(&old));
+        assert_eq!(settings.download_groups[&new], vec!["1", "2"]);
+        assert_eq!(settings.download_titles[&new], "Library radio");
+        assert_eq!(settings.download_plans[&new].key, station);
+        assert_eq!(settings.download_plans[&new].minutes, 30);
+        // Unrelated groups, and a station without a plan, are untouched.
+        let playlist = GroupId::new(DownloadKind::Playlist, "5");
+        assert_eq!(settings.download_groups[&playlist], vec!["3"]);
+        assert!(settings
+            .download_groups
+            .contains_key(&GroupId::new(DownloadKind::Station, "feedface")));
+        // Idempotent, and the scoped id round-trips through the session file.
+        assert!(!migrate_station_groups(&mut settings, "ns-a"));
+        let saved = serde_json::to_value(&settings).unwrap();
+        assert_eq!(saved["downloadGroups"][new.to_string()], json!(["1", "2"]));
+        assert!(saved["downloadPlans"].get(&legacy).is_none());
+        let reloaded: crate::store::Settings = serde_json::from_value(saved).unwrap();
+        assert_eq!(reloaded.download_titles[&new], "Library radio");
+        // An existing scoped group wins over a stale legacy copy.
+        let mut both = reloaded.clone();
+        both.download_groups.insert(old.clone(), vec!["9".into()]);
+        both.download_plans
+            .insert(old.clone(), both.download_plans[&new].clone());
+        assert!(migrate_station_groups(&mut both, "ns-a"));
+        assert_eq!(both.download_groups[&new], vec!["1", "2"]);
+        assert!(!both.download_groups.contains_key(&old));
     }
 
     #[test]

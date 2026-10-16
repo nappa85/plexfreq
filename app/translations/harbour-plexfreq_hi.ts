@@ -512,6 +512,10 @@
       <translation>कोई नहीं · कतार</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ऑफ़लाइन डेटा भंडारण सीमा से अधिक है</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>केवल पढ़ने के लिए · ऑडियो · प्लेलिस्ट · डाउनलोड हुआ</translation>
     </message>

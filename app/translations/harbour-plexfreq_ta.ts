@@ -512,6 +512,10 @@
       <translation>எதுவுமில்லை · வரிசை</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>ஆஃப்லைன் தரவு சேமிப்பு வரம்பை மீறுகிறது</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>படிக்க மட்டும் · ஒலி · பாடல் பட்டியல்கள் · பதிவிறக்கப்பட்டது</translation>
     </message>

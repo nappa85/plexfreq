@@ -512,6 +512,10 @@
       <translation>Ingen · Kö</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Offlinedata överskrider lagringsgränsen</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Skrivskyddad · Ljud · Spellistor · Hämtat</translation>
     </message>

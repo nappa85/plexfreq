@@ -512,6 +512,10 @@
       <translation>Юк · Чират</translation>
     </message>
     <message>
+      <source>Offline data exceeds its storage limit</source>
+      <translation>Офлайн мәгълүматлар саклау чиген узалар</translation>
+    </message>
+    <message>
       <source>Only audio playlists can be downloaded</source>
       <translation>Уку гына · Тавыш · Уйнату исемлекләре · Йөкләнгән</translation>
     </message>

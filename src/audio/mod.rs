@@ -636,7 +636,7 @@ impl Actor {
         if !self.desired || self.recording {
             return Ok(());
         };
-        if output.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES {
+        if !output.wants_more(OUTPUT_BACKPRESSURE_BYTES) {
             return Ok(());
         };
         let available = current.remaining();
@@ -865,7 +865,7 @@ impl Actor {
                     || self
                         .output
                         .as_mut()
-                        .is_none_or(|out| out.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES)
+                        .is_none_or(|out| !out.wants_more(OUTPUT_BACKPRESSURE_BYTES))
                 {
                     break;
                 }
