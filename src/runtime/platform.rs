@@ -443,7 +443,11 @@ where
             break;
         }
     }
-    let mut signals = futures_util::stream::select_all(streams.iter().cloned());
+    // Poll the streams themselves. A zbus MessageStream clone is a separate
+    // queue receiver: keeping un-polled originals around fills their 64-message
+    // queues on the first signal burst, which blocks the socket reader and
+    // with it every later query reply (facts then stay unknown forever).
+    let mut signals = futures_util::stream::select_all(streams);
     if result.is_ok() {
         result = async {
             // Always drain signals concurrently with RPCs. zbus 4's socket reader
@@ -480,22 +484,9 @@ where
         }
         .await;
     }
-    // Deregister before disconnect while draining clones, so RemoveMatch's reply
-    // cannot sit behind a full signal queue. Cleanup itself has a fixed deadline.
-    let cleanup = tokio::time::timeout(
-        DEADLINE,
-        futures_util::future::join_all(streams.into_iter().map(zbus::AsyncDrop::async_drop)),
-    );
-    tokio::pin!(cleanup);
-    loop {
-        tokio::select! {
-            done = &mut cleanup => {
-                crate::diagnostics::event(format_args!("D-Bus observer cleanup completed={}", done.is_ok()));
-                break;
-            }
-            _ = signals.next() => {},
-        }
-    }
+    // Dropping a stream only queues its RemoveMatch and releases its receiver
+    // at once, so no undrained queue can hold the reader; closing the
+    // connection removes any remaining bus-side match rules anyway.
     drop(signals);
     drop(connection);
     drop(bus);
@@ -791,6 +782,26 @@ mod bluetooth_tests {
             thread::sleep(Duration::from_millis(10));
         }
         thread::sleep(Duration::from_millis(30));
+        // A reconnect burst (RSSI, UUIDs, transport states…) of more than the
+        // 64-message subscription queue must not wedge the observer: every
+        // queue on the connection has to be drained, or zbus's socket reader
+        // stops delivering query replies and disconnects are never seen.
+        for rssi in 0..200i16 {
+            service
+                .emit_signal(
+                    None::<&str>,
+                    "/org/bluez/hci0/dev_fixture",
+                    "org.freedesktop.DBus.Properties",
+                    "PropertiesChanged",
+                    &(
+                        "org.bluez.Device1",
+                        HashMap::from([("RSSI", -rssi)]),
+                        Vec::<String>::new(),
+                    ),
+                )
+                .unwrap();
+        }
+        thread::sleep(Duration::from_millis(300));
         // Profile removal must pause even while Device1 remains connected.
         transport.store(false, Ordering::SeqCst);
         service

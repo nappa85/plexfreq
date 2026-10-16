@@ -1,12 +1,18 @@
+mod decode;
 pub mod dsp;
+pub(crate) mod formats;
 mod http;
+mod mp4;
+mod output;
+mod pulse;
+mod resample;
 use crate::{Error, Result};
-use gst::prelude::*;
-use gstreamer as gst;
-use gstreamer_app as app;
+use decode::Decoder;
+use output::Output;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
+    rc::Rc,
     sync::{mpsc, Arc, Mutex},
     thread,
     time::{Duration, Instant},
@@ -18,8 +24,8 @@ const CHANNELS: usize = 2;
 const BLOCK: usize = 512;
 /// Maximum crossfade tail: 12s at 48kHz stereo.
 const MAX_TAIL_FRAMES: usize = RATE as usize * 12;
-/// Bounded PCM headroom for scheduler contention (0.75s cap / 0.5s watermark).
-const OUTPUT_MAX_BYTES: u64 = RATE as u64 * 8 * 3 / 4;
+/// Queued (not yet audible) PCM above which the actor stops feeding the
+/// output: headroom for scheduler contention without long volume/EQ lag.
 const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * 8 / 2;
 const DECODE_AHEAD_FRAMES: usize = RATE as usize * 2;
 
@@ -212,25 +218,6 @@ pub struct Engine {
 }
 impl Engine {
     pub fn new(sink: Sink) -> Result<Self> {
-        gst::init().map_err(|_| Error::Input("Audio framework initialization failed"))?;
-        let mut factories = vec![
-            "uridecodebin",
-            "decodebin",
-            "audioconvert",
-            "audioresample",
-            "appsrc",
-            "appsink",
-        ];
-        factories.push(match sink {
-            Sink::Pulse => "pulsesink",
-            Sink::Fake => "fakesink",
-            Sink::Capture => "appsink",
-        });
-        for factory in factories {
-            if gst::ElementFactory::find(factory).is_none() {
-                return Err(Error::Input("Required audio plugins are unavailable"));
-            }
-        }
         let (tx, rx) = mpsc::sync_channel(128);
         let (events, receiver) = mpsc::channel();
         let state = Arc::new(Mutex::new(Snapshot {
@@ -274,550 +261,6 @@ impl Drop for Engine {
     }
 }
 
-fn caps() -> gst::Caps {
-    gst::Caps::builder("audio/x-raw")
-        .field("format", "F32LE")
-        .field("layout", "interleaved")
-        .field("channels", 2i32)
-        .field("rate", RATE as i32)
-        .build()
-}
-
-fn link_audio_pad(pad: &gst::Pad, target: &gst::Pad) {
-    if target.is_linked() {
-        return;
-    }
-    let caps = pad.current_caps().unwrap_or_else(|| pad.query_caps(None));
-    if caps.is_any() || caps.is_empty() {
-        let target = target.clone();
-        // An unconstrained dynamic pad is classified when its CAPS event
-        // arrives, before buffers flow. A non-audio stream remains unlinked.
-        pad.add_probe(gst::PadProbeType::EVENT_DOWNSTREAM, move |pad, info| {
-            if let Some(gst::PadProbeData::Event(event)) = &info.data {
-                if let gst::EventView::Caps(caps) = event.view() {
-                    if caps.caps().iter().any(|s| s.name().starts_with("audio/"))
-                        && !target.is_linked()
-                    {
-                        let _ = pad.link(&target);
-                    }
-                    return gst::PadProbeReturn::Remove;
-                }
-            }
-            gst::PadProbeReturn::Ok
-        });
-    } else if caps.iter().any(|s| s.name().starts_with("audio/")) {
-        let _ = pad.link(target);
-    }
-}
-fn element(factory: &str) -> Result<gst::Element> {
-    gst::ElementFactory::make(factory)
-        .build()
-        .map_err(|_| Error::Input("Required audio plugins are unavailable"))
-}
-fn safe_uri(url: &str) -> Result<(String, String)> {
-    let mut uri = url::Url::parse(url)?;
-    if !matches!(uri.scheme(), "file" | "http" | "https")
-        || !uri.username().is_empty()
-        || uri.password().is_some()
-        || uri.fragment().is_some()
-    {
-        return Err(Error::Input("Invalid audio source"));
-    }
-    if uri.scheme() == "file" && !matches!(uri.host_str(), None | Some("") | Some("localhost")) {
-        return Err(Error::Input("Invalid audio source"));
-    }
-    let mut token = String::new();
-    let pairs: Vec<_> = uri
-        .query_pairs()
-        .filter_map(|(k, v)| {
-            if k.eq_ignore_ascii_case("X-Plex-Token") {
-                token = v.into_owned();
-                None
-            } else {
-                Some((k.into_owned(), v.into_owned()))
-            }
-        })
-        .collect();
-    uri.set_query(None);
-    if !pairs.is_empty() {
-        uri.query_pairs_mut().extend_pairs(pairs);
-    }
-    Ok((uri.to_string(), token))
-}
-struct Decoder {
-    transcoded: bool,
-    http: Option<http::Reader>,
-    source: Source,
-    pipeline: gst::Pipeline,
-    sink: app::AppSink,
-    pcm: VecDeque<f32>,
-    eof: bool,
-    seek: Option<u64>,
-    frames: u64,
-    warnings: u64,
-}
-impl Decoder {
-    fn new(source: Source, closer: &http::SessionCloser) -> Result<Self> {
-        crate::diagnostics::event(format_args!(
-            "decoder create occurrence={} source={} resume_ms={} duration_ms={}",
-            source.id,
-            if source.url.starts_with("file:") {
-                "cache/local"
-            } else {
-                "remote"
-            },
-            source.resume,
-            source.duration
-        ));
-        let (uri, token) = safe_uri(&source.url)?;
-        let (uri, transcoded) = crate::quality::with_offset(&uri, source.resume)?;
-        let pipeline = gst::Pipeline::new();
-        let remote = uri.starts_with("http:") || uri.starts_with("https:");
-        let decoder = element(if remote { "decodebin" } else { "uridecodebin" })?;
-        let mut reader = None;
-        if remote {
-            let input = app::AppSrc::builder()
-                .format(gst::Format::Bytes)
-                .stream_type(if transcoded {
-                    app::AppStreamType::Stream
-                } else {
-                    app::AppStreamType::Seekable
-                })
-                .block(false)
-                .max_bytes(4 * 1024 * 1024)
-                .build();
-            pipeline
-                .add_many([input.upcast_ref(), &decoder])
-                .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-            input
-                .link(&decoder)
-                .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-            reader = Some(http::Reader::new(&input, uri, token, closer.clone())?);
-        } else {
-            decoder.set_property("uri", uri);
-            pipeline
-                .add(&decoder)
-                .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-        }
-        let convert = element("audioconvert")?;
-        let resample = element("audioresample")?;
-        let sink = app::AppSink::builder()
-            .caps(&caps())
-            .sync(false)
-            .max_buffers(8)
-            .build();
-        pipeline
-            .add_many([&convert, &resample, sink.upcast_ref()])
-            .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-        gst::Element::link_many([&convert, &resample, sink.upcast_ref()])
-            .map_err(|_| Error::Input("Audio pipeline creation failed"))?;
-        let target = convert
-            .static_pad("sink")
-            .ok_or(Error::Input("Audio pipeline creation failed"))?;
-        decoder.connect_pad_added(move |_, pad| link_audio_pad(pad, &target));
-        pipeline
-            .set_state(gst::State::Playing)
-            .map_err(|_| Error::Input("Audio decoder initialization failed"))?;
-        let seek = if source.resume > 0 && !transcoded {
-            Some(source.resume)
-        } else {
-            None
-        };
-        Ok(Self {
-            transcoded,
-            http: reader,
-            source,
-            pipeline,
-            sink,
-            pcm: VecDeque::new(),
-            eof: false,
-            seek,
-            frames: 0,
-            warnings: 0,
-        })
-    }
-    fn fill(&mut self, frames: usize) -> Result<()> {
-        let bus = self
-            .pipeline
-            .bus()
-            .ok_or(Error::Input("Audio decoding or streaming failed"))?;
-        while let Some(message) = bus.pop() {
-            match message.view() {
-                gst::MessageView::Error(error) => {
-                    eprintln!(
-                        "PlexFreq audio decoder error occurrence={}: {}; debug: {}",
-                        self.source.id,
-                        error.error(),
-                        error.debug().as_deref().unwrap_or("unavailable")
-                    );
-                    return Err(Error::Input("Audio decoding or streaming failed"));
-                }
-                gst::MessageView::Warning(warning) => {
-                    self.warnings += 1;
-                    if self.warnings <= 10 || self.warnings.is_power_of_two() {
-                        crate::diagnostics::event(format_args!(
-                            "decoder warning occurrence={} count={}: {}; debug={}",
-                            self.source.id,
-                            self.warnings,
-                            warning.error(),
-                            warning.debug().as_deref().unwrap_or("unavailable")
-                        ));
-                    }
-                }
-                gst::MessageView::Buffering(buffering) => crate::diagnostics::event(format_args!(
-                    "decoder buffering occurrence={} percent={}",
-                    self.source.id,
-                    buffering.percent()
-                )),
-                gst::MessageView::StateChanged(state)
-                    if message.src() == Some(self.pipeline.upcast_ref()) =>
-                {
-                    crate::diagnostics::event(format_args!(
-                        "decoder state occurrence={} {:?}->{:?} pending={:?}",
-                        self.source.id,
-                        state.old(),
-                        state.current(),
-                        state.pending()
-                    ))
-                }
-                _ => {}
-            }
-        }
-        if let Some(duration) = self
-            .pipeline
-            .query_duration::<gst::ClockTime>()
-            .filter(|_| !self.transcoded)
-        {
-            self.source.duration = duration.mseconds();
-        }
-        for _ in 0..16 {
-            if self.pcm.len() >= frames * CHANNELS {
-                break;
-            }
-            let Some(sample) = self.sink.try_pull_sample(gst::ClockTime::ZERO) else {
-                self.eof = self.sink.is_eos();
-                break;
-            };
-            if let Some(position) = self.seek.take() {
-                self.pipeline
-                    .seek_simple(
-                        gst::SeekFlags::FLUSH | gst::SeekFlags::ACCURATE,
-                        gst::ClockTime::from_mseconds(position),
-                    )
-                    .map_err(|_| Error::Input("Audio seeking failed"))?;
-                self.pcm.clear();
-                continue;
-            }
-            let buffer = sample
-                .buffer()
-                .ok_or(Error::Input("Invalid decoded audio"))?;
-            let map = buffer
-                .map_readable()
-                .map_err(|_| Error::Input("Invalid decoded audio"))?;
-            if map.len() % 8 != 0 {
-                return Err(Error::Input("Invalid decoded audio"));
-            }
-            let mut first = 0usize;
-            let mut end = map.len() / 8;
-            if let (Some(pts), Some(segment)) = (
-                buffer.pts(),
-                sample
-                    .segment()
-                    .and_then(|segment| segment.downcast_ref::<gst::ClockTime>()),
-            ) {
-                let frames = |time: gst::ClockTime| {
-                    ((u128::from(time.nseconds()) * u128::from(RATE) + 500_000_000) / 1_000_000_000)
-                        .min(usize::MAX as u128) as usize
-                };
-                if let Some(start) = segment.start() {
-                    if pts < start {
-                        first = frames(start - pts).min(end);
-                    }
-                }
-                if let Some(stop) = segment.stop() {
-                    end = if pts >= stop {
-                        0
-                    } else {
-                        end.min(frames(stop - pts))
-                    };
-                }
-            }
-            // Container edit lists/segment limits, not Plex database duration,
-            // define encoder priming/padding boundaries at the PCM sink.
-            first = first.min(end);
-            self.pcm.extend(
-                map.as_slice()[first * 8..end * 8]
-                    .as_chunks::<4>()
-                    .0
-                    .iter()
-                    .map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]])),
-            );
-        }
-        Ok(())
-    }
-    fn take(&mut self, frames: usize) -> Vec<f32> {
-        let count = (frames * CHANNELS).min(self.pcm.len());
-        self.frames += count as u64 / CHANNELS as u64;
-        self.pcm.drain(..count).collect()
-    }
-    fn remaining(&self) -> usize {
-        self.pcm.len() / CHANNELS
-    }
-}
-impl Drop for Decoder {
-    fn drop(&mut self) {
-        if let Some(reader) = &self.http {
-            reader.stop();
-        }
-        let _ = self.pipeline.set_state(gst::State::Null);
-    }
-}
-
-struct Output {
-    pipeline: gst::Pipeline,
-    source: app::AppSrc,
-    frames: u64,
-    eof: bool,
-    warnings: u64,
-    qos: u64,
-    position_clock: PositionClock,
-}
-
-#[derive(Default)]
-struct PositionClock {
-    raw: u64,
-    offset: u64,
-    position: u64,
-    available: bool,
-}
-impl PositionClock {
-    fn observe(&mut self, raw: Option<u64>, submitted: u64) -> u64 {
-        self.available = raw.is_some();
-        if let Some(raw) = raw {
-            // Sink routing can reset its clock while appsrc and our gapless
-            // segments retain absolute frame coordinates. Preserve that domain.
-            // Small backwards query jitter is clamped, not accumulated as drift.
-            if raw.saturating_add(u64::from(RATE)) <= self.raw {
-                self.offset = self.position.saturating_sub(raw);
-                crate::diagnostics::event(format_args!(
-                    "output position clock reset previous_frames={} raw_frames={raw} offset_frames={}",
-                    self.raw, self.offset
-                ));
-            }
-            self.raw = raw;
-            self.position = self
-                .position
-                .max(raw.saturating_add(self.offset))
-                .min(submitted);
-        }
-        self.position
-    }
-}
-impl Output {
-    fn new(mode: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Result<Self> {
-        let pipeline = gst::Pipeline::new();
-        let source = app::AppSrc::builder()
-            .caps(&caps())
-            .format(gst::Format::Time)
-            .max_bytes(OUTPUT_MAX_BYTES)
-            .build();
-        let convert = element("audioconvert")?;
-        let sink = match mode {
-            Sink::Pulse => {
-                let sink = element("pulsesink")?;
-                sink.set_property("client-name", "PlexFreq");
-                // Microseconds: tolerate competing notification/UI work without
-                // requesting low-latency playback from the shared audio server.
-                sink.set_property("buffer-time", 300_000i64);
-                sink.set_property("latency-time", 20_000i64);
-                sink.set_property(
-                    "stream-properties",
-                    pulse_properties(
-                        &std::fs::read_to_string("/etc/os-release").unwrap_or_default(),
-                    ),
-                );
-                sink
-            }
-            Sink::Fake => {
-                let sink = element("fakesink")?;
-                sink.set_property("sync", true);
-                sink
-            }
-            Sink::Capture => {
-                let sink = app::AppSink::builder().sync(false).build();
-                sink.set_callbacks(
-                    app::AppSinkCallbacks::builder()
-                        .new_sample(move |sink| {
-                            let sample = sink.pull_sample().map_err(|_| gst::FlowError::Eos)?;
-                            let buffer = sample.buffer().ok_or(gst::FlowError::Error)?;
-                            let map = buffer.map_readable().map_err(|_| gst::FlowError::Error)?;
-                            let mut pcm = lock_capture(&capture);
-                            if pcm.len() < RATE as usize * 120 * 2 {
-                                pcm.extend(
-                                    map.as_slice()
-                                        .as_chunks::<4>()
-                                        .0
-                                        .iter()
-                                        .map(|b| f32::from_le_bytes([b[0], b[1], b[2], b[3]])),
-                                );
-                            }
-                            Ok(gst::FlowSuccess::Ok)
-                        })
-                        .build(),
-                );
-                sink.upcast()
-            }
-        };
-        pipeline
-            .add_many([source.upcast_ref(), &convert, &sink])
-            .map_err(|_| Error::Input("Audio output creation failed"))?;
-        gst::Element::link_many([source.upcast_ref(), &convert, &sink])
-            .map_err(|_| Error::Input("Audio output creation failed"))?;
-        Ok(Self {
-            pipeline,
-            source,
-            frames: 0,
-            eof: false,
-            warnings: 0,
-            qos: 0,
-            position_clock: PositionClock::default(),
-        })
-    }
-    fn state(&self, state: gst::State) -> Result<()> {
-        self.pipeline
-            .set_state(state)
-            .map_err(|_| Error::Input("Audio output is unavailable"))?;
-        Ok(())
-    }
-    fn service(&mut self, desired: &mut bool) -> Result<()> {
-        let bus = self
-            .pipeline
-            .bus()
-            .ok_or(Error::Input("Audio output is unavailable"))?;
-        while let Some(message) = bus.pop() {
-            match message.view() {
-                gst::MessageView::Error(error) => {
-                    eprintln!(
-                        "PlexFreq audio output error: {}; debug: {}",
-                        error.error(),
-                        error.debug().as_deref().unwrap_or("unavailable")
-                    );
-                    return Err(Error::Input("Audio output is unavailable"));
-                }
-                gst::MessageView::Eos(_) => self.eof = true,
-                gst::MessageView::Warning(warning) => {
-                    self.warnings += 1;
-                    if self.warnings <= 10 || self.warnings.is_power_of_two() {
-                        crate::diagnostics::event(format_args!(
-                            "output warning count={}: {}; debug={}",
-                            self.warnings,
-                            warning.error(),
-                            warning.debug().as_deref().unwrap_or("unavailable")
-                        ));
-                    }
-                }
-                gst::MessageView::Qos(_) => self.qos += 1,
-                gst::MessageView::StateChanged(state)
-                    if message.src() == Some(self.pipeline.upcast_ref()) =>
-                {
-                    crate::diagnostics::event(format_args!(
-                        "output state {:?}->{:?} pending={:?}",
-                        state.old(),
-                        state.current(),
-                        state.pending()
-                    ))
-                }
-                gst::MessageView::NewClock(_) => {
-                    crate::diagnostics::event(format_args!("output selected new clock"))
-                }
-                gst::MessageView::RequestState(request) => {
-                    crate::diagnostics::event(format_args!(
-                        "output policy requested state={:?}",
-                        request.requested_state()
-                    ));
-                    if request.requested_state() == gst::State::Paused {
-                        *desired = false;
-                        self.state(gst::State::Paused)?;
-                    }
-                    // Uncork is not permission to resume after user/disconnect pause.
-                }
-                gst::MessageView::ClockLost(_) if *desired => {
-                    eprintln!("PlexFreq audio output clock lost; selecting a new clock");
-                    self.state(gst::State::Paused)?;
-                    self.state(gst::State::Playing)?;
-                }
-                gst::MessageView::Latency(_) => {
-                    let result = self.pipeline.recalculate_latency();
-                    crate::diagnostics::event(format_args!(
-                        "output latency recalculation success={}",
-                        result.is_ok()
-                    ));
-                }
-                _ => {}
-            }
-        }
-        Ok(())
-    }
-    fn push(&mut self, pcm: &[f32]) -> Result<()> {
-        let frames = pcm.len() as u64 / CHANNELS as u64;
-        let mut buffer = gst::Buffer::with_size(pcm.len() * 4)
-            .map_err(|_| Error::Input("Audio buffer allocation failed"))?;
-        {
-            let buffer = buffer
-                .get_mut()
-                .ok_or(Error::Input("Audio buffer allocation failed"))?;
-            buffer.set_pts(frames_to_time(self.frames));
-            buffer.set_duration(frames_to_time(frames));
-            let mut map = buffer
-                .map_writable()
-                .map_err(|_| Error::Input("Audio buffer allocation failed"))?;
-            for (bytes, value) in map
-                .as_mut_slice()
-                .as_chunks_mut::<4>()
-                .0
-                .iter_mut()
-                .zip(pcm)
-            {
-                bytes.copy_from_slice(&value.to_le_bytes());
-            }
-        }
-        self.source
-            .push_buffer(buffer)
-            .map_err(|_| Error::Input("Audio output failed"))?;
-        self.frames += frames;
-        Ok(())
-    }
-    fn position(&mut self) -> u64 {
-        let raw = self
-            .pipeline
-            .query_position::<gst::ClockTime>()
-            .map(|p| ((u128::from(p.nseconds()) * u128::from(RATE)) / 1_000_000_000) as u64);
-        self.position_clock.observe(raw, self.frames)
-    }
-}
-/// Frame count to stream time without overflowing on multi-day sessions.
-fn frames_to_time(frames: u64) -> gst::ClockTime {
-    let nanoseconds = u128::from(frames) * 1_000_000_000 / u128::from(RATE);
-    gst::ClockTime::from_nseconds(nanoseconds.min(u128::from(u64::MAX)) as u64)
-}
-fn pulse_properties(os_release: &str) -> gst::Structure {
-    // Sailfish mainvolume/stream-restore recognizes x-maemo, not the generic
-    // desktop music role. Let the existing user-session policy own volume keys.
-    let sailfish = os_release
-        .lines()
-        .any(|line| line == "ID=sailfishos" || line == "ID=\"sailfishos\"");
-    gst::Structure::builder("props")
-        .field("media.role", if sailfish { "x-maemo" } else { "music" })
-        .field("application.name", "PlexFreq")
-        .field("media.name", "PlexFreq")
-        .build()
-}
-impl Drop for Output {
-    fn drop(&mut self) {
-        let _ = self.pipeline.set_state(gst::State::Null);
-    }
-}
-
 struct Segment {
     source: Source,
     start: u64,
@@ -844,6 +287,8 @@ struct Actor {
     fade: Option<(usize, usize)>,
     diagnostics: ProgressDiagnostics,
     changes: Arc<watch::Sender<Change>>,
+    /// PulseAudio client connection shared by successive output streams.
+    pulse: Option<Rc<pulse::Connection>>,
 }
 struct ProgressDiagnostics {
     sampled: Instant,
@@ -940,6 +385,7 @@ impl Actor {
             fade: None,
             diagnostics: ProgressDiagnostics::new(),
             changes: Arc::new(watch::channel(Change::default()).0),
+            pulse: None,
         }
     }
     /// Wake change subscribers only when a presented transport field changed.
@@ -959,7 +405,7 @@ impl Actor {
         self.segments.clear();
         lock_capture(&self.capture).clear();
         let decoder = Decoder::new(source.clone(), &self.closer)?;
-        let output = Output::new(self.mode, self.capture.clone())?;
+        let output = Output::new(self.mode, self.capture.clone(), &mut self.pulse)?;
         self.segments.push_back(Segment {
             source,
             start: 0,
@@ -1027,9 +473,9 @@ impl Actor {
                 self.desired = true;
                 // A paused, full appsrc cannot drain. Resume before pump's
                 // backpressure check, which otherwise prevents this forever.
-                if let Some(out) = &self.output {
+                if let Some(out) = &mut self.output {
                     if !self.recording {
-                        out.state(gst::State::Playing)?;
+                        out.set_playing(true)?;
                     }
                 }
             }
@@ -1039,8 +485,8 @@ impl Actor {
                     self.intent
                 ));
                 self.desired = false;
-                if let Some(out) = &self.output {
-                    out.state(gst::State::Paused)?;
+                if let Some(out) = &mut self.output {
+                    out.set_playing(false)?;
                 }
             }
             Control::Recording(active) => {
@@ -1055,12 +501,8 @@ impl Actor {
                     "audio recording hold active={active} resume_intent={}",
                     self.desired
                 ));
-                if let Some(out) = &self.output {
-                    out.state(if self.desired && !active {
-                        gst::State::Playing
-                    } else {
-                        gst::State::Paused
-                    })?;
+                if let Some(out) = &mut self.output {
+                    out.set_playing(self.desired && !active)?;
                 }
             }
             Control::Stop => {
@@ -1194,7 +636,7 @@ impl Actor {
         if !self.desired || self.recording {
             return Ok(());
         };
-        if output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES {
+        if output.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES {
             return Ok(());
         };
         let available = current.remaining();
@@ -1238,7 +680,7 @@ impl Actor {
                 output.push(&pcm)?;
                 self.fade = Some((total, done + frames));
                 if current.remaining() > 0 {
-                    output.state(gst::State::Playing)?;
+                    output.set_playing(true)?;
                     return Ok(());
                 }
             } else if available > 0 && !same_album && eff_tail > 0 && !next.eof {
@@ -1292,17 +734,18 @@ impl Actor {
                 self.volume,
             );
             output.push(&pcm)?;
-            output.state(gst::State::Playing)?;
+            output.set_playing(true)?;
         } else if current.eof && current.remaining() == 0 && (self.next.is_none() || self.ended) {
             if !self.ended {
-                let _ = output.source.end_of_stream();
+                output.finish()?;
                 if let Some(segment) = self.segments.back_mut() {
                     segment.end = Some(output.frames);
                 }
                 self.ended = true;
             }
-        } else if output.source.current_level_bytes() == 0 {
-            output.state(gst::State::Paused)?;
+        } else if output.queued_bytes() == 0 {
+            // Starved: hold the stream instead of letting the sink underrun.
+            output.set_playing(false)?;
         }
         Ok(())
     }
@@ -1369,13 +812,9 @@ impl Actor {
         let mut state = lock_state(&self.state);
         *state = Snapshot {
             id: segment.source.id,
-            playing: self.desired
-                && !self.recording
-                && output.pipeline.current_state() == gst::State::Playing,
+            playing: self.desired && !self.recording && output.playing(),
             paused: !self.desired || self.recording,
-            buffering: self.desired
-                && !self.recording
-                && output.pipeline.current_state() != gst::State::Playing,
+            buffering: self.desired && !self.recording && !output.playing(),
             loaded: true,
             position: if segment.source.duration > 0 {
                 media.min(segment.source.duration)
@@ -1423,9 +862,10 @@ impl Actor {
                 }
                 if !self.desired
                     || self.recording
-                    || self.output.as_ref().is_none_or(|out| {
-                        out.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES
-                    })
+                    || self
+                        .output
+                        .as_mut()
+                        .is_none_or(|out| out.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES)
                 {
                     break;
                 }
@@ -1459,17 +899,30 @@ impl Actor {
         let Some(reason) = self.diagnostics.observe(now, &state, self.desired) else {
             return;
         };
-        let out = self.output.as_ref();
         let decoder = self.current.as_ref();
+        let output = self.output.as_mut().map(|out| {
+            (
+                out.corked(),
+                out.playing(),
+                out.frames,
+                out.queued_bytes(),
+                out.eof,
+                out.warnings,
+                (
+                    out.position_clock.available,
+                    out.position_clock.raw,
+                    out.position_clock.offset,
+                ),
+            )
+        });
         crate::diagnostics::event(format_args!(
-            "audio snapshot reason={reason} occurrence={} desired={} playing={} buffering={} position_ms={} heard_ms={} no_progress_ms={} pipeline={:?} output_frames={} output_queue_bytes={} output_eof={} decoder_pcm_frames={} decoder_eof={} decoder_warnings={} http_received_and_queue_bytes={:?} next_pcm_frames={} output_warnings={} qos={} output_clock={:?}",
+            "audio snapshot reason={reason} occurrence={} desired={} playing={} buffering={} position_ms={} heard_ms={} no_progress_ms={} output_corked={:?} output_running={:?} output_frames={} output_queue_bytes={} output_eof={} decoder_pcm_frames={} decoder_eof={} decoder_warnings={} http_received_and_queue_bytes={:?} next_pcm_frames={} output_underflows={} output_clock={:?}",
             state.id, self.desired, state.playing, state.buffering, state.position, state.listened,
-            now.duration_since(self.diagnostics.progressed).as_millis(), out.map(|o| o.pipeline.current_state()),
-            out.map_or(0, |o| o.frames), out.map_or(0, |o| o.source.current_level_bytes()), out.is_some_and(|o| o.eof),
+            now.duration_since(self.diagnostics.progressed).as_millis(), output.map(|o| o.0), output.map(|o| o.1),
+            output.map_or(0, |o| o.2), output.map_or(0, |o| o.3), output.is_some_and(|o| o.4),
             decoder.map_or(0, Decoder::remaining), decoder.is_some_and(|d| d.eof), decoder.map_or(0, |d| d.warnings),
             decoder.and_then(|d| d.http.as_ref().map(http::Reader::diagnostics)), self.next.as_ref().map_or(0, Decoder::remaining),
-            out.map_or(0, |o| o.warnings), out.map_or(0, |o| o.qos),
-            out.map(|o| (o.position_clock.available, o.position_clock.raw, o.position_clock.offset))
+            output.map_or(0, |o| o.5), output.map(|o| o.6)
         ));
     }
 }
@@ -1477,6 +930,7 @@ impl Actor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use output::PositionClock;
     #[test]
     fn output_clock_reset_keeps_gapless_occurrence_time_advancing() {
         let mut clock = PositionClock::default();
@@ -1522,17 +976,6 @@ mod tests {
         assert_eq!(*crate::mutex_lock(&handle.volume), Some(0.9999));
     }
 
-    #[test]
-    fn dynamic_audio_pad_without_current_caps_is_linked() {
-        gst::init().unwrap();
-        let source_element = element("audiotestsrc").unwrap();
-        let target_element = element("audioconvert").unwrap();
-        let source = source_element.static_pad("src").unwrap();
-        let target = target_element.static_pad("sink").unwrap();
-        assert!(source.current_caps().is_none());
-        link_audio_pad(&source, &target);
-        assert!(target.is_linked());
-    }
     #[test]
     fn diagnostics_distinguish_stall_recovery_pause_and_heartbeat() {
         let mut monitor = ProgressDiagnostics::new();
@@ -1585,255 +1028,170 @@ mod tests {
             None
         );
     }
-    #[test]
-    fn recording_resumes_only_retained_play_intent_and_pause_cancels_resume() {
-        gst::init().unwrap();
-        let capture = Arc::new(Mutex::new(Vec::new()));
+    fn actor(sink: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Actor {
         let (events, _) = mpsc::channel();
-        let mut actor = Actor::new(
-            Sink::Capture,
+        Actor::new(
+            sink,
             Arc::new(Mutex::new(Snapshot::default())),
-            capture.clone(),
+            capture,
             events,
             http::SessionCloser::new().unwrap(),
-        );
-        let mut output = Output::new(Sink::Capture, capture.clone()).unwrap();
-        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
-        actor.output = Some(output);
+        )
+    }
+    fn output(sink: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Output {
+        Output::new(sink, capture, &mut None).unwrap()
+    }
+
+    #[test]
+    fn recording_resumes_only_retained_play_intent_and_pause_cancels_resume() {
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let mut actor = actor(Sink::Capture, capture.clone());
+        let mut out = output(Sink::Capture, capture.clone());
+        out.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        actor.output = Some(out);
         actor.control(Control::Recording(true)).unwrap();
         actor.control(Control::Recording(false)).unwrap();
         assert!(!actor.desired); // An already paused app must not start.
+        assert!(actor.output.as_ref().unwrap().corked());
+        assert!(capture.lock().unwrap().is_empty());
         actor.control(Control::Play).unwrap();
-        // Wait for actual sink delivery so the first block cannot accidentally
-        // provide preroll for the later recording-release transition.
-        let deadline = Instant::now() + Duration::from_secs(1);
-        while capture.lock().unwrap().len() < BLOCK * CHANNELS && Instant::now() < deadline {
-            thread::sleep(Duration::from_millis(1));
-        }
+        // The queued block reaches the sink once playback is allowed.
         assert_eq!(capture.lock().unwrap().len(), BLOCK * CHANNELS);
         actor.control(Control::Recording(true)).unwrap();
         assert!(actor.desired && actor.recording);
-        let output = actor.output.as_ref().unwrap();
-        output
-            .pipeline
-            .bus()
-            .unwrap()
-            .post(
-                gst::message::RequestState::builder(gst::State::Paused)
-                    .src(&output.pipeline)
-                    .build(),
-            )
-            .unwrap();
+        // A policy cork request during the hold must not erase the intent.
+        actor.output.as_mut().unwrap().injected.cork_requests = 1;
         actor.pump().unwrap();
-        assert_ne!(
-            actor.output.as_ref().unwrap().pipeline.pending_state(),
-            gst::State::Playing
-        );
-        // No decoder runs in this fixture. Supply the next PCM block while held
-        // so the non-live sink can finish PAUSED and later resume from preroll.
-        let output = actor.output.as_mut().unwrap();
-        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
-        let (result, current, _) = output.pipeline.state(gst::ClockTime::from_seconds(1));
-        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
-        assert_eq!(current, gst::State::Paused);
+        assert!(actor.desired);
+        let out = actor.output.as_mut().unwrap();
+        assert!(out.corked() && !out.playing());
+        // PCM supplied while held is retained, not rendered.
+        out.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
         assert_eq!(capture.lock().unwrap().len(), BLOCK * CHANNELS);
         actor.control(Control::Recording(false)).unwrap();
         assert!(actor.desired && !actor.recording);
-        let (result, current, _) = actor
-            .output
-            .as_ref()
-            .unwrap()
-            .pipeline
-            .state(gst::ClockTime::from_seconds(1));
-        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
-        assert_eq!(current, gst::State::Playing);
-        let deadline = Instant::now() + Duration::from_secs(1);
-        while capture.lock().unwrap().len() < 2 * BLOCK * CHANNELS && Instant::now() < deadline {
-            thread::sleep(Duration::from_millis(1));
-        }
+        assert!(actor.output.as_ref().unwrap().playing());
         assert_eq!(capture.lock().unwrap().len(), 2 * BLOCK * CHANNELS);
         actor.control(Control::Recording(true)).unwrap();
         actor.control(Control::Pause).unwrap(); // User or Bluetooth disconnect.
         actor.control(Control::Recording(false)).unwrap();
         assert!(!actor.desired && !actor.recording);
-        let output = actor.output.as_mut().unwrap();
-        // The initial block may have drained during resume. A non-live sink
-        // needs a fresh preroll buffer to complete PLAYING -> PAUSED; the real
-        // actor supplies PCM from its decoder, but this fixture has no decoder.
-        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
-        let (result, current, pending) = output.pipeline.state(gst::ClockTime::from_seconds(1));
-        assert_eq!(result.unwrap(), gst::StateChangeSuccess::Success);
-        assert_eq!(current, gst::State::Paused);
-        assert_ne!(pending, gst::State::Playing);
+        let out = actor.output.as_mut().unwrap();
+        out.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        assert!(out.corked() && !out.playing());
+        assert_eq!(capture.lock().unwrap().len(), 2 * BLOCK * CHANNELS);
     }
     #[test]
-    fn policy_pause_clears_intent_and_uncork_or_clock_loss_cannot_resume_it() {
-        gst::init().unwrap();
+    fn policy_cork_clears_intent_and_uncork_cannot_resume_it() {
         let capture = Arc::new(Mutex::new(Vec::new()));
-        let (events, _) = mpsc::channel();
-        let mut actor = Actor::new(
-            Sink::Fake,
-            Arc::new(Mutex::new(Snapshot::default())),
-            capture.clone(),
-            events,
-            http::SessionCloser::new().unwrap(),
-        );
-        let mut output = Output::new(Sink::Fake, capture).unwrap();
-        for _ in 0..(OUTPUT_MAX_BYTES as usize / (BLOCK * 8) + 2) {
-            output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        let mut actor = actor(Sink::Fake, capture.clone());
+        let mut out = output(Sink::Fake, capture);
+        for _ in 0..(OUTPUT_BACKPRESSURE_BYTES as usize / (BLOCK * 8) + 2) {
+            out.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
         }
-        assert!(output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES);
-        output.state(gst::State::Playing).unwrap();
-        let bus = output.pipeline.bus().unwrap();
-        bus.post(
-            gst::message::RequestState::builder(gst::State::Paused)
-                .src(&output.pipeline)
-                .build(),
-        )
-        .unwrap();
-        bus.post(
-            gst::message::RequestState::builder(gst::State::Playing)
-                .src(&output.pipeline)
-                .build(),
-        )
-        .unwrap();
-        bus.post(
-            gst::message::ClockLost::builder(&gst::SystemClock::obtain())
-                .src(&output.pipeline)
-                .build(),
-        )
-        .unwrap();
-        actor.output = Some(output);
+        out.set_playing(true).unwrap();
+        assert!(out.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES);
+        // A cork request followed by an uncork request (e.g. after a call).
+        out.injected.cork_requests = 1;
+        out.injected.uncork_requests = 1;
+        actor.output = Some(out);
         actor.desired = true;
         actor.pump().unwrap();
         assert!(!actor.desired);
-        let out = actor.output.as_ref().unwrap();
-        let (_, current, pending) = out.pipeline.state(gst::ClockTime::from_seconds(1));
-        assert_eq!(current, gst::State::Paused);
-        assert_ne!(pending, gst::State::Playing);
+        let out = actor.output.as_mut().unwrap();
+        assert!(out.corked() && !out.playing());
+        // A corked sink holds position: nothing is consumed.
+        let position = out.position();
+        thread::sleep(Duration::from_millis(30));
+        assert_eq!(out.position(), position);
+        actor.pump().unwrap();
+        assert!(!actor.desired && actor.output.as_ref().unwrap().corked());
         actor.control(Control::Play).unwrap();
-        assert!(actor.desired);
+        assert!(actor.desired && actor.output.as_ref().unwrap().playing());
     }
     #[test]
-    fn clock_loss_restarts_output_only_with_play_intent() {
-        gst::init().unwrap();
-        let mut output = Output::new(Sink::Fake, Arc::new(Mutex::new(Vec::new()))).unwrap();
-        output.state(gst::State::Paused).unwrap();
-        output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
-        for mut desired in [false, true] {
-            output
-                .pipeline
-                .bus()
-                .unwrap()
-                .post(
-                    gst::message::ClockLost::builder(&gst::SystemClock::obtain())
-                        .src(&output.pipeline)
-                        .build(),
-                )
-                .unwrap();
-            output.service(&mut desired).unwrap();
-            let (_, _, pending) = output.pipeline.state(gst::ClockTime::from_mseconds(100));
-            if desired {
-                assert!(
-                    output.pipeline.current_state() == gst::State::Playing
-                        || pending == gst::State::Playing
-                );
-            } else {
-                assert_ne!(output.pipeline.current_state(), gst::State::Playing);
-                assert_ne!(pending, gst::State::Playing);
-            }
-        }
-    }
-    #[test]
-    fn play_releases_a_paused_output_with_a_full_queue() {
-        gst::init().unwrap();
-        let state = Arc::new(Mutex::new(Snapshot::default()));
+    fn output_failure_reports_error_without_resuming() {
         let capture = Arc::new(Mutex::new(Vec::new()));
-        let (events, _) = mpsc::channel();
+        let (events, received) = mpsc::channel();
+        let state = Arc::new(Mutex::new(Snapshot::default()));
         let mut actor = Actor::new(
             Sink::Fake,
-            state,
+            state.clone(),
             capture.clone(),
             events,
             http::SessionCloser::new().unwrap(),
         );
-        let mut output = Output::new(Sink::Fake, capture).unwrap();
-        output.state(gst::State::Paused).unwrap();
+        let mut out = output(Sink::Fake, capture);
+        out.injected.failed = true;
+        actor.output = Some(out);
+        actor.desired = true;
+        let error = actor.pump().unwrap_err();
+        let Error::Input(message) = error else {
+            panic!("{error:?}")
+        };
+        actor.error(message);
+        assert!(!actor.desired && actor.output.is_none());
+        assert!(matches!(
+            received.try_recv(),
+            Ok(Event::Error {
+                message: "Audio output is unavailable",
+                ..
+            })
+        ));
+        assert_eq!(state.lock().unwrap().error, "Audio output is unavailable");
+    }
+    #[test]
+    fn play_releases_a_paused_output_with_a_full_queue() {
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let mut actor = actor(Sink::Fake, capture.clone());
+        let mut out = output(Sink::Fake, capture);
         // Pause with more PCM queued than pump's backpressure watermark.
-        for _ in 0..(OUTPUT_MAX_BYTES as usize / (BLOCK * 8) + 2) {
-            output.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
+        for _ in 0..(OUTPUT_BACKPRESSURE_BYTES as usize / (BLOCK * 8) + 2) {
+            out.push(&vec![0.; BLOCK * CHANNELS]).unwrap();
         }
-        assert!(output.source.current_level_bytes() > OUTPUT_BACKPRESSURE_BYTES);
-        actor.output = Some(output);
+        assert!(out.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES);
+        actor.output = Some(out);
         actor.control(Control::Play).unwrap();
-        let until = std::time::Instant::now() + Duration::from_secs(2);
-        while actor.output.as_ref().unwrap().pipeline.current_state() != gst::State::Playing {
-            assert!(
-                std::time::Instant::now() < until,
-                "Play left a full output paused"
-            );
+        let out = actor.output.as_mut().unwrap();
+        assert!(out.playing());
+        let until = Instant::now() + Duration::from_secs(2);
+        while out.queued_bytes() > OUTPUT_BACKPRESSURE_BYTES {
+            assert!(Instant::now() < until, "Play left a full output paused");
             thread::sleep(Duration::from_millis(5));
         }
     }
     #[test]
-    fn native_volume_policy_roles_are_platform_specific() {
-        gst::init().unwrap();
-        assert_eq!(
-            pulse_properties("ID=sailfishos\n")
-                .get::<String>("media.role")
-                .unwrap(),
-            "x-maemo"
-        );
-        assert_eq!(
-            pulse_properties("ID=gentoo\n")
-                .get::<String>("media.role")
-                .unwrap(),
-            "music"
-        );
+    fn simulated_sinks_account_frames_on_long_continuous_sessions() {
+        // ~106.7 hours of frames overflowed the old u64 nanosecond PTS.
+        let start = u64::MAX / 1_000_000_000 + 1;
+        let mut out = output(Sink::Fake, Arc::new(Mutex::new(Vec::new())));
+        out.frames = start;
+        let mut out_position = out.position();
+        assert_eq!(out_position, 0);
+        out.set_playing(true).unwrap();
+        out.push(&[0.; BLOCK * CHANNELS]).unwrap();
+        thread::sleep(Duration::from_millis(50));
+        out_position = out.position();
+        assert!(out_position > 0 && out_position <= start + BLOCK as u64);
+        let capture = Arc::new(Mutex::new(Vec::new()));
+        let mut out = output(Sink::Capture, capture.clone());
+        out.frames = start;
+        out.set_playing(true).unwrap();
+        out.push(&[0.25; BLOCK * CHANNELS]).unwrap();
+        assert_eq!(out.frames, start + BLOCK as u64);
+        assert_eq!(capture.lock().unwrap().len(), BLOCK * CHANNELS);
     }
     #[test]
-    fn framework_uri_never_contains_token() {
-        let (uri, token) =
-            safe_uri("https://fixture.invalid/audio?x=1&X-Plex-Token=fixture-secret").unwrap();
-        assert_eq!(token, "fixture-secret");
-        assert_eq!(uri, "https://fixture.invalid/audio?x=1");
-    }
-}
-
-#[cfg(test)]
-mod review_tests {
-    use super::*;
-
-    // BUG (Output::push, src/audio/mod.rs:732-736): the PTS is computed as
-    // `self.frames * 1_000_000_000` in u64, which overflows once one
-    // continuous output has carried u64::MAX / 1e9 frames (~106.7 hours at
-    // 48kHz, e.g. a radio session joined gaplessly for 4.5 days). Debug builds
-    // panic on the audio thread; release builds wrap the timestamp back near
-    // zero so the synchronized sink treats every later buffer as late.
-    // Output::position already uses u128 for the inverse conversion.
-    #[test]
-    fn output_timestamps_do_not_overflow_on_long_continuous_sessions() {
-        gst::init().unwrap();
-        let mut output = Output::new(Sink::Capture, Arc::new(Mutex::new(Vec::new()))).unwrap();
-        let (sent, received) = mpsc::channel();
-        output.source.static_pad("src").unwrap().add_probe(
-            gst::PadProbeType::BUFFER,
-            move |_, info| {
-                if let Some(gst::PadProbeData::Buffer(buffer)) = &info.data {
-                    let _ = sent.send(buffer.pts());
-                }
-                gst::PadProbeReturn::Ok
-            },
-        );
-        output.frames = u64::MAX / 1_000_000_000 + 1;
-        let expected = (u128::from(output.frames) * 1_000_000_000 / u128::from(RATE)) as u64;
-        output.state(gst::State::Playing).unwrap();
-        let pushed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            output.push(&[0.; BLOCK * CHANNELS])
-        }));
-        assert!(pushed.is_ok(), "PTS computation overflowed");
-        pushed.unwrap().unwrap();
-        let pts = received.recv_timeout(Duration::from_secs(2)).unwrap();
-        assert_eq!(pts, Some(gst::ClockTime::from_nseconds(expected)));
+    fn finished_simulated_output_reports_eof_after_playing_out() {
+        let mut out = output(Sink::Fake, Arc::new(Mutex::new(Vec::new())));
+        out.set_playing(true).unwrap();
+        out.push(&vec![0.; RATE as usize / 20 * CHANNELS]).unwrap();
+        out.finish().unwrap();
+        out.service(&mut true).unwrap();
+        assert!(!out.eof, "queued frames are not yet audible");
+        thread::sleep(Duration::from_millis(80));
+        out.service(&mut true).unwrap();
+        assert!(out.eof);
+        assert_eq!(out.position(), out.frames);
     }
 }

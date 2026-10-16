@@ -913,7 +913,7 @@ ApplicationWindow {
                         tokenSeen = request.toLower().contains("x-plex-token: test-token");
                         body = R"({"MediaContainer":{"Directory":[{"key":"1","title":"Local fixture","type":"artist"}]}})";
                     } else if (path == "/library/sections/1/all") {
-                        body = R"({"MediaContainer":{"size":2,"totalSize":2,"Metadata":[{"ratingKey":"1","key":"/library/metadata/1","title":"First","type":"track","duration":10000,"Media":[{"Part":[{"key":"/library/parts/1/silence.wav"}]}]},{"ratingKey":"2","key":"/library/metadata/2","title":"Second","type":"track","duration":10000,"Media":[{"Part":[{"key":"/library/parts/2/silence.wav"}]}]}]}})";
+                        body = R"({"MediaContainer":{"size":2,"totalSize":2,"Metadata":[{"ratingKey":"1","key":"/library/metadata/1","title":"First","type":"track","duration":10000,"Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/1/silence.wav"}]}]},{"ratingKey":"2","key":"/library/metadata/2","title":"Second","type":"track","duration":10000,"Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/2/silence.wav"}]}]}]}})";
                     } else if (path.startsWith("/library/parts/")) {
                         body = wave; contentType = "audio/wav";
                         extraHeaders = "Accept-Ranges: bytes\r\n";

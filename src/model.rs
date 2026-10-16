@@ -217,6 +217,15 @@ fn lenient_integer<T: TryFrom<i128>>(value: &serde_json::Value) -> Option<T> {
     T::try_from(wide).ok()
 }
 
+/// Lowercased text from a JSON string; any other JSON type (or null) is
+/// treated as absent rather than invalidating the surrounding media.
+fn lenient_text<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    Ok(match serde_json::Value::deserialize(deserializer)? {
+        serde_json::Value::String(text) => text.trim().to_ascii_lowercase(),
+        _ => String::new(),
+    })
+}
+
 fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -300,6 +309,10 @@ fn optional_gain<'de, D: serde::Deserializer<'de>>(
 pub struct Media {
     #[serde(deserialize_with = "null_default")]
     pub audio_codec: String,
+    /// Plex `Media.container` (e.g. "mp3", "flac", "mp4", "ogg"). Older or
+    /// partial payloads may omit it or use another JSON type.
+    #[serde(deserialize_with = "lenient_text")]
+    pub container: String,
     #[serde(deserialize_with = "lenient")]
     pub bitrate: u32,
     #[serde(rename = "Part", deserialize_with = "lenient_vec")]

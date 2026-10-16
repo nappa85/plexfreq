@@ -204,10 +204,6 @@
       <translation>ఫోటోలు · పరిమితి · పరిమాణం</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>ఆడియో · కేటాయింపు · విఫలమైంది</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>ఆడియో · కాష్ · ప్రస్తుత · వాడినది · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>ఆడియో · వరుస · అందుబాటులో లేదు</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>ఆడియో · డీకోడర్ · ప్రారంభీకరణ · విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>ఆడియో · పరిమితి · కాష్</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>ఆడియో · ప్రారంభీకరణ · విఫలమైంది</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>ఆడియో · అవుట్‌పుట్ · సృష్టించు · విఫలమైంది</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>ఆడియో · అవుట్‌పుట్ · విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>ఆడియో · అవుట్‌పుట్ · అందుబాటులో లేదు</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>ఆడియో · సృష్టించు · విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>చెల్లనిది · గుర్తింపు</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>చెల్లనిది · డీకోడర్ · ఆడియో</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>చెల్లనిది · వెతుకు</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>రేడియో · మిశ్రమం · అందుబాటులో లేదు</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>ఆడియో · ప్లగిన్‌లు · అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

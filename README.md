@@ -18,7 +18,8 @@ committed core/application/package versions. See `.github/workflows` and
 Playback runs in Rust-owned workers rather than C++ QThread/QMediaPlayer. Rust owns
 Plex/media HTTP, queue policy, PCM timing, transport/heard time, ten-band EQ,
 optional Plex loudness gain, prepared-track gapless joins and equal-power crossfade.
-Installed GStreamer codecs/resampling and PulseAudio provide native decoding/output.
+Built-in pure-Rust decoders (Symphonia: MP3, FLAC, AAC/ALAC in MP4, Ogg Vorbis, WAV)
+and resampling feed a PulseAudio stream; other formats are transcoded by Plex.
 C++ is a Qt model/properties/translation bridge; Rust also owns MPRIS/network facts.
 
 Open **Audio settings** from Connection/settings for crossfade (off by default),
@@ -83,7 +84,7 @@ tar -xzf plexfreq-<version>-linux-amd64.tar.gz
 ```
 
 The CI binary is built on Ubuntu 24.04 (Qt 6.4.2, glibc 2.39) and uses compatible
-host Qt6/QML, GLib/GIO, GStreamer codecs and libpulse libraries/plugins. Audio uses
+host Qt6/QML libraries/plugins and libpulse (decoders are built in). Audio uses
 PulseAudio or PipeWire's PulseAudio service. This is a plain development archive,
 not a bundled runtime; it can run on Gentoo with these dependencies available.
 See the included `share/doc/plexfreq/README.md` for runtime requirements.
@@ -91,10 +92,10 @@ See the included `share/doc/plexfreq/README.md` for runtime requirements.
 ### Building from source
 
 Requires Rust stable, CMake, a C++ compiler and Qt **6.2+** Core, Gui, Qml, Quick,
-QuickControls2 and DBus development/runtime modules, GStreamer core/base development
-packages, installed audio codecs and PulseAudio. Local FLAC fixtures also require
-the GStreamer Good plug-ins. This host has Qt 6.11.
-MP3/AAC fixtures additionally use LAME, FFmpeg and GStreamer libav. The Bluetooth
+QuickControls2 and DBus development/runtime modules and libpulse development files
+(a running PulseAudio or PipeWire-pulse server for playback). This host has Qt 6.11.
+Codec fixtures are generated with FFmpeg (FLAC/ALAC/AAC/Vorbis/Opus/PCM) and LAME
+(MP3). The Bluetooth
 signal test runs an isolated dbus-daemon, not the host Bluetooth service.
 Local checks also use Qt Test, Network and `dbus-run-session` for an isolated bus.
 Distribution package names vary. The same source builds on Linux distributions

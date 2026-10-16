@@ -204,10 +204,6 @@
       <translation>Fotogrāfijas · Ierobežojums · Izmērs</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Audio · Piešķiršana · Neizdevās</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Audio · Kešatmiņa · Pašreizējais · Izmantots · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Audio · Rinda · Nav pieejams</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Audio · Dekodētājs · Inicializācija · Neizdevās</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Audio · Ierobežojums · Kešatmiņa</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Audio · Inicializācija · Neizdevās</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Audio · Izvade · Izveidot · Neizdevās</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Audio · Izvade · Neizdevās</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Audio · Izvade · Nav pieejams</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Audio · Izveidot · Neizdevās</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Nederīgs · Identifikators</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Nederīgs · Dekodētājs · Audio</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Nederīgs · Meklēt</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Mikss · Nav pieejams</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Audio · Spraudņi · Nav pieejams</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

@@ -204,10 +204,6 @@
       <translation>Ảnh · Giới hạn · Kích thước</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Âm thanh · Cấp phát · Thất bại</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Âm thanh · Bộ nhớ đệm · Hiện tại · Đã dùng · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Âm thanh · Hàng đợi · Không khả dụng</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Âm thanh · Bộ giải mã · Khởi tạo · Thất bại</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Âm thanh · Giới hạn · Bộ nhớ đệm</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Âm thanh · Khởi tạo · Thất bại</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Âm thanh · Đầu ra · Tạo · Thất bại</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Âm thanh · Đầu ra · Thất bại</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Âm thanh · Đầu ra · Không khả dụng</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Âm thanh · Tạo · Thất bại</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Không hợp lệ · Định danh</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Không hợp lệ · Bộ giải mã · Âm thanh</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Không hợp lệ · Tìm kiếm</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Bản phối · Không khả dụng</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Âm thanh · Phần bổ trợ · Không khả dụng</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

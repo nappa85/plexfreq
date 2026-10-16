@@ -204,10 +204,6 @@
       <translation>Kuvat · Raja · Koko</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Ääni · Varaus · Epäonnistui</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Ääni · Välimuisti · Nykyinen · Käytetty · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Ääni · Jono · Ei saatavilla</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Ääni · Dekooderi · Alustus · Epäonnistui</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Ääni · Raja · Välimuisti</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Ääni · Alustus · Epäonnistui</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Ääni · Ulostulo · Luo · Epäonnistui</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Ääni · Ulostulo · Epäonnistui</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Ääni · Ulostulo · Ei saatavilla</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Ääni · Luo · Epäonnistui</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Virheellinen · Tunniste</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Virheellinen · Dekooderi · Ääni</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Virheellinen · Haku</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Miksaus · Ei saatavilla</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Ääni · Liitännäiset · Ei saatavilla</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

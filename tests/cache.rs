@@ -19,6 +19,8 @@ fn item(id: &str) -> Item {
         title: "Fixture audio".into(),
         duration: 10000,
         media: vec![Media {
+            audio_codec: "pcm".into(),
+            container: "wav".into(),
             parts: vec![Part {
                 key: format!("/library/parts/{id}/file.wav"),
                 size: None,

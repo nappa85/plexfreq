@@ -835,7 +835,7 @@ impl Core {
         let kbps = self.settings.quality.streaming(self.network_wifi);
         let transcode = force_transcode
             || kbps > 0
-            || (self.settings.quality.codec_fallback && !quality::codec_supported(&track));
+            || (self.settings.quality.codec_fallback && !audio::formats::item_supported(&track));
         let stream = if transcode {
             let mut url = quality::transcode_url(
                 &self.base()?,

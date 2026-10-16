@@ -1,5 +1,5 @@
 //! Progressive music transcoding; credentials remain HTTP headers at the reader.
-use crate::{model::Item, plex::server_path, Error, Result};
+use crate::{plex::server_path, Error, Result};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -111,28 +111,6 @@ pub(crate) fn with_offset(uri: &str, milliseconds: u64) -> Result<(String, bool)
     }
     Ok((url.into(), transcode))
 }
-pub(crate) fn codec_supported(item: &Item) -> bool {
-    // Unknown codec is tried directly; decode failure has one bounded fallback.
-    item.media.first().is_none_or(|m| {
-        m.audio_codec.is_empty()
-            || [
-                "mp3",
-                "flac",
-                "aac",
-                "alac",
-                "pcm",
-                "pcm_s16le",
-                "pcm_s24le",
-                "pcm_s32le",
-                "vorbis",
-                "opus",
-                "wma",
-                "wmav2",
-            ]
-            .contains(&m.audio_codec.as_str())
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

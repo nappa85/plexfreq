@@ -204,10 +204,6 @@
       <translation>Photos · Limite · Taille</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Audio · Allocation · Échec</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Audio · Cache · Actuel · Utilisé · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Audio · File d’attente · Indisponible</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Audio · Décodeur · Initialisation · Échec</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Audio · Limite · Cache</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Audio · Initialisation · Échec</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Audio · Sortie · Créer · Échec</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Audio · Sortie · Échec</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Audio · Sortie · Indisponible</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Audio · Créer · Échec</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Non valide · Identifiant</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Non valide · Décodeur · Audio</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Non valide · Rechercher</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Mix · Indisponible</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Audio · Extensions · Indisponible</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

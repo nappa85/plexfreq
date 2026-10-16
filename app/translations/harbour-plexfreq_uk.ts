@@ -204,10 +204,6 @@
       <translation>Фотографії · Обмеження · Розмір</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Звук · Виділення пам’яті · Помилка</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Звук · Кеш · Поточний · Використано · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Звук · Черга · Недоступно</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Звук · Декодер · Ініціалізація · Помилка</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Звук · Обмеження · Кеш</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Звук · Ініціалізація · Помилка</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Звук · Виведення · Створити · Помилка</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Звук · Виведення · Помилка</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Звук · Виведення · Недоступно</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Звук · Створити · Помилка</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Некоректно · Ідентифікатор</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Некоректно · Декодер · Звук</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Некоректно · Пошук</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Радіо · Мікс · Недоступно</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Звук · Модулі · Недоступно</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

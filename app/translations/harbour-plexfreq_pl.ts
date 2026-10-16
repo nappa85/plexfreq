@@ -204,10 +204,6 @@
       <translation>Zdjęcia · Limit · Rozmiar</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Dźwięk · Przydział · Niepowodzenie</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Dźwięk · Pamięć podręczna · Bieżący · Użyte · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Dźwięk · Kolejka · Niedostępne</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Dźwięk · Dekoder · Inicjalizacja · Niepowodzenie</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Dźwięk · Limit · Pamięć podręczna</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Dźwięk · Inicjalizacja · Niepowodzenie</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Dźwięk · Wyjście · Utwórz · Niepowodzenie</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Dźwięk · Wyjście · Niepowodzenie</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Dźwięk · Wyjście · Niedostępne</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Dźwięk · Utwórz · Niepowodzenie</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Nieprawidłowe · Identyfikator</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Nieprawidłowe · Dekoder · Dźwięk</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Nieprawidłowe · Szukaj</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Miks · Niedostępne</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Dźwięk · Wtyczki · Niedostępne</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

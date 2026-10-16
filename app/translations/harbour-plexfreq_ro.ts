@@ -204,10 +204,6 @@
       <translation>Fotografii · Limită · Dimensiune</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Audio · Alocare · Eșec</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Audio · Cache · Curent · Utilizat · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Audio · Coadă · Indisponibil</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Audio · Decodor · Inițializare · Eșec</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Audio · Limită · Cache</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Audio · Inițializare · Eșec</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Audio · Ieșire · Creează · Eșec</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Audio · Ieșire · Eșec</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Audio · Ieșire · Indisponibil</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Audio · Creează · Eșec</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Nevalid · Identificator</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Nevalid · Decodor · Audio</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Nevalid · Căutare</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Mix · Indisponibil</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Audio · Extensii · Indisponibil</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

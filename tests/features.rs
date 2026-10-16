@@ -293,7 +293,7 @@ fn cover_album_artwork_prefers_album_thumb_and_confines_its_origin() {
 }
 
 fn song(key: &str) -> plexfreq_core::model::Item {
-    serde_json::from_value(json!({"ratingKey":key,"type":"track","title":"Fixture song","duration":10000,"Media":[{"Part":[{"key":format!("/library/parts/{key}.wav")}]}]})).unwrap()
+    serde_json::from_value(json!({"ratingKey":key,"type":"track","title":"Fixture song","duration":10000,"Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":format!("/library/parts/{key}.wav")}]}]})).unwrap()
 }
 fn playlist_edit(
     action: &str,
@@ -827,7 +827,7 @@ fn pinned_album_plan_survives_restart_and_unpin_releases_it() {
         }
         assert!(request.starts_with("GET /library/metadata/2/children?"));
         response(
-            json!({"MediaContainer":{"size":1,"totalSize":1,"Metadata":[{"ratingKey":"3","type":"track","title":"Fixture","Media":[{"Part":[{"key":"/library/parts/3"}]}]}]}}),
+            json!({"MediaContainer":{"size":1,"totalSize":1,"Metadata":[{"ratingKey":"3","type":"track","title":"Fixture","Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/3"}]}]}]}}),
         )
     });
     let dir = tempfile::tempdir().unwrap();

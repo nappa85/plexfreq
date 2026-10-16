@@ -1,5 +1,52 @@
 # Research log
 
+## GStreamer removal: Symphonia + rubato + libpulse — 2026-10-16
+
+- Harbour validation (2026-10-15) rejected only libgstreamer/libgstbase/libgstapp;
+  libpulse passed. `gio-2.0`/GLib were linked solely for gstreamer-rs; nothing else
+  in Rust or C++ uses them, so they were dropped with it.
+- Symphonia 0.6.1 (crate source read locally): pure Rust, `#![forbid(unsafe_code)]`
+  facade; enabled features flac, mp3, aac, alac, isomp4, ogg, vorbis, wav, pcm with
+  default features off (no MKV/ADPCM, no opt-simd/rustfft). Its own table marks ISO/MP4
+  and AAC-LC as not gapless: `symphonia-format-isomp4` parses `elst` but never applies
+  it ("Since edits are not currently supported"), and the AAC decoder ignores packet
+  trims. MP3 (LAME/Xing delay+529/padding) and Vorbis apply trims in the decoder.
+  No Opus or WMA decoder exists (only a libopus adapter crate, not pure Rust).
+  Packet semantics: `dur` excludes delay/padding; `dur + trim_start + trim_end` is
+  the decoded block. The engine therefore applies trims only when the decoder did
+  not, caps a block at its packet duration and adds its own MP4 iTunSMPB/edit-list
+  parser fed by a passive tap on the demuxer's reads (no extra HTTP requests).
+- rubato 5.0.1 (README and `Async`/`Indexing` source): the FFT resampler is fastest
+  but pulls realfft/rustfft; `Async::new_sinc` with FixedAsync::Input needs no FFT,
+  takes a fixed ratio and allows per-chunk processing with known `output_delay`.
+  Chosen: 128-tap sinc, 256× oversampling, linear interpolation, Blackman-Harris²
+  (≈25 M MAC/s for 44.1→48 kHz stereo). Edge frames are held instead of zero padding
+  so DC/near-edge content has no filter ramp; output length is exactly round(n×ratio).
+- libpulse: kept raw `libpulse-sys` (already a dependency, existing reviewed FFI
+  patterns in `runtime/pulse.rs`) instead of adding libpulse-binding (2.30.1) plus
+  its mainloop crates; the playback surface is ~15 functions. libpulse-simple was not
+  used: it lacks cork events, timing interpolation and request-cork notifications,
+  and would add another shared library to the Harbour allow-list question.
+  Installed PulseAudio 17.0 headers (`/usr/include/pulse/stream.h`, `def.h`) confirm:
+  prebuf=(uint32_t)-1 equals tlength; an underrun re-enables prebuffering (the read
+  index never overtakes written data with prebuf>0); `pa_stream_get_time` returns
+  played time and interpolates with INTERPOLATE_TIMING + AUTO_TIMING_UPDATE; drain
+  completes when the buffer has played. freedesktop.org doxygen returned HTTP 403.
+- pulsesink parity: same context name (PlexFreq), stream properties (media.role
+  x-maemo on Sailfish / music elsewhere, media.name, application.name; added
+  application.id=harbour-plexfreq; stream-restore keys by role first), 300 ms target
+  buffer / 20 ms request size, START_CORKED + ADJUST_LATENCY, request-cork → pause
+  without resuming on request-uncork. Desktop check: the sink input showed
+  float32le 2ch 48000 Hz, `module-stream-restore.id = sink-input-by-media-role:music`,
+  Corked yes while paused, and no stream remained after exit.
+- Plex `Media.container` is now parsed (lenient string). A (container, audioCodec)
+  table generated from the compiled decoders replaces the hard-coded list; unknown or
+  empty values transcode (previously tried directly). Original-quality downloads of
+  undecodable formats become 320 kbps server MP3 transcodes.
+- Not established here: phone CPU/battery cost of decoding+resampling, Sailfish
+  policy/routing (x-maemo mainvolume, calls, Bluetooth) with the new libpulse
+  stream, and Sailjail permission behaviour; these need the installed RPM.
+
 ## Car reconnect / stale occurrence and silence — 2026-10-15
 
 - Read-only SSH recovered the installed 0.1.3-2 log. At 08:38:37 Bluetooth
@@ -2124,3 +2171,7 @@ replaced in this iteration.
 - tokio `Handle::block_on` on a current-thread runtime needs another thread to be
   inside `Runtime::block_on` to drive I/O. reqwest `RequestBuilder::header` appends
   while `headers` replaces.
+- zbus 4 `MessageStream` is `Clone`, and each clone is an independent
+  `async_broadcast` receiver. Every clone must be polled: an idle clone fills its
+  queue (64 by default) and blocks the connection's socket reader, stalling all
+  method replies on that connection.

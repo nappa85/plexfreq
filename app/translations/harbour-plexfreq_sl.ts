@@ -204,10 +204,6 @@
       <translation>Fotografije · Omejitev · Velikost</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Zvok · Dodelitev · Neuspešno</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Zvok · Predpomnilnik · Trenutno · Uporabljeno · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Zvok · Čakalna vrsta · Ni na voljo</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Zvok · Dekodirnik · Inicializacija · Neuspešno</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Zvok · Omejitev · Predpomnilnik</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Zvok · Inicializacija · Neuspešno</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Zvok · Izhod · Ustvari · Neuspešno</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Zvok · Izhod · Neuspešno</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Zvok · Izhod · Ni na voljo</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Zvok · Ustvari · Neuspešno</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Neveljavno · Identifikator</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Neveljavno · Dekodirnik · Zvok</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Neveljavno · Iskanje</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Miks · Ni na voljo</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Zvok · Vtičniki · Ni na voljo</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

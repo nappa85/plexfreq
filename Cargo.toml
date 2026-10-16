@@ -22,8 +22,8 @@ tokio = { version = "1", features = ["rt", "time", "sync", "macros"] }
 fs2 = "0.4"
 libc = "0.2"
 futures-util = "0.3"
-gstreamer = { version = "0.23", features = ["v1_20"] }
-gstreamer-app = { version = "0.23", features = ["v1_20"] }
+symphonia = { version = "0.6.1", default-features = false, features = ["flac", "mp3", "aac", "alac", "isomp4", "ogg", "vorbis", "wav", "pcm"] }
+rubato = { version = "5.0.1", default-features = false }
 zbus = { version = "4", default-features = false, features = ["tokio", "blocking"] }
 libpulse-sys = { version = "1.23", default-features = false, features = ["pa_v12"] }
 

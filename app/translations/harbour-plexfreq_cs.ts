@@ -204,10 +204,6 @@
       <translation>Fotografie · Limit · Velikost</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Zvuk · Přidělení · Selhání</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Zvuk · Mezipaměť · Aktuální · Použito · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Zvuk · Fronta · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Zvuk · Dekodér · Inicializace · Selhání</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Zvuk · Limit · Mezipaměť</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Zvuk · Inicializace · Selhání</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Zvuk · Výstup · Vytvořit · Selhání</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Zvuk · Výstup · Selhání</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Zvuk · Výstup · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Zvuk · Vytvořit · Selhání</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Neplatné · Identifikátor</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Neplatné · Dekodér · Zvuk</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Neplatné · Hledat</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Rádio · Mix · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Zvuk · Zásuvné moduly · Nedostupné</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

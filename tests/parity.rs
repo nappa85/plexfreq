@@ -76,7 +76,7 @@ fn call(core: &mut Core, input: Value) -> plexfreq_core::Result<Value> {
     core.execute(serde_json::from_value::<Command>(input)?)
 }
 fn track(id: &str) -> Value {
-    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"parentRatingKey":"20","parentTitle":"Offline album","grandparentRatingKey":"10","grandparentTitle":"Offline artist","Media":[{"audioCodec":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
+    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"parentRatingKey":"20","parentTitle":"Offline album","grandparentRatingKey":"10","grandparentTitle":"Offline artist","Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
 }
 fn connect(core: &mut Core, server: &Server) {
     call(
@@ -982,4 +982,105 @@ fn filter_choices_use_advertised_same_section_endpoints_and_canonical_scopes() {
     .unwrap();
     assert_eq!(choices["filterChoices"][0]["key"], "7");
     assert_eq!(call(&mut core,json!({"op":"filtered_browse","section":"1","kind":"track","sort":"title","filters":{"genre":"7"},"start":0})).unwrap()["items"][0]["ratingKey"],"1");
+}
+
+fn track_with(id: &str, container: Value, codec: Value) -> Value {
+    let mut item = track(id);
+    item["Media"][0]["container"] = container;
+    item["Media"][0]["audioCodec"] = codec;
+    item
+}
+
+#[test]
+fn undecodable_or_unknown_formats_stream_as_transcodes_at_original_quality() {
+    let server = Server::new(|_| empty());
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    for (container, codec, transcoded) in [
+        (json!("flac"), json!("flac"), false),
+        (json!("mp4"), json!("alac"), false),
+        (json!("ogg"), json!("vorbis"), false),
+        (json!("ogg"), json!("opus"), true),
+        (json!("asf"), json!("wmav2"), true),
+        (json!(""), json!("flac"), true),
+        (json!("flac"), json!(""), true),
+        (Value::Null, json!("mp3"), true),
+        // A non-string container is treated as unknown, not a parse error.
+        (json!(7), json!("mp3"), true),
+    ] {
+        let plan = call(
+            &mut core,
+            json!({"op":"play","items":[track_with("1", container.clone(), codec.clone())],"index":0}),
+        )
+        .unwrap();
+        let uri = url::Url::parse(plan["stream"].as_str().unwrap()).unwrap();
+        if transcoded {
+            assert_eq!(plan["playbackSource"], "transcode", "{container}/{codec}");
+            assert_eq!(uri.path(), "/music/:/transcode/universal/start.m3u8");
+            let params: std::collections::BTreeMap<_, _> = uri.query_pairs().into_owned().collect();
+            assert_eq!(params["musicBitrate"], "192");
+            assert_eq!(plan["streamKbps"], 192);
+        } else {
+            assert_eq!(plan["playbackSource"], "stream", "{container}/{codec}");
+            assert!(uri.path().starts_with("/library/parts/1/"));
+        }
+    }
+}
+
+#[test]
+fn original_quality_download_of_an_undecodable_format_is_a_transcoded_mp3() {
+    let stopped = Arc::new(AtomicBool::new(false));
+    let originals = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let (flag, count) = (stopped.clone(), originals.clone());
+    let server = Server::bytes(move |r| {
+        if r.starts_with("GET /music/:/transcode/universal/start.m3u8?") {
+            assert!(r.contains("path=%2Flibrary%2Fmetadata%2F2"));
+            assert!(r.contains("musicBitrate=320"));
+            return ("audio/mpeg", b"transcoded-fixture".to_vec());
+        }
+        if r.starts_with("GET /video/:/transcode/universal/stop?") {
+            flag.store(true, Ordering::SeqCst);
+            return ("text/plain", Vec::new());
+        }
+        if r.contains("/library/parts/") {
+            count.fetch_add(1, Ordering::SeqCst);
+            assert!(r.contains("/library/parts/1/"), "{r}");
+            return ("audio/flac", b"original-fixture".to_vec());
+        }
+        ("application/json", empty().to_string().into_bytes())
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    call(
+        &mut core,
+        json!({"op":"download_policy","wifi_only":false,"paused":false}),
+    )
+    .unwrap();
+    let opus = track_with("2", json!("ogg"), json!("opus"));
+    call(
+        &mut core,
+        json!({"op":"cache_tracks","items":[track("1"), opus.clone()]}),
+    )
+    .unwrap();
+    let until = std::time::Instant::now() + Duration::from_secs(5);
+    while call(&mut core, json!({"op":"cache_status"})).unwrap()["cache"]["tracks"] != 2
+        || !stopped.load(Ordering::SeqCst)
+    {
+        assert!(std::time::Instant::now() < until);
+        thread::sleep(Duration::from_millis(5));
+    }
+    // The decodable FLAC stays an original download.
+    assert_eq!(originals.load(Ordering::SeqCst), 1);
+    call(&mut core, json!({"op":"offline_mode","enabled":true})).unwrap();
+    drop(server);
+    let play = call(&mut core, json!({"op":"play","items":[opus],"index":0})).unwrap();
+    assert_eq!(play["playbackSource"], "cache");
+    let file = url::Url::parse(play["stream"].as_str().unwrap())
+        .unwrap()
+        .to_file_path()
+        .unwrap();
+    assert_eq!(file.extension().unwrap(), "mp3");
+    assert_eq!(std::fs::read(file).unwrap(), b"transcoded-fixture");
 }

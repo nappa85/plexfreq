@@ -204,10 +204,6 @@
       <translation>Фотолар · Чик · Күләм</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Тавыш · Аеру · Уңышсыз</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Тавыш · Кэш · Хәзерге · Кулланылган · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Тавыш · Чират · Мөмкин түгел</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Тавыш · Декодер · Башлау · Уңышсыз</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Тавыш · Чик · Кэш</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Тавыш · Башлау · Уңышсыз</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Тавыш · Чыгыш · Булдыру · Уңышсыз</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Тавыш · Чыгыш · Уңышсыз</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Тавыш · Чыгыш · Мөмкин түгел</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Тавыш · Булдыру · Уңышсыз</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Дөрес түгел · Идентификатор</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Дөрес түгел · Декодер · Тавыш</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Дөрес түгел · Эзләү</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Радио · Катнашма · Мөмкин түгел</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Тавыш · Өстәмәләр · Мөмкин түгел</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

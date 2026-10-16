@@ -204,10 +204,6 @@
       <translation>Nuotraukos · Riba · Dydis</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Garsas · Paskirstymas · Nepavyko</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Garsas · Podėlis · Dabartinis · Panaudota · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Garsas · Eilė · Nepasiekiama</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Garsas · Dekoderis · Inicijavimas · Nepavyko</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Garsas · Riba · Podėlis</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Garsas · Inicijavimas · Nepavyko</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Garsas · Išvestis · Sukurti · Nepavyko</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Garsas · Išvestis · Nepavyko</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Garsas · Išvestis · Nepasiekiama</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Garsas · Sukurti · Nepavyko</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Neteisinga · Identifikatorius</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Neteisinga · Dekoderis · Garsas</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Neteisinga · Paieška</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radijas · Mišinys · Nepasiekiama</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Garsas · Papildiniai · Nepasiekiama</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

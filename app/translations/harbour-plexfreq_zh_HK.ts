@@ -204,10 +204,6 @@
       <translation>相片 · 限制 · 大小</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>音訊 · 配置 · 失敗</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>音訊 · 快取 · 目前 · 已使用 · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>音訊 · 佇列 · 未能使用</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>音訊 · 解碼器 · 初始化 · 失敗</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>音訊 · 限制 · 快取</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>音訊 · 初始化 · 失敗</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>音訊 · 輸出 · 建立 · 失敗</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>音訊 · 輸出 · 失敗</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>音訊 · 輸出 · 未能使用</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>音訊 · 建立 · 失敗</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>無效 · 識別碼</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>無效 · 解碼器 · 音訊</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>無效 · 搜尋</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>電台 · 混合播放 · 未能使用</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>音訊 · 外掛程式 · 未能使用</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

@@ -1,14 +1,17 @@
-//! Authenticated, redirect-confined HTTP byte transport. No credentials enter Gst URIs.
-use gstreamer as gst;
-use gstreamer_app as app;
+//! Authenticated, redirect-confined HTTP byte transport. The decoder thread
+//! reads through [`Source`], a blocking `Read + Seek` view of a bounded byte
+//! window filled by an async task on the shared runtime. Credentials stay in
+//! request headers; the decoder never sees a URL.
 use std::{
+    collections::VecDeque,
+    io,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
-        mpsc, Arc,
+        mpsc, Arc, Condvar, Mutex,
     },
     time::Duration,
 };
-use tokio::sync::watch;
+use tokio::sync::{watch, Notify};
 
 /// Consecutive failed attempts allowed before any byte reached the decoder, or
 /// for a response that cannot make progress (1s/2s/4s backoff). Exhausting
@@ -17,6 +20,14 @@ const UNPROVEN_RETRIES: u32 = 3;
 /// How long dropping the last closer waits for queued stop requests before
 /// leaving them to the detached worker; shutdown must not wait on the network.
 const CLOSE_GRACE: Duration = Duration::from_millis(250);
+/// Undecoded bytes buffered ahead of the decoder (many seconds of audio), so
+/// scheduling jitter on the shared I/O thread cannot starve decoding.
+const CAPACITY: usize = 4 * 1024 * 1024;
+/// A forward seek this close to the buffered end waits for the bytes already
+/// in flight instead of opening a new ranged request.
+const FORWARD_WAIT: u64 = 64 * 1024;
+/// Upper bound of one blocking wait before cancellation is re-checked.
+const WAIT_SLICE: Duration = Duration::from_millis(100);
 
 #[derive(Clone)]
 pub(super) struct SessionCloser(Arc<CloseWorker>);
@@ -190,7 +201,7 @@ impl Representation {
 enum Attempt {
     /// A decoder seek or stop superseded the request.
     Superseded,
-    /// The representation was delivered completely and EOS queued.
+    /// The representation was delivered completely and EOF recorded.
     Complete,
     /// The transfer failed before completion; retry from `offset`.
     /// `stalled` marks a response that cannot make progress by retrying.
@@ -199,20 +210,49 @@ enum Attempt {
         delivered: u64,
         stalled: bool,
     },
-    /// A non-retryable failure reported on the decoder bus.
+    /// A non-retryable failure reported to the decoder.
     Failed(&'static str),
-    /// The appsrc no longer accepts data (decoder teardown).
+    /// The decoder no longer reads (teardown).
     Closed,
 }
 
-/// The reader worker: the only producer of `output`'s bytes.
+/// The byte window shared by the network task (producer) and the decoder
+/// thread (consumer). `generation` changes on every reposition, so bytes of a
+/// superseded request can never be appended after a seek.
+struct Window {
+    generation: u64,
+    /// Absolute offset of `data[0]`.
+    start: u64,
+    data: VecDeque<u8>,
+    eof: bool,
+    error: Option<&'static str>,
+    closed: bool,
+    total: Option<u64>,
+}
+struct Buffer {
+    window: Mutex<Window>,
+    /// Signalled to the decoder thread on data, EOF, error or close.
+    readable: Condvar,
+    /// Signalled to the network task when the decoder consumed bytes.
+    room: Notify,
+}
+impl Buffer {
+    fn lock(&self) -> std::sync::MutexGuard<'_, Window> {
+        crate::mutex_lock(&self.window)
+    }
+}
+
+/// Requested (offset, generation); `None` is terminal cancellation.
+type Request = Option<(u64, u64)>;
+
+/// The reader worker: the only producer of the window's bytes.
 struct Stream {
     client: reqwest::Client,
     uri: String,
     token: String,
     progressive: bool,
-    output: app::AppSrc,
-    changed: watch::Receiver<Option<u64>>,
+    buffer: Arc<Buffer>,
+    changed: watch::Receiver<Request>,
     progress: Arc<AtomicU64>,
     representation: Representation,
     proven: bool,
@@ -234,14 +274,18 @@ impl Stream {
             } else {
                 failures = 0;
             }
-            let Some(offset) = retry.take().or(*self.changed.borrow_and_update()) else {
+            let Some((requested, generation)) = *self.changed.borrow_and_update() else {
                 return;
+            };
+            let offset = match retry.take() {
+                Some(offset) => offset,
+                None => requested,
             };
             crate::diagnostics::event(format_args!(
                 "HTTP audio request offset={offset} progressive={} retry={failures}",
                 self.progressive
             ));
-            match self.request(offset).await {
+            match self.request(offset, generation).await {
                 Attempt::Superseded => {}
                 Attempt::Complete => {
                     // Stay alive for a decoder seek back into the stream.
@@ -284,9 +328,12 @@ impl Stream {
         }
     }
     fn fail(&self, message: &'static str) {
-        gst::element_error!(self.output, gst::ResourceError::Read, ["{}", message]);
+        let mut window = self.buffer.lock();
+        window.error.get_or_insert(message);
+        drop(window);
+        self.buffer.readable.notify_all();
     }
-    async fn request(&mut self, offset: u64) -> Attempt {
+    async fn request(&mut self, offset: u64, generation: u64) -> Attempt {
         let mut request = self
             .client
             .get(&self.uri)
@@ -328,15 +375,18 @@ impl Stream {
             response.status().as_u16(),
             self.representation.validator.is_some()
         ));
-        if let Some(total) = total {
-            self.output.set_size(total.min(i64::MAX as u64) as i64);
+        if let Some(total) = total.filter(|_| !self.progressive) {
+            let mut window = self.buffer.lock();
+            window.total.get_or_insert(total);
         }
-        self.body(response, offset, skip, expected).await
+        self.body(response, offset, generation, skip, expected)
+            .await
     }
     async fn body(
         &mut self,
         mut response: reqwest::Response,
         offset: u64,
+        generation: u64,
         mut skip: u64,
         expected: Option<u64>,
     ) -> Attempt {
@@ -353,7 +403,13 @@ impl Stream {
                     crate::diagnostics::event(format_args!(
                         "HTTP audio EOF received={received} delivered={delivered}"
                     ));
-                    let _ = self.output.end_of_stream();
+                    let mut window = self.buffer.lock();
+                    if window.generation != generation {
+                        return Attempt::Superseded;
+                    }
+                    window.eof = true;
+                    drop(window);
+                    self.buffer.readable.notify_all();
                     return Attempt::Complete;
                 }
                 end => {
@@ -373,46 +429,47 @@ impl Stream {
             }
             let ignore = skip.min(bytes.len() as u64) as usize;
             skip -= ignore as u64;
-            if let Err(attempt) = self.deliver(&bytes[ignore..], &mut delivered).await {
+            if let Err(attempt) = self
+                .deliver(&bytes[ignore..], generation, &mut delivered)
+                .await
+            {
                 return attempt;
             }
         }
     }
-    /// Push bytes in appsrc-sized chunks, waiting (cancellably) for queue room.
-    async fn deliver(&mut self, bytes: &[u8], delivered: &mut u64) -> Result<(), Attempt> {
-        let chunk_size = match self.output.max_bytes() {
-            0 => 64 * 1024,
-            max => max.min(64 * 1024) as usize,
-        };
-        for chunk in bytes.chunks(chunk_size) {
-            while self.output.max_bytes() > 0
-                && self
-                    .output
-                    .current_level_bytes()
-                    .saturating_add(chunk.len() as u64)
-                    > self.output.max_bytes()
-            {
+    /// Append bytes to the window, waiting (cancellably) for decoder room.
+    /// The generation check and the append happen under one lock, so bytes
+    /// of a request superseded by a seek are never appended after it.
+    async fn deliver(
+        &mut self,
+        bytes: &[u8],
+        generation: u64,
+        delivered: &mut u64,
+    ) -> Result<(), Attempt> {
+        for chunk in bytes.chunks(64 * 1024) {
+            loop {
+                {
+                    let mut window = self.buffer.lock();
+                    if window.closed {
+                        return Err(Attempt::Closed);
+                    }
+                    if window.generation != generation {
+                        return Err(Attempt::Superseded);
+                    }
+                    if window.data.is_empty() || window.data.len() + chunk.len() <= CAPACITY {
+                        window.data.extend(chunk);
+                        break;
+                    }
+                }
+                // Notify keeps one permit, so a consumption between the check
+                // above and this await is not lost; the timer is a fallback.
                 tokio::select! {
                     _ = self.changed.changed() => return Err(Attempt::Superseded),
-                    _ = tokio::time::sleep(Duration::from_millis(5)) => {}
+                    _ = self.buffer.room.notified() => {}
+                    _ = tokio::time::sleep(Duration::from_millis(50)) => {}
                 }
             }
-            // appsrc calls seek_data, which publishes the new offset under the
-            // watch write lock, before flushing its queue. Holding the read lock
-            // across check-and-push orders every push either before that flush
-            // (and discards it) or after the new offset is visible here, so
-            // bytes from the old offset never follow a seek.
-            let pushed = {
-                let _offset = self.changed.borrow();
-                if self.changed.has_changed().unwrap_or(true) {
-                    return Err(Attempt::Superseded);
-                }
-                self.output
-                    .push_buffer(gst::Buffer::from_mut_slice(chunk.to_vec()))
-            };
-            if pushed.is_err() {
-                return Err(Attempt::Closed);
-            }
+            self.buffer.readable.notify_all();
             *delivered += chunk.len() as u64;
             self.proven = true;
         }
@@ -420,55 +477,47 @@ impl Stream {
     }
 }
 
+/// Owner of one HTTP stream: its network task and server session.
 pub struct Reader {
-    stop: watch::Sender<Option<u64>>,
+    stop: watch::Sender<Request>,
     worker: Option<crate::rt::Task>,
     /// Keeps the closer alive past the task: if this is the last clone, its
     /// drop waits (on the caller's thread, never the runtime thread) for the
     /// stop request the task queued.
     _closer: SessionCloser,
-    input: app::AppSrc,
+    buffer: Arc<Buffer>,
     received: Arc<AtomicU64>,
 }
 impl Reader {
-    pub fn new(
-        source: &app::AppSrc,
-        uri: String,
-        token: String,
-        closer: SessionCloser,
-    ) -> crate::Result<Self> {
-        let (stop, changed) = watch::channel(Some(0u64));
-        let seek = stop.clone();
-        source.set_callbacks(
-            app::AppSrcCallbacks::builder()
-                .seek_data(move |_, offset| {
-                    // None is terminal cancellation. A late decoder seek during
-                    // teardown must not resurrect a stopped network reader.
-                    if seek.is_closed() {
-                        return false;
-                    }
-                    seek.send_if_modified(|requested| {
-                        if requested.is_none() {
-                            return false;
-                        }
-                        *requested = Some(offset);
-                        true
-                    })
-                })
-                .build(),
-        );
-        let output = source.clone();
-        // The HTTP worker is the sole producer. Use a cancellable watermark
-        // instead of blocking inside Gst push_buffer, which cannot poll seek.
-        output.set_block(false);
+    /// Start fetching from offset zero and return the decoder's byte view.
+    /// `progressive` (server transcodes) cannot seek by byte offset.
+    pub fn new(uri: String, token: String, closer: SessionCloser) -> crate::Result<(Self, Source)> {
+        let progressive = url::Url::parse(&uri)
+            .ok()
+            .is_some_and(|url| crate::quality::is_transcode(&url));
+        let (stop, changed) = watch::channel(Some((0u64, 0u64)));
+        let buffer = Arc::new(Buffer {
+            window: Mutex::new(Window {
+                generation: 0,
+                start: 0,
+                data: VecDeque::new(),
+                eof: false,
+                error: None,
+                closed: false,
+                total: None,
+            }),
+            readable: Condvar::new(),
+            room: Notify::new(),
+        });
         let received = Arc::new(AtomicU64::new(0));
         let progress = received.clone();
         let retained = closer.clone();
+        let shared = buffer.clone();
         // A task on the shared I/O runtime (no thread or runtime per track).
-        // appsrc holds up to 4 MiB of undecoded input, many seconds of audio,
-        // so millisecond scheduling jitter shared with other I/O tasks cannot
-        // starve the decoder; the task only awaits sockets/timers and does
-        // non-blocking pushes.
+        // The window holds up to 4 MiB of undecoded input, many seconds of
+        // audio, so millisecond scheduling jitter shared with other I/O tasks
+        // cannot starve the decoder; the task only awaits sockets/timers and
+        // takes the window lock for short copies, never a blocking wait.
         let worker = crate::rt::spawn(async move {
             let stop_uri = url::Url::parse(&uri)
                 .ok()
@@ -483,27 +532,25 @@ impl Reader {
                 .read_timeout(Duration::from_secs(10))
                 .redirect(reqwest::redirect::Policy::none())
                 .build();
-            match client {
-                Ok(client) => {
-                    Stream {
-                        client,
-                        uri,
-                        token,
-                        progressive: stop_uri.is_some(),
-                        output,
-                        changed,
-                        progress,
-                        representation: Representation::default(),
-                        proven: false,
-                    }
-                    .run()
-                    .await
+            let stream = client.map(|client| Stream {
+                client,
+                uri,
+                token,
+                progressive,
+                buffer: shared.clone(),
+                changed,
+                progress,
+                representation: Representation::default(),
+                proven: false,
+            });
+            match stream {
+                Ok(stream) => stream.run().await,
+                Err(_) => {
+                    let mut window = shared.lock();
+                    window.error.get_or_insert("Audio streaming failed");
+                    drop(window);
+                    shared.readable.notify_all();
                 }
-                Err(_) => gst::element_error!(
-                    output,
-                    gst::ResourceError::Failed,
-                    ["Audio streaming failed"]
-                ),
             }
             // The reader owns the server session, including predecoded
             // successors. Finish/cancel/error and decoder teardown all
@@ -512,24 +559,35 @@ impl Reader {
                 closer.close(stop_uri, stop_token);
             }
         });
-        Ok(Self {
-            stop,
-            worker: Some(worker),
-            _closer: retained,
-            input: source.clone(),
-            received,
-        })
+        let source = Source {
+            buffer: buffer.clone(),
+            request: stop.clone(),
+            position: 0,
+            progressive,
+        };
+        Ok((
+            Self {
+                stop,
+                worker: Some(worker),
+                _closer: retained,
+                buffer,
+                received,
+            },
+            source,
+        ))
     }
+    /// (bytes received from the network, bytes queued for the decoder).
     pub(super) fn diagnostics(&self) -> (u64, u64) {
         (
             self.received.load(Ordering::Relaxed),
-            self.input.current_level_bytes(),
+            self.buffer.lock().data.len() as u64,
         )
     }
+    /// Cancel the transfer and release a decoder blocked in `read`.
     pub fn stop(&self) {
         self.stop.send_replace(None);
-        // Release appsrc consumers waiting for preroll while HTTP is cancelled.
-        let _ = self.input.end_of_stream();
+        self.buffer.lock().closed = true;
+        self.buffer.readable.notify_all();
     }
 }
 
@@ -538,58 +596,212 @@ impl Drop for Reader {
         self.stop();
         if let Some(worker) = self.worker.take() {
             // Every await in the reader selects on the stop watch, so this
-            // returns promptly; afterwards no push can reach the appsrc.
+            // returns promptly; afterwards no byte can reach the window.
             worker.join(None);
         }
+    }
+}
+
+/// The decoder thread's blocking byte view of a [`Reader`]. Seeks only move
+/// the logical position; a ranged request is issued when a read needs bytes
+/// outside the buffered window, so probe-time End/Start round trips are free.
+pub struct Source {
+    buffer: Arc<Buffer>,
+    request: watch::Sender<Request>,
+    position: u64,
+    progressive: bool,
+}
+impl Source {
+    /// Restart the window at `position` and ask the network task for it.
+    fn reposition(&self, window: &mut Window) -> io::Result<()> {
+        if self.progressive {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "progressive stream cannot seek",
+            ));
+        }
+        window.generation += 1;
+        window.start = self.position;
+        window.data.clear();
+        window.eof = false;
+        let request = (self.position, window.generation);
+        // None is terminal cancellation; a late seek during teardown must not
+        // resurrect a stopped network reader.
+        self.request.send_if_modified(|current| {
+            if current.is_none() {
+                return false;
+            }
+            *current = Some(request);
+            true
+        });
+        self.buffer.room.notify_one();
+        Ok(())
+    }
+}
+impl io::Read for Source {
+    fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+        if out.is_empty() {
+            return Ok(0);
+        }
+        let buffer = self.buffer.clone();
+        let mut window = buffer.lock();
+        loop {
+            if window.closed {
+                return Err(io::Error::new(
+                    io::ErrorKind::ConnectionAborted,
+                    "audio reader stopped",
+                ));
+            }
+            if let Some(message) = window.error {
+                return Err(io::Error::other(message));
+            }
+            if window.total.is_some_and(|total| self.position >= total) {
+                return Ok(0);
+            }
+            let end = window.start + window.data.len() as u64;
+            if self.position < window.start
+                || self.position > end && (window.eof || self.position - end > FORWARD_WAIT)
+            {
+                self.reposition(&mut window)?;
+                continue;
+            }
+            if self.position > window.start {
+                // Discard bytes the decoder skipped (or will skip) over.
+                let skip = (self.position - window.start).min(window.data.len() as u64);
+                window.data.drain(..skip as usize);
+                window.start += skip;
+                buffer.room.notify_one();
+            }
+            if self.position == window.start && !window.data.is_empty() {
+                let count = out.len().min(window.data.len());
+                let (front, back) = window.data.as_slices();
+                let first = count.min(front.len());
+                out[..first].copy_from_slice(&front[..first]);
+                out[first..count].copy_from_slice(&back[..count - first]);
+                window.data.drain(..count);
+                window.start += count as u64;
+                self.position += count as u64;
+                drop(window);
+                buffer.room.notify_one();
+                return Ok(count);
+            }
+            if window.eof && self.position >= end {
+                return Ok(0);
+            }
+            window = buffer
+                .readable
+                .wait_timeout(window, WAIT_SLICE)
+                .map(|(guard, _)| guard)
+                .unwrap_or_else(|poison| poison.into_inner().0);
+        }
+    }
+}
+impl io::Seek for Source {
+    fn seek(&mut self, to: io::SeekFrom) -> io::Result<u64> {
+        let total = self.buffer.lock().total;
+        let target = match to {
+            io::SeekFrom::Start(offset) => Some(offset),
+            io::SeekFrom::Current(delta) => self.position.checked_add_signed(delta),
+            io::SeekFrom::End(delta) => total.and_then(|total| total.checked_add_signed(delta)),
+        }
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid audio seek"))?;
+        if self.progressive && target != self.position {
+            let window = self.buffer.lock();
+            let end = window.start + window.data.len() as u64;
+            // Only movement inside the buffered window (or a short forward
+            // skip of bytes in flight) is possible without byte ranges.
+            if target < window.start || target > end + FORWARD_WAIT {
+                return Err(io::Error::new(
+                    io::ErrorKind::Unsupported,
+                    "progressive stream cannot seek",
+                ));
+            }
+        }
+        self.position = target;
+        Ok(target)
+    }
+}
+impl symphonia::core::io::MediaSource for Source {
+    fn is_seekable(&self) -> bool {
+        !self.progressive
+    }
+    fn byte_len(&self) -> Option<u64> {
+        self.buffer.lock().total
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gst::prelude::*;
     use reqwest::{header::HeaderMap, StatusCode};
-    use std::thread;
+    use std::{
+        io::{Read, Seek, SeekFrom, Write},
+        thread,
+    };
 
-    #[test]
-    fn full_input_queue_does_not_block_reader_shutdown() {
-        use std::io::{Read, Write};
-        gst::init().unwrap();
-        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-        let server = thread::spawn(move || {
-            let (mut stream, _) = listener.accept().unwrap();
-            stream
-                .set_read_timeout(Some(Duration::from_secs(2)))
-                .unwrap();
-            let mut request = Vec::new();
-            let mut byte = [0];
-            while !request.ends_with(b"\r\n\r\n") {
-                stream.read_exact(&mut byte).unwrap();
-                request.push(byte[0]);
+    fn read_request(stream: &mut std::net::TcpStream) -> String {
+        stream
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        let mut request = Vec::new();
+        let mut byte = [0];
+        while !request.ends_with(b"\r\n\r\n") && stream.read_exact(&mut byte).is_ok() {
+            request.push(byte[0]);
+        }
+        String::from_utf8(request).unwrap().to_lowercase()
+    }
+
+    fn accept(listener: &std::net::TcpListener, timeout: Duration) -> std::net::TcpStream {
+        let until = std::time::Instant::now() + timeout;
+        loop {
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    stream.set_nonblocking(false).unwrap();
+                    return stream;
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    assert!(std::time::Instant::now() < until, "No request");
+                    thread::sleep(Duration::from_millis(5));
+                }
+                Err(error) => panic!("{error}"),
             }
-            stream
-                .write_all(
-                    b"HTTP/1.1 200 OK\r\nContent-Length: 131072\r\nConnection: close\r\n\r\n",
-                )
-                .unwrap();
-            let _ = stream.write_all(&vec![1; 131072]);
-        });
-        let source = app::AppSrc::builder().max_bytes(65536).block(true).build();
-        let reader = Reader::new(
-            &source,
+        }
+    }
+
+    fn reader(address: std::net::SocketAddr) -> (Reader, Source) {
+        Reader::new(
             format!("http://{address}/audio"),
             String::new(),
             SessionCloser::new().unwrap(),
         )
-        .unwrap();
-        let deadline = std::time::Instant::now() + Duration::from_secs(3);
-        while source.current_level_bytes() == 0 || reader.received.load(Ordering::Relaxed) <= 65536
+        .unwrap()
+    }
+
+    #[test]
+    fn full_input_window_does_not_block_reader_shutdown() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let size = CAPACITY * 2;
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: {size}\r\nConnection: close\r\n\r\n"
+            )
+            .unwrap();
+            let _ = stream.write_all(&vec![1; size]);
+        });
+        let (reader, _source) = reader(address);
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        // Nothing reads: the task fills the window and then waits for room.
+        while reader.diagnostics().1 < CAPACITY as u64 - 64 * 1024
+            || reader.received.load(Ordering::Relaxed) <= CAPACITY as u64
         {
             assert!(std::time::Instant::now() < deadline);
             thread::sleep(Duration::from_millis(5));
         }
-        assert!(source.current_level_bytes() <= 65536);
+        assert!(reader.diagnostics().1 <= CAPACITY as u64);
         let start = std::time::Instant::now();
         drop(reader);
         assert!(start.elapsed() < Duration::from_secs(1));
@@ -628,38 +840,48 @@ mod tests {
 
     #[test]
     fn retry_backoff_is_cancelled_promptly_by_stop() {
-        use std::io::{Read, Write};
-        gst::init().unwrap();
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let address = listener.local_addr().unwrap();
         let (sent, response) = mpsc::channel();
         let server = thread::spawn(move || {
             let (mut stream, _) = listener.accept().unwrap();
-            stream
-                .set_read_timeout(Some(Duration::from_secs(2)))
-                .unwrap();
-            let mut request = Vec::new();
-            let mut byte = [0];
-            while !request.ends_with(b"\r\n\r\n") {
-                stream.read_exact(&mut byte).unwrap();
-                request.push(byte[0]);
-            }
+            read_request(&mut stream);
             stream.write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n").unwrap();
             sent.send(()).unwrap();
         });
-        let source = app::AppSrc::builder().build();
-        let reader = Reader::new(
-            &source,
-            format!("http://{address}/audio"),
-            String::new(),
-            SessionCloser::new().unwrap(),
-        )
-        .unwrap();
+        let (reader, _source) = reader(address);
         response.recv_timeout(Duration::from_secs(3)).unwrap();
         thread::sleep(Duration::from_millis(100));
         let start = std::time::Instant::now();
         drop(reader);
         assert!(start.elapsed() < Duration::from_millis(500));
+        server.join().unwrap();
+    }
+
+    #[test]
+    fn stop_releases_a_decoder_blocked_in_read() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let (release, done) = mpsc::channel::<()>();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            // Headers but no body: the decoder blocks waiting for bytes.
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n")
+                .unwrap();
+            let _ = done.recv_timeout(Duration::from_secs(5));
+        });
+        let (reader, mut source) = reader(address);
+        let blocked = thread::spawn(move || source.read(&mut [0; 4]));
+        thread::sleep(Duration::from_millis(200));
+        let start = std::time::Instant::now();
+        reader.stop();
+        let result = blocked.join().unwrap();
+        assert!(result.is_err(), "{result:?}");
+        assert!(start.elapsed() < Duration::from_millis(500));
+        drop(reader);
+        release.send(()).unwrap();
         server.join().unwrap();
     }
 
@@ -674,35 +896,14 @@ mod tests {
     }
 
     fn resumed_original_stream(unavailable_responses: usize) {
-        use std::io::{Read, Write};
-        gst::init().unwrap();
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = listener.local_addr().unwrap();
         let server = thread::spawn(move || {
             for attempt in 0..unavailable_responses + 2 {
                 let offset = if attempt == 0 { 0 } else { 65536 };
-                let until = std::time::Instant::now() + Duration::from_secs(12);
-                let mut stream = loop {
-                    match listener.accept() {
-                        Ok((stream, _)) => break stream,
-                        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
-                            assert!(std::time::Instant::now() < until, "No resumed request");
-                            thread::sleep(Duration::from_millis(5));
-                        }
-                        Err(error) => panic!("{error}"),
-                    }
-                };
-                stream
-                    .set_read_timeout(Some(Duration::from_secs(2)))
-                    .unwrap();
-                let mut request = Vec::new();
-                let mut byte = [0];
-                while !request.ends_with(b"\r\n\r\n") {
-                    stream.read_exact(&mut byte).unwrap();
-                    request.push(byte[0]);
-                }
-                let request = String::from_utf8(request).unwrap().to_lowercase();
+                let mut stream = accept(&listener, Duration::from_secs(12));
+                let request = read_request(&mut stream);
                 assert!(request.contains(&format!("range: bytes={offset}-")));
                 if offset > 0 {
                     assert!(request.contains("if-range: \"fixture\""));
@@ -718,31 +919,14 @@ mod tests {
                     .unwrap();
             }
         });
-        let pipeline = gst::Pipeline::new();
-        let source = app::AppSrc::builder().format(gst::Format::Bytes).build();
-        let sink = app::AppSink::builder().sync(false).build();
-        pipeline
-            .add_many([source.upcast_ref::<gst::Element>(), sink.upcast_ref()])
-            .unwrap();
-        source.link(&sink).unwrap();
-        let reader = Reader::new(
-            &source,
-            format!("http://{address}/audio"),
-            String::new(),
-            SessionCloser::new().unwrap(),
-        )
-        .unwrap();
+        let (reader, mut source) = reader(address);
         if unavailable_responses > 0 {
-            // Leave the initial bytes queued across the outage, as on the phone.
-            // A bus error would discard them before the connection recovers.
+            // Leave the initial bytes queued across the outage, as on the
+            // phone. A reported error would discard them before recovery.
             let until = std::time::Instant::now() + Duration::from_secs(30);
             while reader.received.load(Ordering::Relaxed) < 131072 {
                 assert!(
-                    pipeline
-                        .bus()
-                        .unwrap()
-                        .pop_filtered(&[gst::MessageType::Error])
-                        .is_none(),
+                    reader.buffer.lock().error.is_none(),
                     "Buffered stream must not fail during a temporary outage"
                 );
                 assert!(
@@ -752,58 +936,123 @@ mod tests {
                 thread::sleep(Duration::from_millis(10));
             }
         }
-        pipeline.set_state(gst::State::Playing).unwrap();
         let mut bytes = Vec::new();
-        let until = std::time::Instant::now() + Duration::from_secs(30);
-        while bytes.len() < 131072 && std::time::Instant::now() < until {
-            if let Some(sample) = sink.try_pull_sample(gst::ClockTime::from_mseconds(100)) {
-                bytes
-                    .extend_from_slice(sample.buffer().unwrap().map_readable().unwrap().as_slice());
-            }
-        }
-        reader.stop();
-        pipeline.set_state(gst::State::Null).unwrap();
+        source.read_to_end(&mut bytes).unwrap();
         drop(reader);
         server.join().unwrap();
         assert_eq!(bytes.len(), 131072);
         assert!(bytes[..65536].iter().all(|&v| v == 1));
         assert!(bytes[65536..].iter().all(|&v| v == 2));
-        assert!(pipeline
-            .bus()
-            .unwrap()
-            .pop_filtered(&[gst::MessageType::Error])
-            .is_none());
     }
 
-    /// Waits for an error posted by the reader on `pipeline`'s bus.
-    fn bus_error(pipeline: &gst::Pipeline, timeout: Duration) -> bool {
-        pipeline
-            .bus()
-            .unwrap()
-            .timed_pop_filtered(
-                gst::ClockTime::from_mseconds(timeout.as_millis() as u64),
-                &[gst::MessageType::Error],
-            )
-            .is_some()
+    /// Serves `body` with byte ranges and records each requested range start.
+    fn ranged_server(
+        body: Vec<u8>,
+        requests: usize,
+    ) -> (std::net::SocketAddr, thread::JoinHandle<Vec<u64>>) {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            let mut offsets = Vec::new();
+            for _ in 0..requests {
+                let mut stream = accept(&listener, Duration::from_secs(5));
+                let request = read_request(&mut stream);
+                let offset: u64 = request
+                    .split("range: bytes=")
+                    .nth(1)
+                    .and_then(|r| r.split('-').next())
+                    .and_then(|n| n.parse().ok())
+                    .unwrap_or(0);
+                offsets.push(offset);
+                let total = body.len() as u64;
+                let _ = write!(stream, "HTTP/1.1 206 Partial Content\r\nContent-Type: audio/flac\r\nContent-Length: {}\r\nContent-Range: bytes {offset}-{}/{total}\r\nETag: \"seek\"\r\nConnection: close\r\n\r\n", total - offset, total - 1);
+                let _ = stream.write_all(&body[offset as usize..]);
+            }
+            offsets
+        });
+        (address, server)
     }
 
-    fn reader_pipeline(address: std::net::SocketAddr) -> (gst::Pipeline, Reader) {
-        gst::init().unwrap();
-        let pipeline = gst::Pipeline::new();
-        let source = app::AppSrc::builder().format(gst::Format::Bytes).build();
-        let sink = app::AppSink::builder().sync(false).build();
-        pipeline
-            .add_many([source.upcast_ref::<gst::Element>(), sink.upcast_ref()])
-            .unwrap();
-        source.link(&sink).unwrap();
-        let reader = Reader::new(
-            &source,
-            format!("http://{address}/audio"),
-            String::new(),
-            SessionCloser::new().unwrap(),
+    #[test]
+    fn media_source_seeks_by_byte_range_and_reuses_buffered_bytes() {
+        use symphonia::core::io::MediaSource;
+        // Larger than the window, so the far target can never be buffered yet.
+        let size = CAPACITY as u64 + 2_000_000;
+        let far = size - 100_000;
+        let body: Vec<u8> = (0..size).map(|n| (n % 251) as u8).collect();
+        let (address, server) = ranged_server(body.clone(), 2);
+        let (reader, mut source) = reader(address);
+        let mut head = [0; 16];
+        source.read_exact(&mut head).unwrap();
+        assert_eq!(&head, &body[..16]);
+        assert_eq!(source.byte_len(), Some(size));
+        assert!(source.is_seekable());
+        // Probe-style End/Start round trip does not issue a request.
+        assert_eq!(source.seek(SeekFrom::End(0)).unwrap(), size);
+        assert_eq!(source.read(&mut head).unwrap(), 0);
+        source.seek(SeekFrom::Start(16)).unwrap();
+        source.read_exact(&mut head).unwrap();
+        assert_eq!(&head, &body[16..32]);
+        // A far seek opens one new ranged request at the target.
+        source.seek(SeekFrom::Start(far)).unwrap();
+        let mut tail = Vec::new();
+        source.read_to_end(&mut tail).unwrap();
+        assert_eq!(tail, body[far as usize..]);
+        drop(reader);
+        let offsets = server.join().unwrap();
+        assert_eq!(offsets, vec![0, far]);
+    }
+
+    #[test]
+    fn progressive_transcode_source_is_not_byte_seekable() {
+        use symphonia::core::io::MediaSource;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let request = read_request(&mut stream);
+            assert!(!request.contains("\r\nrange:"));
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nConnection: close\r\n\r\n0123456789")
+                .unwrap();
+        });
+        let session = uuid::Uuid::new_v4().to_string();
+        let uri = crate::quality::transcode_url(
+            &url::Url::parse(&format!("http://{address}/")).unwrap(),
+            "1",
+            128,
+            &session,
         )
         .unwrap();
-        (pipeline, reader)
+        let (reader, mut source) =
+            Reader::new(uri.into(), String::new(), SessionCloser::new().unwrap()).unwrap();
+        assert!(!source.is_seekable());
+        let mut head = [0; 4];
+        source.read_exact(&mut head).unwrap();
+        assert_eq!(&head, b"0123");
+        assert!(source.seek(SeekFrom::Start(0)).is_err());
+        assert!(source.seek(SeekFrom::Start(1_000_000)).is_err());
+        let mut rest = Vec::new();
+        source.read_to_end(&mut rest).unwrap();
+        assert_eq!(rest, b"456789");
+        drop(reader);
+        server.join().unwrap();
+    }
+
+    /// Waits for the reader's reported error, as the decoder would see it.
+    fn read_error(source: &mut Source, timeout: Duration) -> bool {
+        let (sent, received) = mpsc::channel();
+        let mut probe = Source {
+            buffer: source.buffer.clone(),
+            request: source.request.clone(),
+            position: 0,
+            progressive: false,
+        };
+        thread::spawn(move || {
+            let _ = sent.send(probe.read(&mut [0; 1]).is_err());
+        });
+        received.recv_timeout(timeout).unwrap_or(false)
     }
 
     #[test]
@@ -813,11 +1062,11 @@ mod tests {
             .unwrap()
             .local_addr()
             .unwrap();
-        let (pipeline, reader) = reader_pipeline(address);
+        let (reader, mut source) = reader(address);
         let started = std::time::Instant::now();
         // Backoff before the error is 1s + 2s + 4s.
         assert!(
-            bus_error(&pipeline, Duration::from_secs(12)),
+            read_error(&mut source, Duration::from_secs(12)),
             "unproven source retried forever"
         );
         assert!(started.elapsed() >= Duration::from_secs(6));
@@ -826,7 +1075,6 @@ mod tests {
 
     #[test]
     fn failing_first_response_reports_error_after_bounded_retries() {
-        use std::io::{Read, Write};
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = listener.local_addr().unwrap();
@@ -840,22 +1088,15 @@ mod tests {
                     continue;
                 };
                 stream.set_nonblocking(false).unwrap();
-                stream
-                    .set_read_timeout(Some(Duration::from_secs(2)))
-                    .unwrap();
-                let mut request = Vec::new();
-                let mut byte = [0];
-                while !request.ends_with(b"\r\n\r\n") && stream.read_exact(&mut byte).is_ok() {
-                    request.push(byte[0]);
-                }
+                read_request(&mut stream);
                 requests += 1;
                 let _ = stream.write_all(b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
             }
             requests
         });
-        let (pipeline, reader) = reader_pipeline(address);
+        let (reader, mut source) = reader(address);
         assert!(
-            bus_error(&pipeline, Duration::from_secs(12)),
+            read_error(&mut source, Duration::from_secs(12)),
             "unproven source retried forever"
         );
         drop(reader);

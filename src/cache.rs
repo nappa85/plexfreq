@@ -844,6 +844,7 @@ async fn worker(
                     s.active_key = item.rating_key.clone();
                 }
                 let session = uuid::Uuid::new_v4().to_string();
+                let mut transcoded = 0;
                 // Cancellation interrupts network awaits only. Filesystem steps
                 // run on the blocking pool and are never abandoned mid-way, so
                 // a superseding batch cannot race a detached partial write.
@@ -856,17 +857,18 @@ async fn worker(
                     &batch,
                     item.clone(),
                     (&client_id, &session),
+                    &mut transcoded,
                 )
                 .await
                 {
                     Err(Failure::Cancelled) => None,
                     result => Some(result),
                 };
-                if batch.quality_kbps > 0 {
+                if transcoded > 0 {
                     if let Ok(uri) = crate::quality::transcode_url(
                         &batch.base,
                         &item.rating_key,
-                        batch.quality_kbps,
+                        transcoded,
                         &session,
                     ) {
                         if let Some(stop) = crate::quality::stop_url(&uri) {
@@ -1034,19 +1036,22 @@ async fn download(
     batch: &Batch,
     mut item: Item,
     identity: (&str, &str),
+    transcoded: &mut u32,
 ) -> std::result::Result<(), Failure> {
     let (client_id, session) = identity;
-    {
+    let complete = |item: &Item| {
+        let quality = download_quality(batch.quality_kbps, item);
         let s = state.lock().unwrap_or_else(|poison| poison.into_inner());
-        if s.manifest.entries.values().any(|e| {
+        s.manifest.entries.values().any(|e| {
             e.namespace == batch.namespace
-                && e.quality_kbps == batch.quality_kbps
+                && e.quality_kbps == quality
                 && e.item.rating_key == item.rating_key
-                && part_key(&item).is_none_or(|p| part_key(&e.item) == Some(p))
+                && part_key(item).is_none_or(|p| part_key(&e.item) == Some(p))
                 && usable(root, e)
-        }) {
-            return Ok(());
-        }
+        })
+    };
+    if complete(&item) {
+        return Ok(());
     }
     if part_key(&item).is_none() {
         let url = server_path(
@@ -1080,14 +1085,20 @@ async fn download(
             .ok_or(Error::ProtocolAt("cache track metadata"))?;
     }
     let part = part_key(&item).ok_or(Error::Input("Track has no downloadable media part"))?;
-    let url = if batch.quality_kbps > 0 {
-        crate::quality::transcode_url(&batch.base, &item.rating_key, batch.quality_kbps, session)?
+    // Metadata may have been completed above: check for a finished copy again.
+    if complete(&item) {
+        return Ok(());
+    }
+    let quality = download_quality(batch.quality_kbps, &item);
+    *transcoded = quality;
+    let url = if quality > 0 {
+        crate::quality::transcode_url(&batch.base, &item.rating_key, quality, session)?
     } else {
         server_path(&batch.base, part)?
     };
     let original_id = key(&batch.namespace, &item);
-    let id = if batch.quality_kbps > 0 {
-        hash(&format!("{original_id}\0mp3:{}", batch.quality_kbps))
+    let id = if quality > 0 {
+        hash(&format!("{original_id}\0mp3:{quality}"))
     } else {
         original_id
     };
@@ -1124,8 +1135,8 @@ async fn download(
         })
         .await
     };
-    if batch.quality_kbps > 0
-        || old.quality_kbps != batch.quality_kbps
+    if quality > 0
+        || old.quality_kbps != quality
         || old.validator.is_none()
         || old.total.is_some_and(|n| offset >= n)
     {
@@ -1217,7 +1228,7 @@ async fn download(
         offset = 0;
         response.content_length()
     };
-    let extension = if batch.quality_kbps > 0 {
+    let extension = if quality > 0 {
         "mp3".into()
     } else {
         extension(part, mime.as_str())
@@ -1226,7 +1237,7 @@ async fn download(
         let (root, state, epoch, id) =
             (root.to_path_buf(), state.clone(), epoch.clone(), id.clone());
         let (batch_epoch, quality_kbps, namespace) =
-            (batch.epoch, batch.quality_kbps, batch.namespace.clone());
+            (batch.epoch, quality, batch.namespace.clone());
         let (partial_path, meta_path) = (partial_path.clone(), meta_path.clone());
         let mut saved = item.clone();
         saved.stations = Value::Null;
@@ -1324,8 +1335,7 @@ async fn download(
     }
     item.stations = Value::Null;
     let (root, state, epoch) = (root.to_path_buf(), state.clone(), epoch.clone());
-    let (batch_epoch, quality_kbps, namespace) =
-        (batch.epoch, batch.quality_kbps, batch.namespace.clone());
+    let (batch_epoch, quality_kbps, namespace) = (batch.epoch, quality, batch.namespace.clone());
     crate::rt::unblock(move || -> std::result::Result<(), Failure> {
         file.sync_all()?;
         drop(file);
@@ -1355,6 +1365,21 @@ async fn download(
         Ok(())
     })
     .await
+}
+
+/// Bitrate of an original-quality download whose format the engine cannot
+/// decode: the server transcodes it to MP3 so offline playback works.
+pub(crate) const UNDECODABLE_DOWNLOAD_KBPS: u32 = 320;
+
+/// The transcode bitrate a download uses (0 = original file).
+pub(crate) fn download_quality(requested_kbps: u32, item: &Item) -> u32 {
+    if requested_kbps > 0 {
+        requested_kbps
+    } else if crate::audio::formats::item_supported(item) {
+        0
+    } else {
+        UNDECODABLE_DOWNLOAD_KBPS
+    }
 }
 
 pub(crate) fn parse_range(value: &str) -> Option<(u64, u64, u64)> {

@@ -1,19 +1,21 @@
 # Build and device workflow
 
-The Rust audio runtime needs GStreamer/app development packages, GLib/GIO and
-libpulse development files (API >=12) for native read-only diagnostics.
-CMake queries `gstreamer-1.0`, `gstreamer-app-1.0`, `gio-2.0`, `libpulse` and checks translations.
-Qt Multimedia is no longer required.
+The Rust audio runtime decodes in pure Rust (Symphonia, rubato) and needs only
+libpulse development files (API >=12) for playback and read-only diagnostics.
+CMake queries `libpulse` and checks translations. GStreamer/GLib/GIO were removed
+on 2026-10-16 (Harbour forbids libgstreamer). Qt Multimedia is not required.
 
 `tools/build-sailfish.sh` derives `plexfreq-audio-sdk:local` using
 `tools/audio-sdk.Dockerfile` when missing, installing development packages inside
 the SDK image only. Rust pkg-config runs `tools/sdk-pkg-config.sh` against its
-actual aarch64 sysroot; C dependencies retain `tools/sdk-cc.sh`. qmake links native
-GStreamer/GIO/libpulse and installs/embeds QMs. No phone root/packages are needed.
+actual aarch64 sysroot; C dependencies retain `tools/sdk-cc.sh`. qmake links
+libpulse and installs/embeds QMs. No phone root/packages are needed.
 When reusing an SDK image built before the libpulse dependency, rebuild it with
 `docker build -f tools/audio-sdk.Dockerfile -t plexfreq-audio-sdk:local .` first.
 The standalone `cargo run --locked --example pulse-diagnostics` queries the local
 user-session daemon using the production observer without creating playback.
+`cargo run --example pulse-play -- <file> [seconds]` plays a local file through the
+production PulseAudio output, then pauses, resumes and seeks, printing snapshots.
 
 Qt Linguist tools follow the reference cache path
 `${XDG_CACHE_HOME:-$HOME/.cache}/qt-tools/PySide6/{lupdate,lrelease}`.
@@ -68,7 +70,8 @@ link against the actual Sailfish target libraries.
 Overrides: `SDK_IMAGE`, `SDK_TARGET`. If the image is updated, re-check Qt/glibc
 versions and record the image digest. The compiler wrapper assumes Cargo's
 sources reside under CARGO_HOME and outputs under the project root. Run the
-build from the repository; custom external CARGO_TARGET_DIR is not supported.
+build from the repository; `CARGO_TARGET_DIR` is honored (by build-sailfish.sh and
+build-device-tests.sh) only when it is inside the repository, e.g. `build/qt-target`.
 
 ## Desktop release packaging
 
@@ -88,8 +91,8 @@ embedded in the executable. CPack stages relative `bin/` and `share/` paths,
 independently of the normal CMake installation prefix. Extract anywhere and run
 `./plexfreq-<version>-linux-amd64/bin/plexfreq`; no app installation is needed.
 
-This development archive uses host Qt6/QML, platform plugins, GLib/GIO, GStreamer
-codecs and libpulse. CI builds on Ubuntu 24.04 with Qt 6.4.2 and glibc 2.39;
+This development archive uses host Qt6/QML, platform plugins and libpulse; audio
+decoders are compiled in. CI builds on Ubuntu 24.04 with Qt 6.4.2 and glibc 2.39;
 compatible host libraries are required, including on Gentoo. It does not bundle
 system libraries or require a Debian package manager. Runtime requirements ship
 in `share/doc/plexfreq/README.md`. CI extracts to a temporary user-owned directory,

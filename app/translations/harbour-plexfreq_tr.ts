@@ -204,10 +204,6 @@
       <translation>Fotoğraflar · Sınır · Boyut</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Ses · Ayırma · Başarısız</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Ses · Önbellek · Geçerli · Kullanıldı · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Ses · Kuyruk · Kullanılamıyor</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Ses · Kod çözücü · Başlatma · Başarısız</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Ses · Sınır · Önbellek</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Ses · Başlatma · Başarısız</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Ses · Çıkış · Oluştur · Başarısız</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Ses · Çıkış · Başarısız</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Ses · Çıkış · Kullanılamıyor</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Ses · Oluştur · Başarısız</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Geçersiz · Tanımlayıcı</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Geçersiz · Kod çözücü · Ses</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Geçersiz · Ara</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radyo · Karışım · Kullanılamıyor</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Ses · Eklentiler · Kullanılamıyor</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

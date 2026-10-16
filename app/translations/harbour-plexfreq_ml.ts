@@ -204,10 +204,6 @@
       <translation>ചിത്രങ്ങൾ · പരിധി · വലുപ്പം</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>ഓഡിയോ · വിഹിതം · പരാജയപ്പെട്ടു</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>ഓഡിയോ · കാഷെ · നിലവിലെ · ഉപയോഗിച്ചത് · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>ഓഡിയോ · ക്യൂ · ലഭ്യമല്ല</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>ഓഡിയോ · ഡീകോഡർ · ആരംഭിക്കൽ · പരാജയപ്പെട്ടു</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>ഓഡിയോ · പരിധി · കാഷെ</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>ഓഡിയോ · ആരംഭിക്കൽ · പരാജയപ്പെട്ടു</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>ഓഡിയോ · ഔട്ട്പുട്ട് · സൃഷ്ടിക്കുക · പരാജയപ്പെട്ടു</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>ഓഡിയോ · ഔട്ട്പുട്ട് · പരാജയപ്പെട്ടു</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>ഓഡിയോ · ഔട്ട്പുട്ട് · ലഭ്യമല്ല</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>ഓഡിയോ · സൃഷ്ടിക്കുക · പരാജയപ്പെട്ടു</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>അസാധു · തിരിച്ചറിയൽ</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>അസാധു · ഡീകോഡർ · ഓഡിയോ</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>അസാധു · തിരയുക</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>റേഡിയോ · മിശ്രണം · ലഭ്യമല്ല</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>ഓഡിയോ · പ്ലഗിനുകൾ · ലഭ്യമല്ല</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

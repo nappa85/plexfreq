@@ -204,10 +204,6 @@
       <translation>Fotografie · Limit · Veľkosť</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Zvuk · Pridelenie · Zlyhanie</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Zvuk · Vyrovnávacia pamäť · Aktuálne · Použité · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Zvuk · Front · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Zvuk · Dekodér · Inicializácia · Zlyhanie</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Zvuk · Limit · Vyrovnávacia pamäť</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Zvuk · Inicializácia · Zlyhanie</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Zvuk · Výstup · Vytvoriť · Zlyhanie</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Zvuk · Výstup · Zlyhanie</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Zvuk · Výstup · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Zvuk · Vytvoriť · Zlyhanie</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Neplatné · Identifikátor</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Neplatné · Dekodér · Zvuk</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Neplatné · Hľadať</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Rádio · Mix · Nedostupné</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Zvuk · Doplnky · Nedostupné</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

@@ -216,37 +216,13 @@ fn mixed_rate_gapless_join_keeps_duration_within_one_output_frame() {
 
 #[test]
 fn flac_gapless_join_preserves_exact_decoded_samples() {
-    use gstreamer::{self as gst, prelude::*};
-    gst::init().unwrap();
-    assert!(
-        gst::ElementFactory::find("flacenc").is_some(),
-        "FLAC fixture encoder is required"
-    );
     let dir = tempfile::tempdir().unwrap();
     let wave = dir.path().join("one.wav");
     let flac = dir.path().join("one.flac");
     let two = dir.path().join("two.wav");
     wav(&wave, RATE, 4800, 4096);
     wav(&two, RATE, 4800, -8192);
-    let pipeline = gst::parse::launch(&format!(
-        "filesrc location={:?} ! wavparse ! flacenc ! filesink location={:?}",
-        wave.to_str().unwrap(),
-        flac.to_str().unwrap()
-    ))
-    .unwrap()
-    .downcast::<gst::Pipeline>()
-    .unwrap();
-    pipeline.set_state(gst::State::Playing).unwrap();
-    let message = pipeline
-        .bus()
-        .unwrap()
-        .timed_pop_filtered(
-            gst::ClockTime::from_seconds(5),
-            &[gst::MessageType::Eos, gst::MessageType::Error],
-        )
-        .unwrap();
-    assert_eq!(message.type_(), gst::MessageType::Eos);
-    pipeline.set_state(gst::State::Null).unwrap();
+    encode_audio(&wave, &flac, "flac");
     let engine = Engine::new(Sink::Capture).unwrap();
     engine.handle.volume(1.).unwrap();
     engine.handle.load(source(1, &flac), false).unwrap();
@@ -348,7 +324,14 @@ fn encode_audio(wave: &std::path::Path, output: &std::path::Path, codec: &str) {
     let status = std::process::Command::new("ffmpeg")
         .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
         .arg(wave)
-        .args(["-c:a", codec, "-b:a", "192k"])
+        .args(["-c:a", codec])
+        .args(
+            if matches!(codec, "flac" | "alac" | "pcm_s16le" | "pcm_s24le") {
+                &[][..]
+            } else {
+                &["-b:a", "192k"][..]
+            },
+        )
         .arg(output)
         .status()
         .expect("FFmpeg fixture encoder is required");
@@ -432,4 +415,133 @@ fn mp3_and_aac_resume_seek_keep_heard_time_separate_from_position() {
         wait_end(&engine, 1);
         assert!(engine.handle.snapshot().listened < 800, "{ext}");
     }
+}
+
+fn ffmpeg(input: &std::path::Path, output: &std::path::Path, args: &[&str]) {
+    let status = std::process::Command::new("ffmpeg")
+        .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i"])
+        .arg(input)
+        .args(args)
+        .arg(output)
+        .status()
+        .expect("FFmpeg fixture encoder is required");
+    assert!(status.success(), "{args:?}");
+}
+
+fn decode_alone(path: &std::path::Path) -> Vec<f32> {
+    let engine = Engine::new(Sink::Capture).unwrap();
+    engine.handle.volume(1.).unwrap();
+    let mut input = source(1, path);
+    input.duration = 1000;
+    engine.handle.load(input, false).unwrap();
+    wait_end(&engine, 1);
+    engine.handle.captured()
+}
+
+/// Every Plex (container, codec) family in the format table decodes through
+/// the engine: mono 44.1 kHz input becomes 48 kHz stereo at the same level.
+#[test]
+fn every_supported_format_decodes_to_engine_pcm() {
+    let dir = tempfile::tempdir().unwrap();
+    let wave = dir.path().join("source.wav");
+    wav(&wave, 44100, 44100, 4096);
+    let fixtures: [(&str, &[&str], bool); 9] = [
+        ("flac", &["-c:a", "flac"], true),
+        ("m4a", &["-c:a", "alac"], true),
+        ("wav", &["-c:a", "pcm_s24le"], true),
+        ("f32.wav", &["-c:a", "pcm_f32le"], true),
+        ("u8.wav", &["-c:a", "pcm_u8"], false),
+        ("ogg", &["-c:a", "libvorbis", "-q:a", "5"], false),
+        ("aac.m4a", &["-c:a", "aac", "-b:a", "192k"], false),
+        ("aac", &["-c:a", "aac", "-b:a", "192k", "-f", "adts"], false),
+        ("mp3", &[], false), // LAME, as in the other MP3 fixtures.
+    ];
+    for (extension, args, lossless) in fixtures {
+        let file = dir.path().join(format!("fixture.{extension}"));
+        if extension == "mp3" {
+            encode_audio(&wave, &file, "libmp3lame");
+        } else {
+            ffmpeg(&wave, &file, args);
+        }
+        let pcm = decode_alone(&file);
+        // 1s at 44.1 kHz is exactly 48000 frames at the engine rate; raw ADTS
+        // has no gapless metadata, so its priming and final-frame padding
+        // (up to 2 × 1024 source frames) remain.
+        let tolerance = if extension == "aac" { 2 * 2 * 1115 } else { 2 };
+        assert!(
+            pcm.len().abs_diff(96000) <= tolerance,
+            "{extension}: {} samples",
+            pcm.len()
+        );
+        let level = if lossless { 1e-3 } else { 0.03 };
+        let middle = &pcm[20000..pcm.len() - 20000];
+        assert!(
+            middle.iter().all(|x| (*x - 0.125).abs() < level),
+            "{extension}: level {:?}",
+            middle.iter().fold(0f32, |m, x| m.max((x - 0.125).abs()))
+        );
+        // Mono is duplicated to both stereo channels.
+        assert!(middle
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .all(|[left, right]| (left - right).abs() < 1e-6));
+    }
+}
+
+/// The audio stream is selected even when a container also carries video
+/// (e.g. embedded cover art), as decodebin's dynamic pad linking did before.
+#[test]
+fn audio_track_is_selected_beside_a_video_stream() {
+    let dir = tempfile::tempdir().unwrap();
+    let wave = dir.path().join("source.wav");
+    wav(&wave, RATE, 48000, 4096);
+    let file = dir.path().join("video.mp4");
+    let status = std::process::Command::new("ffmpeg")
+        .args(["-hide_banner", "-loglevel", "error", "-nostdin", "-y"])
+        .args(["-f", "lavfi", "-i", "color=c=red:s=16x16:d=1:r=5", "-i"])
+        .arg(&wave)
+        .args(["-map", "0:v", "-map", "1:a", "-c:v", "mpeg4", "-c:a", "aac"])
+        .arg(&file)
+        .status()
+        .expect("FFmpeg fixture encoder is required");
+    assert!(status.success());
+    let pcm = decode_alone(&file);
+    assert_eq!(pcm.len(), 96000);
+    assert!(pcm[4000..90000].iter().all(|x| (*x - 0.125).abs() < 0.03));
+}
+
+/// Unsupported codecs never reach the decoder in production (they are
+/// transcoded); a file that slips through reports a decode error.
+#[test]
+fn undecodable_file_reports_an_error_event() {
+    let dir = tempfile::tempdir().unwrap();
+    let wave = dir.path().join("source.wav");
+    wav(&wave, RATE, 4800, 4096);
+    let file = dir.path().join("fixture.opus");
+    ffmpeg(&wave, &file, &["-c:a", "libopus"]);
+    let engine = Engine::new(Sink::Capture).unwrap();
+    engine.handle.load(source(1, &file), false).unwrap();
+    let until = Instant::now() + Duration::from_secs(5);
+    loop {
+        let events = engine.events();
+        if events.iter().any(|e| {
+            matches!(
+                e,
+                Event::Error {
+                    id: 1,
+                    message: "Audio decoding or streaming failed"
+                }
+            )
+        }) {
+            break;
+        }
+        assert!(
+            !events.iter().any(|e| matches!(e, Event::End { .. })),
+            "{events:?}"
+        );
+        assert!(Instant::now() < until, "no decode error");
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    assert!(engine.handle.captured().is_empty());
 }

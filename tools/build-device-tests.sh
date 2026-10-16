@@ -4,7 +4,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 image="${SDK_IMAGE:-plexfreq-audio-sdk:local}"
 target="${SDK_TARGET:-SailfishOS-5.2.0.15-aarch64}"
 stage="$root/build/device-tests"
-library="$root/target/aarch64-unknown-linux-gnu/release/libplexfreq_core.a"
+library="$(realpath -m "${CARGO_TARGET_DIR:-$root/target}")/aarch64-unknown-linux-gnu/release/libplexfreq_core.a"
 if [[ ! -f "$library" ]]; then
     printf 'Run tools/build-sailfish.sh first to build the Rust static library.\n' >&2
     exit 1

@@ -204,10 +204,6 @@
       <translation>ਫ਼ੋਟੋਆਂ · ਹੱਦ · ਅਕਾਰ</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>ਆਡੀਓ · ਵੰਡ · ਅਸਫਲ</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>ਆਡੀਓ · ਕੈਸ਼ · ਮੌਜੂਦਾ · ਵਰਤਿਆ · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>ਆਡੀਓ · ਕਤਾਰ · ਉਪਲਬਧ ਨਹੀਂ</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>ਆਡੀਓ · ਡੀਕੋਡਰ · ਸ਼ੁਰੂਆਤ · ਅਸਫਲ</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>ਆਡੀਓ · ਹੱਦ · ਕੈਸ਼</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>ਆਡੀਓ · ਸ਼ੁਰੂਆਤ · ਅਸਫਲ</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>ਆਡੀਓ · ਆਉਟਪੁੱਟ · ਬਣਾਓ · ਅਸਫਲ</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>ਆਡੀਓ · ਆਉਟਪੁੱਟ · ਅਸਫਲ</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>ਆਡੀਓ · ਆਉਟਪੁੱਟ · ਉਪਲਬਧ ਨਹੀਂ</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>ਆਡੀਓ · ਬਣਾਓ · ਅਸਫਲ</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>ਅਵੈਧ · ਪਛਾਣਕਰਤਾ</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>ਅਵੈਧ · ਡੀਕੋਡਰ · ਆਡੀਓ</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>ਅਵੈਧ · ਖੋਜ</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>ਰੇਡੀਓ · ਮਿਸ਼ਰਣ · ਉਪਲਬਧ ਨਹੀਂ</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>ਆਡੀਓ · ਪਲੱਗਇਨ · ਉਪਲਬਧ ਨਹੀਂ</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

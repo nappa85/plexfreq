@@ -204,10 +204,6 @@
       <translation>Bilder · Grense · Størrelse</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Lyd · Tildeling · Mislyktes</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Lyd · Cache · Gjeldende · Brukt · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Lyd · Kø · Utilgjengelig</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Lyd · Dekoder · Initialisering · Mislyktes</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Lyd · Grense · Cache</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Lyd · Initialisering · Mislyktes</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Lyd · Utgang · Opprett · Mislyktes</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Lyd · Utgang · Mislyktes</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Lyd · Utgang · Utilgjengelig</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Lyd · Opprett · Mislyktes</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Ugyldig · Identifikator</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Ugyldig · Dekoder · Lyd</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Ugyldig · Søk</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Radio · Miks · Utilgjengelig</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Lyd · Tillegg · Utilgjengelig</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

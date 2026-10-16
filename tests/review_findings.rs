@@ -83,7 +83,7 @@ fn call(core: &mut Core, input: Value) -> plexfreq_core::Result<Value> {
 }
 
 fn track(id: &str) -> Value {
-    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"parentRatingKey":"20","parentTitle":"Offline album","grandparentRatingKey":"10","grandparentTitle":"Offline artist","Media":[{"audioCodec":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
+    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"parentRatingKey":"20","parentTitle":"Offline album","grandparentRatingKey":"10","grandparentTitle":"Offline artist","Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
 }
 
 fn empty() -> Value {

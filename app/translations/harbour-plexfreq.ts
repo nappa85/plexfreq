@@ -204,10 +204,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation type="unfinished" />
     </message>
@@ -217,10 +213,6 @@
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -240,23 +232,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation type="unfinished" />
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -460,10 +440,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation type="unfinished" />
     </message>
@@ -589,10 +565,6 @@
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
       <translation type="unfinished" />
     </message>
     <message>

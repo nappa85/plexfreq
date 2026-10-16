@@ -7,7 +7,7 @@ use std::{
 };
 
 fn track(key: &str, queue_id: Option<u64>) -> Value {
-    json!({"ratingKey":key,"key":format!("/library/metadata/{key}"),"type":"track","title":"Fixture track","duration":10000,"musicAnalysisVersion":1,"playQueueItemID":queue_id,"Media":[{"Part":[{"key":format!("/library/parts/{key}/audio.flac")}]}]})
+    json!({"ratingKey":key,"key":format!("/library/metadata/{key}"),"type":"track","title":"Fixture track","duration":10000,"musicAnalysisVersion":1,"playQueueItemID":queue_id,"Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":format!("/library/parts/{key}/audio.flac")}]}]})
 }
 
 type Response = (

@@ -127,7 +127,7 @@ fn music_browse_play_and_persistent_session() {
         ),
         (
             "title=Bj%C3%B6rk+%26+friends",
-            json!({"MediaContainer":{"size":1,"totalSize":101,"Metadata":[{"ratingKey":"42","key":"/library/metadata/42","type":"track","title":"Song","parentTitle":"Album","parentThumb":"/library/metadata/9/thumb/1","Media":[{"Part":[{"key":"/library/parts/42/file.flac"}]}]}]}}),
+            json!({"MediaContainer":{"size":1,"totalSize":101,"Metadata":[{"ratingKey":"42","key":"/library/metadata/42","type":"track","title":"Song","parentTitle":"Album","parentThumb":"/library/metadata/9/thumb/1","Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":"/library/parts/42/file.flac"}]}]}]}}),
         ),
     ]);
     let dir = tempfile::tempdir().unwrap();

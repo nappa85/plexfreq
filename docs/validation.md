@@ -1,5 +1,31 @@
 # Validation record
 
+## GStreamer removal (Symphonia/rubato/libpulse) — 2026-10-16
+
+| Check | Actual result |
+| --- | --- |
+| `cargo fmt --all --check` | Passed |
+| `cargo clippy --locked --all-targets --all-features -- -D warnings` | Passed |
+| `cargo test --locked --all-features --no-fail-fast` | Passed: 301 tests, 0 failed, 1 ignored (pre-existing). One earlier full run failed the new `media_source_seeks_by_byte_range...` test: with a 1 MB body the far target was sometimes already buffered; the body now exceeds the 4 MiB window (5 focused runs + full run pass) |
+| Engine integration tests (`audio`, `review_audio_engine`, `audio_seek_successor`, `production_review`) repeated | 10/10 clean runs |
+| Desktop `cmake -DBUILD_TESTING=ON`, build, `ctest` | Passed 2/2 (after adding container/codec to the Qt fixture's track metadata) |
+| `bash tools/build-qm.sh --check` | Passed (39 locales, 520 messages; seven GStreamer-only Core error strings removed, catalogues regenerated) |
+| `./tools/build-sailfish.sh` | Passed; rpmlint 0 errors, 1 warning (existing no-url-tag) |
+| `./tools/check-harbour.sh` | **Validation succeeded**, no warnings/errors. Binary NEEDED: libsailfishapp, libpulse, Qt5 Quick/Gui/Qml/Core, libstdc++, libm, libgcc_s, libc, ld-linux (previously also libgstapp/libgstbase/libgstreamer/libgio/libgobject/libglib) |
+| Size | RPM 4,792,224 → 4,937,183 bytes (+3.0%); stripped executable 11,820,232 → 11,746,632 bytes |
+| `./tools/build-device-tests.sh` | Passed; fixture NEEDED shows libpulse and Qt5 only |
+| Desktop PulseAudio (`examples/pulse-play`, 8 s 44.1 kHz AAC tone) | Position advanced in real time from ~0.2 s startup latency; pause held 2622 ms and corked the sink input; resume and seek to 1 s continued; float32le 2ch 48 kHz, role music; no stream after exit. Monitor capture (parec) produced no data in this sandbox, so audible content was not machine-verified |
+
+Ported assertions: GStreamer-internal tests were rewritten to observable behaviour —
+dynamic decodebin pad linking → audio track chosen beside an MP4 video stream;
+pipeline PAUSED/PLAYING preroll states → output corked/playing and captured PCM
+counts; REQUEST_STATE/CLOCK_LOST bus messages → injected PulseAudio request-cork/
+uncork and stream failure; appsrc PTS overflow → u128 stream-time/frame accounting;
+appsrc/appsink HTTP fixtures → the Read/Seek source. Exact join, crossfade, mixed-rate,
+seek/successor and MP3/AAC trimming assertions are unchanged; the FLAC fixture is
+now encoded by FFmpeg instead of a GStreamer pipeline. No phone was available: no
+installed-RPM, Sailjail, routing, Bluetooth, call or long-session test was run.
+
 ## Typed commands / worker channel / string enums — 2026-10-15
 
 | Check | Actual result |
@@ -1576,3 +1602,17 @@ warning). `mb2 check --suites harbour` FAILED: the binary links and the RPM requ
 `libgstreamer-1.0.so.0`, `libgstbase-1.0.so.0` and `libgstapp-1.0.so.0`, which Harbour
 does not allow; `libpulse` passed. Missing 86/108/128 px launcher icons (warning) are
 now packaged. The CI `harbour` job is red until the GStreamer dependency is resolved.
+
+### Bluetooth auto-pause regression (2026-10-16)
+
+Phone (0.1.4-1, read-only SSH log): the BlueZ observer reported facts at startup,
+logged `facts unavailable` 73 s later and never observed again, so a disconnect at
+08:45:18 (seen by the diagnostics heartbeat) did not pause; 0.1.3 builds paused
+correctly on 2026-10-15. Cause: the async `watch()` polled `MessageStream` clones and
+kept the never-polled originals for cleanup; each zbus clone is its own queue
+receiver, so the first >64-signal burst blocked the socket reader and every later
+query reply (network observer affected too). Fix: poll the original streams and drop
+them on exit. `bluez_disconnect_signal_pauses_audio_even_with_a_full_metadata_queue`
+now emits 200 PropertiesChanged signals before the disconnect; it failed before the
+fix ("Audio profile removal did not pause audio") and passed 3/3 after; full
+`cargo test` green on the committed tree plus this fix. Not yet re-validated on phone.

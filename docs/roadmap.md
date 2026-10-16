@@ -1,5 +1,13 @@
 # Development roadmap
 
+GStreamer removal (2026-10-16): Harbour validation now passes. Decoding is Symphonia
+(MP3/FLAC/AAC/ALAC/Vorbis/PCM) with MP4 gapless trimming and rubato resampling;
+output is a libpulse stream. Unsupported/unknown formats stream as server transcodes
+and original-quality downloads of them are 320 kbps MP3. Next: install the RPM on the
+phone and validate x-maemo routing/volume keys, call/alarm cork requests, Bluetooth
+reconnect, lock-screen sessions, CPU/battery of decoding+resampling, and Opus/WMA
+libraries via transcode.
+
 Car reconnect follow-up (2026-10-15): installed 0.1.3-2 logs show zero playback
 time after the 08:45 reconnect, stale occurrence while prepared audio continues,
 then silence after its exhaustion at 08:51. Rust output position tracking now

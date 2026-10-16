@@ -204,10 +204,6 @@
       <translation>Φωτογραφίες · Όριο · Μέγεθος</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Ήχος · Δέσμευση · Αποτυχία</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Ήχος · Προσωρινή μνήμη · Τρέχον · Χρησιμοποιήθηκε · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Ήχος · Ουρά · Μη διαθέσιμο</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Ήχος · Αποκωδικοποιητής · Αρχικοποίηση · Αποτυχία</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Ήχος · Όριο · Προσωρινή μνήμη</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Ήχος · Αρχικοποίηση · Αποτυχία</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Ήχος · Έξοδος · Δημιουργία · Αποτυχία</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Ήχος · Έξοδος · Αποτυχία</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Ήχος · Έξοδος · Μη διαθέσιμο</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Ήχος · Δημιουργία · Αποτυχία</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Μη έγκυρο · Αναγνωριστικό</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Μη έγκυρο · Αποκωδικοποιητής · Ήχος</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Μη έγκυρο · Αναζήτηση</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Ραδιόφωνο · Μίξη · Μη διαθέσιμο</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Ήχος · Πρόσθετα · Μη διαθέσιμο</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

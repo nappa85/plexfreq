@@ -1,5 +1,71 @@
 # Architecture
 
+## Pure-Rust decoding and PulseAudio output (2026-10-16)
+
+GStreamer is removed (Harbour rejects libgstreamer/libgstbase/libgstapp). The audio
+actor, Control/Event/Snapshot/Handle API, segment/transition accounting, crossfade,
+gain and EQ are unchanged; only the decoder, HTTP input and output sink were replaced.
+
+```
+ actor thread (plexfreq-audio): commands, pump, DSP, PulseAudio mainloop dispatch
+   ├─ Decoder (current) ── thread plexfreq-decode: Symphonia demux/decode
+   │     └─ http::Source (blocking Read+Seek) ⇐ byte window ⇐ async HTTP task (plexfreq-rt)
+   ├─ Decoder (prepared successor) ── its own thread, same pipeline
+   └─ Output: PulseAudio stream | Fake (real-time) | Capture (instant, recorded)
+```
+
+- Decoding: `src/audio/decode.rs`. One thread per Decoder probes with Symphonia 0.6.1
+  (features flac, mp3, aac, alac, isomp4, ogg, vorbis, wav, pcm), selects the first
+  audio track with a compiled decoder (a cover-art video track is ignored), seeks
+  sample-accurately for resume, decodes, trims, maps channels to stereo (mono
+  duplicated; >2 channels ITU-style downmix normalized to full scale; LFE dropped)
+  and resamples to 48 kHz. It blocks only on a condvar (PCM ready ≥ the actor's
+  requested lead: 2 s plus crossfade tail) or on input bytes, re-checking stop at
+  least every 100 ms; Decoder::drop stops the reader and joins the thread.
+- Trimming: packet trim_start/trim_end are applied when the decoder has not already
+  done so (MP3/Vorbis apply them; AAC does not), and a block is capped at the packet
+  duration (a shortened final MP4 sample marks padding). Symphonia's MP4 demuxer
+  parses but ignores edit lists, so `src/audio/mp4.rs` taps the bytes the demuxer
+  already reads (no extra HTTP range request), keeps `moov` and derives delay/valid
+  length from iTunSMPB or the first non-empty `elst` edit (media duration minus delay
+  when it agrees with the millisecond movie-timescale edit duration).
+- Resampling: `src/audio/resample.rs`, rubato 5.0.1 `Async::new_sinc` (128 taps,
+  linear interpolation of a 256× oversampled Blackman-Harris² sinc, no FFT
+  dependency, comparable to GStreamer audioresample's default quality). The first
+  frame is extended backwards and the last frame forwards instead of zero padding,
+  the filter delay is discarded and the output length is exactly round(n × ratio).
+- HTTP input: `src/audio/http.rs`. The async task on the shared current-thread runtime
+  appends response bytes to a bounded 4 MiB window (Mutex + Condvar for the decoder,
+  tokio Notify for room); it never blocks. Seeks move the decoder's logical position
+  only; a read outside the window (or >64 KiB ahead of it) bumps a generation and
+  requests that offset, so stale bytes of a superseded request are never appended.
+  Probe-time End/Start round trips cost no request. Retries, validators, Content-Range
+  (`*` included), 200-ignoring-Range skipping, progressive transcodes (not
+  byte-seekable; resume via time offset) and the session closer are unchanged.
+- Output: `src/audio/output.rs` + `src/audio/pulse.rs`. One libpulse context per
+  engine (non-threaded `pa_mainloop`, dispatched without blocking by the actor every
+  pump, so callbacks run on the actor thread). Each load/seek creates a float32 stereo
+  48 kHz playback stream (START_CORKED, INTERPOLATE_TIMING, AUTO_TIMING_UPDATE,
+  ADJUST_LATENCY; tlength 300 ms, minreq 20 ms as pulsesink buffer-time/latency-time
+  did; prebuf server default). Pause/recording hold/starvation cork; Play uncorks;
+  load/seek/stop disconnect the stream (queued audio discarded immediately). End of
+  stream drains; the drain callback sets EOF. Stream properties: media.role (x-maemo on
+  Sailfish, music elsewhere), media.name, application.name=PlexFreq,
+  application.id=harbour-plexfreq. Policy request-cork clears play intent; request-uncork
+  is ignored (as REQUEST_STATE was). Stream failure (daemon restart, kill) reports
+  "Audio output is unavailable"; the next load reconnects. Volume stays Rust DSP gain.
+- Position: `pa_stream_get_time` (server read index minus sink latency, interpolated)
+  in frames, through the unchanged PositionClock (failed query keeps the last value,
+  jitter clamped, ≥1 s backwards jumps rebased, capped at submitted frames). Queued
+  bytes = (submitted − position) × 8, so the 0.5 s backpressure includes server and
+  sink latency. Snapshot.playing requires uncorked and started (not prebuffering or
+  underrun, via started/underflow callbacks); otherwise play intent shows buffering.
+- Format policy: `src/audio/formats.rs` is the single (container, audioCodec) table
+  derived from the compiled decoders; anything else, including empty/unknown values,
+  is transcoded for streaming, and original-quality downloads of such tracks are
+  server MP3 transcodes at 320 kbps (`cache::download_quality`). The runtime's single
+  decode-failure → transcode fallback is retained.
+
 ## Typed command admission / worker channel (2026-10-15)
 
 `Runtime::submit` (and MPRIS/Bluetooth through `Shared::send`) parses the wire
@@ -520,7 +586,7 @@ Qt5.6/Silica or Qt6/Controls QML
  → small QObject/model/translation/window bridge (no QThread or QMediaPlayer)
  → Runtime C ABI submit/poll
  → Rust Core request actor + independent Rust audio actor/HTTP readers
- → GStreamer installed codecs/appsink → Rust PCM/DSP → appsrc/PulseAudio music sink
+ → Symphonia decoder threads → Rust resample/PCM/DSP → libpulse playback stream (music role)
  → Rust zbus MPRIS and read-only network workers
 ```
 
@@ -676,10 +742,10 @@ not guarantee gapless transitions. Radio continuation can incur network latency.
 
 Installed Sailfish launches append stdout/stderr diagnostics to the private
 daily file `~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log`. Isolated-state smoke tests
-do not write this user log. Decoder and output bus errors include GStreamer's
-underlying error/debug text while the user-facing response stays stable and
-translated. Remote media credentials do not enter GStreamer URIs because Rust
-supplies those bytes through appsrc.
+do not write this user log. Decoder and output errors include the underlying
+Symphonia/libpulse reason while the user-facing response stays stable and
+translated. Remote media credentials never reach a decoder: Rust's HTTP reader
+supplies bytes through a Read/Seek window (GStreamer appsrc before 2026-10-16).
 
 ## Artist-first navigation and detail models
 
@@ -917,8 +983,9 @@ zbus (tokio feature) runs its internal tasks on the shared runtime. No blocking
 filesystem/D-Bus/libpulse call may run on `plexfreq-rt`; use `rt::unblock`. MPRIS emits on an audio transport change
 watch (position excluded), model revisions and seeks, with a 1 s fallback. View-bound
 commands abort in-flight HTTP when navigation moves past their view; the reply is
-discarded. The GStreamer actor, libpulse recording mainloop, log capture and Core
-worker remain dedicated threads.
+discarded. The audio actor (which also dispatches its libpulse playback mainloop),
+one decoder thread per current/prepared track, libpulse recording mainloop, log
+capture and Core worker remain dedicated threads.
 Decision (2026-10-15): stay on one current-thread runtime. Throughput is ample; the
 risk is a blocking call landing on `plexfreq-rt`. If audio stalls or I/O latency
 show up on the phone, switch to a 2-worker multi-thread runtime (tokio feature

@@ -12,9 +12,17 @@ QML → small QObject/list-model/translation bridge → opaque Runtime C ABI
   Rust Core actor: Plex, queue/radio, prepared successors, persistence/history
   Rust audio actor: PCM scheduling, transport, position, EQ/gain/crossfade
   Rust HTTP readers: header authentication, byte seeks, cancellation, no redirects
-  GStreamer: installed codecs/resampling + appsink/appsrc + PulseAudio music sink
+  Rust decoder threads: Symphonia demux/decode, MP4 gapless trim, rubato resampling
+  libpulse: one playback stream per load/seek with the music (x-maemo) role
   Rust zbus workers: MPRIS and read-only network observation
 ```
+
+2026-10-16: the "pure Rust decode/DSP with a thin native output sink" alternative
+below is now the implementation (GStreamer removed for Harbour validation). The
+earlier GStreamer evaluation is kept as rationale. Details: architecture.md
+"Pure-Rust decoding and PulseAudio output"; the coverage/trimming gaps noted below
+are addressed by the format table (unsupported → server transcode) and the MP4
+edit-list/iTunSMPB tap.
 
 No QThread or QMediaPlayer is created by the C++ bridge. Qt polls bounded runtime
 events/snapshots; it does not perform audio transport, measure heard time, advance
@@ -27,11 +35,11 @@ equal-power crossfades overlap an exact configured frame count (off by default,
 peaking EQ, metadata gain option and sample clamp run on PCM before the sink.
 This does not claim bit-perfect sample-rate matching or Plexamp's proprietary fades.
 
-Source HTTP is Rust-owned: the decoder sees an appsrc byte stream rather than a
+Source HTTP is Rust-owned: the decoder reads a Read/Seek byte window rather than a
 credential-bearing URI. Requests use X-Plex-Token headers, disable redirects and
-validate partial-range start/representation encoding. Local files use native file
-decoding. Output uses pulsesink with media.role=music; tests use synchronized fake
-or captured PCM sinks without changing system audio services.
+validate partial-range start/representation encoding. Local files are read
+directly. Output is a libpulse stream with media.role=music (x-maemo on Sailfish);
+tests use real-time fake or captured PCM sinks without changing system audio services.
 
 The Core HTTP actor may block on metadata without blocking audio controls/output.
 It prepares the next queue/radio snapshot in advance and commits it when that
@@ -108,6 +116,16 @@ does not reproduce Plexamp's discovery algorithms, mix weighting or Sweet Fades
 behavior automatically.
 
 ## Consulted sources
+
+- 2026-10-16 replacement: Symphonia 0.6.1 crate source (symphonia, -core packet/
+  trim/seek/MediaSource APIs, -format-isomp4 edit-list handling, -bundle-mp3 LAME
+  delay/padding, -codec-aac), rubato 5.0.1 README/`Async`/`Indexing` source and
+  libpulse-sys 1.23 stream/context bindings and the installed PulseAudio 17.0
+  headers `/usr/include/pulse/{stream,def}.h` (cork, drain, get_time interpolation
+  with AUTO_TIMING_UPDATE, buffer_attr: prebuf=(uint32_t)-1 equals tlength and an
+  underrun re-enables prebuffering, so the read index never overtakes written data;
+  started/underflow/event callbacks). The freedesktop.org doxygen pages
+  (streams.html) returned HTTP 403 to the fetcher on 2026-10-16.
 
 - GStreamer appsink/appsrc, buffers/timestamps and application interaction:
   https://gstreamer.freedesktop.org/documentation/tutorials/basic/short-cutting-the-pipeline.html

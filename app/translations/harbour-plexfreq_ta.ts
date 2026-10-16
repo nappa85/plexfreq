@@ -204,10 +204,6 @@
       <translation>புகைப்படங்கள் · வரம்பு · அளவு</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>ஒலி · ஒதுக்கீடு · தோல்வி</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>ஒலி · தற்காலிகச் சேமிப்பு · தற்போதைய · பயன்படுத்தப்பட்டது · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>ஒலி · வரிசை · கிடைக்கவில்லை</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>ஒலி · குறிவிலக்கி · தொடக்க அமைப்பு · தோல்வி</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>ஒலி · வரம்பு · தற்காலிகச் சேமிப்பு</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>ஒலி · தொடக்க அமைப்பு · தோல்வி</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>ஒலி · வெளியீடு · உருவாக்கு · தோல்வி</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>ஒலி · வெளியீடு · தோல்வி</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>ஒலி · வெளியீடு · கிடைக்கவில்லை</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>ஒலி · உருவாக்கு · தோல்வி</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>செல்லாதது · அடையாளங்காட்டி</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>செல்லாதது · குறிவிலக்கி · ஒலி</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>செல்லாதது · தேடு</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>வானொலி · கலவை · கிடைக்கவில்லை</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>ஒலி · செருகுநிரல்கள் · கிடைக்கவில்லை</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

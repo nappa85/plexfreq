@@ -8,8 +8,6 @@ BuildRequires: pkgconfig(sailfishapp) >= 1.0.2
 BuildRequires: pkgconfig(Qt5Core)
 BuildRequires: pkgconfig(Qt5Qml)
 BuildRequires: pkgconfig(Qt5Quick)
-BuildRequires: pkgconfig(gstreamer-1.0)
-BuildRequires: pkgconfig(gstreamer-app-1.0)
 BuildRequires: pkgconfig(libpulse)
 Requires: sailfishsilica-qt5 >= 0.10.9
 

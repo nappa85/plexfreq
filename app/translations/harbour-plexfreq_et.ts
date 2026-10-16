@@ -204,10 +204,6 @@
       <translation>Fotod · Piirang · Suurus</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Heli · Eraldamine · Ebaõnnestus</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Heli · Vahemälu · Praegune · Kasutatud · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Heli · Järjekord · Pole saadaval</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Heli · Dekooder · Algväärtustamine · Ebaõnnestus</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Heli · Piirang · Vahemälu</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Heli · Algväärtustamine · Ebaõnnestus</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Heli · Väljund · Loo · Ebaõnnestus</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Heli · Väljund · Ebaõnnestus</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Heli · Väljund · Pole saadaval</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Heli · Loo · Ebaõnnestus</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Vigane · Identifikaator</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Vigane · Dekooder · Heli</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Vigane · Otsing</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Raadio · Miks · Pole saadaval</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Heli · Pluginad · Pole saadaval</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

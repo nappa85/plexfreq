@@ -204,10 +204,6 @@
       <translation>ફોટા · મર્યાદા · કદ</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>ઑડિયો · ફાળવણી · નિષ્ફળ</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>ઑડિયો · કૅશ · વર્તમાન · વપરાયેલું · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>ઑડિયો · કતાર · ઉપલબ્ધ નથી</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>ઑડિયો · ડિકોડર · પ્રારંભ · નિષ્ફળ</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>ઑડિયો · મર્યાદા · કૅશ</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>ઑડિયો · પ્રારંભ · નિષ્ફળ</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>ઑડિયો · આઉટપુટ · બનાવો · નિષ્ફળ</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>ઑડિયો · આઉટપુટ · નિષ્ફળ</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>ઑડિયો · આઉટપુટ · ઉપલબ્ધ નથી</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>ઑડિયો · બનાવો · નિષ્ફળ</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>અમાન્ય · ઓળખકર્તા</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>અમાન્ય · ડિકોડર · ઑડિયો</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>અમાન્ય · શોધ</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>રેડિયો · મિશ્રણ · ઉપલબ્ધ નથી</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>ઑડિયો · પ્લગઇન · ઉપલબ્ધ નથી</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

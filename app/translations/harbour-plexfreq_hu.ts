@@ -204,10 +204,6 @@
       <translation>Fényképek · Korlát · Méret</translation>
     </message>
     <message>
-      <source>Audio buffer allocation failed</source>
-      <translation>Hang · Foglalás · Sikertelen</translation>
-    </message>
-    <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
       <translation>Hang · Gyorsítótár · Jelenlegi · Használva · PlexFreq</translation>
     </message>
@@ -218,10 +214,6 @@
     <message>
       <source>Audio command queue is unavailable</source>
       <translation>Hang · Sor · Nem érhető el</translation>
-    </message>
-    <message>
-      <source>Audio decoder initialization failed</source>
-      <translation>Hang · Dekóder · Inicializálás · Sikertelen</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -240,24 +232,12 @@
       <translation>Hang · Korlát · Gyorsítótár</translation>
     </message>
     <message>
-      <source>Audio framework initialization failed</source>
-      <translation>Hang · Inicializálás · Sikertelen</translation>
-    </message>
-    <message>
-      <source>Audio output creation failed</source>
-      <translation>Hang · Kimenet · Létrehozás · Sikertelen</translation>
-    </message>
-    <message>
       <source>Audio output failed</source>
       <translation>Hang · Kimenet · Sikertelen</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
       <translation>Hang · Kimenet · Nem érhető el</translation>
-    </message>
-    <message>
-      <source>Audio pipeline creation failed</source>
-      <translation>Hang · Létrehozás · Sikertelen</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
@@ -460,10 +440,6 @@
       <translation>Érvénytelen · Azonosító</translation>
     </message>
     <message>
-      <source>Invalid decoded audio</source>
-      <translation>Érvénytelen · Dekóder · Hang</translation>
-    </message>
-    <message>
       <source>Invalid discovery layout</source>
       <translation>Érvénytelen · Keresés</translation>
     </message>
@@ -590,10 +566,6 @@
     <message>
       <source>Radio seed does not match the selected music type</source>
       <translation>Rádió · Mix · Nem érhető el</translation>
-    </message>
-    <message>
-      <source>Required audio plugins are unavailable</source>
-      <translation>Hang · Bővítmények · Nem érhető el</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>

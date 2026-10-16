@@ -81,7 +81,7 @@ fn call(core: &mut Core, input: Value) -> plexfreq_core::Result<Value> {
     core.execute(serde_json::from_value::<Command>(input).unwrap())
 }
 fn track(id: &str) -> Value {
-    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"Media":[{"audioCodec":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
+    json!({"ratingKey":id,"key":format!("/library/metadata/{id}"),"type":"track","title":format!("Track {id}"),"duration":180000,"Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":format!("/library/parts/{id}/audio.flac")}]}]})
 }
 fn connect(core: &mut Core, server: &Server) {
     call(
