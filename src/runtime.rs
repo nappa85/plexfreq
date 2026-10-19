@@ -148,6 +148,9 @@ pub(crate) struct Shared {
     pub(crate) acted: Arc<AtomicU64>,
     /// Playback requests admitted but not yet taken by the worker.
     queued_transport: Arc<AtomicUsize>,
+    /// Whether downloads should yield to the live stream (see
+    /// `yield_downloads`). Written, like the control, under `control`'s lock.
+    cache_hold: Arc<AtomicBool>,
     /// Gapless transitions committed by the worker.
     #[cfg(test)]
     transitions: Arc<AtomicUsize>,
@@ -172,6 +175,7 @@ impl Shared {
             navigation: Arc::new(watch::channel(0).0),
             acted: Arc::new(AtomicU64::new(0)),
             queued_transport: Arc::new(AtomicUsize::new(0)),
+            cache_hold: Arc::new(AtomicBool::new(false)),
             #[cfg(test)]
             transitions: Arc::new(AtomicUsize::new(0)),
         }
@@ -287,7 +291,9 @@ impl Shared {
             Command::AudioPlay | Command::AudioToggle => {
                 let toggle = matches!(command, Command::AudioToggle);
                 let state = handle.snapshot();
-                if toggle && state.playing {
+                // The logical intent, not audibility: a buffering, held-failure
+                // or recording-held track still toggles to pause.
+                if toggle && state.loaded && state.intent {
                     handle.pause()?;
                 } else if state.loaded {
                     handle.play()?;
@@ -422,6 +428,22 @@ impl Shared {
         }
         drop(model);
         self.touched();
+    }
+    /// Install a (new) download control, carrying the current hold over.
+    fn install_control(&self, control: Option<crate::cache::DownloadControl>) {
+        let mut slot = crate::mutex_lock(&self.control);
+        if let Some(control) = &control {
+            control.hold(self.cache_hold.load(Ordering::SeqCst));
+        }
+        *slot = control;
+    }
+    /// Record and apply whether downloads yield to the live stream.
+    fn hold_downloads(&self, held: bool) {
+        let slot = crate::mutex_lock(&self.control);
+        self.cache_hold.store(held, Ordering::SeqCst);
+        if let Some(control) = slot.as_ref() {
+            control.hold(held);
+        }
     }
     pub(crate) fn hint_network(&self, wifi: bool) {
         if let Some(control) = crate::mutex_lock(&self.control).as_ref() {
@@ -701,7 +723,7 @@ fn worker(
     events: mpsc::Sender<Outgoing>,
 ) {
     let _exit = Exit(&shared);
-    let started = Engine::with_acted(sink, shared.acted.clone()).and_then(|engine| {
+    let started = Engine::with_recovery(sink, shared.acted.clone()).and_then(|engine| {
         *crate::mutex_lock(&shared.audio) = Some(engine.handle.clone());
         Ok((engine, Core::new(directory.clone())?))
     });
@@ -710,7 +732,13 @@ fn worker(
         Err(error) => return abandon(&shared, receiver, &events, &error),
     };
     let _ = engine.handle.configure(core.audio_config());
-    *crate::mutex_lock(&shared.control) = Some(core.download_control());
+    shared.install_control(Some(core.download_control()));
+    // Owned here: dropped (aborted) before `_exit` releases the control.
+    let _yield = crate::rt::spawn(yield_downloads(
+        shared.clone(),
+        engine.handle.changes(),
+        HOLD_RELEASE,
+    ));
     let platform = observers.then(|| platform::start(shared.clone(), events.clone()));
     let mut current = 0u64;
     let mut serial = 0u64;
@@ -725,6 +753,7 @@ fn worker(
     // Direction of travel of the current occurrence (Previous → back): an
     // automatic skip over a gone item continues the same way.
     let mut back = false;
+    let mut failures = Failures::default();
     macro_rules! held {
         () => {
             recovery
@@ -746,6 +775,7 @@ fn worker(
                 prepared: &mut prepared,
                 recovery: &mut recovery,
                 back: &mut back,
+                failures: &mut failures,
             }
         };
     }
@@ -776,7 +806,7 @@ fn worker(
         // saved again) still reports, unless playback moved on.
         if let Some(waiting) = recovery.orphaned.take() {
             if core.current_key() == Some(waiting.key.as_str()) && current == waiting.occurrence {
-                audio_error(&events, waiting.message);
+                playback!().give_up(waiting.occurrence, Some(waiting.message.to_owned()));
             }
         }
         if let Some(key) = core
@@ -798,7 +828,97 @@ fn worker(
                 retry_prepare |= playback!().settle_failure(waiting, None);
             }
         }
-        if retry_prepare {
+        // A held failure: give up at its deadline (silently if the user
+        // paused meanwhile), or run a due transcode restart once playing and
+        // online.
+        // Retry a resolution a full engine queue refused.
+        if let Some(pending) = &mut failures.pending {
+            if let Some((resolution, expiry)) = pending.unsent.take() {
+                if let Err(resolution) =
+                    engine
+                        .handle
+                        .resolve(pending.failed, pending.seq, resolution, expiry)
+                {
+                    pending.unsent = Some((*resolution, expiry));
+                }
+            }
+        }
+        if failures.pending.is_none() {
+            if let Some(held) = &failures.held {
+                let now = Instant::now();
+                let snapshot = engine.handle.snapshot();
+                let engine_holds = snapshot.failed && snapshot.id == held.id;
+                let same = core.current_key() == Some(held.key.as_str())
+                    && core.occurrence() == held.occurrence
+                    && held.epoch == recovery.epoch_handle.load(Ordering::SeqCst);
+                if !engine_holds && recovery.waiting.is_none() {
+                    // The user stopped or replaced it; the engine let it go.
+                    failures.held = None;
+                } else if engine_holds && (!same || core.offline_mode()) {
+                    // Core moved on (server or queue change): release it.
+                    let id = held.id;
+                    recovery.waiting = None;
+                    playback!().give_up(id, None);
+                } else if now >= held.deadline {
+                    let (id, message) = (held.id, held.message);
+                    recovery.waiting = None;
+                    let banner = snapshot.intent.then(|| message.to_owned());
+                    playback!().give_up(id, banner);
+                } else if held.restart_due.is_some_and(|due| {
+                    due <= now
+                        && snapshot.intent
+                        && !core.known_offline()
+                        // A queued request decides instead of a restart.
+                        && shared.queued_transport.load(Ordering::SeqCst) == 0
+                }) && core.is_gone(&held.key)
+                {
+                    // Learned gone meanwhile: the gone path, not a restart.
+                    let id = held.id;
+                    if let Some(held) = &mut failures.held {
+                        held.restart_due = None;
+                    }
+                    playback!().verdict_or_give_up(id);
+                } else if held.restart_due.is_some_and(|due| {
+                    due <= now
+                        && snapshot.intent
+                        && !core.known_offline()
+                        && shared.queued_transport.load(Ordering::SeqCst) == 0
+                }) {
+                    let (id, progress, admitted) = (held.id, held.progress, held.admitted);
+                    let occurrence = held.occurrence.clone();
+                    if let Some(held) = &mut failures.held {
+                        held.restart_due = None;
+                    }
+                    if !admitted {
+                        // Deferred while paused or offline: admit now; the
+                        // restart itself follows after its backoff.
+                        match failures.admit_restart(&occurrence, progress) {
+                            Some(attempt) => {
+                                if let Some(held) = &mut failures.held {
+                                    held.admitted = true;
+                                    held.restart_due = Some(now + restart_backoff(attempt));
+                                }
+                            }
+                            None => playback!().verdict_or_give_up(id),
+                        }
+                    } else {
+                        match core.execute(Command::RestartTranscode) {
+                            Ok(data) => playback!().send_resolve(
+                                id,
+                                PendingKind::Same(with_resume(
+                                    data,
+                                    snapshot.position,
+                                    snapshot.listened,
+                                )),
+                            ),
+                            Err(_) => playback!().verdict_or_give_up(id),
+                        }
+                    }
+                }
+            }
+        }
+        // No successor for a held failure: its resolution replaces playback.
+        if retry_prepare && failures.held.is_none() && failures.pending.is_none() {
             retry_prepare = !prepare(
                 &mut core,
                 &shared,
@@ -828,6 +948,7 @@ fn worker(
                     if let Some((id, next)) = prepared.take() {
                         if id == new {
                             if let Ok(data) = core.commit_prepared(next) {
+                                failures.clear();
                                 current = new;
                                 back = false;
                                 #[cfg(test)]
@@ -864,6 +985,7 @@ fn worker(
                     let gone_notice = core.take_gone_notice();
                     match next {
                         Ok(data) => {
+                            failures.clear();
                             if let Err(error) = start_plan(
                                 &data,
                                 &shared,
@@ -899,10 +1021,96 @@ fn worker(
                 }
                 Event::Error {
                     id,
-                    message,
-                    paused,
-                    acted,
+                    recoverable: true,
+                    position,
+                    listened,
+                    duration,
+                    progress,
+                    ..
                 } => {
+                    if failures.pending.is_some() {
+                        // Not expected (outcomes precede new failures on the
+                        // event channel); the pending outcome decides.
+                        crate::diagnostics::event(format_args!(
+                            "held failure while resolving occurrence={id}"
+                        ));
+                        continue;
+                    }
+                    if id != current {
+                        // Not the item the worker plays: end it rather than
+                        // leave it held.
+                        playback!().give_up(id, Some(stream_failure().to_owned()));
+                        continue;
+                    }
+                    let _ = record(&mut core, id, current, position, listened, duration);
+                    // The engine dropped its successor with the failing decoder.
+                    if let Some((prepared_id, _)) = prepared.take() {
+                        crate::mutex_lock(&shared.presented)
+                            .plans
+                            .remove(&prepared_id);
+                    }
+                    failures.held = core.current_key().map(|key| Held {
+                        id,
+                        key: key.to_owned(),
+                        occurrence: core.occurrence().to_owned(),
+                        message: stream_failure(),
+                        deadline: Instant::now() + HELD_LIMIT,
+                        restart_due: None,
+                        progress,
+                        admitted: false,
+                        epoch: 0,
+                    });
+                    if let Some(held) = &mut failures.held {
+                        held.epoch = recovery.epoch_handle.load(Ordering::SeqCst);
+                    } else {
+                        playback!().give_up(id, Some(stream_failure().to_owned()));
+                        continue;
+                    }
+                    playback!().recover_failure(id, progress, position, duration, listened);
+                }
+                Event::Resolved {
+                    failed,
+                    seq,
+                    outcome,
+                } => {
+                    let pending = match failures.pending.take() {
+                        Some(pending) if pending.seq == seq => pending,
+                        Some(pending)
+                            if outcome == audio::Outcome::Expired && pending.failed == failed =>
+                        {
+                            // The engine expired the failure before our
+                            // resolution reached it.
+                            if playback!().settle_resolution(pending, outcome) {
+                                retry_prepare = true;
+                            }
+                            continue;
+                        }
+                        other => {
+                            failures.pending = other;
+                            // The engine's own expiry of a failure still held
+                            // here: report it.
+                            if outcome == audio::Outcome::Expired
+                                && failures.held.as_ref().is_some_and(|held| held.id == failed)
+                            {
+                                failures.held = None;
+                                recovery.waiting = None;
+                                audio_error(&events, stream_failure());
+                            }
+                            continue;
+                        }
+                    };
+                    if playback!().settle_resolution(pending, outcome) {
+                        retry_prepare = !prepare(
+                            &mut core,
+                            &shared,
+                            &engine,
+                            &mut serial,
+                            &mut prepared,
+                            held!(),
+                        );
+                    }
+                }
+                Event::Error { id, message, .. } => {
                     // A gapless successor that failed to pre-load: drop it
                     // silently, check whether it is gone, and keep playing.
                     if prepared
@@ -941,68 +1149,6 @@ fn worker(
                         snapshot.listened,
                         snapshot.duration,
                     );
-                    let source = playback_source(&shared);
-                    if id == current
-                        && message == "Audio decoding or streaming failed"
-                        && source != Some(PlaybackSource::Cache)
-                    {
-                        let cached = core.execute(Command::CachedPlayback);
-                        let fallback = cached.or_else(|error| {
-                            if source == Some(PlaybackSource::Transcode) {
-                                Err(error)
-                            } else {
-                                core.execute(Command::TranscodedPlayback)
-                            }
-                        });
-                        if let Ok(mut data) = fallback {
-                            data["resumePosition"] = json!(snapshot.position);
-                            data["resumeListened"] = json!(snapshot.listened);
-                            // A same-item fallback keeps the direction of travel.
-                            if start_plan(
-                                &data,
-                                &shared,
-                                &engine,
-                                &mut serial,
-                                &mut current,
-                                paused,
-                            )
-                            .is_ok()
-                            {
-                                shared.merge(&data);
-                                let _ = events.send(update(visible_plan(&data)).into());
-                                retry_prepare = !prepare(
-                                    &mut core,
-                                    &shared,
-                                    &engine,
-                                    &mut serial,
-                                    &mut prepared,
-                                    held!(),
-                                );
-                                continue;
-                            }
-                        }
-                        // Every source failed: ask the server whether the
-                        // track still exists before reporting.
-                        if let Some(key) = core.current_key().map(str::to_owned) {
-                            let waiting = recovery::Waiting {
-                                key: key.clone(),
-                                occurrence: current,
-                                acted,
-                                paused,
-                                back,
-                                message,
-                                deadline: Instant::now() + recovery::VERDICT_DEADLINE,
-                            };
-                            if core.is_gone(&key) {
-                                retry_prepare |= playback!().settle_failure(waiting, None);
-                                continue;
-                            }
-                            if recovery.request(&core, &key, recovery::Class::Priority) {
-                                recovery.waiting = Some(waiting);
-                                continue;
-                            }
-                        }
-                    }
                     audio_error(&events, message);
                 }
                 Event::Seeked(position) => {
@@ -1089,6 +1235,7 @@ fn worker(
                                 "core request panicked op={op}; rebuilding from persisted state"
                             ));
                             recovery.reset();
+                            failures.clear();
                             recovered = Some(recover(
                                 &mut core,
                                 &directory,
@@ -1129,6 +1276,7 @@ fn worker(
                         } else {
                             if class.resets_session {
                                 let _ = engine.handle.stop();
+                                failures.clear();
                                 current = 0;
                                 prepared = None;
                                 retry_prepare = false;
@@ -1145,6 +1293,7 @@ fn worker(
                                 }
                             }
                             if data.get("stream").is_some() {
+                                failures.clear();
                                 let started = start_plan(
                                     &data,
                                     &shared,
@@ -1353,7 +1502,7 @@ fn recover(
     *core = rebuilt;
     core.set_health_epoch(health_epoch);
     let _ = engine.handle.configure(core.audio_config());
-    *crate::mutex_lock(&shared.control) = Some(core.download_control());
+    shared.install_control(Some(core.download_control()));
     // Network facts arrive only on change; replay the last known ones.
     let network = {
         let model = crate::mutex_lock(&shared.model);
@@ -1381,7 +1530,8 @@ struct Exit<'a>(&'a Shared);
 impl Drop for Exit<'_> {
     fn drop(&mut self) {
         self.0.stop.store(true, Ordering::SeqCst);
-        *crate::mutex_lock(&self.0.control) = None;
+        self.0.hold_downloads(false);
+        self.0.install_control(None);
         *crate::mutex_lock(&self.0.audio) = None;
     }
 }
@@ -1419,6 +1569,151 @@ fn audio_error(events: &mpsc::Sender<Outgoing>, message: &str) {
     );
 }
 const GONE_MESSAGE: &str = crate::GONE_TRACK;
+/// How long the worker pursues a held failure before giving up.
+const HELD_LIMIT: Duration = Duration::from_secs(60);
+/// Downloads keep yielding until the live stream has played this long
+/// without starving.
+const HOLD_RELEASE: Duration = Duration::from_secs(10);
+
+/// Make downloads yield the link while the live stream is starving (Plan
+/// E3): held while the engine reports `starved`, released after `release`
+/// of healthy playing, or at once when nothing is playing (paused, stopped,
+/// unloaded or a held failure). Driven by engine changes on the shared
+/// runtime, so a busy worker loop cannot delay it.
+async fn yield_downloads(
+    shared: Shared,
+    mut changes: watch::Receiver<audio::Change>,
+    release: Duration,
+) {
+    let mut deadline: Option<tokio::time::Instant> = None;
+    loop {
+        let change = *changes.borrow_and_update();
+        let held = shared.cache_hold.load(Ordering::SeqCst);
+        // Paused includes a recording hold, which keeps the intent.
+        let playing = change.loaded && change.intent && !change.paused && !change.failed;
+        let now = tokio::time::Instant::now();
+        let want = if change.starved {
+            deadline = None;
+            true
+        } else if !playing || !held {
+            deadline = None;
+            false
+        } else {
+            let until = *deadline.get_or_insert(now + release);
+            now < until
+        };
+        if want != held {
+            shared.hold_downloads(want);
+            if !want {
+                deadline = None;
+            }
+        }
+        tokio::select! {
+            changed = changes.changed() => if changed.is_err() {
+                shared.hold_downloads(false);
+                return;
+            },
+            _ = async {
+                match deadline {
+                    Some(deadline) => tokio::time::sleep_until(deadline).await,
+                    None => std::future::pending().await,
+                }
+            } => {}
+        }
+    }
+}
+/// Restart attempts of an interrupted transcode without new audio.
+const RESTART_ATTEMPTS: u32 = 4;
+/// New audio that proves a restarted transcode works again (resets attempts).
+const RESTART_PROGRESS_MS: u64 = 10_000;
+
+/// A current-track failure the engine holds (stale-queue/mobile Plan E1.4):
+/// loaded, with the user's play intent, until the worker resolves it.
+struct Held {
+    id: u64,
+    key: String,
+    occurrence: String,
+    message: &'static str,
+    deadline: Instant,
+    /// A transcode restart waiting for its backoff, the network or Play.
+    restart_due: Option<Instant>,
+    /// New audio before the failure, for a restart admitted only when it
+    /// can run (a paused or offline failure spends no attempt meanwhile).
+    progress: u64,
+    admitted: bool,
+    /// The health epoch at failure: a server or queue change ends it.
+    epoch: u64,
+}
+/// A resolution sent to the engine, matched to its outcome by `seq`.
+struct Pending {
+    seq: u64,
+    failed: u64,
+    /// Not yet admitted by a full engine queue: retried each pass.
+    unsent: Option<(audio::Resolution, Instant)>,
+    /// The engine id the replacement loads under, if any.
+    new: Option<u64>,
+    kind: PendingKind,
+}
+enum PendingKind {
+    /// The same item from another source.
+    Same(Value),
+    /// The next item of a gone skip.
+    Replace { data: Value, back: bool },
+    /// Give up, with a banner unless the user had paused.
+    Abandon(Option<String>),
+}
+/// Restart attempts of one logical occurrence.
+struct Episode {
+    occurrence: String,
+    attempts: u32,
+}
+#[derive(Default)]
+struct Failures {
+    held: Option<Held>,
+    pending: Option<Pending>,
+    seq: u64,
+    episode: Option<Episode>,
+}
+impl Failures {
+    /// A worker load supersedes any held failure: its late outcome is
+    /// ignored (the engine already dropped the failure on that load).
+    fn clear(&mut self) {
+        self.held = None;
+        self.pending = None;
+    }
+    /// Admit a transcode restart for `occurrence` after `progress` ms of new
+    /// audio; returns the attempt number (1 = immediate).
+    fn admit_restart(&mut self, occurrence: &str, progress: u64) -> Option<u32> {
+        match &mut self.episode {
+            Some(episode) if episode.occurrence == occurrence => {
+                if progress >= RESTART_PROGRESS_MS {
+                    episode.attempts = 1;
+                } else if episode.attempts >= RESTART_ATTEMPTS {
+                    return None;
+                } else {
+                    episode.attempts += 1;
+                }
+                Some(episode.attempts)
+            }
+            // A fresh episode needs proof the stream worked at all: a
+            // transcode that never played goes to the gone check instead.
+            _ if progress > 0 => {
+                self.episode = Some(Episode {
+                    occurrence: occurrence.to_owned(),
+                    attempts: 1,
+                });
+                Some(1)
+            }
+            _ => None,
+        }
+    }
+}
+fn restart_backoff(attempt: u32) -> Duration {
+    match attempt {
+        0 | 1 => Duration::ZERO,
+        n => Duration::from_secs(1 << (n - 1).min(3)),
+    }
+}
 /// The worker state an automatic skip touches.
 struct Playback<'a> {
     core: &'a mut Core,
@@ -1431,11 +1726,215 @@ struct Playback<'a> {
     prepared: &'a mut Option<(u64, Prepared)>,
     recovery: &'a mut recovery::Recovery,
     back: &'a mut bool,
+    failures: &'a mut Failures,
 }
 impl Playback<'_> {
-    fn superseded(&self, acted: u64) -> bool {
-        self.shared.acted.load(Ordering::SeqCst) != acted
-            || self.shared.queued_transport.load(Ordering::SeqCst) > 0
+    /// A user request is queued: it decides what plays next.
+    fn superseded(&self) -> bool {
+        self.shared.queued_transport.load(Ordering::SeqCst) > 0
+    }
+    /// Ask the engine to resolve its held failure `failed`. Nothing is
+    /// published until the outcome (`settle_resolution`), except that the
+    /// replacement's plan is registered for `poll` under its engine id.
+    fn send_resolve(&mut self, failed: u64, kind: PendingKind) {
+        // Engine events are ordered: a previous resolution is answered before
+        // the engine can report another failure.
+        debug_assert!(self.failures.pending.is_none());
+        self.failures.seq += 1;
+        let seq = self.failures.seq;
+        let expiry = self
+            .failures
+            .held
+            .as_ref()
+            .map_or_else(|| Instant::now() + HELD_LIMIT, |held| held.deadline);
+        let (resolution, new) = match &kind {
+            PendingKind::Same(data) | PendingKind::Replace { data, .. } => {
+                *self.serial += 1;
+                match source(*self.serial, data) {
+                    Ok(input) => {
+                        crate::mutex_lock(&self.shared.presented)
+                            .plans
+                            .insert(*self.serial, visible_plan(data));
+                        let resolution = if matches!(kind, PendingKind::Same(_)) {
+                            audio::Resolution::Recover(input)
+                        } else {
+                            audio::Resolution::Replace(input)
+                        };
+                        (resolution, Some(*self.serial))
+                    }
+                    Err(_) => (audio::Resolution::Abandon, None),
+                }
+            }
+            PendingKind::Abandon(_) => (audio::Resolution::Abandon, None),
+        };
+        crate::diagnostics::event(format_args!(
+            "resolving held failure occurrence={failed} seq={seq} replacement={new:?}"
+        ));
+        let unsent = self
+            .engine
+            .handle
+            .resolve(failed, seq, resolution, expiry)
+            .err()
+            .map(|resolution| (*resolution, expiry));
+        self.failures.pending = Some(Pending {
+            seq,
+            failed,
+            unsent,
+            new,
+            kind,
+        });
+    }
+    fn give_up(&mut self, failed: u64, banner: Option<String>) {
+        self.send_resolve(failed, PendingKind::Abandon(banner));
+    }
+    /// Present Core's current item without audio (a skip the user stopped,
+    /// or that found nothing to play).
+    fn present_unloaded(&mut self, data: &Value) {
+        *self.current = 0;
+        *crate::mutex_lock(&self.shared.presented) = Presented::default();
+        let visible = visible_plan(data);
+        self.shared.merge(&visible);
+        let _ = self.events.send(update(visible).into());
+    }
+    /// Apply the engine's answer to the pending resolution. Returns whether
+    /// gapless preparation must run.
+    fn settle_resolution(&mut self, pending: Pending, outcome: audio::Outcome) -> bool {
+        self.failures.held = None;
+        let Pending {
+            new, kind, failed, ..
+        } = pending;
+        if let (audio::Outcome::Loaded(loaded), PendingKind::Same(data))
+        | (audio::Outcome::Loaded(loaded), PendingKind::Replace { data, .. }) = (outcome, &kind)
+        {
+            let mut presented = crate::mutex_lock(&self.shared.presented);
+            presented.plans.retain(|id, _| *id == loaded);
+            let fresh = presented.shown != loaded;
+            presented.shown = loaded;
+            // A failed successor stays held across a same-item recovery.
+            if let Some((occurrence, _)) = &mut self.recovery.hold_prepare {
+                if *occurrence == *self.current {
+                    *occurrence = loaded;
+                }
+            }
+            *self.current = loaded;
+            drop(presented);
+            self.shared.merge(data);
+            if fresh {
+                let _ = self.events.send(update(visible_plan(data)).into());
+            }
+            if let PendingKind::Replace { back, .. } = kind {
+                *self.back = back;
+            }
+            self.recovery.waiting = None;
+            return true;
+        }
+        if let Some(new) = new {
+            crate::mutex_lock(&self.shared.presented).plans.remove(&new);
+        }
+        // Refused but still held: the replacement arrived after its expiry
+        // (the user did not act). End it rather than leave it buffering.
+        let snapshot = self.engine.handle.snapshot();
+        if outcome == audio::Outcome::Refused && snapshot.failed && snapshot.id == failed {
+            if let PendingKind::Replace { data, .. } = &kind {
+                self.present_unloaded(data);
+            }
+            let banner = snapshot.intent.then(|| stream_failure().to_owned());
+            self.give_up(failed, banner);
+            return false;
+        }
+        let banner = match (&outcome, &kind) {
+            // The user stopped or loaded something meanwhile.
+            (audio::Outcome::Refused, _) => None,
+            (_, PendingKind::Abandon(banner)) => banner.clone(),
+            (audio::Outcome::Expired, _) => Some(stream_failure().to_owned()),
+            _ => Some("Audio playback failed".to_owned()),
+        };
+        if let PendingKind::Replace { data, .. } = &kind {
+            self.present_unloaded(data);
+        }
+        if let Some(banner) = banner {
+            audio_error(self.events, &banner);
+        }
+        false
+    }
+    /// A held current-track failure: cache, then a transcode restart (or a
+    /// transcode), then the gone check.
+    fn recover_failure(
+        &mut self,
+        id: u64,
+        progress: u64,
+        position: u64,
+        duration: u64,
+        listened: u64,
+    ) {
+        let source = playback_source(self.shared);
+        if source != Some(PlaybackSource::Cache) {
+            if let Ok(data) = self.core.execute(Command::CachedPlayback) {
+                return self
+                    .send_resolve(id, PendingKind::Same(with_resume(data, position, listened)));
+            }
+            if source == Some(PlaybackSource::Transcode) {
+                let crossfade = self.core.audio_config().crossfade_ms as u64;
+                let near_end =
+                    duration > 0 && duration.saturating_sub(position) <= 5000 + crossfade;
+                let occurrence = self.core.occurrence().to_owned();
+                let waiting = !self.engine.handle.snapshot().intent || self.core.known_offline();
+                if !near_end {
+                    if waiting {
+                        // Admitted (and counted) only once it can run.
+                        if let Some(held) = &mut self.failures.held {
+                            held.restart_due = Some(Instant::now());
+                        }
+                        return;
+                    }
+                    if let Some(attempt) = self.failures.admit_restart(&occurrence, progress) {
+                        let due = Instant::now() + restart_backoff(attempt);
+                        crate::diagnostics::event(format_args!(
+                            "transcode restart attempt={attempt} occurrence={id}"
+                        ));
+                        if let Some(held) = &mut self.failures.held {
+                            held.restart_due = Some(due);
+                            held.admitted = true;
+                        }
+                        // The loop top restarts once due, playing and online.
+                        return;
+                    }
+                }
+            } else if let Ok(data) = self.core.execute(Command::TranscodedPlayback) {
+                return self
+                    .send_resolve(id, PendingKind::Same(with_resume(data, position, listened)));
+            }
+        }
+        self.verdict_or_give_up(id);
+    }
+    /// Every source failed: ask the server whether the item still exists.
+    fn verdict_or_give_up(&mut self, id: u64) {
+        let message = self
+            .failures
+            .held
+            .as_ref()
+            .map_or(stream_failure(), |held| held.message);
+        if let Some(key) = self.core.current_key().map(str::to_owned) {
+            let waiting = recovery::Waiting {
+                key: key.clone(),
+                occurrence: id,
+                back: *self.back,
+                message,
+                deadline: Instant::now() + recovery::VERDICT_DEADLINE,
+            };
+            if self.core.is_gone(&key) {
+                self.settle_failure(waiting, None);
+                return;
+            }
+            if self
+                .recovery
+                .request(self.core, &key, recovery::Class::Priority)
+            {
+                self.recovery.waiting = Some(waiting);
+                return;
+            }
+        }
+        self.give_up(id, Some(message.to_owned()));
     }
     /// Decide on a current-track failure once its verdict (or deadline) is in.
     /// Returns whether gapless preparation must be retried.
@@ -1443,16 +1942,17 @@ impl Playback<'_> {
         if self.core.current_key() != Some(waiting.key.as_str())
             || *self.current != waiting.occurrence
         {
-            // The user (or playback) moved on; the verdict is only recorded.
+            // The user (or playback) moved on: that load ended the failure;
+            // the verdict is only recorded.
             return false;
         }
         let gone = probe == Some(Probe::Gone) || self.core.is_gone(&waiting.key);
         if !gone {
-            audio_error(self.events, waiting.message);
+            self.give_up(waiting.occurrence, Some(waiting.message.to_owned()));
             return false;
         }
-        if self.superseded(waiting.acted) {
-            audio_error(self.events, GONE_MESSAGE);
+        if self.superseded() {
+            self.give_up(waiting.occurrence, Some(GONE_MESSAGE.to_owned()));
             return false;
         }
         match self.core.peek_skip(waiting.back) {
@@ -1460,27 +1960,30 @@ impl Playback<'_> {
             // A target that would wait on a metadata fetch, or nothing behind:
             // report instead of moving on its own.
             Skip::NeedsMetadata | Skip::Stuck => {
-                audio_error(self.events, GONE_MESSAGE);
+                self.give_up(waiting.occurrence, Some(GONE_MESSAGE.to_owned()));
                 false
             }
         }
     }
+    /// Step over a gone item in the direction of travel; the engine loads
+    /// the next item with the user's current intent (`Resolution::Replace`).
     fn skip(&mut self, waiting: &recovery::Waiting) -> bool {
+        let failed = waiting.occurrence;
         let command = if waiting.back {
             Command::Previous
         } else {
             Command::Next { automatic: false }
         };
         crate::diagnostics::event(format_args!(
-            "skipping gone track occurrence={} back={}",
-            waiting.occurrence, waiting.back
+            "skipping gone track occurrence={failed} back={}",
+            waiting.back
         ));
         let result = catch_unwind(AssertUnwindSafe(|| self.core.execute(command)));
         let data = match result {
             Ok(Ok(data)) => data,
             Ok(Err(error)) => {
                 self.core.take_gone_notice();
-                audio_error(self.events, &error.to_string());
+                self.give_up(failed, Some(error.to_string()));
                 return false;
             }
             Err(_) => {
@@ -1503,51 +2006,47 @@ impl Playback<'_> {
                     }
                     Err(error) => audio_error(self.events, &error.to_string()),
                 }
-                audio_error(self.events, "Backend panic");
+                self.give_up(failed, Some("Backend panic".to_owned()));
                 return true;
             }
         };
         self.core.take_gone_notice();
         // The previous successor belongs to the queue position just left.
-        *self.prepared = None;
-        let _ = self.engine.handle.prepare(None);
-        if self.superseded(waiting.acted) {
-            // The user acted while the skip ran: present where Core now is
-            // without starting it, and let the user's action decide.
-            let _ = self.engine.handle.stop();
-            *self.current = 0;
-            *crate::mutex_lock(&self.shared.presented) = Presented::default();
-            let visible = visible_plan(&data);
-            self.shared.merge(&visible);
-            let _ = self.events.send(update(visible).into());
+        if let Some((id, _)) = self.prepared.take() {
+            crate::mutex_lock(&self.shared.presented).plans.remove(&id);
+        }
+        // Core moved on: the failed engine id must no longer record into
+        // Core's (new) current item.
+        *self.current = 0;
+        if self.superseded() {
+            // The user's queued request decides; show where Core now is.
+            self.present_unloaded(&data);
+            self.give_up(failed, None);
             return false;
         }
-        let ended = data["stream"].as_str().unwrap_or("").is_empty();
-        if let Err(error) = start_plan(
-            &data,
-            self.shared,
-            self.engine,
-            self.serial,
-            self.current,
-            waiting.paused,
-        ) {
-            *self.current = 0;
-            *crate::mutex_lock(&self.shared.presented) = Presented::default();
-            self.shared.merge(&visible_plan(&data));
-            let _ = self.events.send(update(visible_plan(&data)).into());
-            audio_error(self.events, &error.to_string());
+        if data["stream"].as_str().unwrap_or("").is_empty() {
+            self.present_unloaded(&data);
+            self.give_up(failed, Some(GONE_MESSAGE.to_owned()));
             return false;
         }
-        self.shared.merge(&data);
-        let _ = self.events.send(update(visible_plan(&data)).into());
-        if ended {
-            *self.current = 0;
-            audio_error(self.events, GONE_MESSAGE);
-            return false;
-        }
-        *self.back = waiting.back;
-        true
+        self.send_resolve(
+            failed,
+            PendingKind::Replace {
+                data,
+                back: waiting.back,
+            },
+        );
+        false
     }
+}
+/// The message of an unrecovered stream failure.
+fn stream_failure() -> &'static str {
+    "Audio decoding or streaming failed"
+}
+fn with_resume(mut data: Value, position: u64, listened: u64) -> Value {
+    data["resumePosition"] = json!(position);
+    data["resumeListened"] = json!(listened);
+    data
 }
 fn start_plan(
     data: &Value,
@@ -1618,6 +2117,99 @@ mod recovery;
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// Plan E3: downloads yield while the engine is starving, keep yielding
+    /// for the release time of healthy playing, stop at once when nothing
+    /// plays, and a replaced control inherits the hold.
+    #[test]
+    fn downloads_yield_to_a_starving_stream() {
+        let (requests, _receiver) = mpsc::sync_channel(4);
+        let shared = Shared::new(requests, json!({}));
+        let dir = tempfile::tempdir().unwrap();
+        let cache =
+            crate::cache::Cache::new(dir.path().into(), Default::default(), "fixture").unwrap();
+        let gate = cache.gate();
+        shared.install_control(Some(cache.control(Default::default())));
+        let (changes, receiver) = watch::channel(audio::Change::default());
+        let task = crate::rt::spawn(yield_downloads(
+            shared.clone(),
+            receiver,
+            Duration::from_millis(300),
+        ));
+        let wait = |held: bool| {
+            let until = Instant::now() + Duration::from_secs(3);
+            while gate.held() != held {
+                assert!(Instant::now() < until, "hold never became {held}");
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        };
+        let playing = audio::Change {
+            loaded: true,
+            intent: true,
+            playing: true,
+            ..Default::default()
+        };
+        changes.send_replace(audio::Change {
+            starved: true,
+            playing: false,
+            ..playing
+        });
+        wait(true);
+        // Playing again: still held until the release time has passed.
+        let resumed = Instant::now();
+        changes.send_replace(playing);
+        wait(false);
+        assert!(resumed.elapsed() >= Duration::from_millis(250));
+        // A pause releases at once.
+        changes.send_replace(audio::Change {
+            starved: true,
+            ..playing
+        });
+        wait(true);
+        let paused = Instant::now();
+        changes.send_replace(audio::Change {
+            intent: false,
+            playing: false,
+            paused: true,
+            ..playing
+        });
+        wait(false);
+        assert!(paused.elapsed() < Duration::from_millis(250));
+        // So does a recording hold (intent kept, output paused).
+        changes.send_replace(audio::Change {
+            starved: true,
+            ..playing
+        });
+        wait(true);
+        let recording = Instant::now();
+        changes.send_replace(audio::Change {
+            playing: false,
+            paused: true,
+            ..playing
+        });
+        wait(false);
+        assert!(recording.elapsed() < Duration::from_millis(250));
+        // A control installed while held is held too.
+        changes.send_replace(audio::Change {
+            starved: true,
+            ..playing
+        });
+        wait(true);
+        let replacement = tempfile::tempdir().unwrap();
+        let other =
+            crate::cache::Cache::new(replacement.path().into(), Default::default(), "fixture")
+                .unwrap();
+        shared.install_control(Some(other.control(Default::default())));
+        assert!(other.gate().held());
+        // The engine going away releases the hold and ends the task.
+        drop(changes);
+        let until = Instant::now() + Duration::from_secs(3);
+        while other.gate().held() {
+            assert!(Instant::now() < until);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(task.join(Some(Duration::from_secs(1))));
+    }
 
     #[test]
     fn idle_restart_checkpoints_preserve_saved_position() {

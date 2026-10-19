@@ -92,6 +92,14 @@ fn safe_uri(url: &str) -> Result<(String, String)> {
 
 impl Decoder {
     pub fn new(source: Source, closer: &http::SessionCloser) -> Result<Self> {
+        Self::with_window(source, closer, http::CAPACITY)
+    }
+    /// A decoder whose HTTP input window holds at most `capacity` bytes.
+    pub fn with_window(
+        source: Source,
+        closer: &http::SessionCloser,
+        capacity: usize,
+    ) -> Result<Self> {
         crate::diagnostics::event(format_args!(
             "decoder create occurrence={} source={} resume_ms={} duration_ms={}",
             source.id,
@@ -122,7 +130,8 @@ impl Decoder {
                 .map_err(|_| Error::Input("Invalid audio source"))?;
             (Input::File(path), None)
         } else {
-            let (reader, stream) = http::Reader::new(uri, token, closer.clone(), source.id)?;
+            let (reader, stream) =
+                http::Reader::new(uri, token, closer.clone(), source.id, capacity)?;
             (Input::Http(stream), Some(reader))
         };
         let seek = (source.resume > 0 && !transcoded).then_some(source.resume);
@@ -203,6 +212,26 @@ impl Decoder {
     }
     pub fn remaining(&self) -> usize {
         self.pcm.len() / CHANNELS
+    }
+    /// The HTTP input window and an advisory byte rate (bytes per second)
+    /// to read it as audio time: the requested bitrate of a transcode, or
+    /// size over duration for an original. `None` for a local file.
+    pub fn input(&self) -> Option<(http::Facts, Option<u64>)> {
+        let facts = self.http.as_ref()?.facts();
+        let rate = if self.transcoded {
+            url::Url::parse(&self.source.url).ok().and_then(|url| {
+                url.query_pairs()
+                    .find(|(key, _)| key == "musicBitrate")
+                    .and_then(|(_, kbps)| kbps.parse::<u64>().ok())
+                    .map(|kbps| kbps * 125)
+            })
+        } else {
+            facts
+                .total
+                .filter(|_| self.source.duration > 0)
+                .map(|total| total * 1000 / self.source.duration)
+        };
+        Some((facts, rate.filter(|rate| *rate > 0)))
     }
 }
 impl Drop for Decoder {

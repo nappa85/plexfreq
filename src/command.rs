@@ -176,6 +176,9 @@ pub enum Command {
         config: quality::Config,
     },
     TranscodedPlayback,
+    /// Restart an interrupted transcode of the current item at its position
+    /// (runtime recovery; not gated by codec fallback).
+    RestartTranscode,
     ProbeQuality {
         key: String,
         kbps: u32,
@@ -563,6 +566,7 @@ impl Command {
             | C::ListeningInsights { .. }
             | C::SmartPlaylist { .. }
             | C::TranscodedPlayback
+            | C::RestartTranscode
             | C::ProbeQuality { .. }
             | C::ProbePlayback { .. }
             | C::DownloadStation { .. }

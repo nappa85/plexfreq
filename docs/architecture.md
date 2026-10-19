@@ -1039,6 +1039,62 @@ albumGroup presentation role. Autoplay asks for actual nearest recommendations,
 then can fall back to the advertised artist station. Multi-seed mixes interleave
 shuffled per-seed pools and remove duplicate tracks; this policy is Rust-owned.
 
+## Engine-held stream failures (2026-10-19, Plan E1.4)
+
+The player's engine (`Engine::with_recovery`) holds a current-track stream
+failure instead of discarding it, so recovery can never override the user's
+later controls.
+
+**Drain, then hold.** On a fill failure of the current decoder, the actor:
+- stops decoding and drops the successor;
+- closes the failing segment at the last submitted frame;
+- lets the backend drain play out the audio already submitted. Its bound is
+  the queued time plus 3 s of un-paused play.
+
+Every exit then completes the segment timeline, so a queued successor reports
+its `Transition` first. The actor then enters the failed state. That state:
+- is published as `loaded`, `failed` and buffering (or paused);
+- keeps the position, listened time and play intent;
+- is reported by `Event::Error {recoverable, facts}`.
+
+**Controls while held.** Play/Pause change the held intent and Seek the held
+position (clamped). Stop and Load end the failure; Prepare is ignored.
+
+**Resolution.** The worker resolves the failure with
+`Handle::resolve(failed, seq, Recover|Replace|Abandon, expiry)`.
+- **`Recover`:** the same item, at the held position and intent.
+- **`Replace`:** a gone skip, with its own position and the held intent.
+- **Answer:** `Event::Resolved {Loaded, Refused, Abandoned, LoadFailed,
+  Expired}`. The engine abandons on its own after 90 s.
+
+**The worker's single failure slot.** Each failure follows the same chain,
+and the worker commits presentation only on `Loaded`:
+1. the cache;
+2. a transcode restart (below);
+3. a transcode;
+4. the stage-1 gone check (skip or report).
+
+A worker load supersedes the slot; its late outcome is ignored (`seq`). While
+a skip is pending, `current` is 0, so the failed engine id cannot record into
+Core's new item.
+
+**Transcode restart.** A dropped transcode restarts at the held position.
+- **Episode** (per logical occurrence): new audio is needed to start one; at
+  most 4 attempts without 10 s of new audio; backoff 0, 2, 4 and 8 s.
+- **Paused, or known offline:** the attempt waits for Play or the network.
+- **Near the end:** no restart.
+
+**Accepted limits:**
+- Decoder-buffered PCM (up to 2 s plus the crossfade tail) is not drained;
+  the recovery replays it from the drain-end position.
+- The HTTP reader reports a broken transfer before its buffered bytes, so a
+  drop is met as soon as it happens, not when playback reaches it.
+- A Play routed by a stale `loaded` snapshot can reach an unloaded engine;
+  pressing Play again resumes.
+- Pause during a gone check no longer cancels the skip: the skip loads paused.
+- Toggle and MPRIS status follow the logical intent: buffering and held
+  failures count as Playing.
+
 ## Cellular streaming quality (2026-10-19)
 
 The network observer reports three facts for the default route: Wi-Fi, cellular
@@ -1066,10 +1122,73 @@ successor prepared before a network change keeps its quality; the next
 preparation uses the new one. Download policy (`wifi_only`) still requires
 Wi-Fi.
 
-Known limit: a transcoded (progressive) stream is not retried after a
-connection drop. The track fails and Play resumes it. Automatic restart needs
-an engine-owned recovery intent and is planned with the engine streaming work
-(`docs/reviews/2026-10-19-mobile-streaming.md`, part B).
+A dropped transcoded stream is restarted at its position by the engine-held
+failure recovery (above).
+
+## Stream buffering and download yield (2026-10-19, Plans E2.3/E3.3)
+
+**Successor pre-load timing (actor):**
+- A remote successor of a remote current track is kept as a pending source
+  and its decoder (and HTTP request) is created only when one of these holds:
+  - the current decoder reached its end;
+  - after the current decoder produced audio, its reader completed (the
+    window reaches `total` when known);
+  - its window holds ≥ 3/4 of its capacity, or ≥ 20 s of audio by an
+    advisory rate (`musicBitrate` for transcodes, size ÷ duration for
+    originals);
+  - ≤ 60 s plus the crossfade remain, with no stall in the last 10 s.
+- Local successors, and any successor of a local track, start at once.
+- A successor's reader window is 1 MiB until the gapless join promotes it,
+  then 4 MiB.
+- Stop, load, failure and a replacing Prepare drop a pending source. A seek
+  keeps it, and with a remote current a created remote successor becomes
+  pending again.
+
+**Resume gate (actor + output):**
+- **Start gate:** a fresh remote load or seek stays corked until 500 ms are
+  decoded (above PulseAudio's 300 ms prebuffer).
+- **Stall gate:** entered when nothing is pushable and `Output::starved()`
+  holds:
+  - PulseAudio: uncorked, not running, last fact an underflow;
+  - the real-time fake: uncorked with nothing queued;
+  - capture sinks: never.
+
+  The stream is corked and resumes only with 5 s of playable audio (the
+  crossfade reservation does not count), or at the decoded end, or after
+  15 s of un-paused waiting with ≥ 500 ms.
+- **Releases** below the prebuffer arm a one-shot `pa_stream_trigger` after
+  the next pump batch.
+- **One uncork path:** Play, recording end and the pushes all uncork only
+  without a gate, so a slow link gives a few long pauses instead of a run of
+  300 ms stutters. A local stream is never gated: it corks on starvation and
+  uncorks with its next block, as before.
+- **Crossfade:** a crossfade wait is never gated. If the output starves
+  there, that boundary's fade is dropped and the old tail plays unfaded.
+- `Snapshot`/`Change.starved` is true with play intent while a Stall gate
+  is set, or a Start gate has lasted over 1 s. `buffering` is unchanged.
+
+**Download yield (cache + runtime):**
+- A task owned by the runtime worker watches engine changes. It sets the
+  cache hold while the engine is `starved`.
+- **Release:** after 10 s of healthy playing, or at once when nothing plays
+  (paused, including a recording hold; stopped, unloaded or a held
+  failure), and at worker exit.
+- **Hold vs cancellation:** the hold is a `watch` in `cache::Gate`,
+  separate from `allowed()`, so it never cancels or resets progress. The
+  wanted state is stored in `Shared` and applied under the download-control
+  lock, so a control installed by a Core rebuild inherits it.
+- **What a hold does to a download:**
+  - an original with a validator and a known size drops its connection at
+    once (a paused read would not stop the server sending until socket
+    buffers fill) and resumes by range after release, spending no attempt;
+  - if that resume is answered with the whole file, the item is not
+    interrupted again in that batch (across its retry passes);
+  - a cancel always wins over a release that lands at the same time, and a
+    released item re-checks the batch epoch before any request;
+  - transcodes and other downloads finish the current item, and every item
+    waits for the release before it starts. Manual downloads follow the same
+    rules.
+- The cache status reports `held`; the UI does not show it yet.
 
 ## Network-aware download cancellation
 

@@ -267,7 +267,17 @@ async fn heartbeat(diagnostic: Shared, halt: Halt) {
         _ => None,
     };
     let mut changes = diagnostic.audio_changes();
-    let key = |s: &crate::audio::Snapshot| (s.id, s.playing, s.buffering, s.paused, s.loaded);
+    let key = |s: &crate::audio::Snapshot| {
+        (
+            s.id,
+            s.playing,
+            s.buffering,
+            s.paused,
+            s.loaded,
+            s.failed,
+            s.intent,
+        )
+    };
     while !halt.halted() {
         let state = diagnostic.playback();
         let load: Vec<f64> = std::fs::read_to_string("/proc/loadavg")
@@ -374,7 +384,7 @@ async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: A
         let state = bus.playback();
         let changed = {
             let model = crate::mutex_lock(&bus.model);
-            json!({"playing":state.playing,"paused":state.paused,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"],"queueLength":model["queue"]["items"].as_array().map_or(0,Vec::len),"current":model["queue"]["current"]})
+            json!({"playing":state.playing,"paused":state.paused,"loaded":state.loaded,"intent":state.intent,"failed":state.failed,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"],"queueLength":model["queue"]["items"].as_array().map_or(0,Vec::len),"current":model["queue"]["current"]})
         };
         if changed != previous {
             let properties = Player {
@@ -1140,7 +1150,7 @@ impl Player {
         if self.can_go_next() {
             let _ = self.shared.send_paused(
                 json!({"op":"next","automatic":false}),
-                !self.shared.playback().playing,
+                !self.shared.playback().intent,
             );
         }
     }
@@ -1148,7 +1158,7 @@ impl Player {
         if self.can_go_previous() {
             let _ = self
                 .shared
-                .send_paused(json!({"op":"previous"}), !self.shared.playback().playing);
+                .send_paused(json!({"op":"previous"}), !self.shared.playback().intent);
         }
     }
     fn play(&self) {
@@ -1193,7 +1203,8 @@ impl Player {
     #[zbus(property)]
     fn playback_status(&self) -> String {
         let state = self.shared.playback();
-        if state.playing {
+        // Buffering or recovering a failure keeps the play intent: Playing.
+        if state.playing || state.loaded && state.intent && !state.paused {
             "Playing"
         } else if state.paused {
             "Paused"

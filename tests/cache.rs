@@ -445,3 +445,164 @@ fn shared_network_hint_cancels_inflight_audio_without_the_core_command_queue() {
     thread::sleep(Duration::from_millis(100));
     assert!(cache.lookup(&ns, &song, false).is_none());
 }
+
+/// Accept one connection within `timeout`, or None.
+fn accept_within(listener: &TcpListener, timeout: Duration) -> Option<std::net::TcpStream> {
+    listener.set_nonblocking(true).unwrap();
+    let until = Instant::now() + timeout;
+    loop {
+        match listener.accept() {
+            Ok((socket, _)) => {
+                socket.set_nonblocking(false).unwrap();
+                return Some(socket);
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                if Instant::now() >= until {
+                    return None;
+                }
+                thread::sleep(Duration::from_millis(10));
+            }
+            Err(error) => panic!("{error}"),
+        }
+    }
+}
+/// Wait until the peer closed the connection (a dropped download).
+fn closed(socket: &mut std::net::TcpStream) -> bool {
+    socket
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
+    matches!(socket.read(&mut [0; 16]), Ok(0) | Err(_))
+}
+fn received(cache: &Cache, ns: &str) -> u64 {
+    cache.status(ns)["received"].as_u64().unwrap_or(0)
+}
+
+// Plan E3: a held original that can resume (validator, known size) drops
+// its connection at once, makes no request while held, and resumes by
+// range on release without spending a retry (no 30 s pass wait).
+#[test]
+fn a_held_original_download_yields_and_resumes_by_range() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = origin(&listener);
+    let dir = tempfile::tempdir().unwrap();
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    let control = cache.control(Default::default());
+    let song = item("1");
+    let ns = namespace(&url, "token");
+    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
+    request(&mut first);
+    first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
+    wait(|| received(&cache, &ns) == 10);
+    control.hold(true);
+    assert!(closed(&mut first), "the held download kept its connection");
+    assert_eq!(cache.status(&ns)["held"], true);
+    assert!(
+        accept_within(&listener, Duration::from_millis(700)).is_none(),
+        "requested while held"
+    );
+    control.hold(false);
+    let mut second = accept_within(&listener, Duration::from_secs(3)).unwrap();
+    let req = request(&mut second).to_lowercase();
+    assert!(req.contains("range: bytes=10-"), "{req}");
+    assert!(req.contains("if-range: \"one\""), "{req}");
+    second.write_all(b"HTTP/1.1 206 Partial Content\r\nContent-Type: audio/wav\r\nContent-Length: 10\r\nContent-Range: bytes 10-19/20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nklmnopqrst").unwrap();
+    wait(|| cache.lookup(&ns, &song, false).is_some());
+    assert_eq!(
+        std::fs::read(cache.lookup(&ns, &song, false).unwrap().0).unwrap(),
+        b"abcdefghijklmnopqrst"
+    );
+    assert!(cache.status(&ns)["errors"].as_object().unwrap().is_empty());
+}
+
+// Without a validator the download cannot resume, so a hold lets the item
+// finish and holds the next item before its request.
+#[test]
+fn a_held_download_that_cannot_resume_finishes_its_item_then_waits() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = origin(&listener);
+    let dir = tempfile::tempdir().unwrap();
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    let control = cache.control(Default::default());
+    let (one, two) = (item("1"), item("2"));
+    let ns = namespace(&url, "token");
+    cache
+        .schedule(&url, "token", vec![one.clone(), two.clone()])
+        .unwrap();
+    let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
+    request(&mut first);
+    first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
+    wait(|| received(&cache, &ns) == 10);
+    control.hold(true);
+    thread::sleep(Duration::from_millis(200));
+    first.write_all(b"klmnopqrst").unwrap();
+    drop(first);
+    wait(|| cache.lookup(&ns, &one, false).is_some());
+    assert!(
+        accept_within(&listener, Duration::from_millis(700)).is_none(),
+        "the next item started while held"
+    );
+    control.hold(false);
+    let mut second = accept_within(&listener, Duration::from_secs(3)).unwrap();
+    assert!(request(&mut second).contains("/library/parts/2/"));
+    second.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 4\r\nConnection: close\r\n\r\nwxyz").unwrap();
+    wait(|| cache.lookup(&ns, &two, false).is_some());
+}
+
+// A resume after a hold that the server answers with the whole file (range
+// ignored) is not interrupted again: it would restart from zero each time.
+#[test]
+fn a_hold_does_not_interrupt_a_download_whose_range_was_ignored() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = origin(&listener);
+    let dir = tempfile::tempdir().unwrap();
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    let control = cache.control(Default::default());
+    let song = item("1");
+    let ns = namespace(&url, "token");
+    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
+    request(&mut first);
+    first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
+    wait(|| received(&cache, &ns) == 10);
+    control.hold(true);
+    assert!(closed(&mut first));
+    control.hold(false);
+    let mut second = accept_within(&listener, Duration::from_secs(3)).unwrap();
+    assert!(request(&mut second)
+        .to_lowercase()
+        .contains("range: bytes=10-"));
+    second.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
+    wait(|| received(&cache, &ns) == 10);
+    control.hold(true);
+    thread::sleep(Duration::from_millis(200));
+    second.write_all(b"klmnopqrst").unwrap();
+    drop(second);
+    wait(|| cache.lookup(&ns, &song, false).is_some());
+    control.hold(false);
+    assert_eq!(
+        std::fs::read(cache.lookup(&ns, &song, false).unwrap().0).unwrap(),
+        b"abcdefghijklmnopqrst"
+    );
+}
+
+// A cancel still ends a download waiting on a hold.
+#[test]
+fn a_cancel_ends_a_held_wait() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = origin(&listener);
+    let dir = tempfile::tempdir().unwrap();
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    let control = cache.control(Default::default());
+    let ns = namespace(&url, "token");
+    control.hold(true);
+    cache.schedule(&url, "token", vec![item("1")]).unwrap();
+    wait(|| cache.status(&ns)["activeKey"] == "1");
+    cache.cancel();
+    wait(|| cache.status(&ns)["activeKey"] == "");
+    control.hold(false);
+    assert!(
+        accept_within(&listener, Duration::from_millis(500)).is_none(),
+        "a cancelled download was requested"
+    );
+}

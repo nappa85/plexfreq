@@ -1584,6 +1584,18 @@ impl Core {
     pub(crate) fn set_health_epoch(&mut self, epoch: std::sync::Arc<std::sync::atomic::AtomicU64>) {
         self.health.set_epoch(epoch);
     }
+    pub(crate) fn offline_mode(&self) -> bool {
+        self.offline_mode
+    }
+    /// The platform reported no connection (not merely unknown).
+    pub(crate) fn known_offline(&self) -> bool {
+        self.network_known && !self.network_online
+    }
+    /// The logical play occurrence of the current item (stable across
+    /// same-item fallbacks).
+    pub(crate) fn occurrence(&self) -> &str {
+        &self.settings.playback.occurrence
+    }
     pub(crate) fn current_key(&self) -> Option<&str> {
         self.queue.track().map(|track| track.rating_key.as_str())
     }
@@ -1719,7 +1731,10 @@ impl Core {
         );
         let resuming = matches!(
             &command,
-            Command::Resume | Command::CachedPlayback | Command::TranscodedPlayback
+            Command::Resume
+                | Command::CachedPlayback
+                | Command::TranscodedPlayback
+                | Command::RestartTranscode
         );
         // A new queue or server makes every health mark meaningless. Clear
         // them before planning (a fresh Play of a once-gone key must work)
@@ -1881,6 +1896,12 @@ impl Core {
             }
             Command::TranscodedPlayback => {
                 if !self.settings.quality.codec_fallback || self.offline_mode {
+                    return Err(Error::Input("Audio decoding or streaming failed"));
+                }
+                self.playback_plan(false, true)
+            }
+            Command::RestartTranscode => {
+                if self.offline_mode || self.known_offline() {
                     return Err(Error::Input("Audio decoding or streaming failed"));
                 }
                 self.playback_plan(false, true)

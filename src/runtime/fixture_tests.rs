@@ -541,28 +541,31 @@ fn previous_onto_a_deleted_track_keeps_going_back() {
 }
 
 #[test]
-fn a_user_action_during_the_check_prevents_the_automatic_skip() {
+fn a_pause_during_the_check_is_kept_by_the_automatic_skip() {
     let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::from_millis(1500)));
     let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
     runtime
         .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
         .unwrap();
-    // Stream and transcode fail quickly; the metadata check is held.
+    // Stream and transcode fail quickly; the metadata check is held. The
+    // engine holds the failure, so the Pause lands on it.
     thread::sleep(Duration::from_millis(700));
     runtime.submit(json!({"op":"audio_pause"})).unwrap();
     let events = collect(&runtime, Duration::from_secs(15), |events| {
-        !banners(events).is_empty()
+        shown(events).last().map(String::as_str) == Some("3")
     });
-    assert_eq!(
-        banners(&events),
-        vec![crate::GONE_TRACK.to_owned()],
-        "{events:?}"
-    );
-    assert!(!shown(&events).contains(&"3".to_owned()), "{events:?}");
-    assert_eq!(
-        crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
-        "2"
-    );
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    // The skip loaded the next track with the user's (paused) intent.
+    let end = Instant::now() + Duration::from_secs(5);
+    loop {
+        let state = runtime.shared.playback();
+        if state.loaded && !state.failed {
+            assert!(state.paused && !state.intent, "{state:?}");
+            break;
+        }
+        assert!(Instant::now() < end, "never loaded: {state:?}");
+        thread::sleep(Duration::from_millis(20));
+    }
 }
 
 #[test]
@@ -923,4 +926,143 @@ fn a_dead_station_found_by_pre_loading_cycles_its_cached_track() {
             .count();
         assert!(checks <= 1, "{key}: {log:?}");
     }
+}
+
+/// Transcode requests: the first `drops` bodies end after `partial_ms` of
+/// audio although their length promises the whole track, and the connection
+/// is cut 1.5 s later (a mobile drop mid-track); later ones are complete. Other requests get an empty
+/// container. Request lines are logged.
+fn dropping_server(
+    milliseconds: u32,
+    partial_ms: u32,
+    drops: usize,
+    log: Arc<Mutex<Vec<String>>>,
+) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    let audio = Arc::new(wav(milliseconds));
+    let cut = wav(partial_ms).len();
+    let served = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            let (audio, served, log) = (audio.clone(), served.clone(), log.clone());
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let line = String::from_utf8_lossy(&request)
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .to_owned();
+                crate::mutex_lock(&log).push(line.clone());
+                if line.contains("/transcode/") {
+                    let n = served.fetch_add(1, Ordering::SeqCst);
+                    let body: &[u8] = if n < drops { &audio[..cut] } else { &audio };
+                    let _ = write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                        audio.len()
+                    );
+                    let _ = stream.write_all(body);
+                    if n < drops {
+                        // Keep the connection open while the start plays,
+                        // as a real drop happens mid-track, then cut it.
+                        let _ = stream.flush();
+                        thread::sleep(Duration::from_millis(1500));
+                    }
+                } else {
+                    let body = json!({"MediaContainer":{"size":0}}).to_string();
+                    let _ = write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nX-Plex-Protocol: 1.0\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    );
+                }
+            });
+        }
+    });
+    origin
+}
+
+#[test]
+fn a_dropped_transcode_restarts_where_it_stopped() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let origin = dropping_server(60_000, 6000, 1, log.clone());
+    let dir = tempfile::tempdir().unwrap();
+    let mut settings = crate::store::Settings {
+        client_identifier: "fixture-client".into(),
+        server_url: origin,
+        server_token: "fixture-token".into(),
+        autoplay: false,
+        cache: crate::cache::Config {
+            enabled: false,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    // Every stream is a 320 kbps transcode.
+    settings.quality.wifi_kbps = 320;
+    crate::store::save(dir.path(), &settings).unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    let items: Vec<_> = (1..=2).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let transcodes = || {
+        crate::mutex_lock(&log)
+            .iter()
+            // Track 1 only: track 2's are gapless preparation.
+            .filter(|line| line.contains("/transcode/") && line.contains("metadata%2F1&"))
+            .cloned()
+            .collect::<Vec<_>>()
+    };
+    let events = collect(&runtime, Duration::from_secs(20), |_| {
+        transcodes().len() >= 2 && runtime.shared.playback().playing
+    });
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    let requests = transcodes();
+    // The restart resumes exactly where the output stopped. (The HTTP
+    // reader reports the broken transfer before its buffered bytes, so
+    // that is soon after the start here; nothing heard is skipped.)
+    let offset = requests[1]
+        .split("offset=")
+        .nth(1)
+        .and_then(|rest| rest.split(['&', ' ']).next())
+        .and_then(|value| value.parse::<f64>().ok())
+        .unwrap_or(0.);
+    assert!(offset > 0. && offset < 6., "{offset}: {requests:?}");
+    assert!(requests[0].contains("offset=0"), "{requests:?}");
+    assert_eq!(
+        crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
+        "1"
+    );
+}
+
+#[test]
+fn transcode_restarts_need_new_audio_and_are_bounded() {
+    let mut failures = Failures::default();
+    // A transcode that never played: no restart (the gone check decides).
+    assert_eq!(failures.admit_restart("a", 0), None);
+    assert_eq!(failures.admit_restart("a", 500), Some(1));
+    // Within an episode, attempts without new audio count up to four.
+    assert_eq!(failures.admit_restart("a", 0), Some(2));
+    assert_eq!(failures.admit_restart("a", 3_000), Some(3));
+    assert_eq!(failures.admit_restart("a", 0), Some(4));
+    assert_eq!(failures.admit_restart("a", 0), None);
+    assert_eq!(failures.admit_restart("a", 9_000), None, "exhausted holds");
+    // Ten seconds of new audio proves the stream works again.
+    assert_eq!(failures.admit_restart("a", 10_000), Some(1));
+    // Another occurrence starts its own episode.
+    assert_eq!(failures.admit_restart("b", 0), None);
+    assert_eq!(failures.admit_restart("b", 1), Some(1));
+    assert_eq!(
+        (1..=4).map(restart_backoff).collect::<Vec<_>>(),
+        [0, 2, 4, 8].map(Duration::from_secs)
+    );
 }

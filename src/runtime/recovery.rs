@@ -61,8 +61,6 @@ impl Drop for Report {
 pub(super) struct Waiting {
     pub key: String,
     pub occurrence: u64,
-    pub acted: u64,
-    pub paused: bool,
     pub back: bool,
     pub message: &'static str,
     pub deadline: Instant,
@@ -285,8 +283,6 @@ mod tests {
         recovery.waiting = Some(Waiting {
             key: "1".into(),
             occurrence: 1,
-            acted: 0,
-            paused: false,
             back: false,
             message: "Audio decoding or streaming failed",
             deadline: Instant::now(),

@@ -1,5 +1,32 @@
 # Validation record
 
+## Stream buffering and download yield (part B steps E2/E3) — 2026-10-19
+
+| Check | Actual result |
+| --- | --- |
+| Actor tests (`audio::buffering_tests`, scripted local HTTP server, Fake sink) | 11 passed: a remote successor is deferred while the current stream is slow (no request); each start condition is isolated and asserted by its recorded reason (`complete` with the lead disabled, `window`/`ahead` on a full window, `lead` on a throttled short file); a local successor starts at once; a far seek keeps it pending, Stop and a replacing Prepare never request it; a deferred 404 reports once; Start gate (500 ms), Stall gate (5 s pushable, Play does not uncork, `starved`/`buffering` reported), release at the decoded end, the crossfade reservation is not counted, patience ignores paused time, a stalled successor drops the crossfade and is promoted with a full window. Mutation-checked: an always-open gate fails 5 tests, no deferral fails 2 |
+| Reader test | A successor window stays within 1 MiB and grows to 4 MiB when raised |
+| Cache tests (`tests/cache.rs`, `cache::hold_tests`) | 5 new, passed: a held original with a validator drops its connection, makes no request while held and resumes by range with no error; one without a validator finishes, and the next item waits; a range answered with 200 is not interrupted again (mutation-checked), also on the batch's next retry pass with a server that then honours ranges (unit test with a 300 ms test-only pass delay, mutation-checked); a cancel ends a held wait (it raced a simultaneous release before the biased select, reproduced by the implementation review) |
+| Runtime test | The yield task holds on `starved`, keeps the hold until the release time, releases at once on pause and on a recording hold (intent kept), carries the hold to a replaced control, and releases and ends when the engine goes away |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` (after implementation-review fixes) | Passed: 420 Rust tests (0 failed); 5 parallel runs of the library tests plus `tests/cache.rs` green; the cancel-while-held test 40 times with 0 failures |
+| `./tools/build-sailfish.sh` | Passed: `harbour-plexfreq-0.1.6-1.aarch64.rpm`, rpmlint 0 errors, 1 existing warning |
+| Real PulseAudio (`PLEXFREQ_REQUIRE_PULSE=1 tools/pulse-test-server.sh cargo test --lib -- pulse_ --test-threads=1`) | 13 passed. New: a 200 ms tail after a stall, before a successor with no audio, plays through the trigger (mutation-checked: without the trigger no Transition happens before the successor's reader times out); a mid-track stall gives at most one underflow, the position stays frozen while corked, then 4 s play with no further underflow; a server-side queue loss with decoded data is not a stall; with crossfade a stalled successor gets the old tail unfaded (Transition reported) and then stalls itself; Pause and Play during a stall stay corked until the data is back |
+
+Not yet done: a phone run on mobile data; a policy cork during a stall is
+covered only by the shared Pause path.
+
+## Engine-held stream failures (part B step E1) — 2026-10-19
+
+| Check | Actual result |
+| --- | --- |
+| Engine tests (`audio::recovery_tests`, real decoders on local WAV, Fake sink) | 7 passed: drain then hold with exact facts and no `End`; Pause and clamped Seek while held; `Recover` at the held position and intent; Stop → `Refused`; paused drain waits for Play; `Abandon` unloads and a later Seek does not reopen; expiry; promoted successor → `Transition` before `Error` (drained and forced); default engine unchanged |
+| Runtime fixture | A dropped 320 kbps transcode restarts at the output position with no banner (mutation-checked: without restarts it fails). Pause during the gone check → the skip loads paused (updated stage-1 test). Restart episode rules unit-tested |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` (after implementation-review fixes) | Passed: 397 Rust tests (0 failed), 39 locales, desktop build, CTest 2/2; 5 consecutive parallel library runs green |
+
+| Real PulseAudio (`PLEXFREQ_REQUIRE_PULSE=1 tools/pulse-test-server.sh cargo test --lib -- pulse_ --test-threads=1`) | 8 passed. New: a dropped stream drains on the real server, is held (`loaded`, `failed`, buffering), reports no End, and a `Recover` plays again; a stream that drops while paused (nothing submitted) is held at once, paused, and Play changes only the held intent. Existing: soak, sink moves and removal, discarded queue, cork/seek under load, gapless successor |
+
+Not yet done: a phone run on mobile data.
+
 ## Mobile streaming part A (cellular quality) — 2026-10-19
 
 | Check | Actual result |

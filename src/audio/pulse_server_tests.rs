@@ -843,3 +843,418 @@ fn pulse_prepared_successor_is_gapless() {
         "{audible} ms audible, expected 8000 (gap or overlap)"
     );
 }
+
+/// Serves `audio` on a transcode path (a progressive stream, never retried by
+/// the reader), cut after `cut` bytes while the length promises it all: a
+/// dropped mobile connection.
+fn truncating_server(audio: Vec<u8>, cut: usize, hold: Duration) -> String {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}", listener.local_addr().unwrap());
+    let audio = Arc::new(audio);
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            let audio = audio.clone();
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    audio.len()
+                );
+                let _ = stream.write_all(&audio[..cut.min(audio.len())]);
+                // Cut the connection only after `hold` (a real drop happens
+                // mid-track, once the start has played).
+                let _ = stream.flush();
+                thread::sleep(hold);
+            });
+        }
+    });
+    format!("{origin}/music/:/transcode/universal/start.m3u8?path=%2Flibrary%2Fmetadata%2F1&protocol=http&offset=0")
+}
+
+fn held_failure(engine: &Engine, timeout: Duration) -> (Vec<Event>, Snapshot) {
+    let end = Instant::now() + timeout;
+    let mut events = Vec::new();
+    loop {
+        events.extend(engine.events());
+        if events.iter().any(|e| {
+            matches!(
+                e,
+                Event::Error {
+                    recoverable: true,
+                    ..
+                }
+            )
+        }) {
+            return (events, engine.handle.snapshot());
+        }
+        assert!(Instant::now() < end, "no held failure: {events:?}");
+        thread::sleep(POLL);
+    }
+}
+
+/// A stream that drops on the real server: the backend drain plays out what
+/// was submitted (or its bound fires), the failure is held with the play
+/// intent, no natural End is reported, and a recovery plays again.
+#[test]
+fn pulse_failed_stream_drains_then_holds_and_recovers() {
+    let Some(_server) = isolated_server("pulse_failed_stream") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let path = tone(dir.path(), "drop.wav", 20., 440.);
+    let audio = std::fs::read(&path).unwrap();
+    let url = truncating_server(audio.clone(), audio.len() / 4, Duration::from_millis(1500));
+    let engine =
+        Engine::with_recovery(Sink::Pulse, Arc::new(std::sync::atomic::AtomicU64::new(0))).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url,
+                duration: 20_000,
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
+    let (events, state) = held_failure(&engine, Duration::from_secs(15));
+    assert!(
+        !events.iter().any(|e| matches!(e, Event::End { .. })),
+        "{events:?}"
+    );
+    // Audio was submitted and played out before the failure was held.
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, Event::Error { progress, .. } if *progress > 0)),
+        "{events:?}"
+    );
+    assert!(
+        state.loaded && state.failed && state.intent && state.buffering,
+        "{state:?}"
+    );
+    let recovery = tone(dir.path(), "recovery.wav", 20., 660.);
+    engine
+        .handle
+        .resolve(
+            1,
+            1,
+            super::super::Resolution::Recover(source(2, &recovery, 20., "")),
+            Instant::now() + Duration::from_secs(5),
+        )
+        .map_err(|_| "audio command queue full")
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(5);
+    loop {
+        let state = engine.handle.snapshot();
+        if state.id == 2 && state.playing {
+            break;
+        }
+        assert!(Instant::now() < end, "recovery never played: {state:?}");
+        thread::sleep(POLL);
+    }
+}
+
+/// A stream that drops while paused before any audio was submitted: nothing
+/// to drain, so the failure is held at once, paused; Play then changes only
+/// the held intent (the runtime decides the recovery).
+#[test]
+fn pulse_paused_failure_is_held_with_its_intent() {
+    let Some(_server) = isolated_server("pulse_paused_failure") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let path = tone(dir.path(), "drop.wav", 20., 440.);
+    let audio = std::fs::read(&path).unwrap();
+    // Cut at once: a paused decoder reads only its short read-ahead.
+    let url = truncating_server(audio.clone(), 4096, Duration::ZERO);
+    let engine =
+        Engine::with_recovery(Sink::Pulse, Arc::new(std::sync::atomic::AtomicU64::new(0))).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url,
+                duration: 20_000,
+                ..Default::default()
+            },
+            true,
+        )
+        .unwrap();
+    let (_, state) = held_failure(&engine, Duration::from_secs(15));
+    assert!(state.failed && state.paused && !state.intent, "{state:?}");
+    engine.handle.play().unwrap();
+    let end = Instant::now() + Duration::from_secs(2);
+    loop {
+        let state = engine.handle.snapshot();
+        if state.intent {
+            assert!(state.failed && state.loaded && !state.playing, "{state:?}");
+            break;
+        }
+        assert!(Instant::now() < end, "{state:?}");
+        thread::sleep(POLL);
+    }
+}
+
+/// Serves `audio` as an original file: `first` bytes at once, then after
+/// `pause` the rest (`None`: never, the connection stays open).
+fn stalling_server(audio: Vec<u8>, first: usize, pause: Option<Duration>) -> String {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}", listener.local_addr().unwrap());
+    let audio = Arc::new(audio);
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            let audio = audio.clone();
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    audio.len()
+                );
+                let first = first.min(audio.len());
+                if stream.write_all(&audio[..first]).is_err() {
+                    return;
+                }
+                let _ = stream.flush();
+                match pause {
+                    Some(pause) => thread::sleep(pause),
+                    None => thread::sleep(Duration::from_secs(600)),
+                }
+                let _ = stream.write_all(&audio[first..]);
+            });
+        }
+    });
+    format!("{origin}/library/parts/1/file.wav")
+}
+const WAV_BYTES_PER_SECOND: usize = RATE as usize * 4;
+
+/// A stream that runs dry mid-track (the 2026-10-19 mobile stutter): one
+/// underflow, then the output stays corked (position frozen, buffering and
+/// starved reported) until the data is back, and then plays on without
+/// further underflows.
+#[test]
+fn pulse_stalled_stream_waits_for_a_buffer_instead_of_stuttering() {
+    let Some(_server) = isolated_server("pulse_stalled_stream") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let audio = std::fs::read(tone(dir.path(), "stall.wav", 20., 440.)).unwrap();
+    let url = stalling_server(
+        audio,
+        44 + WAV_BYTES_PER_SECOND * 2,
+        Some(Duration::from_secs(5)),
+    );
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url,
+                duration: 20_000,
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
+    let mut probe = Probe::new(&engine);
+    probe.playing();
+    let before = underflows();
+    let stalled = probe.until(Duration::from_secs(5), "stall", |s, _| s.starved);
+    assert!(
+        stalled.buffering && !stalled.playing && stalled.intent,
+        "{stalled:?}"
+    );
+    let frozen = probe.run_for(Duration::from_millis(300)).position;
+    let still = probe.run_for(Duration::from_millis(700));
+    assert!(
+        still.position.abs_diff(frozen) <= 30 && still.starved,
+        "stalled output kept playing: {frozen} -> {still:?}"
+    );
+    assert!(underflows() - before <= 1, "{}", probe.report());
+    probe.until(Duration::from_secs(8), "resumed", |s, _| s.playing);
+    let resumed = underflows();
+    probe.track(true);
+    probe.advances(4000, "after the stall");
+    assert_eq!(underflows(), resumed, "{}", probe.report());
+    probe.assert_no_stall("after the stall");
+}
+
+/// PulseAudio losing its queue (a sink move) restarts by itself while the
+/// decoder has data: that is not a network stall.
+#[test]
+fn pulse_server_side_underrun_is_not_a_stall() {
+    let Some(_server) = isolated_server("pulse_server_underrun") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let audio = std::fs::read(tone(dir.path(), "fast.wav", 10., 440.)).unwrap();
+    let url = stalling_server(audio, usize::MAX, Some(Duration::ZERO));
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url,
+                duration: 10_000,
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
+    let mut probe = Probe::new(&engine);
+    probe.playing();
+    probe.advances(500, "before the flush");
+    TEST_FLUSH.store(true, Ordering::Relaxed);
+    let end = Instant::now() + Duration::from_secs(2);
+    while Instant::now() < end {
+        let state = probe.poll();
+        assert!(!state.starved, "{state:?}");
+        thread::sleep(POLL);
+    }
+    probe.advances(1000, "after the flush");
+}
+
+/// With crossfade on, a successor that stalls before it can cover the
+/// overlap: the old track's tail plays unfaded (its Transition is reported,
+/// so the audio was heard) and the successor then waits as a stalled stream.
+#[test]
+fn pulse_stalled_successor_drops_the_crossfade() {
+    let Some(_server) = isolated_server("pulse_stalled_successor") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let first = std::fs::read(tone(dir.path(), "first.wav", 4., 440.)).unwrap();
+    let second = std::fs::read(tone(dir.path(), "second.wav", 10., 660.)).unwrap();
+    let first = stalling_server(first, usize::MAX, Some(Duration::ZERO));
+    let second = stalling_server(second, 44 + WAV_BYTES_PER_SECOND / 4, None);
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    engine
+        .handle
+        .configure(super::super::dsp::Config {
+            crossfade_ms: 2_000,
+            ..Default::default()
+        })
+        .unwrap();
+    let source = |id, url: String, duration| Source {
+        id,
+        url,
+        duration,
+        ..Default::default()
+    };
+    engine.handle.load(source(1, first, 4_000), false).unwrap();
+    engine
+        .handle
+        .prepare(Some(source(2, second, 10_000)))
+        .unwrap();
+    let mut probe = Probe::new(&engine);
+    probe.playing();
+    probe.until(Duration::from_secs(10), "transition", |_, events| {
+        events
+            .iter()
+            .any(|e| matches!(e, Event::Transition { old: 1, new: 2, .. }))
+    });
+    probe.until(Duration::from_secs(5), "successor stalled", |s, _| {
+        s.id == 2 && s.starved
+    });
+}
+
+/// Pause and Play during a stall: the stream stays corked until the buffer
+/// is back, then plays.
+#[test]
+fn pulse_pause_and_play_during_a_stall() {
+    let Some(_server) = isolated_server("pulse_pause_during_stall") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let audio = std::fs::read(tone(dir.path(), "stall.wav", 20., 440.)).unwrap();
+    let url = stalling_server(
+        audio,
+        44 + WAV_BYTES_PER_SECOND * 2,
+        Some(Duration::from_secs(5)),
+    );
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    engine
+        .handle
+        .load(
+            Source {
+                id: 1,
+                url,
+                duration: 20_000,
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
+    let mut probe = Probe::new(&engine);
+    probe.playing();
+    probe.until(Duration::from_secs(5), "stall", |s, _| s.starved);
+    engine.handle.pause().unwrap();
+    let paused = probe.until(Duration::from_secs(1), "paused", |s, _| s.paused);
+    assert!(!paused.starved && !paused.buffering, "{paused:?}");
+    engine.handle.play().unwrap();
+    let waiting = probe.run_for(Duration::from_millis(300));
+    assert!(waiting.starved && !waiting.playing, "{waiting:?}");
+    probe.until(Duration::from_secs(8), "resumed", |s, _| s.playing);
+    probe.track(true);
+    probe.advances(2000, "after the stall");
+}
+
+/// The last 200 ms of a track arrive after a stall, before a successor that
+/// has no audio yet: below PulseAudio's 300 ms prebuffer nothing would play
+/// until the successor delivered. The one-shot trigger plays the tail, so
+/// its Transition is reported while the successor still has nothing.
+#[test]
+fn pulse_trigger_plays_a_tail_below_the_prebuffer() {
+    let Some(_server) = isolated_server("pulse_trigger_tail") else {
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let first = std::fs::read(tone(dir.path(), "first.wav", 3., 440.)).unwrap();
+    let second = std::fs::read(tone(dir.path(), "second.wav", 10., 660.)).unwrap();
+    let tail = WAV_BYTES_PER_SECOND / 5;
+    let cut = first.len() - tail;
+    let first = stalling_server(first, cut, Some(Duration::from_secs(4)));
+    let second = stalling_server(second, 44, None);
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    let source = |id, url: String, duration| Source {
+        id,
+        url,
+        duration,
+        ..Default::default()
+    };
+    engine.handle.load(source(1, first, 3_000), false).unwrap();
+    engine
+        .handle
+        .prepare(Some(source(2, second, 10_000)))
+        .unwrap();
+    let mut probe = Probe::new(&engine);
+    probe.playing();
+    probe.until(Duration::from_secs(5), "stall before the tail", |s, _| {
+        s.starved
+    });
+    probe.until(Duration::from_secs(8), "tail played", |_, events| {
+        events
+            .iter()
+            .any(|e| matches!(e, Event::Transition { old: 1, new: 2, .. }))
+    });
+}

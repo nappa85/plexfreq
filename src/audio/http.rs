@@ -6,7 +6,7 @@ use std::{
     collections::VecDeque,
     io,
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
         mpsc, Arc, Condvar, Mutex,
     },
     time::Duration,
@@ -22,7 +22,10 @@ const UNPROVEN_RETRIES: u32 = 3;
 const CLOSE_GRACE: Duration = Duration::from_millis(250);
 /// Undecoded bytes buffered ahead of the decoder (many seconds of audio), so
 /// scheduling jitter on the shared I/O thread cannot starve decoding.
-const CAPACITY: usize = 4 * 1024 * 1024;
+pub(super) const CAPACITY: usize = 4 * 1024 * 1024;
+/// Input window of a predecoded successor until it becomes the current
+/// track: it must not take the link from the audible stream.
+pub(super) const SUCCESSOR_CAPACITY: usize = 1024 * 1024;
 /// A forward seek this close to the buffered end waits for the bytes already
 /// in flight instead of opening a new ranged request.
 const FORWARD_WAIT: u64 = 64 * 1024;
@@ -235,6 +238,8 @@ struct Buffer {
     readable: Condvar,
     /// Signalled to the network task when the decoder consumed bytes.
     room: Notify,
+    /// Undecoded bytes the window may hold.
+    capacity: AtomicUsize,
 }
 impl Buffer {
     fn lock(&self) -> std::sync::MutexGuard<'_, Window> {
@@ -468,7 +473,8 @@ impl Stream {
                     if window.generation != generation {
                         return Err(Attempt::Superseded);
                     }
-                    if window.data.is_empty() || window.data.len() + chunk.len() <= CAPACITY {
+                    let capacity = self.buffer.capacity.load(Ordering::Relaxed);
+                    if window.data.is_empty() || window.data.len() + chunk.len() <= capacity {
                         window.data.extend(chunk);
                         break;
                     }
@@ -487,6 +493,18 @@ impl Stream {
         }
         Ok(())
     }
+}
+
+/// What the window holds now, for pre-load timing.
+#[derive(Clone, Copy, Debug)]
+pub(super) struct Facts {
+    /// Undecoded bytes buffered ahead of the decoder.
+    pub buffered: u64,
+    /// The response finished and, when its size is known, the window
+    /// reaches the end of the file (not a probe range near it).
+    pub complete: bool,
+    pub total: Option<u64>,
+    pub capacity: usize,
 }
 
 /// Owner of one HTTP stream: its network task and server session.
@@ -508,6 +526,7 @@ impl Reader {
         token: String,
         closer: SessionCloser,
         occurrence: u64,
+        capacity: usize,
     ) -> crate::Result<(Self, Source)> {
         let progressive = url::Url::parse(&uri)
             .ok()
@@ -525,6 +544,7 @@ impl Reader {
             }),
             readable: Condvar::new(),
             room: Notify::new(),
+            capacity: AtomicUsize::new(capacity),
         });
         let received = Arc::new(AtomicU64::new(0));
         let progress = received.clone();
@@ -600,6 +620,22 @@ impl Reader {
             self.received.load(Ordering::Relaxed),
             self.buffer.lock().data.len() as u64,
         )
+    }
+    /// Window facts for pre-load timing, read under one lock.
+    pub(super) fn facts(&self) -> Facts {
+        let window = self.buffer.lock();
+        let end = window.start + window.data.len() as u64;
+        Facts {
+            buffered: window.data.len() as u64,
+            complete: window.eof && window.total.is_none_or(|total| end == total),
+            total: window.total,
+            capacity: self.buffer.capacity.load(Ordering::Relaxed),
+        }
+    }
+    /// Let the window grow (a successor became the current track).
+    pub(super) fn set_capacity(&self, capacity: usize) {
+        self.buffer.capacity.store(capacity, Ordering::Relaxed);
+        self.buffer.room.notify_one();
     }
     /// The transfer's terminal failure, if any (a static message; never the
     /// URI). Lets the decoder report the cause behind a generic probe error.
@@ -792,13 +828,54 @@ mod tests {
     }
 
     fn reader(address: std::net::SocketAddr) -> (Reader, Source) {
+        reader_with(address, CAPACITY)
+    }
+    fn reader_with(address: std::net::SocketAddr, capacity: usize) -> (Reader, Source) {
         Reader::new(
             format!("http://{address}/audio"),
             String::new(),
             SessionCloser::new().unwrap(),
             0,
+            capacity,
         )
         .unwrap()
+    }
+
+    #[test]
+    fn a_successor_window_is_capped_until_raised() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let size = CAPACITY * 2;
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: {size}\r\nConnection: close\r\n\r\n"
+            )
+            .unwrap();
+            let _ = stream.write_all(&vec![1; size]);
+        });
+        let (reader, _source) = reader_with(address, SUCCESSOR_CAPACITY);
+        let wait = |limit: u64| {
+            let deadline = std::time::Instant::now() + Duration::from_secs(5);
+            while reader.facts().buffered + 64 * 1024 < limit {
+                assert!(std::time::Instant::now() < deadline);
+                thread::sleep(Duration::from_millis(5));
+            }
+        };
+        wait(SUCCESSOR_CAPACITY as u64);
+        // Nothing reads; the capped window stays capped.
+        thread::sleep(Duration::from_millis(200));
+        let facts = reader.facts();
+        assert!(facts.buffered <= SUCCESSOR_CAPACITY as u64, "{facts:?}");
+        assert!(!facts.complete);
+        assert_eq!(facts.total, Some(size as u64));
+        reader.set_capacity(CAPACITY);
+        wait(CAPACITY as u64);
+        assert!(reader.facts().buffered <= CAPACITY as u64);
+        drop(reader);
+        server.join().unwrap();
     }
 
     #[test]
@@ -1049,8 +1126,14 @@ mod tests {
             &session,
         )
         .unwrap();
-        let (reader, mut source) =
-            Reader::new(uri.into(), String::new(), SessionCloser::new().unwrap(), 0).unwrap();
+        let (reader, mut source) = Reader::new(
+            uri.into(),
+            String::new(),
+            SessionCloser::new().unwrap(),
+            0,
+            CAPACITY,
+        )
+        .unwrap();
         assert!(!source.is_seekable());
         let mut head = [0; 4];
         source.read_exact(&mut head).unwrap();

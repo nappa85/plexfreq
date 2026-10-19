@@ -204,6 +204,9 @@ pub(super) struct Events {
     /// Playback started (after prebuffering) and has not underrun since.
     pub running: bool,
     pub underflows: u64,
+    /// The last playback fact was an underflow (cleared when playback
+    /// starts again): the server waits for `prebuf` before resuming.
+    pub underrun: bool,
     pub drained: bool,
 }
 
@@ -241,14 +244,15 @@ extern "C" fn event_callback(
 }
 extern "C" fn started_callback(_: *mut pa::pa_stream, userdata: *mut c_void) {
     // SAFETY: as state_callback.
-    unsafe { &*userdata.cast::<RefCell<Events>>() }
-        .borrow_mut()
-        .running = true;
+    let mut events = unsafe { &*userdata.cast::<RefCell<Events>>() }.borrow_mut();
+    events.running = true;
+    events.underrun = false;
 }
 extern "C" fn underflow_callback(_: *mut pa::pa_stream, userdata: *mut c_void) {
     // SAFETY: as state_callback.
     let mut events = unsafe { &*userdata.cast::<RefCell<Events>>() }.borrow_mut();
     events.running = false;
+    events.underrun = true;
     events.underflows += 1;
 }
 extern "C" fn drain_callback(_: *mut pa::pa_stream, success: i32, userdata: *mut c_void) {
@@ -382,6 +386,7 @@ impl Stream {
             uncork_requests: std::mem::take(&mut events.uncork_requests),
             running: events.running,
             underflows: events.underflows,
+            underrun: events.underrun,
             drained: events.drained,
         };
         Ok(facts)
@@ -413,6 +418,20 @@ impl Stream {
             unsafe { pa::pa_stream_cork(self.stream, i32::from(corked), None, ptr::null_mut()) };
         if operation.is_null() {
             return Err("stream cork failed");
+        }
+        // SAFETY: owned operation reference.
+        unsafe { pa::pa_operation_unref(operation) };
+        Ok(())
+    }
+    /// Start playback now even below `prebuf` (after a resume gate, a short
+    /// tail would otherwise wait for audio that may never come). The
+    /// underrun fact is cleared: the server no longer waits for prebuf.
+    pub fn trigger(&mut self) -> Result<(), &'static str> {
+        // SAFETY: live stream; no callback/userdata, reference released at once.
+        let operation = unsafe { pa::pa_stream_trigger(self.stream, None, ptr::null_mut()) };
+        self.events.borrow_mut().underrun = false;
+        if operation.is_null() {
+            return Err("stream trigger failed");
         }
         // SAFETY: owned operation reference.
         unsafe { pa::pa_operation_unref(operation) };
@@ -451,6 +470,19 @@ impl Stream {
             usize::MAX => 0,
             bytes => bytes,
         }
+    }
+    /// The server's queue for this stream is empty: it requests its whole
+    /// negotiated target again (after an underrun nothing written since).
+    pub fn empty(&self) -> bool {
+        // SAFETY: live stream; the attribute struct is owned by libpulse and
+        // read at once.
+        let attr = unsafe { pa::pa_stream_get_buffer_attr(self.stream) };
+        if attr.is_null() {
+            return false;
+        }
+        // SAFETY: non-null pointer to the stream's current attributes.
+        let target = unsafe { (*attr).tlength } as usize;
+        self.writable() >= target
     }
     /// Audible stream time in frames: data read by the server minus the
     /// sink latency, interpolated between timing updates. None before the

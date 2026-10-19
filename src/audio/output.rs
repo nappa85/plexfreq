@@ -52,6 +52,11 @@ impl PositionClock {
         }
         self.position
     }
+    /// The server played everything submitted (it underran): a corked
+    /// stream's timing would otherwise stay short of the end.
+    pub fn settle(&mut self, submitted: u64) {
+        self.position = self.position.max(submitted);
+    }
 }
 
 enum Backend {
@@ -324,5 +329,46 @@ impl Output {
     }
     pub fn corked(&self) -> bool {
         self.corked
+    }
+    /// Uncorked and run dry: PulseAudio reported an underflow and has not
+    /// started again; the real-time fake has nothing queued. The capture
+    /// sink consumes instantly, so it never models starvation.
+    pub fn starved(&mut self) -> bool {
+        if self.corked {
+            return false;
+        }
+        match &self.backend {
+            // Audio written since the underflow may still sit below the
+            // prebuffer: still a stall (the gate releases it), but not
+            // played (see `drained`).
+            Backend::Pulse { events, .. } => !events.running && events.underrun,
+            Backend::Fake { .. } => self.queued_bytes() == 0,
+            Backend::Capture { .. } => false,
+        }
+    }
+    /// After a stall: once the server's queue for this stream is empty,
+    /// everything submitted has left it (sink latency aside), so count it as
+    /// played. A corked stream's timing would otherwise stay short of a
+    /// gapless boundary and never report the transition.
+    pub fn settle_drained(&mut self) {
+        let drained = match &self.backend {
+            Backend::Pulse { stream, .. } => stream.empty(),
+            Backend::Fake { .. } | Backend::Capture { .. } => self.queued_bytes() == 0,
+        };
+        if drained {
+            let frames = self.frames;
+            self.position_clock.settle(frames);
+        }
+    }
+    /// Start playing what is queued even below the server's prebuffer
+    /// (once, after a resume gate). Failure only costs that start, so it
+    /// is logged rather than reported.
+    pub fn trigger(&mut self) {
+        if let Backend::Pulse { stream, events } = &mut self.backend {
+            events.underrun = false;
+            if let Err(reason) = stream.trigger() {
+                crate::diagnostics::event(format_args!("output trigger failed: {reason}"));
+            }
+        }
     }
 }

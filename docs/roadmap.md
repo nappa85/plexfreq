@@ -29,18 +29,23 @@ Engineering:
 - Mobile streaming robustness (2026-10-19 stutter on mobile data):
   - **Part A, implemented:** cellular network fact, mobile quality only on
     cellular, 320 kbps default for new installs.
-  - **Part B, open:** an engine redesign with three parts:
-    - **Engine-owned error recovery:** this covers the automatic transcode
-      restart, and also closes today's race where Pause, Stop or Seek can be
-      overridden by the cached/transcoded fallback.
-    - **Successor pre-load timing:** buffering decided by reader bytes, not
-      decoded PCM.
-    - **Resume threshold:** decided by PulseAudio underflow facts, with a single
-      uncork gate.
-
-    Cache-ahead should also yield to a starving stream, with a release on
-    stop, pause or error. All of this needs tests against real PulseAudio. The
-    findings are in `docs/reviews/2026-10-19-mobile-streaming.md` (rounds 1-5).
+  - **Part B step E1, implemented:** engine-held stream failures with the
+    actor-owned intent, plus the transcode restart. Plan rounds E1-E1.4, all
+    recorded. The implementation review took 2 rounds plus a narrow
+    confirmation: no Blocking left. Pending: a phone check on mobile data.
+    Recorded test gap: worker-level tests for late outcomes and queue-full
+    retry. Follow-up: the HTTP reader should hand over buffered bytes before
+    reporting a broken transfer.
+  - **Part B steps E2/E3, implemented:** the successor pre-load waits for a
+    healthy current stream (1 MiB window until promoted), a single resume
+    gate (500 ms start, 5 s after a PulseAudio underflow, a one-shot trigger
+    below prebuf, the crossfade dropped when the successor starves), and
+    downloads yield to a starving stream (resumable originals drop their
+    connection, other downloads finish their item). Plan rounds E2-E3.3
+    recorded in `docs/reviews/2026-10-19-mobile-streaming.md`. The
+    implementation review took 1 round plus a narrow confirmation: no
+    Blocking or Major left. Pending: a phone check on mobile data, and
+    showing `held` in the download UI.
   - Also open: a truncated transcode that ends cleanly is treated as a track
     end (B2-10).
 - Stale queue after a server library re-key (2026-10-18 incident). **Stage 1

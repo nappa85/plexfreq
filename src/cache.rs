@@ -170,6 +170,9 @@ enum Failure {
     Restart,
     /// A newer schedule/cancel superseded the batch while awaiting the network.
     Cancelled,
+    /// The live stream is starving: the connection was dropped to yield the
+    /// link; the item resumes by range once the hold is released.
+    Held,
     Other(Error),
 }
 impl From<Error> for Failure {
@@ -186,7 +189,7 @@ impl Failure {
     fn retryable(&self) -> bool {
         match self {
             Self::Interrupted | Self::Incomplete | Self::Restart => true,
-            Self::Cancelled => false,
+            Self::Cancelled | Self::Held => false,
             Self::Other(error) => matches!(error, Error::Network | Error::Http(500..=599)),
         }
     }
@@ -199,7 +202,7 @@ impl Failure {
             Self::Restart => Error::Input(
                 "Audio changed or server returned the wrong byte range; retrying from the beginning",
             ),
-            Self::Cancelled => Error::Input("Cache request cancelled"),
+            Self::Cancelled | Self::Held => Error::Input("Cache request cancelled"),
             Self::Other(error) => error,
         }
     }
@@ -235,16 +238,48 @@ impl State {
     }
 }
 
-#[derive(Default)]
 pub struct Gate {
     wifi_only: AtomicBool,
     paused: AtomicBool,
     wifi: AtomicBool,
+    /// Downloads yield to a starving live stream. Separate from `allowed`:
+    /// a hold never cancels, resets progress or drops a partial.
+    held: watch::Sender<bool>,
+}
+impl Default for Gate {
+    fn default() -> Self {
+        Self {
+            wifi_only: AtomicBool::default(),
+            paused: AtomicBool::default(),
+            wifi: AtomicBool::default(),
+            held: watch::Sender::new(false),
+        }
+    }
 }
 impl Gate {
     pub fn allowed(&self) -> bool {
         !self.paused.load(Ordering::SeqCst)
             && (!self.wifi_only.load(Ordering::SeqCst) || self.wifi.load(Ordering::SeqCst))
+    }
+    pub(crate) fn held(&self) -> bool {
+        *self.held.borrow()
+    }
+}
+
+/// Wait while downloads are held; a cancel still ends the wait.
+async fn unheld(
+    gate: &Gate,
+    changed: &mut watch::Receiver<u64>,
+) -> std::result::Result<(), Failure> {
+    let mut held = gate.held.subscribe();
+    if !*held.borrow_and_update() {
+        return Ok(());
+    }
+    // Biased: a cancel that lands with the release must win.
+    tokio::select! {
+        biased;
+        _ = changed.changed() => Err(Failure::Cancelled),
+        _ = async { let _ = held.wait_for(|held| !*held).await; } => Ok(()),
     }
 }
 
@@ -276,6 +311,18 @@ impl DownloadControl {
         self.gate.wifi_only.store(wifi_only, Ordering::SeqCst);
         self.gate.paused.store(paused, Ordering::SeqCst);
         self.stop_if_blocked();
+    }
+    /// Yield the link to a starving live stream (or stop yielding). A held
+    /// original download drops its connection and later resumes by range;
+    /// other downloads finish their item and wait before the next.
+    pub fn hold(&self, held: bool) {
+        if self.gate.held.send_if_modified(|current| {
+            let changed = *current != held;
+            *current = held;
+            changed
+        }) {
+            crate::diagnostics::event(format_args!("cache hold active={held}"));
+        }
     }
 }
 struct Batch {
@@ -1318,7 +1365,7 @@ impl Cache {
             });
             let snapshot = json!({"enabled":state.config.enabled,"limitMb":state.config.limit_mb,"ahead":state.config.ahead,
                 "wifiOnly":state.gate.wifi_only.load(Ordering::SeqCst),"paused":state.gate.paused.load(Ordering::SeqCst),"waitingForWifi":state.gate.wifi_only.load(Ordering::SeqCst) && !state.gate.wifi.load(Ordering::SeqCst),
-                "downloading":state.downloading,"pending":state.pending,"received":state.received,"total":state.total,"error":state.error,"errors":state.errors,"activeKey":state.active_key});
+                "downloading":state.downloading,"held":state.gate.held(),"pending":state.pending,"received":state.received,"total":state.total,"error":state.error,"errors":state.errors,"activeKey":state.active_key});
             (snapshot, entries, orphans)
         };
         let ready_bytes: BTreeMap<_, _> = entries
@@ -1395,6 +1442,9 @@ async fn worker(
         }
         changed.borrow_and_update();
         let mut terminal = BTreeSet::new();
+        // Items whose server ignored a resume range: never interrupted
+        // again in this batch, across its retry passes.
+        let mut unresumable: BTreeSet<String> = BTreeSet::new();
         for attempt in 0..4 {
             let mut failed = false;
             for (position, item) in batch.items.iter().enumerate() {
@@ -1414,20 +1464,40 @@ async fn worker(
                 // Cancellation interrupts network awaits only. Filesystem steps
                 // run on the blocking pool and are never abandoned mid-way, so
                 // a superseding batch cannot race a detached partial write.
-                let result = match download(
-                    &client,
-                    &shared,
-                    &mut changed,
-                    &batch,
-                    item.clone(),
-                    (&client_id, &session),
-                    &mut transcoded,
-                )
-                .await
-                {
-                    Err(Failure::Cancelled) => None,
-                    result => Some(result),
+                // A hold (live stream starving) waits before the item and
+                // re-runs an interrupted original by range, spending no
+                // attempt; `resumable` turns false if the server then
+                // ignores the range, so that item is not interrupted again.
+                let mut resumable = !unresumable.contains(&item.rating_key);
+                let result = loop {
+                    if unheld(&gate, &mut changed).await.is_err()
+                        || epoch.load(Ordering::SeqCst) != batch.epoch
+                    {
+                        break None;
+                    }
+                    match download(
+                        &client,
+                        &shared,
+                        &mut changed,
+                        &batch,
+                        item.clone(),
+                        (&client_id, &session),
+                        ItemRun {
+                            transcoded: &mut transcoded,
+                            gate: &gate,
+                            resumable: &mut resumable,
+                        },
+                    )
+                    .await
+                    {
+                        Err(Failure::Cancelled) => break None,
+                        Err(Failure::Held) => continue,
+                        result => break Some(result),
+                    }
                 };
+                if !resumable {
+                    unresumable.insert(item.rating_key.clone());
+                }
                 if transcoded > 0 {
                     if let Ok(uri) = crate::quality::transcode_url(
                         &batch.base,
@@ -1485,10 +1555,17 @@ async fn worker(
                 break;
             }
             // Retry stalled/interrupted downloads while the same queue is active.
-            tokio::select! { _=changed.changed()=>break, _=tokio::time::sleep(Duration::from_secs(30))=>{} }
+            tokio::select! { _=changed.changed()=>break, _=tokio::time::sleep(RETRY_PASS)=>{} }
         }
     }
 }
+
+/// Wait before a batch retries its interrupted items (short in unit tests).
+const RETRY_PASS: Duration = if cfg!(test) {
+    Duration::from_millis(300)
+} else {
+    Duration::from_secs(30)
+};
 
 const CACHE_FULL: Error = Error::Input("Cache is full; increase its limit or clear cached audio");
 
@@ -1644,6 +1721,7 @@ async fn cancellable<T>(
     step: impl std::future::Future<Output = T>,
 ) -> std::result::Result<T, Failure> {
     tokio::select! {
+        biased;
         _ = changed.changed() => Err(Failure::Cancelled),
         value = step => Ok(value),
     }
@@ -1681,6 +1759,15 @@ async fn completed(shared: &Shared, namespace: &str, item: &Item, quality: u32) 
     crate::rt::unblock(move || entries.iter().any(|e| usable(&root, e))).await
 }
 
+/// One item's download state across its attempts.
+struct ItemRun<'a> {
+    /// Transcode bitrate used (for the session stop request), 0 if none.
+    transcoded: &'a mut u32,
+    gate: &'a Gate,
+    /// Cleared when the server ignored a resume range after a hold.
+    resumable: &'a mut bool,
+}
+
 async fn download(
     client: &reqwest::Client,
     shared: &Shared,
@@ -1688,8 +1775,13 @@ async fn download(
     batch: &Batch,
     mut item: Item,
     identity: (&str, &str),
-    transcoded: &mut u32,
+    run: ItemRun<'_>,
 ) -> std::result::Result<(), Failure> {
+    let ItemRun {
+        transcoded,
+        gate,
+        resumable,
+    } = run;
     let (root, state, epoch) = (&shared.root, &shared.state, &shared.epoch);
     let (client_id, session) = identity;
     let quality_of = |item: &Item| download_quality(batch.quality_kbps, item);
@@ -1870,9 +1962,18 @@ async fn download(
         }
         Some(total)
     } else {
+        if offset > 0 {
+            // The range was ignored: interrupting again would restart it.
+            *resumable = false;
+        }
         offset = 0;
         response.content_length()
     };
+    // Only an original that can resume by range drops its connection for
+    // a hold (a paused read would not stop the server sending until the
+    // socket buffers fill); anything else finishes this item first.
+    let interruptible = *resumable && quality == 0 && validator.is_some() && total.is_some();
+    let mut held = gate.held.subscribe();
     let extension = if quality > 0 {
         "mp3".into()
     } else {
@@ -1934,10 +2035,26 @@ async fn download(
     };
     let mut received = offset;
     let mut reserved_until = total.unwrap_or(offset);
-    while let Some(bytes) = cancellable(changed, response.chunk())
-        .await?
-        .map_err(|_| Failure::Interrupted)?
-    {
+    loop {
+        let chunk = if interruptible {
+            tokio::select! {
+                biased;
+                _ = changed.changed() => return Err(Failure::Cancelled),
+                _ = async { let _ = held.wait_for(|held| *held).await; } => {
+                    crate::diagnostics::event(format_args!(
+                        "cache download held key={} received={received}",
+                        item.rating_key
+                    ));
+                    return Err(Failure::Held);
+                }
+                chunk = response.chunk() => chunk,
+            }
+        } else {
+            cancellable(changed, response.chunk()).await?
+        };
+        let Some(bytes) = chunk.map_err(|_| Failure::Interrupted)? else {
+            break;
+        };
         if epoch.load(Ordering::SeqCst) != batch.epoch {
             return Err(Error::Input("Cache request cancelled").into());
         }
@@ -2395,6 +2512,99 @@ mod maintenance_tests {
         let saved: Manifest =
             serde_json::from_slice(&fs::read(dir.path().join("index.json")).unwrap()).unwrap();
         assert!(saved.entries[&hash("e1")].used > 1);
+    }
+}
+
+/// Plan E3 hold state that spans a batch's retry passes.
+#[cfg(test)]
+mod hold_tests {
+    use super::*;
+    use std::{
+        io::{Read, Write},
+        net::{TcpListener, TcpStream},
+    };
+
+    fn accept(listener: &TcpListener) -> TcpStream {
+        let (mut socket, _) = listener.accept().unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut bytes = Vec::new();
+        let mut byte = [0];
+        while !bytes.ends_with(b"\r\n\r\n") && socket.read_exact(&mut byte).is_ok() {
+            bytes.push(byte[0]);
+        }
+        let request = String::from_utf8_lossy(&bytes).to_lowercase();
+        assert!(request.contains("/library/parts/1/"), "{request}");
+        socket
+    }
+    fn wait(mut done: impl FnMut() -> bool) {
+        let until = Instant::now() + Duration::from_secs(8);
+        while !done() {
+            assert!(Instant::now() < until, "timed out");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    // A server that ignored a resume range after a hold is not interrupted
+    // by a later hold, also on the batch's next retry pass.
+    #[test]
+    fn an_ignored_range_stays_uninterruptible_across_retry_passes() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/", listener.local_addr().unwrap());
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+        let control = cache.control(Default::default());
+        let item = Item {
+            rating_key: "1".into(),
+            kind: crate::model::ItemKind::Track,
+            media: vec![crate::model::Media {
+                audio_codec: "pcm".into(),
+                container: "wav".into(),
+                parts: vec![crate::model::Part {
+                    key: "/library/parts/1/file.wav".into(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let received = || crate::mutex_lock(&cache.state).received;
+        cache.schedule(&url, "token", vec![item.clone()]).unwrap();
+        let head = "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\n";
+        let mut first = accept(&listener);
+        first
+            .write_all(format!("{head}abcdefghij").as_bytes())
+            .unwrap();
+        wait(|| received() == 10);
+        control.hold(true);
+        // Dropped for the hold.
+        assert!(matches!(first.read(&mut [0; 16]), Ok(0) | Err(_)));
+        control.hold(false);
+        // The resume ignores the range (200), then breaks: the next pass
+        // resumes from the 5 bytes it wrote.
+        let mut second = accept(&listener);
+        second.write_all(format!("{head}abcde").as_bytes()).unwrap();
+        wait(|| received() == 5);
+        drop(second);
+        // This time the server honours the range; a hold must still not
+        // interrupt the item, which is marked for the whole batch.
+        let mut third = accept(&listener);
+        third
+            .write_all(
+                b"HTTP/1.1 206 Partial Content\r\nContent-Type: audio/wav\r\nContent-Length: 15\r\nContent-Range: bytes 5-19/20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nfghij",
+            )
+            .unwrap();
+        wait(|| received() == 10);
+        control.hold(true);
+        std::thread::sleep(Duration::from_millis(200));
+        third.write_all(b"klmnopqrst").unwrap();
+        drop(third);
+        let namespace = namespace(&url, "token");
+        wait(|| cache.lookup(&namespace, &item, false).is_some());
+        control.hold(false);
+        let (path, _) = cache.lookup(&namespace, &item, false).unwrap();
+        assert_eq!(fs::read(path).unwrap(), b"abcdefghijklmnopqrst");
     }
 }
 
