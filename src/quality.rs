@@ -17,7 +17,8 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             wifi_kbps: 0,
-            mobile_kbps: 0,
+            // A conservative default for metered, often unstable links.
+            mobile_kbps: 320,
             download_kbps: 0,
             codec_fallback: true,
         }
@@ -33,11 +34,13 @@ impl Config {
         }
         Ok(())
     }
-    pub fn streaming(&self, wifi: bool) -> u32 {
-        if wifi {
-            self.wifi_kbps
-        } else {
+    /// The live streaming cap: the mobile choice only on a known cellular
+    /// link; Wi-Fi, Ethernet and an unknown network use the Wi-Fi choice.
+    pub fn streaming(&self, cellular: bool) -> u32 {
+        if cellular {
             self.mobile_kbps
+        } else {
+            self.wifi_kbps
         }
     }
 }

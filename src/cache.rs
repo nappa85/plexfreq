@@ -131,6 +131,9 @@ struct State {
     total: Option<u64>,
     error: String,
     errors: BTreeMap<String, String>,
+    /// Rating keys whose download the server refused as missing (404 for an
+    /// original file, 400 for a transcode); confirmed by the runtime.
+    suspects: BTreeSet<String>,
     active_key: String,
     lru_saved: Instant,
     /// The manifest changed without a commit (orphan adoption on lookup).
@@ -217,6 +220,7 @@ impl State {
             total: None,
             error: String::new(),
             errors: BTreeMap::new(),
+            suspects: BTreeSet::new(),
             active_key: String::new(),
             lru_saved: Instant::now(),
             dirty: false,
@@ -390,6 +394,31 @@ fn usable(root: &Path, entry: &Entry) -> bool {
 }
 fn atomic_json(path: &Path, value: &impl Serialize) -> Result<()> {
     crate::atomic_write_json(path, value)
+}
+/// Leave `item` as a completed download under `root` for `namespace`, as a
+/// crash after the completion rename does; `Cache::new` indexes it.
+#[cfg(test)]
+pub(crate) fn seed_completed(
+    root: &Path,
+    namespace: &str,
+    item: &Item,
+    extension: &str,
+    bytes: &[u8],
+) {
+    let id = key(namespace, item);
+    fs::create_dir_all(root).unwrap();
+    fs::write(root.join(format!("{id}.{extension}")), bytes).unwrap();
+    atomic_json(
+        &root.join(format!("{id}.resume.json")),
+        &Partial {
+            quality_kbps: 0,
+            total: Some(bytes.len() as u64),
+            validator: None,
+            namespace: namespace.into(),
+            item: Some(item.clone()),
+        },
+    )
+    .unwrap();
 }
 fn disk_bytes(root: &Path) -> u64 {
     fs::read_dir(root)
@@ -1032,6 +1061,12 @@ impl Cache {
         }
         result
     }
+    /// Drain the keys whose downloads looked like a missing server item.
+    pub(crate) fn take_suspects(&self) -> Vec<String> {
+        std::mem::take(&mut crate::mutex_lock(&self.state).suspects)
+            .into_iter()
+            .collect()
+    }
     pub fn cancel(&self) {
         let epoch = self.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let _ = self.cancel.send(epoch);
@@ -1414,7 +1449,17 @@ async fn worker(
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
                         let retryable = error.retryable();
+                        let suspect = match &error {
+                            Failure::Other(Error::Http(404)) => true,
+                            Failure::Other(Error::Http(400)) => transcoded > 0,
+                            _ => false,
+                        };
                         let error = error.into_error();
+                        if suspect {
+                            crate::mutex_lock(state)
+                                .suspects
+                                .insert(item.rating_key.clone());
+                        }
                         failed |= retryable;
                         if !retryable {
                             terminal.insert(item.rating_key.clone());

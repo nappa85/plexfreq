@@ -58,6 +58,7 @@ PHRASES = {
     "Find your frequency.":"frequency search", "Favorites · 5 stars":"favorites =★ =5",
     "★ Favorite":"=★ favorites", "☆ Add to favorites":"=☆ add favorites",
     "No description provided by Plex.":"description unavailable =Plex",
+    "This track is no longer on the server":"track server unavailable",
     "No lyrics provided by Plex.":"lyrics unavailable =Plex", "No similar artists returned by Plex.":"similar artists unavailable =Plex",
     "Waiting for a confirmed Wi-Fi connection. Streaming remains available.":"downloads waiting =Wi-Fi audio play online",
     "Waiting for confirmed Wi-Fi; streaming remains available.":"downloads waiting =Wi-Fi audio play online",
@@ -106,6 +107,7 @@ ALIASES = {
 }
 
 ITALIAN = {
+    "This track is no longer on the server":"Questo brano non è più sul server",
     "Automatically refresh download plans":"Aggiorna automaticamente i piani di download", "Refresh interval":"Intervallo di aggiornamento", "%1 hours":"%1 ore", "Refreshing download plans…":"Aggiornamento dei piani di download…",
     "Library filters":"Filtri della libreria", "Smart playlist":"Playlist intelligente", "Filtered music":"Musica filtrata", "Create smart playlist":"Crea una playlist intelligente", "Edit smart filters":"Modifica i filtri intelligenti", "Any":"Qualsiasi",
     "Title contains":"Il titolo contiene", "Year from":"Dall’anno", "Year to":"Fino all’anno", "Minimum rating":"Valutazione minima", "Maximum tracks":"Numero massimo di brani", "Unplayed only":"Solo brani mai ascoltati", "Most played":"Più ascoltati",

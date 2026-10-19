@@ -26,6 +26,51 @@ Partly done:
   outside the shared cache lock.
 
 Engineering:
+- Mobile streaming robustness (2026-10-19 stutter on mobile data):
+  - **Part A, implemented:** cellular network fact, mobile quality only on
+    cellular, 320 kbps default for new installs.
+  - **Part B, open:** an engine redesign with three parts:
+    - **Engine-owned error recovery:** this covers the automatic transcode
+      restart, and also closes today's race where Pause, Stop or Seek can be
+      overridden by the cached/transcoded fallback.
+    - **Successor pre-load timing:** buffering decided by reader bytes, not
+      decoded PCM.
+    - **Resume threshold:** decided by PulseAudio underflow facts, with a single
+      uncork gate.
+
+    Cache-ahead should also yield to a starving stream, with a release on
+    stop, pause or error. All of this needs tests against real PulseAudio. The
+    findings are in `docs/reviews/2026-10-19-mobile-streaming.md` (rounds 1-5).
+  - Also open: a truncated transcode that ends cleanly is treated as a track
+    end (B2-10).
+- Stale queue after a server library re-key (2026-10-18 incident). **Stage 1
+  implemented and reviewed** (14 plan rounds + 2 implementation rounds, no Blocking
+  left): failure-triggered background checks, 10 min gone marks, skipping in the
+  direction of travel, and HTTP status diagnostics. See
+  `docs/reviews/2026-10-18-stale-queue-recovery.md`.
+  - Phone validation of stage 1 (2026-10-19, installed 0.1.6-1): the HTTP status
+    logging works; the skip did not apply because the queue was an artist
+    station, which stage 1 excluded.
+  - **Stage 1b (radio)**: implemented. Plan reviewed in rounds R1–R4 (no Blocking
+    left in R4; third chain unavailable in R4). A station that can no longer
+    supply tracks cycles its cached radio items like offline, and ends with the
+    gone notice when nothing is cached. Implementation review round 1: no
+    Blocking (Sol, Sonnet; third chain unavailable); its findings are fixed or
+    recorded. Pending: phone validation on the stale In Flames station.
+    Accepted test gaps (RI1-6): runtime budget exhaustion, listen credit of a
+    skipped prepared radio item, a new station clearing marks, ended station
+    with an empty queue or a corrupt cursor. The center for a single deleted
+    track on a healthy station is unmeasured.
+  - Follow-ups:
+    - stage 2: re-resolve gone items to their new key (guid/search);
+    - proactive upcoming checks when cache-ahead is off;
+    - background detail fetch for items without Media (the sync fetch remains);
+    - cache-ahead retry policy;
+    - shutdown checkpoint ordering (R9);
+    - visual marking of gone items;
+    - QueueRemove-at-slot-0 audible cursor (I2-1);
+    - untested races: post-`execute()` intent change, a queued Next at verdict
+      time, a burst through the worker.
 - Replace token-bearing artwork DTOs with a Rust-owned credential handle; DTOs must
   not reach persistence or logs meanwhile.
 - Credential/server-scoped station download group IDs.

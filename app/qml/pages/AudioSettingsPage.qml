@@ -7,7 +7,7 @@ Page {
     property var config:audioConfig()
     property var quality:qualityConfig()
     function audioConfig() {return backend.state.audioConfig || ({crossfadeMs:0,normalization:false,eq:[0,0,0,0,0,0,0,0,0,0]})}
-    function qualityConfig() {return backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:0,downloadKbps:0,codecFallback:true})}
+    function qualityConfig() {return backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:320,downloadKbps:0,codecFallback:true})}
     // Silica controls assign their own value/checked on interaction, which
     // drops the declarative binding; re-sync them from each new backend state
     // (read directly: the page properties may not be re-evaluated yet).

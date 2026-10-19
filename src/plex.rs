@@ -72,6 +72,31 @@ pub(crate) async fn bounded_body(
     Ok(bytes)
 }
 
+/// Server-side health of one queued item, from a status-only metadata probe.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Probe {
+    /// The server itself reports the item missing.
+    Gone,
+    /// The credential was refused; further probes would fail the same way.
+    Auth,
+    /// Anything else, including success: nothing is concluded.
+    Unknown,
+}
+
+const PROBE_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Classify a metadata probe. PMS answers a missing item with 404 plus its
+/// `X-Plex-Protocol` header (HTML body, no MediaContainer: measured
+/// 2026-10-18); a 404 without that header may come from a proxy or another
+/// host and proves nothing about the item.
+pub(crate) fn classify_probe(status: u16, plex_header: bool) -> Probe {
+    match status {
+        404 if plex_header => Probe::Gone,
+        401 | 403 => Probe::Auth,
+        _ => Probe::Unknown,
+    }
+}
+
 pub(crate) async fn bounded_json<T: DeserializeOwned>(
     mut response: reqwest::Response,
     context: &'static str,
@@ -350,6 +375,29 @@ impl Plex {
         })?;
         String::from_utf8(bytes).map_err(|_| Error::ProtocolAt("lyrics text"))
     }
+    /// A status-only probe of `/library/metadata/{key}`, as an owned future
+    /// for a background task: it never binds a view scope or blocks the
+    /// caller, sends the credential as a header and discards the body.
+    pub(crate) fn probe_metadata(
+        &self,
+        base: &Url,
+        token: &str,
+        key: &str,
+    ) -> Result<impl Future<Output = Probe> + Send + 'static> {
+        crate::numeric(key)?;
+        let url = server_path(base, &format!("/library/metadata/{key}"))?;
+        let request = self.builder(Method::GET, url, token);
+        Ok(async move {
+            match tokio::time::timeout(PROBE_TIMEOUT, request.send()).await {
+                Ok(Ok(response)) => classify_probe(
+                    response.status().as_u16(),
+                    response.headers().contains_key("x-plex-protocol"),
+                ),
+                _ => Probe::Unknown,
+            }
+        })
+    }
+
     pub(crate) fn probe_audio(&self, url: Url, token: &str) -> Result<(usize, String)> {
         // `headers` replaces the default JSON Accept instead of appending.
         let request = self
@@ -519,6 +567,56 @@ mod tests {
             ));
             server.join().unwrap();
         }
+    }
+
+    #[test]
+    fn metadata_probe_is_gone_only_for_a_plex_404() {
+        assert_eq!(classify_probe(404, true), Probe::Gone);
+        assert_eq!(classify_probe(404, false), Probe::Unknown);
+        assert_eq!(classify_probe(401, true), Probe::Auth);
+        assert_eq!(classify_probe(403, false), Probe::Auth);
+        for status in [200, 206, 400, 500, 503] {
+            assert_eq!(classify_probe(status, true), Probe::Unknown);
+        }
+    }
+
+    #[test]
+    fn metadata_probe_sends_the_token_as_a_header_and_reads_the_status() {
+        for (reply, expected) in [
+            (
+                "HTTP/1.1 404 Not Found\r\nX-Plex-Protocol: 1.0\r\nContent-Type: text/html\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                Probe::Gone,
+            ),
+            (
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                Probe::Unknown,
+            ),
+        ] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let base = Url::parse(&format!("http://{}/", listener.local_addr().unwrap())).unwrap();
+            let server = thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap();
+                let mut byte = [0];
+                let mut request = Vec::new();
+                while !request.ends_with(b"\r\n\r\n") {
+                    stream.read_exact(&mut byte).unwrap();
+                    request.push(byte[0]);
+                }
+                stream.write_all(reply.as_bytes()).unwrap();
+                String::from_utf8(request).unwrap()
+            });
+            let plex = Plex::new("fixture", base.clone()).unwrap();
+            let probe = plex.probe_metadata(&base, "synthetic-secret", "42").unwrap();
+            assert_eq!(crate::rt::block_on(probe), expected);
+            let request = server.join().unwrap();
+            assert!(request.starts_with("GET /library/metadata/42 "), "{request}");
+            assert!(request.to_ascii_lowercase().contains("x-plex-token: synthetic-secret"));
+            assert!(!request.lines().next().unwrap().contains("synthetic-secret"));
+        }
+        let plex = Plex::new("fixture", Url::parse("http://127.0.0.1/").unwrap()).unwrap();
+        assert!(plex
+            .probe_metadata(&Url::parse("http://127.0.0.1/").unwrap(), "", "../1")
+            .is_err());
     }
 
     #[test]

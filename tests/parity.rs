@@ -102,6 +102,22 @@ fn streaming_quality_is_network_aware_persistent_and_local_first() {
     connect(&mut core, &server);
     let quality = json!({"wifiKbps":0,"mobileKbps":160,"downloadKbps":128,"codecFallback":true});
     call(&mut core, json!({"op":"quality_config","config":quality})).unwrap();
+    // An unknown network uses the Wi-Fi choice: the original file.
+    let plan = call(
+        &mut core,
+        json!({"op":"play","items":[track("1")],"index":0}),
+    )
+    .unwrap();
+    assert!(plan["stream"]
+        .as_str()
+        .unwrap()
+        .contains("/library/parts/1/"));
+    // The mobile choice applies on a known cellular link only.
+    call(
+        &mut core,
+        json!({"op":"network_state","wifi":false,"cellular":true,"online":true}),
+    )
+    .unwrap();
     let plan = call(
         &mut core,
         json!({"op":"play","items":[track("1")],"index":0}),
@@ -114,16 +130,18 @@ fn streaming_quality_is_network_aware_persistent_and_local_first() {
     assert_eq!(params["musicBitrate"], "160");
     assert_eq!(params["path"], "/library/metadata/1");
     assert_eq!(plan["playbackSource"], "transcode");
-    call(
-        &mut core,
+    for facts in [
         json!({"op":"network_state","wifi":true,"online":true}),
-    )
-    .unwrap();
-    let plan = call(&mut core, json!({"op":"resume"})).unwrap();
-    assert!(plan["stream"]
-        .as_str()
-        .unwrap()
-        .contains("/library/parts/1/"));
+        // Ethernet: neither Wi-Fi nor cellular.
+        json!({"op":"network_state","wifi":false,"cellular":false,"online":true}),
+    ] {
+        call(&mut core, facts).unwrap();
+        let plan = call(&mut core, json!({"op":"resume"})).unwrap();
+        assert!(plan["stream"]
+            .as_str()
+            .unwrap()
+            .contains("/library/parts/1/"));
+    }
     drop(core);
     let mut core = Core::new(dir.path().into()).unwrap();
     assert_eq!(
@@ -1083,4 +1101,26 @@ fn original_quality_download_of_an_undecodable_format_is_a_transcoded_mp3() {
         .unwrap();
     assert_eq!(file.extension().unwrap(), "mp3");
     assert_eq!(std::fs::read(file).unwrap(), b"transcoded-fixture");
+}
+
+#[test]
+fn mobile_quality_defaults_to_320_only_when_never_chosen() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    assert_eq!(
+        call(&mut core, json!({"op":"status"})).unwrap()["qualityConfig"]["mobileKbps"],
+        320
+    );
+    // A stored choice of the original file is kept.
+    call(
+        &mut core,
+        json!({"op":"quality_config","config":{"wifiKbps":0,"mobileKbps":0,"downloadKbps":0,"codecFallback":true}}),
+    )
+    .unwrap();
+    drop(core);
+    let mut core = Core::new(dir.path().into()).unwrap();
+    assert_eq!(
+        call(&mut core, json!({"op":"status"})).unwrap()["qualityConfig"]["mobileKbps"],
+        0
+    );
 }

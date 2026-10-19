@@ -628,6 +628,10 @@
       <translation>ગીત · ઉપલબ્ધ નથી · ડાઉનલોડ થયેલું</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>ગીત · સર્વર · ઉપલબ્ધ નથી</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ગીત · ઉપલબ્ધ નથી · કૅશ · ડાઉનલોડ થયેલું · ગીતો</translation>
     </message>

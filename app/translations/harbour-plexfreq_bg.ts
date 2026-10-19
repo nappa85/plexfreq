@@ -628,6 +628,10 @@
       <translation>Песен · Недостъпно · Изтеглено</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Песен · Сървър · Недостъпно</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Песен · Недостъпно · Кеш · Изтеглено · Песни</translation>
     </message>

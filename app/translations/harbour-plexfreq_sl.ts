@@ -628,6 +628,10 @@
       <translation>Skladba · Ni na voljo · Preneseno</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Skladba · Strežnik · Ni na voljo</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Skladba · Ni na voljo · Predpomnilnik · Preneseno · Skladbe</translation>
     </message>

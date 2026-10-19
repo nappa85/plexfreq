@@ -628,6 +628,10 @@
       <translation>Piesă · Indisponibil · Descărcat</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Piesă · Server · Indisponibil</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Piesă · Indisponibil · Cache · Descărcat · Piese</translation>
     </message>

@@ -208,7 +208,7 @@ async fn bluetooth_observer(bluetooth: Shared, halt: Halt) {
 async fn network_observer(network: Shared, halt: Halt) {
     let mut previous = None;
     let mut unavailable = false;
-    let mut observe = |facts: Option<(bool, bool)>| {
+    let mut observe = |facts: Option<NetworkFacts>| {
         // Unanswered facts are unknown, not offline: reporting them as
         // disconnected would force cache-only playback and skip
         // timelines. Keep the last known state (initially unknown).
@@ -224,14 +224,17 @@ async fn network_observer(network: Shared, halt: Halt) {
         unavailable = false;
         if previous != Some(facts) {
             crate::diagnostics::event(format_args!(
-                "network change wifi={} online={}",
-                facts.0, facts.1
+                "network change wifi={} cellular={} online={}",
+                facts.wifi, facts.cellular, facts.online
             ));
-            network.hint_network(facts.0);
-            let _ = network.send(
-                json!({"op":"network_state","wifi":facts.0,"online":facts.1,"live_hint":true}),
-            );
-            previous = Some(facts);
+            network.hint_network(facts.wifi);
+            let sent = network.send(json!({"op":"network_state","wifi":facts.wifi,
+                "cellular":facts.cellular,"online":facts.online,"live_hint":true}));
+            // A request refused by a full queue is retried on the next
+            // observation (signal or refresh) instead of being deduplicated.
+            if sent.is_ok() {
+                previous = Some(facts);
+            }
         }
     };
     while !halt.halted() {
@@ -976,7 +979,15 @@ mod bluetooth_tests {
 /// Room for a silent ConnMan's deadline plus the NetworkManager fallback.
 const NETWORK_DEADLINE: Duration = Duration::from_secs(5);
 type Services = Vec<(OwnedObjectPath, HashMap<String, OwnedValue>)>;
-async fn network_query(connection: zbus::Connection) -> zbus::Result<(bool, bool)> {
+/// The default route's kind: Wi-Fi (download policy), cellular (streaming
+/// quality) and whether it is up.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct NetworkFacts {
+    wifi: bool,
+    cellular: bool,
+    online: bool,
+}
+async fn network_query(connection: zbus::Connection) -> zbus::Result<NetworkFacts> {
     let connman = async {
         proxy(&connection, "net.connman", "/", "net.connman.Manager")
             .await?
@@ -997,31 +1008,53 @@ async fn network_query(connection: zbus::Connection) -> zbus::Result<(bool, bool
         .await?;
         let kind: String = proxy.get_property("PrimaryConnectionType").await?;
         let state: u32 = proxy.get_property("State").await?;
-        Ok((kind == "802-11-wireless", state >= 50))
+        Ok(manager_facts(&kind, state))
     };
     tokio::time::timeout(DEADLINE, manager)
         .await
         .map_err(|_| zbus::Error::Failure("NetworkManager query timed out".into()))?
 }
-fn connman_facts(services: &Services) -> (bool, bool) {
+/// NetworkManager's primary connection. A VPN primary hides the link
+/// underneath: it counts as neither Wi-Fi nor cellular.
+fn manager_facts(kind: &str, state: u32) -> NetworkFacts {
+    NetworkFacts {
+        wifi: kind == "802-11-wireless",
+        cellular: matches!(kind, "gsm" | "cdma"),
+        online: state >= 50,
+    }
+}
+fn connman_facts(services: &Services) -> NetworkFacts {
     // ConnMan returns favourite-first: the first ready/online service is the
     // default route. wifi_only must reflect that primary route, not any
     // secondary interface, otherwise downloads could run over cellular while a
-    // dormant wifi service is also listed.
-    for (_, properties) in services {
-        let state = properties
-            .get("State")
+    // dormant wifi service is also listed. A VPN is carried by the next one.
+    let text = |properties: &HashMap<String, OwnedValue>, key: &str| {
+        properties
+            .get(key)
             .and_then(|v| <&str>::try_from(v).ok())
-            .unwrap_or("");
-        if matches!(state, "ready" | "online") {
-            let kind = properties
-                .get("Type")
-                .and_then(|v| <&str>::try_from(v).ok())
-                .unwrap_or("");
-            return (kind == "wifi", true);
+            .unwrap_or("")
+            .to_owned()
+    };
+    let mut online = false;
+    for (_, properties) in services {
+        if matches!(text(properties, "State").as_str(), "ready" | "online") {
+            online = true;
+            let kind = text(properties, "Type");
+            if kind == "vpn" {
+                continue;
+            }
+            return NetworkFacts {
+                wifi: kind == "wifi",
+                cellular: kind == "cellular",
+                online: true,
+            };
         }
     }
-    (false, false)
+    NetworkFacts {
+        wifi: false,
+        cellular: false,
+        online,
+    }
 }
 struct Root {
     events: mpsc::Sender<Outgoing>,
@@ -1557,5 +1590,75 @@ mod mpris_tests {
             Some(value) => std::env::set_var("DBUS_SYSTEM_BUS_ADDRESS", value),
             None => std::env::remove_var("DBUS_SYSTEM_BUS_ADDRESS"),
         }
+    }
+}
+
+#[cfg(test)]
+mod network_tests {
+    use super::*;
+
+    fn service(kind: &str, state: &str) -> (OwnedObjectPath, HashMap<String, OwnedValue>) {
+        let text = |value: &str| OwnedValue::try_from(zbus::zvariant::Value::from(value)).unwrap();
+        (
+            OwnedObjectPath::try_from(format!("/net/connman/service/{kind}")).unwrap(),
+            HashMap::from([("Type".into(), text(kind)), ("State".into(), text(state))]),
+        )
+    }
+    fn facts(wifi: bool, cellular: bool, online: bool) -> NetworkFacts {
+        NetworkFacts {
+            wifi,
+            cellular,
+            online,
+        }
+    }
+
+    #[test]
+    fn connman_reports_the_default_route_kind() {
+        assert_eq!(
+            connman_facts(&vec![service("wifi", "online")]),
+            facts(true, false, true)
+        );
+        assert_eq!(
+            connman_facts(&vec![service("cellular", "ready"), service("wifi", "idle")]),
+            facts(false, true, true)
+        );
+        assert_eq!(
+            connman_facts(&vec![service("ethernet", "online")]),
+            facts(false, false, true)
+        );
+        // A VPN is carried by the next ready service.
+        assert_eq!(
+            connman_facts(&vec![
+                service("vpn", "ready"),
+                service("cellular", "online")
+            ]),
+            facts(false, true, true)
+        );
+        assert_eq!(
+            connman_facts(&vec![service("vpn", "ready")]),
+            facts(false, false, true)
+        );
+        assert_eq!(
+            connman_facts(&vec![service("wifi", "idle")]),
+            facts(false, false, false)
+        );
+        assert_eq!(connman_facts(&Vec::new()), facts(false, false, false));
+    }
+
+    #[test]
+    fn network_manager_cellular_is_gsm_or_cdma_only() {
+        assert_eq!(
+            manager_facts("802-11-wireless", 70),
+            facts(true, false, true)
+        );
+        assert_eq!(manager_facts("gsm", 70), facts(false, true, true));
+        assert_eq!(manager_facts("cdma", 60), facts(false, true, true));
+        assert_eq!(
+            manager_facts("802-3-ethernet", 70),
+            facts(false, false, true)
+        );
+        assert_eq!(manager_facts("bluetooth", 70), facts(false, false, true));
+        assert_eq!(manager_facts("vpn", 70), facts(false, false, true));
+        assert_eq!(manager_facts("", 20), facts(false, false, false));
     }
 }

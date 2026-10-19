@@ -628,6 +628,10 @@
       <translation>Parça · Kullanılamıyor · İndirildi</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Parça · Sunucu · Kullanılamıyor</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Parça · Kullanılamıyor · Önbellek · İndirildi · Parçalar</translation>
     </message>

@@ -628,6 +628,10 @@
       <translation>Utwór · Niedostępne · Pobrane</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Utwór · Serwer · Niedostępne</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Utwór · Niedostępne · Pamięć podręczna · Pobrane · Utwory</translation>
     </message>

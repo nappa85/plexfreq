@@ -2211,3 +2211,76 @@ replaced in this iteration.
   `--disable-shm`, one `pa_mainloop` iteration handles about one packet.
 - Sources: PulseAudio 16.1 `src/pulsecore/protocol-native.c` and
   `src/pulsecore/pstream.c` (GitHub mirror, tag v16.1); daemon debug logs.
+
+## Stale ratingKeys after a Music section re-creation (2026-10-18)
+
+Measured on the user's PMS from the phone with read-only GETs. The token was sent
+only as a header and never printed.
+
+- **Stale keys 404:** the Music section was recreated (section 7 `createdAt`
+  2026-10-18 09:51). All 11 queued ratingKeys and their part URLs return 404.
+- **New keys:** the same track has a new ratingKey (33963 → 98244) and a new part.
+- **Stable guid and search:** the new item has `guid=plex://track/…`.
+  `/library/sections/7/all?type=10&guid=…` and `/hubs/search?query=<title>` both
+  find it.
+- **Transcode:** `start.m3u8?path=/library/metadata/<stale>` returns 400, not 404.
+- **404 shape:** PMS 404s for `/library/metadata/<stale>` and stale part URLs carry
+  `X-Plex-Protocol: 1.0` with a `text/html` body, not a MediaContainer. A live
+  metadata GET returns JSON. Use the header, not the body, to tell a PMS 404 from a
+  proxy 404.
+- **Symphonia masks the cause:** its probe loop
+  (`while let Ok(byte) = mss.read_byte()`) treats source read errors as EOF, so an
+  HTTP failure is logged as "no suitable format reader found".
+
+## Station play queues after a library re-creation (2026-10-19)
+
+Read-only GETs against the user's PMS, from the phone and from the desktop
+session on the same server. The token was used in-process only, never printed.
+
+- **Emptied station:** artist station playQueue 6225, created before the
+  re-creation, answers 200 with `playQueueID` 6225 and zero items. That holds for
+  a bare request and for any `center` (held, stale or absurd). All 11 locally
+  held items answer 404 on `/library/metadata/{key}`.
+- **Unknown play queue:** 404 with `X-Plex-Protocol`.
+- **Healthy station (6237)**, with `center=<item>&window=50&includeBefore=0&includeAfter=1`:
+  - **held center:** 200, with items starting after the center;
+  - **center on the last listed item:** 50 items after it;
+  - **unknown center:** 200 with zero items.
+
+  The queue total stayed 446 across these GETs.
+- **Consequence:** "zero items" is not proof of a dead station when the center
+  is an item PMS no longer holds. PlexFreq therefore centers on a non-gone held
+  item. Not measured: the center of a single track deleted from an otherwise
+  healthy station.
+
+## Network link types for streaming quality (2026-10-19)
+
+Sources consulted:
+- **NetworkManager D-Bus API**
+  (networkmanager.dev/docs/api/latest/gdbus-org.freedesktop.NetworkManager.html,
+  nm-dbus-types.html):
+  - `PrimaryConnectionType` is the `Type` of `PrimaryConnection`.
+  - When a VPN holds the default route, `PrimaryConnection` is "the connection
+    that contains the route to the VPN endpoint", i.e. the underlying link.
+    So an NM VPN over cellular still reports the cellular type.
+  - `NMState`: 50 is local only; 60 is site, with a default route but a failed
+    connectivity check; 70 is global. PlexFreq treats 50 and above as online,
+    which is unchanged.
+  - `NMMetered`: 0 unknown, 1 yes, 2 no, 3 guess-yes, 4 guess-no. Not used.
+- **ConnMan:** the upstream `doc/service-api.txt` was not reachable from this
+  session (kernel.org 403, the GitHub mirror 404). Measured on the user's phone
+  instead (Sailfish `connman-1.40+git26.6-1.43.1.jolla`), with a read-only
+  `net.connman.Manager.GetServices`. The order was:
+  1. `vpn` ready (an active WireGuard VPN);
+  2. `wifi` online;
+  3. `wifi` idle;
+  4. `cellular` idle;
+  5. several more `wifi` idle.
+
+  The default-route service follows a ready VPN, which is listed first.
+  - **Before part A:** the observer read that VPN as "not Wi-Fi", which also
+    blocked Wi-Fi-only downloads.
+  - **Now:** `vpn` services are skipped.
+- **Not cellular, by decision:** Bluetooth tethering (ConnMan or NM
+  `bluetooth`) and phone hotspots over Wi-Fi are mobile data, but count as
+  "not cellular". NM `Metered` would catch some of them; it is left for later.

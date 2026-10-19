@@ -628,6 +628,10 @@
       <translation>歌曲 · 未能使用 · 已下載</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>歌曲 · 伺服器 · 未能使用</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>歌曲 · 未能使用 · 快取 · 已下載</translation>
     </message>

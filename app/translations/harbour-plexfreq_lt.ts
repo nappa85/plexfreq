@@ -628,6 +628,10 @@
       <translation>Takelis · Nepasiekiama · Atsiųsta</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Takelis · Serveris · Nepasiekiama</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Takelis · Nepasiekiama · Podėlis · Atsiųsta · Takeliai</translation>
     </message>

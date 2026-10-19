@@ -628,6 +628,10 @@
       <translation>Faixa · Indisponível · Transferido</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Faixa · Servidor · Indisponível</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Faixa · Indisponível · Cache · Transferido · Faixas</translation>
     </message>

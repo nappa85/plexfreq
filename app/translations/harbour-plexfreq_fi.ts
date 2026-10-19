@@ -628,6 +628,10 @@
       <translation>Kappale · Ei saatavilla · Ladattu</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Kappale · Palvelin · Ei saatavilla</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Kappale · Ei saatavilla · Välimuisti · Ladattu · Kappaleet</translation>
     </message>

@@ -9,15 +9,22 @@ mod discovery;
 mod features;
 mod ffi;
 mod filters;
+mod health;
+#[cfg(test)]
+mod health_tests;
 pub mod history;
 pub mod lyrics;
 pub mod model;
+#[cfg(test)]
+mod network_quality_tests;
 pub mod offline;
 mod pagination;
 pub mod plex;
 pub mod quality;
 pub mod queue;
 pub mod radio;
+#[cfg(test)]
+mod radio_health_tests;
 mod refresh;
 mod rt;
 pub mod runtime;
@@ -144,6 +151,11 @@ pub(crate) fn quarantine_corrupt(path: &std::path::Path, bytes: &[u8]) -> Result
     Ok(())
 }
 
+/// Shown when a queued track no longer exists on the server. Comparisons use
+/// this constant; user-facing errors spell the literal inline so that the
+/// translation extractor finds it (pinned by a test).
+pub(crate) const GONE_TRACK: &str = "This track is no longer on the server";
+
 pub(crate) fn numeric(value: &str) -> Result<&str> {
     // Plex identifiers fit in u64 (max 20 decimal digits). Reject unbounded
     // digit strings before they become huge URL paths or overflow parsers.
@@ -205,8 +217,24 @@ pub struct Core {
     artwork: offline::Artwork,
     offline_mode: bool,
     network_wifi: bool,
+    /// The default route is cellular: mobile streaming quality applies.
+    network_cellular: bool,
     network_online: bool,
     network_known: bool,
+    health: health::Health,
+}
+
+/// Outcome of a planned automatic skip away from a failed current item.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Skip {
+    /// A playable item that needs no network to plan.
+    Ready,
+    /// A playable item whose plan would wait on a metadata fetch.
+    NeedsMetadata,
+    /// Only gone items (or nothing) ahead: a natural end.
+    End,
+    /// Nothing playable behind (backward skip).
+    Stuck,
 }
 
 pub(crate) struct Prepared {
@@ -214,6 +242,12 @@ pub(crate) struct Prepared {
     radio: Option<Radio>,
     cached: bool,
     pub plan: Value,
+}
+impl Prepared {
+    /// Rating key of the prepared successor.
+    pub(crate) fn key(&self) -> Option<&str> {
+        self.queue.track().map(|track| track.rating_key.as_str())
+    }
 }
 
 impl Core {
@@ -229,7 +263,13 @@ impl Core {
         let old = self.queue.clone();
         let radio = self.radio.clone();
         let cached = self.cached_playback;
+        let notice = self.health.take_notice();
         let result = self.advance_next(true, false);
+        // Speculation never reports: the real transition will.
+        self.health.take_notice();
+        if notice {
+            self.health.set_notice();
+        }
         let queue = std::mem::replace(&mut self.queue, old);
         let next_radio = std::mem::replace(&mut self.radio, radio);
         let next_cached = std::mem::replace(&mut self.cached_playback, cached);
@@ -405,8 +445,10 @@ impl Core {
             filter_schemas: std::cell::RefCell::new(std::collections::BTreeMap::new()),
             catalogue_epoch: 0,
             network_wifi: false,
+            network_cellular: false,
             network_online: false,
             network_known: false,
+            health: health::Health::default(),
             playback_generation: settings.playback.generation,
             library: offline::Library::new(dir.join("library-cache"), downloads)?,
             artwork,
@@ -837,17 +879,29 @@ impl Core {
                 json!({"queue":self.queue,"radio":self.radio_summary(),"track":self.display_item(&cached),"stream":stream,"playbackSource":PlaybackSource::Cache,"cache":self.cache_status()}),
             );
         }
+        if self.health.is_gone(&track.rating_key) {
+            return Err(Error::Input("This track is no longer on the server"));
+        }
         if self.offline_mode {
             return Err(Error::Input("This track has not been downloaded"));
         }
         if track.media.first().and_then(|m| m.parts.first()).is_none() {
             let key = numeric(&track.rating_key)?;
-            let c = self.plex.container(
-                &self.base()?,
-                &self.settings.server_token,
-                &format!("/library/metadata/{key}"),
-                &[],
-            )?;
+            let c = self
+                .plex
+                .container(
+                    &self.base()?,
+                    &self.settings.server_token,
+                    &format!("/library/metadata/{key}"),
+                    &[],
+                )
+                .inspect_err(|error| {
+                    // Have the runtime confirm whether the item is gone, so
+                    // later navigation can step over it.
+                    if matches!(error, Error::Http(404)) {
+                        self.health.request_probe(key);
+                    }
+                })?;
             track = c
                 .items
                 .into_iter()
@@ -859,7 +913,7 @@ impl Core {
             .first()
             .and_then(|m| m.parts.first())
             .ok_or(Error::Input("This track has no playable media part"))?;
-        let kbps = self.settings.quality.streaming(self.network_wifi);
+        let kbps = self.settings.quality.streaming(self.network_cellular);
         let transcode = force_transcode
             || kbps > 0
             || (self.settings.quality.codec_fallback && !audio::formats::item_supported(&track));
@@ -933,17 +987,32 @@ impl Core {
         if self.settings.cache.enabled && !self.cache_suspended && self.downloads_allowed() {
             // Do not undermine a mobile bitrate cap with automatic original-file
             // prefetch. Explicit pins still follow the selected download policy.
-            let mut items = if self.settings.quality.streaming(self.network_wifi) > 0
+            let ahead = self.settings.cache.ahead + 1;
+            let mut skipped = false;
+            let mut items = if self.settings.quality.streaming(self.network_cellular) > 0
                 && self.settings.quality.download_kbps == 0
             {
                 Vec::new()
             } else {
-                self.queue.upcoming(self.settings.cache.ahead + 1)
+                // Gone items would fail again on every reschedule; look past
+                // them so the window keeps its size.
+                let mut upcoming = self
+                    .queue
+                    .upcoming(ahead.saturating_add(self.health.gone_len()));
+                let before = upcoming.len();
+                upcoming.retain(|item| !self.health.is_gone(&item.rating_key));
+                skipped = upcoming.len() != before;
+                upcoming.truncate(ahead);
+                upcoming
             };
             for item in &self.manual_cache {
                 if !items.iter().any(|i| i.rating_key == item.rating_key) {
                     items.push(item.clone());
                 }
+            }
+            if items.is_empty() && skipped {
+                // Nothing left to fetch: stop a batch still retrying gone items.
+                self.cache.cancel();
             }
             let _ = self.cache.schedule_with_quality(
                 &self.settings.server_url,
@@ -1094,9 +1163,7 @@ impl Core {
         let items = match &mut radio.source {
             Source::Station { queue_id } => {
                 let center = self
-                    .queue
-                    .track()
-                    .and_then(|i| i.play_queue_item_id)
+                    .station_center()
                     .ok_or(Error::ProtocolAt("radio queue center"))?;
                 let c = self.plex.container(
                     &self.base()?,
@@ -1157,17 +1224,50 @@ impl Core {
         Ok(())
     }
 
+    /// The station item to continue after: the current one as long as it is
+    /// not gone (PMS answers nothing after a center it no longer holds),
+    /// else the last held item, so a stale current item cannot hide a live
+    /// station.
+    fn station_center(&self) -> Option<u64> {
+        if let Some(id) = self
+            .queue
+            .track()
+            .filter(|track| !self.health.is_gone(&track.rating_key))
+            .and_then(|track| track.play_queue_item_id)
+        {
+            return Some(id);
+        }
+        let items = self.queue.items();
+        items
+            .iter()
+            .rev()
+            .find(|item| {
+                item.play_queue_item_id.is_some() && !self.health.is_gone(&item.rating_key)
+            })
+            .or_else(|| {
+                items
+                    .iter()
+                    .rev()
+                    .find(|item| item.play_queue_item_id.is_some())
+            })
+            .and_then(|item| item.play_queue_item_id)
+    }
     fn next(&mut self, automatic: bool) -> Result<Value> {
         let previous_queue = self.queue.clone();
         let previous_radio = self.radio.clone();
         let result = (|| {
             if automatic && self.station_radio_active() {
                 let duration = self.queue.track().map(|track| track.duration).unwrap_or(0);
-                // Reporting must not prevent local continuation on connection loss.
+                // Reporting must not prevent local continuation (connection
+                // loss, a station emptied on the server); only a rejected
+                // session is reported.
                 if let Err(error) = self.timeline("stopped".into(), duration, duration, true) {
-                    if !matches!(error, Error::Network | Error::Http(500..=599)) {
+                    if matches!(error, Error::Unauthorized) {
                         return Err(error);
                     }
+                    crate::diagnostics::event(format_args!(
+                        "station completion report failed: {error}"
+                    ));
                 }
             }
             self.advance_next(automatic, true)
@@ -1210,7 +1310,18 @@ impl Core {
                 }
             }
         }
+        // A radio that could not refill, or had to step over gone items, keeps
+        // its whole window: nothing was added, and its cached history is what
+        // continuation cycles through.
+        let mut refill_failed = false;
         if self.radio.is_some() && !(automatic && self.queue.repeat() == Repeat::One) {
+            // An ended station resumes from its last audible item.
+            if self.queue.track().is_none() && !self.queue.items().is_empty() {
+                let cursor = self.queue.cursor().min(self.queue.items().len() - 1);
+                if let Ok(index) = self.queue.physical_index(cursor) {
+                    self.queue.select(index)?;
+                }
+            }
             let disconnected = self.offline_mode || (self.network_known && !self.network_online);
             if disconnected {
                 self.advance_cached_radio()?;
@@ -1226,20 +1337,45 @@ impl Core {
                 || self.queue.at_end();
             if refill {
                 if let Err(error) = self.extend_radio() {
-                    if matches!(error, Error::Network | Error::Http(500..=599))
-                        && self.advance_cached_radio().is_ok()
-                    {
+                    refill_failed = true;
+                    let network = matches!(error, Error::Network | Error::Http(500..=599));
+                    if network && self.advance_cached_radio().is_ok() {
                         return self.playback_with_cache(schedule);
                     }
                     // A speculative refill must not discard an existing successor.
                     if self.queue.at_end() {
+                        if matches!(error, Error::Unauthorized) {
+                            return Err(error);
+                        }
+                        // Nothing left to fetch: continue as offline does.
+                        if !network && self.advance_cached_radio().is_ok() {
+                            return self.playback_with_cache(schedule);
+                        }
+                        if self
+                            .queue
+                            .track()
+                            .is_some_and(|track| self.health.is_gone(&track.rating_key))
+                        {
+                            self.finish_gone(self.queue.cursor());
+                            return self.playback_with_cache(schedule);
+                        }
                         return Err(error);
                     }
                 }
             }
         }
+        let audible = self.queue.cursor();
         self.queue.advance(automatic);
-        if self.radio.is_some() {
+        let hopping = self
+            .queue
+            .track()
+            .is_some_and(|track| self.skippable(track));
+        if self.settle_forward(audible) && self.radio.is_some() {
+            // A cached-loop target or the gone end keeps the radio window,
+            // as offline cycling does.
+            return self.playback_with_cache(schedule);
+        }
+        if self.radio.is_some() && !refill_failed && !hopping {
             // Eleven rows: current, upcoming and whatever recent history fits.
             // Whole-album radio can exceed that window to preserve album order.
             let future = self
@@ -1330,6 +1466,164 @@ impl Core {
             }
         }
         Ok(json!({}))
+    }
+    /// A queued item that navigation steps over: confirmed gone and not
+    /// playable from the local cache.
+    fn skippable(&self, item: &Item) -> bool {
+        self.health.is_gone(&item.rating_key)
+            && self
+                .cache
+                .lookup(&self.cache_namespace(), item, false)
+                .is_none()
+    }
+    /// After a forward move from slot `audible`, step over gone items. When
+    /// nothing playable remains ahead, end playback as a natural end does,
+    /// back on `audible` (so Previous resumes it even after the marks expire
+    /// or a restart), and leave a notice.
+    ///
+    /// On radio, the fully cached radio items are cycled first, as offline.
+    /// Returns whether nothing playable was ahead (cycled or ended).
+    fn settle_forward(&mut self, audible: usize) -> bool {
+        let mut hopped = false;
+        for _ in 0..self.queue.items().len() {
+            match self.queue.track() {
+                Some(track) if self.skippable(track) => {
+                    hopped = true;
+                    self.queue.advance(false);
+                }
+                _ => break,
+            }
+        }
+        if !hopped
+            || self
+                .queue
+                .track()
+                .is_some_and(|track| !self.skippable(track))
+        {
+            return false;
+        }
+        if self.radio.is_some() {
+            let reselected = self
+                .queue
+                .physical_index(audible)
+                .and_then(|index| self.queue.select(index));
+            if reselected.is_ok() && self.advance_cached_radio().is_ok() {
+                return true;
+            }
+        }
+        self.finish_gone(audible);
+        true
+    }
+    /// End playback at slot `audible` because what follows is gone.
+    fn finish_gone(&mut self, audible: usize) {
+        self.queue.finish_at(audible);
+        self.health.set_notice();
+    }
+    /// After a backward move, keep stepping back over gone items; fails when
+    /// nothing playable lies behind (the caller restores the queue).
+    fn settle_back(&mut self) -> Result<()> {
+        for _ in 0..self.queue.items().len() {
+            match self.queue.track() {
+                Some(track) if self.skippable(track) => {
+                    let cursor = self.queue.cursor();
+                    self.queue.previous();
+                    if self.queue.cursor() == cursor {
+                        return Err(Error::Input("This track is no longer on the server"));
+                    }
+                }
+                _ => return Ok(()),
+            }
+        }
+        Err(Error::Input("This track is no longer on the server"))
+    }
+    /// Where an automatic skip from the current item would land, computed on
+    /// a copy so that the runtime can decide before anything changes.
+    pub(crate) fn peek_skip(&self, back: bool) -> Skip {
+        let mut queue = self.queue.clone();
+        if back {
+            let cursor = queue.cursor();
+            queue.previous();
+            if queue.cursor() == cursor {
+                return Skip::Stuck;
+            }
+        } else {
+            queue.advance(false);
+        }
+        for _ in 0..queue.items().len() {
+            let Some(track) = queue.track() else {
+                return if back { Skip::Stuck } else { Skip::End };
+            };
+            if !self.skippable(track) {
+                let ready = track.media.first().and_then(|m| m.parts.first()).is_some()
+                    || self
+                        .cache
+                        .lookup(&self.cache_namespace(), track, false)
+                        .is_some();
+                return if ready {
+                    Skip::Ready
+                } else {
+                    Skip::NeedsMetadata
+                };
+            }
+            let cursor = queue.cursor();
+            if back {
+                queue.previous();
+                if queue.cursor() == cursor {
+                    return Skip::Stuck;
+                }
+            } else {
+                queue.advance(false);
+            }
+        }
+        if back {
+            Skip::Stuck
+        } else {
+            Skip::End
+        }
+    }
+    pub(crate) fn set_health_epoch(&mut self, epoch: std::sync::Arc<std::sync::atomic::AtomicU64>) {
+        self.health.set_epoch(epoch);
+    }
+    pub(crate) fn current_key(&self) -> Option<&str> {
+        self.queue.track().map(|track| track.rating_key.as_str())
+    }
+    pub(crate) fn queue_contains(&self, key: &str) -> bool {
+        self.queue.items().iter().any(|item| item.rating_key == key)
+    }
+    pub(crate) fn is_gone(&self, key: &str) -> bool {
+        self.health.is_gone(key)
+    }
+    pub(crate) fn may_probe(&self, key: &str) -> bool {
+        !self.offline_mode
+            && !(self.network_known && !self.network_online)
+            && self.health.may_probe(key)
+    }
+    /// A probe request plus its owned future, or None when probing is not
+    /// possible (no server, invalid key).
+    pub(crate) fn probe(
+        &self,
+        key: &str,
+    ) -> Option<impl std::future::Future<Output = plex::Probe> + Send + 'static> {
+        let base = self.base().ok()?;
+        self.plex
+            .probe_metadata(&base, &self.settings.server_token, key)
+            .ok()
+    }
+    pub(crate) fn record_probe(&mut self, key: &str, outcome: plex::Probe) {
+        match outcome {
+            plex::Probe::Gone => self.health.mark_gone(key),
+            plex::Probe::Auth | plex::Probe::Unknown => self.health.mark_unknown(key),
+        }
+    }
+    pub(crate) fn take_cache_suspects(&self) -> Vec<String> {
+        self.cache.take_suspects()
+    }
+    pub(crate) fn take_probe_requests(&mut self) -> Vec<String> {
+        self.health.take_pending()
+    }
+    /// Whether the last command stepped over gone items to a natural end.
+    pub(crate) fn take_gone_notice(&mut self) -> bool {
+        self.health.take_notice()
     }
     fn change_playback(&mut self, change: impl FnOnce(&mut Queue) -> Result<()>) -> Result<Value> {
         let previous = self.queue.clone();
@@ -1427,9 +1721,36 @@ impl Core {
             &command,
             Command::Resume | Command::CachedPlayback | Command::TranscodedPlayback
         );
+        // A new queue or server makes every health mark meaningless. Clear
+        // them before planning (a fresh Play of a once-gone key must work)
+        // and put them back if the replacement fails.
+        let replacing = matches!(
+            &command,
+            Command::Play { .. }
+                | Command::PlayAlbum { .. }
+                | Command::Radio { .. }
+                | Command::StopRadio
+                | Command::Mix { .. }
+                | Command::PlayDownload { .. }
+                | Command::Station { .. }
+                | Command::Connect { .. }
+                | Command::SelectServer { .. }
+                | Command::Logout
+        );
+        let set_aside = replacing.then(|| self.health.set_aside());
         #[cfg(test)]
         let op = command.op();
-        let mut result = self.execute_inner(command)?;
+        let result = self.execute_inner(command);
+        if result.is_err() {
+            // A failed command rolled its queue change back: nothing ended.
+            self.health.take_notice();
+        }
+        match (set_aside, result.is_ok()) {
+            (Some(saved), true) => self.health.commit(saved),
+            (Some(saved), false) => self.health.restore(saved),
+            (None, _) => {}
+        }
+        let mut result = result?;
         #[cfg(test)]
         test_hooks::check(&self.dir, op);
         if catalogue_change {
@@ -1600,16 +1921,20 @@ impl Core {
             Command::NetworkState {
                 wifi,
                 online,
+                cellular,
                 live_hint,
             } => {
                 if !live_hint {
                     self.download_control().network(wifi);
                 }
-                let changed = wifi != self.network_wifi || online != self.network_online;
+                let changed = wifi != self.network_wifi
+                    || online != self.network_online
+                    || cellular != self.network_cellular;
                 if online && !self.network_online {
                     self.refresh.reconnect();
                 }
                 self.network_wifi = wifi;
+                self.network_cellular = cellular;
                 self.network_online = online;
                 self.network_known = true;
                 if !online || !self.downloads_allowed() {
@@ -1622,7 +1947,9 @@ impl Core {
                     }
                     self.schedule_cache();
                 }
-                Ok(json!({"cache":self.cache_status(),"networkOnline":online,"networkWifi":wifi}))
+                Ok(
+                    json!({"cache":self.cache_status(),"networkOnline":online,"networkWifi":wifi,"networkCellular":cellular}),
+                )
             }
             Command::Autoplay { enabled } => {
                 self.settings.autoplay = enabled;
@@ -1876,6 +2203,10 @@ impl Core {
                 json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio,"qualityConfig":self.settings.quality}),
             ),
             Command::Resume => {
+                // An explicit play retries an item marked gone.
+                if let Some(key) = self.queue.track().map(|track| track.rating_key.clone()) {
+                    self.health.forget(&key);
+                }
                 let mut value = self.playback()?;
                 value["resumePosition"] = json!(self.resume_position);
                 Ok(value)
@@ -1925,6 +2256,10 @@ impl Core {
                 let radio = self.radio.take();
                 let active = self.queue.remove(physical)?;
                 let result = if active {
+                    // The removal stands even when only gone items follow; a
+                    // later Previous resumes the item before the removed one.
+                    let audible = self.queue.cursor().saturating_sub(1);
+                    self.settle_forward(audible);
                     self.playback()
                 } else {
                     self.schedule_cache();
@@ -2219,13 +2554,23 @@ impl Core {
             } => self.timeline(state, position, duration, continuing),
             Command::SelectTrack { index } => {
                 let index = self.queue.physical_index(index)?;
+                // Choosing an item explicitly retries it even if marked gone.
+                if let Some(item) = self.queue.items().get(index) {
+                    let key = item.rating_key.clone();
+                    self.health.forget(&key);
+                }
                 self.change_playback(|queue| queue.select(index))
             }
             Command::Next { automatic } => self.next(automatic),
-            Command::Previous => self.change_playback(|queue| {
-                queue.previous();
-                Ok(())
-            }),
+            Command::Previous => {
+                let previous = self.queue.clone();
+                self.queue.previous();
+                let result = self.settle_back().and_then(|()| self.playback());
+                if result.is_err() {
+                    self.queue = previous;
+                }
+                result
+            }
             Command::Shuffle { enabled } => {
                 if self.radio.is_some() {
                     return Err(Error::Input(

@@ -1,5 +1,96 @@
 # Architecture
 
+## Stale queue items / background item health (2026-10-18)
+
+Stage 1 of stale-queue recovery. A queued track whose ratingKey no longer exists
+(for example after a Music section was recreated) is detected in the background
+and stepped over. No new path ever waits on the network.
+
+**Detection.** Checks start only after a failure:
+- a cache-ahead download answered 404, or 400 for a transcode (`Cache::suspects`);
+- a gapless successor failed to pre-load;
+- the current stream failed after the cached and transcode fallbacks;
+- a synchronous metadata fetch for an item without Media answered 404
+  (`Health::request_probe`).
+
+The worker (`runtime/recovery.rs`) runs a status-only
+`GET /library/metadata/{key}` on the shared I/O runtime (`Plex::probe_metadata`,
+5 s, token in a header). Only a 404 carrying `X-Plex-Protocol` (PMS's own answer)
+means Gone; anything else is inconclusive. Limits:
+- 10 probes per rolling minute, 3 of them reserved for current-track failures;
+- 2 concurrent probes, one reserved for the current track;
+- a 60 s cooldown after an inconclusive result;
+- checks suspended for the epoch after 401/403.
+
+Results go into a lossless queue that the worker drains at the top of every loop
+iteration, before taking a request.
+
+**Marks.** Core keeps per-rating-key Gone marks (`src/health.rs`) with a 10 min
+TTL. They are cleared on Connect/SelectServer/Logout and on queue replacement:
+set aside while the replacement is planned, restored if it fails. A shared health
+epoch invalidates in-flight results across those changes and Core rebuilds.
+
+**Radio (stage 1b, 2026-10-19).** Radio uses the same checks and marks. A station
+continues like offline when it can no longer supply tracks:
+- **Refill center:** the station refill centers on the current item while it
+  is not gone. Otherwise it uses the last held, non-gone item: PMS answers
+  nothing after a center it no longer holds. If every held item is gone, it
+  uses the last held ID, once.
+- **Failed refill, track ahead:** the next item is still tried. The exception
+  is a Network/5xx failure, which keeps the offline rule of cycling cached
+  items first.
+- **Failed refill at the window's end:** a non-auth failure, including the
+  empty station of a recreated library, cycles the fully cached radio items
+  (`advance_cached_radio`). If nothing is cached, playback ends with the gone
+  notice when the current item is gone; otherwise the refill error is shown.
+- **Gone tail:** a forward move over an all-gone tail cycles the cached items
+  too.
+- **No trim:** the radio window is not trimmed after a failed refill, after a
+  move that stepped over gone items, or at the gone end, so cached history
+  stays available to the cycle. A station that keeps appending gone items
+  therefore grows by one row per advance until a normal advance trims it again.
+- **Ended station:** Next resumes from its last audible item, offline too: an
+  ended station then cycles its cached items instead of failing with "not
+  downloaded". After a gone end at the window's tail, the cursor rests on the
+  gone item. Previous steps back over it.
+- **Completion report:** a failed station report blocks continuation only for
+  `Unauthorized`.
+- **Accepted:** with nothing cached and an all-dead window, each dead item costs
+  a failed stream and a check, and the check budget can stop the walk with the
+  original error.
+
+**Navigation.** Next (manual and automatic), Previous, QueueRemove of the active
+item and gapless preparation step over Gone items that are not cache-served, in
+the direction of travel (`settle_forward`/`settle_back`).
+- Forward with nothing playable left: a natural end with a gone notice, persisted.
+- Previous with nothing playable behind: the queue is restored and an error shown.
+- An explicit Select or Resume clears the mark and retries.
+- `playback_plan` refuses a Gone item after the cache fast path.
+- Cache-ahead looks past Gone keys.
+
+**Current-track failures.** The failure event carries the pause intent and the
+user-action counter at failure time (`Shared::acted`, bumped at admission of
+transport commands and engine controls). When the verdict is Gone, the worker
+skips the item automatically only if all of these hold:
+- the item is still current;
+- the counter is unchanged;
+- no playback request is queued (`Shared::queued_transport`);
+- the skip target needs no metadata fetch (`Core::peek_skip`).
+
+Otherwise it shows "This track is no longer on the server". An inconclusive
+verdict, or no verdict within 8 s, shows the original error.
+
+**Gapless successor.** A successor that fails to pre-load is retired without a
+banner. Preparation is held until its verdict, and a Gone verdict re-prepares
+past it.
+
+**Track end.** `Event::End` now reports a non-radio `Next` error instead of
+stopping silently.
+
+**Diagnostics.** HTTP audio failures log `occurrence` and `status` (never the
+URI). The decoder logs the transfer's recorded failure behind Symphonia's
+generic probe error.
+
 ## Pure-Rust decoding and PulseAudio output (2026-10-16)
 
 GStreamer is removed (Harbour rejects libgstreamer/libgstbase/libgstapp). The audio
@@ -245,6 +336,8 @@ recent history fit eleven rows. Track sonic radio replenishes each advance;
 album sonic radio preserves whole-album groups and may exceed eleven rows.
 
 An empty/failed speculative refill retains an already available successor.
+At the window's end (or past an all-gone tail), any non-auth refill failure also
+cycles cached items (stale-queue stage 1b, above).
 Explicit offline mode, a known disconnected network observation, or a network/5xx
 refill error traverses the radio window in playback order, skips entries without
 usable completed audio and wraps, including repeating the sole cached track.
@@ -252,8 +345,8 @@ The same cache namespace/length validation as ordinary local playback applies;
 partial files and unrelated cached music are never selected. Offline cycling
 retains the queue and radio source, so online advancement can resume replenishment.
 Network facts are distinguished from the initial unknown state. Timeline reporting
-is skipped when disconnected; network/5xx completion-report failures do not block
-direct automatic continuation. Queue policy remains entirely Rust-owned.
+is skipped when disconnected; completion-report failures other than
+`Unauthorized` do not block direct automatic continuation. Queue policy remains entirely Rust-owned.
 
 ## Recording fixture synchronization (2026-10-12)
 
@@ -945,6 +1038,38 @@ year. Optional artist-album grouping loads up to 1000 albums and exposes a separ
 albumGroup presentation role. Autoplay asks for actual nearest recommendations,
 then can fall back to the advertised artist station. Multi-seed mixes interleave
 shuffled per-seed pools and remove duplicate tracks; this policy is Rust-owned.
+
+## Cellular streaming quality (2026-10-19)
+
+The network observer reports three facts for the default route: Wi-Fi, cellular
+and online.
+- **ConnMan:** the first ready/online service, skipping `vpn` services so the
+  carrier link underneath decides. `cellular` is its `Type == "cellular"`.
+- **NetworkManager:** `PrimaryConnectionType` `gsm`/`cdma` count as cellular.
+  For NM's own VPNs the primary connection is the underlying link, by NM's
+  definition. A VPN-type primary, if it ever occurs, counts as neither.
+- **Not cellular:** Bluetooth tethering and Wi-Fi hotspots count as not
+  cellular (accepted).
+- **Wi-Fi-only downloads:** skipping a ConnMan VPN also changes them. With a
+  VPN over Wi-Fi they are now allowed; before, they were blocked.
+
+`Command::NetworkState` carries `cellular` (default false). A change of any
+fact cancels and reschedules cache-ahead, and the fact is replayed after a
+Core rebuild. `quality.streaming(cellular)` returns the mobile choice only on a
+known cellular link: Wi-Fi, Ethernet and an unknown network use the Wi-Fi
+choice (user decision). The mobile choice defaults to 320 kbps only where no value
+is stored (new installs). Sessions saved by older builds store `mobileKbps: 0`
+explicitly and keep original quality: 0 is also a valid user choice, so there is
+no migration. Facts are not persisted, so the Wi-Fi choice applies until the
+first observation after start (up to the 5 s query deadline). A gapless
+successor prepared before a network change keeps its quality; the next
+preparation uses the new one. Download policy (`wifi_only`) still requires
+Wi-Fi.
+
+Known limit: a transcoded (progressive) stream is not retried after a
+connection drop. The track fails and Play resumes it. Automatic restart needs
+an engine-owned recovery intent and is planned with the engine streaming work
+(`docs/reviews/2026-10-19-mobile-streaming.md`, part B).
 
 ## Network-aware download cancellation
 

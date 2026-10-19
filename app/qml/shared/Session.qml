@@ -75,8 +75,8 @@ Item {
     function goHome(resetHistory) {if(section && !backend.busy){if(resetHistory)history=[];query="";load("discovery_home",{section:section},qsTr("Discover"),!resetHistory && route && route.op!=="discovery_home")}}
     function qualitySetting(name,value) {
         if (["wifiKbps","mobileKbps","downloadKbps","codecFallback"].indexOf(name)<0) return
-        var old=backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:0,downloadKbps:0,codecFallback:true})
-        var config={wifiKbps:old.wifiKbps || 0,mobileKbps:old.mobileKbps || 0,downloadKbps:old.downloadKbps || 0,codecFallback:old.codecFallback!==false}
+        var old=backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:320,downloadKbps:0,codecFallback:true})
+        var config={wifiKbps:old.wifiKbps || 0,mobileKbps:old.mobileKbps===undefined ? 320 : old.mobileKbps,downloadKbps:old.downloadKbps || 0,codecFallback:old.codecFallback!==false}
         config[name]=value;backend.command("quality_config",{config:config})
     }
     function qualityText(kbps) {return kbps ? qsTr("%1 kbps").arg(kbps) : qsTr("Original audio")}

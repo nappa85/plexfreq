@@ -628,6 +628,10 @@
       <translation>Skladba · Nedostupné · Stiahnuté</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Skladba · Server · Nedostupné</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Skladba · Nedostupné · Vyrovnávacia pamäť · Stiahnuté · Skladby</translation>
     </message>

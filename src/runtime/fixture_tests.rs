@@ -323,3 +323,604 @@ fn long_gapless_queue_updates_shown_track_once_per_transition() {
         "only {transitions} gapless transitions"
     );
 }
+
+/// A server where the keys in `gone` were deleted: their parts and metadata
+/// answer as PMS does for a missing item (404 + `X-Plex-Protocol`), and a
+/// transcode of them is refused (400). `hold` delays metadata replies.
+fn stale_server(milliseconds: u32, gone: &'static [&'static str], hold: Duration) -> String {
+    scripted_server(Script {
+        milliseconds,
+        gone,
+        hold,
+        ..Default::default()
+    })
+}
+
+#[derive(Default)]
+struct Script {
+    milliseconds: u32,
+    gone: &'static [&'static str],
+    hold: Duration,
+    /// Replaces every metadata reply status (e.g. "401 Unauthorized").
+    metadata: Option<&'static str>,
+    /// Request lines received, for counting fetches.
+    log: Option<Arc<Mutex<Vec<String>>>>,
+}
+
+fn scripted_server(script: Script) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    let audio = Arc::new(wav(script.milliseconds));
+    let script = Arc::new(script);
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            let audio = audio.clone();
+            let script = script.clone();
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let line = String::from_utf8_lossy(&request)
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .to_owned();
+                if let Some(log) = &script.log {
+                    crate::mutex_lock(log).push(line.clone());
+                }
+                let gone = script.gone;
+                let dead = |prefix: &str| {
+                    gone.iter().any(|key| {
+                        line.contains(&format!("{prefix}{key}/"))
+                            || line.contains(&format!("{prefix}{key} "))
+                    })
+                };
+                let empty = || {
+                    json!({"MediaContainer":{"size":0}})
+                        .to_string()
+                        .into_bytes()
+                };
+                let (status, kind, body) = if line.contains("/transcode/") {
+                    if gone
+                        .iter()
+                        .any(|key| line.contains(&format!("%2Flibrary%2Fmetadata%2F{key}&")))
+                    {
+                        ("400 Bad Request", "text/html", Vec::new())
+                    } else {
+                        ("200 OK", "audio/wav", audio.to_vec())
+                    }
+                } else if line.contains("/library/parts/") {
+                    if dead("/library/parts/") {
+                        ("404 Not Found", "text/html", Vec::new())
+                    } else {
+                        ("200 OK", "audio/wav", audio.to_vec())
+                    }
+                } else if line.contains("/library/metadata/") {
+                    thread::sleep(script.hold);
+                    if let Some(status) = script.metadata {
+                        (status, "text/html", Vec::new())
+                    } else if dead("/library/metadata/") {
+                        ("404 Not Found", "text/html", Vec::new())
+                    } else {
+                        ("200 OK", "application/json", empty())
+                    }
+                } else {
+                    ("200 OK", "application/json", empty())
+                };
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 {status}\r\nX-Plex-Protocol: 1.0\r\nContent-Type: {kind}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    body.len()
+                );
+                let _ = stream.write_all(&body);
+            });
+        }
+    });
+    origin
+}
+
+fn stale_runtime(origin: String) -> (tempfile::TempDir, Runtime) {
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            cache: crate::cache::Config {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    (dir, runtime)
+}
+
+/// Poll until `done` accepts the collected events, or fail after `limit`.
+fn collect(runtime: &Runtime, limit: Duration, done: impl Fn(&[Value]) -> bool) -> Vec<Value> {
+    let end = Instant::now() + limit;
+    let mut seen = Vec::new();
+    while Instant::now() < end {
+        if let Some(events) = runtime.poll()["events"].as_array() {
+            seen.extend(events.iter().cloned());
+        }
+        if done(&seen) {
+            return seen;
+        }
+        thread::sleep(Duration::from_millis(5));
+    }
+    panic!("timed out; events: {seen:?}");
+}
+
+fn shown(events: &[Value]) -> Vec<String> {
+    events
+        .iter()
+        .filter(|event| {
+            matches!(
+                event["request"]["op"].as_str(),
+                Some("play" | "_update" | "previous" | "next")
+            )
+        })
+        .filter_map(|event| event["response"]["data"]["track"]["ratingKey"].as_str())
+        .map(str::to_owned)
+        .collect()
+}
+
+fn banners(events: &[Value]) -> Vec<String> {
+    events
+        .iter()
+        .filter(|event| event["request"]["op"] == "_audio_error")
+        .map(|event| event["response"]["error"].as_str().unwrap_or("").to_owned())
+        .collect()
+}
+
+#[test]
+fn a_deleted_current_track_is_skipped_forward() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::ZERO));
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+    });
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    assert_eq!(
+        crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
+        "3"
+    );
+}
+
+#[test]
+fn a_deleted_last_track_ends_with_a_banner() {
+    let (dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::ZERO));
+    let items: Vec<_> = (1..=2).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec![crate::GONE_TRACK.to_owned()],
+        "{events:?}"
+    );
+    drop(runtime);
+    let status = Core::inspect(dir.path().into())
+        .unwrap()
+        .execute(Command::Status)
+        .unwrap();
+    assert!(status["track"].is_null(), "{status}");
+}
+
+#[test]
+fn previous_onto_a_deleted_track_keeps_going_back() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::ZERO));
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":2}))
+        .unwrap();
+    collect(&runtime, Duration::from_secs(10), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+    });
+    runtime.submit(json!({"op":"previous"})).unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        shown(events).last().map(String::as_str) == Some("1")
+    });
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+}
+
+#[test]
+fn a_user_action_during_the_check_prevents_the_automatic_skip() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::from_millis(1500)));
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    // Stream and transcode fail quickly; the metadata check is held.
+    thread::sleep(Duration::from_millis(700));
+    runtime.submit(json!({"op":"audio_pause"})).unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec![crate::GONE_TRACK.to_owned()],
+        "{events:?}"
+    );
+    assert!(!shown(&events).contains(&"3".to_owned()), "{events:?}");
+    assert_eq!(
+        crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
+        "2"
+    );
+}
+
+#[test]
+fn a_live_track_that_fails_reports_its_original_error() {
+    // Every stream fails, but the metadata says the item exists.
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let line = String::from_utf8_lossy(&request).to_string();
+                let media = line.contains("/library/parts/") || line.contains("/transcode/");
+                let (status, body) = if media {
+                    ("500 Internal Server Error", String::new())
+                } else {
+                    ("200 OK", json!({"MediaContainer":{"size":0}}).to_string())
+                };
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 {status}\r\nX-Plex-Protocol: 1.0\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+            });
+        }
+    });
+    let (_dir, runtime) = stale_runtime(origin);
+    let items: Vec<_> = (1..=2).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(60), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec!["Audio decoding or streaming failed".to_owned()],
+        "{events:?}"
+    );
+    assert!(!shown(&events).contains(&"2".to_owned()), "{events:?}");
+}
+
+fn never_shows(events: &[Value], key: &str) -> bool {
+    !shown(events).iter().any(|shown| shown == key)
+}
+
+#[test]
+fn a_deleted_successor_found_by_pre_loading_is_never_played() {
+    // The incident: the next track was deleted. Its gapless pre-load fails,
+    // the check confirms it, and playback moves past it at the transition.
+    let (_dir, runtime) = stale_runtime(stale_server(2500, &["2"], Duration::ZERO));
+    let items = vec![track(1, 2500), track(2, 2500), track(3, 2500)];
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+    });
+    assert!(never_shows(&events, "2"), "{events:?}");
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+}
+
+#[test]
+fn a_deleted_track_found_by_cache_ahead_is_never_played() {
+    let origin = stale_server(2500, &["2"], Duration::ZERO);
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    let items = vec![track(1, 2500), track(2, 2500), track(3, 2500)];
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+    });
+    assert!(never_shows(&events, "2"), "{events:?}");
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+}
+
+#[test]
+fn a_hung_check_reports_the_original_error_after_its_timeout() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::from_secs(12)));
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    let started = Instant::now();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec!["Audio decoding or streaming failed".to_owned()],
+        "{events:?}"
+    );
+    // The probe's own timeout ends the wait; the verdict deadline is only a
+    // backstop for a lost result.
+    assert!(started.elapsed() >= Duration::from_secs(5));
+    assert!(started.elapsed() < recovery::VERDICT_DEADLINE + Duration::from_secs(2));
+    // The worker kept serving requests meanwhile.
+    runtime.submit(json!({"op":"status"})).unwrap();
+    let mut seen = Vec::new();
+    assert_eq!(reply(&runtime, "status", &mut seen)["response"]["ok"], true);
+}
+
+#[test]
+fn a_refused_check_reports_the_original_error_without_skipping() {
+    let (_dir, runtime) = stale_runtime(scripted_server(Script {
+        milliseconds: 60_000,
+        gone: &["2"],
+        metadata: Some("401 Unauthorized"),
+        ..Default::default()
+    }));
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec!["Audio decoding or streaming failed".to_owned()],
+        "{events:?}"
+    );
+    assert!(never_shows(&events, "3"), "{events:?}");
+}
+
+#[test]
+fn a_skip_target_without_file_details_is_not_fetched_automatically() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let (_dir, runtime) = stale_runtime(scripted_server(Script {
+        milliseconds: 60_000,
+        gone: &["2"],
+        log: Some(log.clone()),
+        ..Default::default()
+    }));
+    let mut bare = track(3, 60_000);
+    bare.media.clear();
+    let items = vec![track(1, 60_000), track(2, 60_000), bare];
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec![crate::GONE_TRACK.to_owned()],
+        "{events:?}"
+    );
+    assert!(never_shows(&events, "3"), "{events:?}");
+    // Gapless preparation may fetch it before the failure is diagnosed
+    // (existing behaviour); after the gone check, nothing fetches it.
+    let log = crate::mutex_lock(&log);
+    let checked = log
+        .iter()
+        .position(|line| line.starts_with("GET /library/metadata/2 "))
+        .expect("the failed track was checked");
+    assert!(
+        !log[checked..]
+            .iter()
+            .any(|line| line.contains("/library/metadata/3")),
+        "{log:?}"
+    );
+}
+
+#[test]
+fn a_failed_successor_is_not_fetched_again_on_queue_edits() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let (_dir, runtime) = stale_runtime(scripted_server(Script {
+        milliseconds: 60_000,
+        gone: &["2"],
+        log: Some(log.clone()),
+        ..Default::default()
+    }));
+    // The platform reports no network: checks are refused outright (the
+    // local fixture still streams), so the successor is never confirmed.
+    runtime
+        .submit(json!({"op":"network_state","wifi":false,"online":false}))
+        .unwrap();
+    let items = vec![track(1, 60_000), track(2, 60_000)];
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let mut seen = Vec::new();
+    reply(&runtime, "play", &mut seen);
+    let successor = || {
+        crate::mutex_lock(&log)
+            .iter()
+            .filter(|line| line.contains("/library/parts/2/"))
+            .count()
+    };
+    let end = Instant::now() + Duration::from_secs(10);
+    while successor() == 0 && Instant::now() < end {
+        thread::sleep(Duration::from_millis(10));
+    }
+    assert_eq!(successor(), 1);
+    thread::sleep(Duration::from_millis(300));
+    for key in 10..13 {
+        let items = serde_json::to_value(vec![track(key, 60_000)]).unwrap();
+        runtime
+            .submit(json!({"op":"enqueue","items":items}))
+            .unwrap();
+        reply(&runtime, "enqueue", &mut seen);
+    }
+    thread::sleep(Duration::from_millis(500));
+    assert_eq!(successor(), 1, "{:?}", crate::mutex_lock(&log));
+    assert!(banners(&seen).is_empty(), "{seen:?}");
+    assert!(
+        !crate::mutex_lock(&log)
+            .iter()
+            .any(|line| line.contains("/library/metadata/2")),
+        "the check was refused"
+    );
+}
+
+/// A station whose server queue was emptied by a library recreation, with
+/// `current` failing and `cached` fully downloaded (stage 1b).
+fn stale_station(
+    origin: String,
+    milliseconds: u32,
+    current: usize,
+    cached: &[usize],
+) -> (tempfile::TempDir, Runtime) {
+    let dir = tempfile::tempdir().unwrap();
+    let items: Vec<_> = (1..=3)
+        .map(|key| Item {
+            play_queue_item_id: Some(100 + key as u64),
+            ..track(key, milliseconds.into())
+        })
+        .collect();
+    let namespace = crate::cache::namespace(&origin, "fixture-token");
+    for key in cached {
+        crate::cache::seed_completed(
+            &dir.path().join("audio-cache"),
+            &namespace,
+            &items[key - 1],
+            "wav",
+            &wav(milliseconds),
+        );
+    }
+    let mut settings = crate::store::Settings {
+        client_identifier: "fixture-client".into(),
+        server_url: origin,
+        server_token: "fixture-token".into(),
+        autoplay: false,
+        cache: crate::cache::Config {
+            enabled: false,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    settings.playback.queue.replace(items, current).unwrap();
+    settings.playback.radio = Some(crate::radio::Radio {
+        kind: crate::radio::RadioKind::Artist,
+        title: "Fixture".into(),
+        source: crate::radio::Source::Station { queue_id: 50 },
+    });
+    crate::store::save(dir.path(), &settings).unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    (dir, runtime)
+}
+
+#[test]
+fn a_deleted_track_on_an_emptied_station_continues_with_cached_tracks() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let (_dir, runtime) = stale_station(
+        scripted_server(Script {
+            milliseconds: 60_000,
+            gone: &["2", "3"],
+            log: Some(log.clone()),
+            ..Default::default()
+        }),
+        60_000,
+        2,
+        &[1],
+    );
+    runtime.submit(json!({"op":"resume"})).unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        shown(events).last().map(String::as_str) == Some("1")
+    });
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    let log = crate::mutex_lock(&log).clone();
+    let checks = log
+        .iter()
+        .filter(|line| line.contains("/library/metadata/3 "))
+        .count();
+    assert_eq!(checks, 1, "{log:?}");
+    let refills = log
+        .iter()
+        .filter(|line| line.contains("/playQueues/50"))
+        .count();
+    // The skip's refill plus speculative preparation: bounded, no loop.
+    assert!((1..=4).contains(&refills), "{refills}: {log:?}");
+}
+
+#[test]
+fn a_deleted_track_on_an_emptied_station_with_nothing_cached_ends_with_a_banner() {
+    let (_dir, runtime) =
+        stale_station(stale_server(60_000, &["3"], Duration::ZERO), 60_000, 2, &[]);
+    runtime.submit(json!({"op":"resume"})).unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        !banners(events).is_empty()
+    });
+    assert_eq!(
+        banners(&events),
+        vec![crate::GONE_TRACK.to_owned()],
+        "{events:?}"
+    );
+}
+
+#[test]
+fn a_dead_station_found_by_pre_loading_cycles_its_cached_track() {
+    let log = Arc::new(Mutex::new(Vec::new()));
+    let (_dir, runtime) = stale_station(
+        scripted_server(Script {
+            milliseconds: 2500,
+            gone: &["2", "3"],
+            log: Some(log.clone()),
+            ..Default::default()
+        }),
+        2500,
+        0,
+        &[1],
+    );
+    runtime.submit(json!({"op":"resume"})).unwrap();
+    // Track 1 plays from the cache; its successors fail to pre-load, are
+    // checked in the background and the cached track comes round again.
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        shown(events).iter().filter(|key| *key == "1").count() >= 2
+    });
+    assert!(never_shows(&events, "2"), "{events:?}");
+    assert!(never_shows(&events, "3"), "{events:?}");
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    let log = crate::mutex_lock(&log).clone();
+    for key in ["2", "3"] {
+        let checks = log
+            .iter()
+            .filter(|line| line.contains(&format!("/library/metadata/{key} ")))
+            .count();
+        assert!(checks <= 1, "{key}: {log:?}");
+    }
+}

@@ -122,7 +122,7 @@ impl Decoder {
                 .map_err(|_| Error::Input("Invalid audio source"))?;
             (Input::File(path), None)
         } else {
-            let (reader, stream) = http::Reader::new(uri, token, closer.clone())?;
+            let (reader, stream) = http::Reader::new(uri, token, closer.clone(), source.id)?;
             (Input::Http(stream), Some(reader))
         };
         let seek = (source.resume > 0 && !transcoded).then_some(source.resume);
@@ -159,6 +159,14 @@ impl Decoder {
     pub fn fill(&mut self, frames: usize) -> Result<()> {
         let mut state = self.shared.lock();
         if let Some(message) = state.error {
+            // Symphonia's probe treats a source read error as end of stream,
+            // so name the underlying transfer failure explicitly.
+            if let Some(cause) = self.http.as_ref().and_then(http::Reader::recorded_error) {
+                crate::diagnostics::event(format_args!(
+                    "audio source failed occurrence={}: {cause}",
+                    self.source.id
+                ));
+            }
             eprintln!(
                 "PlexFreq audio decoder error occurrence={}: {message}",
                 self.source.id

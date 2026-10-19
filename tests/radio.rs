@@ -436,6 +436,7 @@ fn disconnected_radio_skips_missing_audio_and_cycles_completed_cache_after_resta
             core.execute(Command::NetworkState {
                 wifi: false,
                 online: false,
+                cellular: false,
                 live_hint: false,
             })
             .unwrap();

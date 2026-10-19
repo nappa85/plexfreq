@@ -628,6 +628,10 @@
       <translation>Nummer · Ikke tilgængelig · Downloadet</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Nummer · Server · Ikke tilgængelig</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Nummer · Ikke tilgængelig · Cache · Downloadet · Numre</translation>
     </message>

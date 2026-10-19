@@ -628,6 +628,10 @@
       <translation>Dziesma · Nav pieejams · Lejupielādēts</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Dziesma · Serveris · Nav pieejams</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Dziesma · Nav pieejams · Kešatmiņa · Lejupielādēts · Dziesmas</translation>
     </message>

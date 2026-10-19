@@ -1,5 +1,67 @@
 # Validation record
 
+## Mobile streaming part A (cellular quality) — 2026-10-19
+
+| Check | Actual result |
+| --- | --- |
+| Phone log 08:05 (read-only) | On mobile data with original quality: the FLAC was about 1 Mbit/s, the gapless successor started 1 s later, there were 63 ranged retries, and the output underflowed 6 times in 16 s. Details are in `docs/reviews/2026-10-19-mobile-streaming.md` |
+| ConnMan on the phone (read-only `GetServices`) | A ready `vpn` service is listed first, then `wifi` online. The old observer reported "not Wi-Fi" here |
+| New tests | `network_tests`: the ConnMan and NM mappings, including the VPN skip. `network_quality_tests`: a cellular-only change toggles capped prefetch (mutation-checked); the missing-field default is 320 and a stored 0 is kept. `parity`: unknown and Ethernet use the Wi-Fi choice, cellular uses the mobile choice; the default is 320 only when nothing is stored |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: 383 Rust tests (0 failed), 39 locales / 522 messages, desktop build, CTest 2/2 |
+| `./tools/build-sailfish.sh` | Passed: `harbour-plexfreq-0.1.6-1.aarch64.rpm`, rpmlint 0 errors, 1 existing warning |
+
+Not yet done: a phone run on mobile data with the new build. The installed
+session keeps `mobileKbps: 0` (original) until it is changed in the app.
+
+## Stale-queue recovery stage 1b (radio) — 2026-10-19
+
+| Check | Actual result |
+| --- | --- |
+| Phone, installed 0.1.6-1 (stage 1), stale artist station | The HTTP 404, then the transcode 400, were logged with their status. No check started: radio was excluded. The explicit "Audio decoding or streaming failed" banner was shown |
+| Read-only PMS measurements (phone, desktop session) | Emptied station: 200 with zero items for any center. Healthy station: items after a held center; zero items for an unknown center. Recorded in `docs/research.md` |
+| New Core tests (`src/radio_health_tests.rs`) | 15 passed. Healthy deleted-current item → next item. Center: current, then held fallbacks. Empty station mid-window → successor; at the end → cached cycle (timeline 404 tolerated). Nothing cached → error or gone end (persisted). An ended station resumes. Gone tail → cycle; a 20-row window kept over four cycles. Unauthorized visible at the end and in the report. Network/5xx cache-first rule unchanged. A cache-served gone item plays. Previous steps back. Sonic radio with a gone seed cycles |
+| New runtime fixture tests | 3 passed. The incident on an emptied station → a cached track plays with no banner, one check, refills bounded. Nothing cached → gone banner. Gone successors found by pre-loading → the cached track repeats, and the gone ones are never shown |
+| Mutation checks | At-end cycle, exhausted-tail cycle, gone-current center and the trim rule: each reversal fails its tests |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` (after review fixes) | Passed: 378 Rust tests (0 failed), 39 locales / 522 messages, desktop build, CTest 2/2 |
+| `./tools/build-sailfish.sh` | Passed: `harbour-plexfreq-0.1.6-1.aarch64.rpm`, rpmlint 0 errors, 1 existing warning (no-url-tag) |
+| Flaky test, pre-existing | `unreachable_source_reports_error_after_bounded_retries` failed once in a full run (port reuse by a parallel test). It passed 3/3 alone and in the gate |
+
+Not yet done: the stage-1b RPM on the phone against the stale station.
+
+## Stale-queue recovery stage 1 (implementation) — 2026-10-18
+
+| Check | Actual result |
+| --- | --- |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` (before review fixes) | Passed: fmt, Clippy -D warnings, 355 Rust tests (0 failed), 39 locales / 522 messages, desktop build, CTest 2/2 |
+| `./tools/build-sailfish.sh` (before review fixes) | Passed: `harbour-plexfreq-0.1.6-1.aarch64.rpm`, rpmlint 0 errors, 1 existing warning (no-url-tag) |
+| New Core tests (`src/health_tests.rs`, `src/health.rs`) | 16 passed: forward/back stepping, gone-tail natural end persisted and resumable after restart, explicit Select/Resume retry, QueueRemove keeps removal, failed replacement restores marks, repeat-all termination, preparation skips gone without notice, skip planning, cooldown, literal pin |
+| New runtime fixture tests (`src/runtime/fixture_tests.rs`, local HTTP fixtures, synthetic token) | Passed: gone current skipped forward; gone last track → banner + persisted end; Previous continues back; Pause during the check → no skip; live failure → original error; successor found by pre-load / by cache-ahead never played (incident replay); hung check → original error after the 5 s probe timeout with worker responsive; 401 → original error; no-Media skip target → gone banner, no fetch after the check; failed successor not re-fetched on queue edits |
+| Probe and recovery unit tests | Passed: Plex-404-only classification, token only in header, reserved slot/budget, epoch discard |
+| `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` (after review fixes) | Passed: 360 Rust tests (0 failed), 39 locales / 522 messages, desktop build, CTest 2/2 |
+
+| Mutation check of the I1-1 test (hold made conditional again) | Test failed as expected (successor part fetched 4×); passes with the fix |
+| Final `CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 ./tools/check.sh` | Passed: 360 Rust tests (0 failed), 39 locales / 522 messages, desktop build, CTest 2/2 |
+| Final `./tools/build-sailfish.sh` | Passed: `harbour-plexfreq-0.1.6-1.aarch64.rpm`, rpmlint 0 errors, 1 existing warning (no-url-tag) |
+
+Not yet done: a normally installed RPM under Sailjail on the phone. A successful
+build is not a hardware runtime test. The package still carries version
+0.1.6-1, the same as the installed one.
+
+## Stale queue after server library re-key — 2026-10-18 (diagnosis only)
+
+| Check | Actual result |
+| --- | --- |
+| Read-only phone SSH / package / same-date log | Installed 0.1.6-1; 18:29:51 prepare and 18:31:07 natural-end successor (occurrence 16-30) each logged `probe failed ... no suitable format reader found` for both direct and transcode URLs; playback stopped |
+| Server metadata/part GETs from phone (token read inside a stdin script, header only, never printed) | Queued ratingKey 33963 and its album/artist, plus part `/library/parts/34331/...`: 404. All 11 queued ratingKeys: 404. Same track now ratingKey 98244, part 101872 (part timestamp 2026-10-17 21:08) |
+| Same-date decoder sources | 32 `cache/local` creates (played), 22 `remote` creates (all failed) |
+
+Cause: the Plex server re-keyed the library on 2026-10-17 ~21:08. The persisted
+queue still points at dead ratingKeys/parts, so only tracks already in the audio
+cache can play. The HTTP reader maps the 4xx to "Audio streaming failed", but
+Symphonia's probe loop (`while let Ok(byte) = mss.read_byte()`) swallows read
+errors as EOF, so the log shows a misleading probe error. No code change or
+transport command was made.
+
 ## GStreamer removal (Symphonia/rubato/libpulse) — 2026-10-16
 
 | Check | Actual result |

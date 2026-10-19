@@ -415,6 +415,18 @@ impl Queue {
         self.track()
     }
 
+    /// Playback slot in `order`, retained across a natural end.
+    pub fn cursor(&self) -> usize {
+        self.cursor
+    }
+    /// End playback as a natural end does, with the cursor on `cursor` (the
+    /// last audible slot) so that `previous()` and `upcoming()` keep their
+    /// meaning.
+    pub fn finish_at(&mut self, cursor: usize) {
+        self.cursor = cursor.min(self.order.len().saturating_sub(1));
+        self.current = None;
+        self.touch();
+    }
     pub fn track(&self) -> Option<&Item> {
         self.current.and_then(|i| self.items.get(i))
     }

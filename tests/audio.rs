@@ -530,7 +530,8 @@ fn undecodable_file_reports_an_error_event() {
                 e,
                 Event::Error {
                     id: 1,
-                    message: "Audio decoding or streaming failed"
+                    message: "Audio decoding or streaming failed",
+                    ..
                 }
             )
         }) {

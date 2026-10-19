@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.3
 Dialog {
     property var music
     property var config:backend.state.audioConfig || ({crossfadeMs:0,normalization:false,eq:[0,0,0,0,0,0,0,0,0,0]})
-    property var quality:backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:0,downloadKbps:0,codecFallback:true})
+    property var quality:backend.state.qualityConfig || ({wifiKbps:0,mobileKbps:320,downloadKbps:0,codecFallback:true})
     title:qsTr("Audio settings");standardButtons:Dialog.Close
     contentItem:ScrollView {implicitWidth:500;implicitHeight:560;clip:true
     ColumnLayout {width:parent.width

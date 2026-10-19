@@ -628,6 +628,10 @@
       <translation>Трек · Недоступно · Загружено</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Трек · Сервер · Недоступно</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Трек · Недоступно · Кэш · Загружено · Треки</translation>
     </message>

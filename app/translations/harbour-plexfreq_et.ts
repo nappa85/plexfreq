@@ -628,6 +628,10 @@
       <translation>Lugu · Pole saadaval · Alla laaditud</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Lugu · Server · Pole saadaval</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Lugu · Pole saadaval · Vahemälu · Alla laaditud · Lood</translation>
     </message>

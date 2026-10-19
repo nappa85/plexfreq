@@ -628,6 +628,10 @@
       <translation>Spor · Utilgjengelig · Lastet ned</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Spor · Tjener · Utilgjengelig</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Spor · Utilgjengelig · Cache · Lastet ned</translation>
     </message>

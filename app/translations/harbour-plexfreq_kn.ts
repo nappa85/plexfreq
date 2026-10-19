@@ -628,6 +628,10 @@
       <translation>ಹಾಡು · ಲಭ್ಯವಿಲ್ಲ · ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>ಹಾಡು · ಸರ್ವರ್ · ಲಭ್ಯವಿಲ್ಲ</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ಹಾಡು · ಲಭ್ಯವಿಲ್ಲ · ಸಂಗ್ರಹ · ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ · ಹಾಡುಗಳು</translation>
     </message>

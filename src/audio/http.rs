@@ -256,6 +256,8 @@ struct Stream {
     progress: Arc<AtomicU64>,
     representation: Representation,
     proven: bool,
+    /// Engine occurrence, for correlating diagnostics only.
+    occurrence: u64,
 }
 impl Stream {
     async fn run(mut self) {
@@ -282,10 +284,10 @@ impl Stream {
                 None => requested,
             };
             crate::diagnostics::event(format_args!(
-                "HTTP audio request offset={offset} progressive={} retry={failures}",
-                self.progressive
+                "HTTP audio request occurrence={} offset={offset} progressive={} retry={failures}",
+                self.occurrence, self.progressive
             ));
-            match self.request(offset, generation).await {
+            match self.request(offset, generation, failures).await {
                 Attempt::Superseded => {}
                 Attempt::Complete => {
                     // Stay alive for a decoder seek back into the stream.
@@ -333,7 +335,7 @@ impl Stream {
         drop(window);
         self.buffer.readable.notify_all();
     }
-    async fn request(&mut self, offset: u64, generation: u64) -> Attempt {
+    async fn request(&mut self, offset: u64, generation: u64, retry: u32) -> Attempt {
         let mut request = self
             .client
             .get(&self.uri)
@@ -351,6 +353,16 @@ impl Stream {
             _ = self.changed.changed() => return Attempt::Superseded,
             response = request.send() => response,
         };
+        if let Ok(response) = &response {
+            if !response.status().is_success() {
+                // Status only: the URI carries the credential.
+                crate::diagnostics::event(format_args!(
+                    "HTTP audio request failed occurrence={} status={} retry={retry}",
+                    self.occurrence,
+                    response.status().as_u16()
+                ));
+            }
+        }
         let response = match response {
             Ok(response) if response.status().is_success() => response,
             Ok(response) if !response.status().is_server_error() => {
@@ -491,7 +503,12 @@ pub struct Reader {
 impl Reader {
     /// Start fetching from offset zero and return the decoder's byte view.
     /// `progressive` (server transcodes) cannot seek by byte offset.
-    pub fn new(uri: String, token: String, closer: SessionCloser) -> crate::Result<(Self, Source)> {
+    pub fn new(
+        uri: String,
+        token: String,
+        closer: SessionCloser,
+        occurrence: u64,
+    ) -> crate::Result<(Self, Source)> {
         let progressive = url::Url::parse(&uri)
             .ok()
             .is_some_and(|url| crate::quality::is_transcode(&url));
@@ -542,6 +559,7 @@ impl Reader {
                 progress,
                 representation: Representation::default(),
                 proven: false,
+                occurrence,
             });
             match stream {
                 Ok(stream) => stream.run().await,
@@ -582,6 +600,11 @@ impl Reader {
             self.received.load(Ordering::Relaxed),
             self.buffer.lock().data.len() as u64,
         )
+    }
+    /// The transfer's terminal failure, if any (a static message; never the
+    /// URI). Lets the decoder report the cause behind a generic probe error.
+    pub fn recorded_error(&self) -> Option<&'static str> {
+        self.buffer.lock().error
     }
     /// Cancel the transfer and release a decoder blocked in `read`.
     pub fn stop(&self) {
@@ -773,6 +796,7 @@ mod tests {
             format!("http://{address}/audio"),
             String::new(),
             SessionCloser::new().unwrap(),
+            0,
         )
         .unwrap()
     }
@@ -1026,7 +1050,7 @@ mod tests {
         )
         .unwrap();
         let (reader, mut source) =
-            Reader::new(uri.into(), String::new(), SessionCloser::new().unwrap()).unwrap();
+            Reader::new(uri.into(), String::new(), SessionCloser::new().unwrap(), 0).unwrap();
         assert!(!source.is_seekable());
         let mut head = [0; 4];
         source.read_exact(&mut head).unwrap();

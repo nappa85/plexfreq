@@ -628,6 +628,10 @@
       <translation>పాట · అందుబాటులో లేదు · డౌన్‌లోడ్ అయింది</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>పాట · అందుబాటులో లేదు · కాష్ · డౌన్‌లోడ్ అయింది · పాటలు</translation>
     </message>

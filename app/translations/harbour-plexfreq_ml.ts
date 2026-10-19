@@ -628,6 +628,10 @@
       <translation>ഗാനം · ലഭ്യമല്ല · ഡൗൺലോഡ് ചെയ്തു</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>ഗാനം · സെർവർ · ലഭ്യമല്ല</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ഗാനം · ലഭ്യമല്ല · കാഷെ · ഡൗൺലോഡ് ചെയ്തു · ഗാനങ്ങൾ</translation>
     </message>

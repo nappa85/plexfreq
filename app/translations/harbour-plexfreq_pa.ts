@@ -628,6 +628,10 @@
       <translation>ਗੀਤ · ਉਪਲਬਧ ਨਹੀਂ · ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>ਗੀਤ · ਸਰਵਰ · ਉਪਲਬਧ ਨਹੀਂ</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>ਗੀਤ · ਉਪਲਬਧ ਨਹੀਂ · ਕੈਸ਼ · ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
     </message>

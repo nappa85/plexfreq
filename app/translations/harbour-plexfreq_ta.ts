@@ -628,6 +628,10 @@
       <translation>பாடல் · கிடைக்கவில்லை · பதிவிறக்கப்பட்டது</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>பாடல் · சேவையகம் · கிடைக்கவில்லை</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>பாடல் · கிடைக்கவில்லை · தற்காலிகச் சேமிப்பு · பதிவிறக்கப்பட்டது · பாடல்கள்</translation>
     </message>

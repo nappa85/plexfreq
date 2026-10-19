@@ -628,6 +628,10 @@
       <translation>গান · অনুপলব্ধ · ডাউনলোড হয়েছে</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>গান · সার্ভার · অনুপলব্ধ</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>গান · অনুপলব্ধ · ক্যাশ · ডাউনলোড হয়েছে</translation>
     </message>

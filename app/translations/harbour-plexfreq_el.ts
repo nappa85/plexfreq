@@ -628,6 +628,10 @@
       <translation>Κομμάτι · Μη διαθέσιμο · Λήφθηκε</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Κομμάτι · Διακομιστής · Μη διαθέσιμο</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Κομμάτι · Μη διαθέσιμο · Προσωρινή μνήμη · Λήφθηκε · Κομμάτια</translation>
     </message>

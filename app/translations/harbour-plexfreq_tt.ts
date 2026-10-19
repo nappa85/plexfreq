@@ -628,6 +628,10 @@
       <translation>Язма · Мөмкин түгел · Йөкләнгән</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Язма · Сервер · Мөмкин түгел</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Язма · Мөмкин түгел · Кэш · Йөкләнгән · Язмалар</translation>
     </message>

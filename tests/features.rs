@@ -561,6 +561,7 @@ fn wifi_policy_defers_jobs_until_confirmed_and_manager_removes_files() {
     core.execute(Command::NetworkState {
         wifi: true,
         online: true,
+        cellular: false,
         live_hint: false,
     })
     .unwrap();
@@ -614,6 +615,7 @@ fn queued_old_network_observations_cannot_reopen_a_live_closed_gate() {
     core.execute(Command::NetworkState {
         wifi: true,
         online: true,
+        cellular: false,
         live_hint: true,
     })
     .unwrap();

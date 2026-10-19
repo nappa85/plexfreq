@@ -628,6 +628,10 @@
       <translation>Bài hát · Không khả dụng · Đã tải</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Bài hát · Máy chủ · Không khả dụng</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Bài hát · Không khả dụng · Bộ nhớ đệm · Đã tải</translation>
     </message>

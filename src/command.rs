@@ -262,6 +262,9 @@ pub enum Command {
     NetworkState {
         wifi: bool,
         online: bool,
+        /// The default route is a cellular link (mobile streaming quality).
+        #[serde(default)]
+        cellular: bool,
         #[serde(default)]
         live_hint: bool,
     },

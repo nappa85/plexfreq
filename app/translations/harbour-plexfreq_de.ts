@@ -628,6 +628,10 @@
       <translation>Titel · Nicht verfügbar · Heruntergeladen</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Titel · Server · Nicht verfügbar</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Titel · Nicht verfügbar · Cache · Heruntergeladen</translation>
     </message>

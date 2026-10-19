@@ -628,6 +628,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation type="unfinished" />
     </message>

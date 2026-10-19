@@ -628,6 +628,10 @@
       <translation>Spår · Inte tillgänglig · Hämtat</translation>
     </message>
     <message>
+      <source>This track is no longer on the server</source>
+      <translation>Spår · Server · Inte tillgänglig</translation>
+    </message>
+    <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
       <translation>Spår · Inte tillgänglig · Cache · Hämtat</translation>
     </message>

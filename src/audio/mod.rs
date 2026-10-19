@@ -13,7 +13,10 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     rc::Rc,
-    sync::{mpsc, Arc, Mutex},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        mpsc, Arc, Mutex,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -121,6 +124,10 @@ pub enum Event {
     Error {
         id: u64,
         message: &'static str,
+        /// The play/pause intent at failure, before the error cleared it.
+        paused: bool,
+        /// The runtime's user-action counter as seen at failure.
+        acted: u64,
     },
     Seeked(u64),
 }
@@ -218,6 +225,11 @@ pub struct Engine {
 }
 impl Engine {
     pub fn new(sink: Sink) -> Result<Self> {
+        Self::with_acted(sink, Arc::new(AtomicU64::new(0)))
+    }
+    /// An engine whose errors report `acted`, the runtime's count of user
+    /// transport actions, as it was when the failure happened.
+    pub fn with_acted(sink: Sink, acted: Arc<AtomicU64>) -> Result<Self> {
         let (tx, rx) = mpsc::sync_channel(128);
         let (events, receiver) = mpsc::channel();
         let state = Arc::new(Mutex::new(Snapshot {
@@ -240,6 +252,7 @@ impl Engine {
             .spawn(move || {
                 let mut actor = Actor::new(sink, state, capture, events, closer);
                 actor.changes = changes;
+                actor.acted = acted;
                 actor.run(rx, volume)
             })?;
         Ok(Self {
@@ -289,6 +302,8 @@ struct Actor {
     changes: Arc<watch::Sender<Change>>,
     /// PulseAudio client connection shared by successive output streams.
     pulse: Option<Rc<pulse::Connection>>,
+    /// Read-only view of the runtime's user-action counter (see `Event::Error`).
+    acted: Arc<AtomicU64>,
 }
 struct ProgressDiagnostics {
     sampled: Instant,
@@ -386,6 +401,7 @@ impl Actor {
             diagnostics: ProgressDiagnostics::new(),
             changes: Arc::new(watch::channel(Change::default()).0),
             pulse: None,
+            acted: Arc::new(AtomicU64::new(0)),
         }
     }
     /// Wake change subscribers only when a presented transport field changed.
@@ -437,6 +453,8 @@ impl Actor {
                 let _ = self.events.send(Event::Error {
                     id,
                     message: "Next track decoding failed",
+                    paused: !self.desired,
+                    acted: self.acted.load(Ordering::SeqCst),
                 });
             }
         }
@@ -560,11 +578,19 @@ impl Actor {
     fn error(&mut self, message: &'static str) {
         let id = self.current.as_ref().map_or(self.intent, |d| d.source.id);
         crate::diagnostics::event(format_args!("audio actor error occurrence={id}: {message}"));
+        // Captured before clearing: a fallback or skip resumes this intent.
+        let paused = !self.desired;
+        let acted = self.acted.load(Ordering::SeqCst);
         self.desired = false;
         self.current = None;
         self.next = None;
         self.output = None;
-        let _ = self.events.send(Event::Error { id, message });
+        let _ = self.events.send(Event::Error {
+            id,
+            message,
+            paused,
+            acted,
+        });
         let mut state = lock_state(&self.state);
         state.playing = false;
         state.paused = false;
@@ -619,6 +645,8 @@ impl Actor {
                 let _ = self.events.send(Event::Error {
                     id,
                     message: "Next track decoding failed",
+                    paused: !self.desired,
+                    acted: self.acted.load(Ordering::SeqCst),
                 });
                 self.next = None;
             }
