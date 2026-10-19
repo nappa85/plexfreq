@@ -1,5 +1,5 @@
 Name: plexfreq-backend-test
-Version: 0.1.6
+Version: 0.1.7
 Release: 1
 Summary: Local PlexFreq native audio integration fixture
 License: GPLv3+
@@ -33,6 +33,8 @@ strip --strip-unneeded plexfreq-backend-test
 %{_bindir}/%{name}
 
 %changelog
+* Mon Oct 19 2026 PlexFreq contributors - 0.1.7-1
+- Stream buffering, download yield and engine-held failure regression coverage
 * Fri Oct 16 2026 PlexFreq contributors - 0.1.6-1
 - PulseAudio flow-control regression coverage
 * Fri Oct 16 2026 PlexFreq contributors - 0.1.5-1
