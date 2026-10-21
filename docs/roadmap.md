@@ -26,6 +26,16 @@ Partly done:
   outside the shared cache lock.
 
 Engineering:
+- MPRIS/AVRCP cursor lag (2026-10-21): PropertiesChanged now carries only changed
+  properties, plus a Seeked resync after mid-track Metadata. Plan and
+  implementation reviewed (Sol, Sonnet, DeepSeek), no Blocking left; see
+  `docs/reviews/2026-10-21-mpris-avrcp-resync.md`. Pending:
+  - phone check with an AVRCP display (pause/resume, volume, radio queue
+    growth);
+  - re-run the Qt native-audio test on the usual host sink;
+  - accepted test gaps (emission-failure retry, cancelling a pending resync).
+  - Separate: empty track titles from Plex (104279) show as the artist alone; no
+    fallback, by user decision.
 - Mobile streaming robustness (2026-10-19 stutter on mobile data):
   - **Part A, implemented:** cellular network fact, mobile quality only on
     cellular, 320 kbps default for new installs.

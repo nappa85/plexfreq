@@ -1731,3 +1731,45 @@ that the server asks for a full refill while the old estimate still claims a ful
 buffer; it passed 3/3 on the desktop. Desktop `pulse-play` of a 44.1 kHz FLAC:
 real-time position, no buffering flicker, pause/resume/seek correct. Full
 `cargo test`, fmt and clippy pass. Not yet re-validated in the car.
+
+### MPRIS delta emission and AVRCP resync (2026-10-21)
+
+Fix for the Bluetooth cursor lag (see research). Read-only phone evidence is in
+docs/research.md.
+
+Local checks:
+- `property_delta_sends_only_changes`: unchanged sets give no delta. Metadata
+  built in a different order compares equal. A volume-only change sends only
+  Volume. A removed property is invalidated.
+- `state_changes_emit_promptly_and_idle_player_does_not_poll`, extended. It
+  runs on a private dbus-daemon with the Fake sink and a Seeked subscription,
+  and asserts:
+  - neither a volume change, a pause nor a resume carries Metadata;
+  - no Seeked at a track start or on transport changes;
+  - mid-track Metadata while `presented.shown` names another occurrence sends no
+    Seeked within 1.5 s (the `shown != id` branch; the `shown == id` with an
+    unmerged model window is not exercised);
+  - once the model catches up, a Seeked arrives with the paused position
+    (±50 ms);
+  - a coherent mid-track Metadata change is followed by its Seeked within 1 s.
+- Mutation check: with the delta forced to send every property, the test fails
+  ("volume re-sent Metadata").
+- No Seeked within 300 ms after resume.
+- `./tools/check.sh`: result recorded below.
+- Accepted test gaps: no injected emission failure (baseline retry), no
+  occurrence change or unload while a resync is pending, no wire assertion on
+  `invalidated` (never non-empty today).
+
+Not yet validated on the phone with an AVRCP display (pause/resume, volume and
+radio queue growth mid-track).
+
+Check results (2026-10-21):
+- First run, before the test hardening: `./tools/check.sh` exit 0 (fmt, clippy,
+  all Rust tests, Qt `native_backend_integration` and `desktop_qml_smoke`).
+- Final run, after it: Rust 421 passed, 0 failed, 1 ignored. Qt
+  `BackendTest::protocolAndNativeAudio` failed ("backend.playing() returned
+  FALSE") 5/5. Unmodified HEAD, built in a temporary worktree, fails it the
+  same way 3/3. Meanwhile the host default sink had become a running PipeWire
+  Bluetooth output. Environmental, not caused by this change; to be re-run on
+  the usual sink.
+- The two MPRIS tests passed 3/3 in a row after the hardening.

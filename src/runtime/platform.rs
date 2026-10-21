@@ -333,9 +333,33 @@ async fn heartbeat(diagnostic: Shared, halt: Halt) {
     }
 }
 
+/// Below this position the Metadata reset of an AVRCP bridge is negligible:
+/// a track start needs no Seeked resync.
+const RESYNC_MIN_MS: u64 = 1000;
+/// Properties of `current` that differ from `emitted`, and names `emitted`
+/// had that `current` lacks (PropertiesChanged `invalidated`).
+fn property_delta<'a>(
+    emitted: &HashMap<&'static str, OwnedValue>,
+    current: &'a HashMap<&'static str, OwnedValue>,
+) -> (HashMap<&'static str, &'a OwnedValue>, Vec<&'static str>) {
+    let changed = current
+        .iter()
+        .filter(|(name, value)| emitted.get(*name) != Some(*value))
+        .map(|(name, value)| (*name, value))
+        .collect();
+    let mut invalidated: Vec<_> = emitted
+        .keys()
+        .filter(|name| !current.contains_key(*name))
+        .copied()
+        .collect();
+    invalidated.sort_unstable();
+    (changed, invalidated)
+}
 /// MPRIS service. Properties are re-derived when the audio transport, the
 /// presented model or a seek notifies, with a 1 s fallback refresh; position
-/// alone never wakes it (clients read Position on demand).
+/// alone never wakes it (clients read Position on demand). PropertiesChanged
+/// carries only the properties that changed: AVRCP bridges treat any Metadata as
+/// a track change.
 async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: Arc<AtomicU64>) {
     let path = "/org/mpris/MediaPlayer2";
     let builder = zbus::connection::Builder::session()
@@ -359,6 +383,11 @@ async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: A
     let mut model = bus.revisions();
     let mut audio = bus.audio_changes();
     let mut previous = Value::Null;
+    // Last successfully emitted properties: PropertiesChanged carries only
+    // what differs from them.
+    let mut emitted = HashMap::new();
+    // Occurrence whose Metadata was sent and still needs a position resync.
+    let mut resync: Option<u64> = None;
     loop {
         wakes.fetch_add(1, Ordering::Relaxed);
         if audio.is_none() {
@@ -387,25 +416,61 @@ async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: A
             json!({"playing":state.playing,"paused":state.paused,"loaded":state.loaded,"intent":state.intent,"failed":state.failed,"volume":state.volume,"seekable":state.seekable,"id":state.id,"track":model["track"],"loop":model["queue"]["repeat"],"shuffle":model["queue"]["shuffled"],"queueLength":model["queue"]["items"].as_array().map_or(0,Vec::len),"current":model["queue"]["current"]})
         };
         if changed != previous {
-            let properties = Player {
+            let current = Player {
                 shared: bus.clone(),
             }
-            .changed_properties();
-            let _ = connection
-                .connection
-                .emit_signal(
-                    None::<&str>,
-                    path,
-                    "org.freedesktop.DBus.Properties",
-                    "PropertiesChanged",
-                    &(
-                        "org.mpris.MediaPlayer2.Player",
-                        properties,
-                        Vec::<String>::new(),
-                    ),
-                )
-                .await;
-            previous = changed;
+            .changed_properties(&state);
+            let (properties, invalidated) = property_delta(&emitted, &current);
+            // Baselines advance only once the signal is sent, so a failed
+            // emission is retried by the next pass (at the latest the 1 s
+            // fallback) instead of being lost.
+            let sent = properties.is_empty() && invalidated.is_empty()
+                || connection
+                    .connection
+                    .emit_signal(
+                        None::<&str>,
+                        path,
+                        "org.freedesktop.DBus.Properties",
+                        "PropertiesChanged",
+                        &("org.mpris.MediaPlayer2.Player", &properties, &invalidated),
+                    )
+                    .await
+                    .is_ok();
+            if sent {
+                if properties.contains_key("Metadata") {
+                    resync = Some(state.id);
+                }
+                drop(properties);
+                emitted = current;
+                previous = changed;
+            }
+        }
+        // BlueZ's AVRCP bridge (mpris-proxy) restarts its position at zero on
+        // every Metadata it receives; send the real position after it. Only
+        // for the occurrence the Metadata named, once the presented model has
+        // caught up with it; a newer occurrence emits its own Metadata.
+        if let Some(id) = resync {
+            let now = bus.playback();
+            let shown = crate::mutex_lock(&bus.presented).shown;
+            // A newer or unloaded occurrence ends it; a lagging model waits.
+            let done = now.id != id
+                || !now.loaded
+                || shown == id
+                    && (now.position < RESYNC_MIN_MS
+                        || connection
+                            .connection
+                            .emit_signal(
+                                None::<&str>,
+                                path,
+                                "org.mpris.MediaPlayer2.Player",
+                                "Seeked",
+                                &(now.position as i64 * 1000,),
+                            )
+                            .await
+                            .is_ok());
+            if done {
+                resync = None;
+            }
         }
         tokio::select! {
             _ = halt.wait() => break,
@@ -1112,22 +1177,66 @@ impl Player {
         let _ = self.shared.send(value);
     }
     fn track_id(&self) -> OwnedObjectPath {
+        Self::occurrence_path(self.shared.playback().id)
+    }
+    fn occurrence_path(id: u64) -> OwnedObjectPath {
         // Playback ids are numeric, so this path is always valid; fall back to
         // the zero track instead of panicking the DBus thread on corruption.
-        OwnedObjectPath::try_from(format!("/org/plexfreq/track/{}", self.shared.playback().id))
+        OwnedObjectPath::try_from(format!("/org/plexfreq/track/{id}"))
             .or_else(|_| OwnedObjectPath::try_from("/org/plexfreq/track/0"))
             .expect("static MPRIS track path is valid")
+    }
+    /// Metadata for occurrence `id`, so the track id matches the snapshot the
+    /// caller uses for the other properties.
+    fn metadata_for(&self, id: u64) -> HashMap<String, OwnedValue> {
+        let model = crate::mutex_lock(&self.shared.model);
+        let track = &model["track"];
+        let mut data = HashMap::new();
+        if !track.is_object() {
+            return data;
+        }
+        if let Some(id) = Self::owned(zbus::zvariant::Value::from(Self::occurrence_path(id))) {
+            data.insert("mpris:trackid".into(), id);
+        }
+        data.insert(
+            "mpris:length".into(),
+            OwnedValue::from(track["duration"].as_i64().unwrap_or(0) * 1000),
+        );
+        for (property, key) in [("xesam:title", "title"), ("xesam:album", "parentTitle")] {
+            if let Some(value) = Self::owned(zbus::zvariant::Value::from(
+                track[key].as_str().unwrap_or("").to_string(),
+            )) {
+                data.insert(property.into(), value);
+            }
+        }
+        let artist = track["originalTitle"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .or_else(|| track["grandparentTitle"].as_str())
+            .unwrap_or("");
+        if let Some(artists) = Self::owned(zbus::zvariant::Value::from(vec![artist.to_string()])) {
+            data.insert("xesam:artist".into(), artists);
+        }
+        if let Some(art) = track["artwork"].as_str().filter(|s| s.starts_with("file:")) {
+            if let Some(url) = Self::owned(zbus::zvariant::Value::from(art.to_string())) {
+                data.insert("mpris:artUrl".into(), url);
+            }
+        }
+        data
     }
     fn owned(value: zbus::zvariant::Value<'_>) -> Option<OwnedValue> {
         OwnedValue::try_from(value).ok()
     }
-    /// The PropertiesChanged payload (Position is never emitted, per MPRIS).
-    fn changed_properties(&self) -> HashMap<&'static str, OwnedValue> {
-        let state = self.shared.playback();
+    /// The full PropertiesChanged candidate set for `state` (Position is never
+    /// emitted, per MPRIS); the caller sends only the delta.
+    fn changed_properties(
+        &self,
+        state: &crate::audio::Snapshot,
+    ) -> HashMap<&'static str, OwnedValue> {
         let mut properties = HashMap::new();
         for (name, value) in [
             ("PlaybackStatus", Self::owned(self.playback_status().into())),
-            ("Metadata", Self::owned(self.metadata().into())),
+            ("Metadata", Self::owned(self.metadata_for(state.id).into())),
             ("LoopStatus", Self::owned(self.loop_status().into())),
         ] {
             if let Some(value) = value {
@@ -1249,40 +1358,7 @@ impl Player {
     }
     #[zbus(property)]
     fn metadata(&self) -> HashMap<String, OwnedValue> {
-        let model = crate::mutex_lock(&self.shared.model);
-        let track = &model["track"];
-        let mut data = HashMap::new();
-        if !track.is_object() {
-            return data;
-        }
-        if let Some(id) = Self::owned(zbus::zvariant::Value::from(self.track_id())) {
-            data.insert("mpris:trackid".into(), id);
-        }
-        data.insert(
-            "mpris:length".into(),
-            OwnedValue::from(track["duration"].as_i64().unwrap_or(0) * 1000),
-        );
-        for (property, key) in [("xesam:title", "title"), ("xesam:album", "parentTitle")] {
-            if let Some(value) = Self::owned(zbus::zvariant::Value::from(
-                track[key].as_str().unwrap_or("").to_string(),
-            )) {
-                data.insert(property.into(), value);
-            }
-        }
-        let artist = track["originalTitle"]
-            .as_str()
-            .filter(|s| !s.is_empty())
-            .or_else(|| track["grandparentTitle"].as_str())
-            .unwrap_or("");
-        if let Some(artists) = Self::owned(zbus::zvariant::Value::from(vec![artist.to_string()])) {
-            data.insert("xesam:artist".into(), artists);
-        }
-        if let Some(art) = track["artwork"].as_str().filter(|s| s.starts_with("file:")) {
-            if let Some(url) = Self::owned(zbus::zvariant::Value::from(art.to_string())) {
-                data.insert("mpris:artUrl".into(), url);
-            }
-        }
-        data
+        self.metadata_for(self.shared.playback().id)
     }
     #[zbus(property)]
     fn position(&self) -> i64 {
@@ -1375,6 +1451,56 @@ mod review_tests {
 }
 
 #[cfg(test)]
+mod delta_tests {
+    use super::*;
+
+    fn metadata(entries: &[(&str, &str)]) -> OwnedValue {
+        let map: HashMap<String, OwnedValue> = entries
+            .iter()
+            .map(|(key, value)| {
+                let value = zbus::zvariant::Value::from(value.to_string());
+                (key.to_string(), OwnedValue::try_from(value).unwrap())
+            })
+            .collect();
+        OwnedValue::try_from(zbus::zvariant::Value::from(map)).unwrap()
+    }
+
+    /// Only changed properties are re-sent; Metadata built in a different
+    /// order is equal; a property that disappears is invalidated.
+    #[test]
+    fn property_delta_sends_only_changes() {
+        let state = |volume: f64, order: bool| {
+            let entries = [("xesam:title", "A"), ("xesam:album", "B")];
+            let metadata = if order {
+                metadata(&entries)
+            } else {
+                metadata(&[entries[1], entries[0]])
+            };
+            HashMap::from([("Metadata", metadata), ("Volume", OwnedValue::from(volume))])
+        };
+        let emitted = state(0.8, true);
+        let reordered = state(0.8, false);
+        let (changed, invalidated) = property_delta(&emitted, &reordered);
+        assert!(changed.is_empty() && invalidated.is_empty());
+        let current = state(0.5, false);
+        let (changed, invalidated) = property_delta(&emitted, &current);
+        assert_eq!(changed.keys().copied().collect::<Vec<_>>(), vec!["Volume"]);
+        assert!(invalidated.is_empty());
+        let mut current = state(0.8, true);
+        current.insert("Metadata", metadata(&[("xesam:title", "C")]));
+        current.remove("Volume");
+        let (changed, invalidated) = property_delta(&emitted, &current);
+        assert_eq!(
+            changed.keys().copied().collect::<Vec<_>>(),
+            vec!["Metadata"]
+        );
+        assert_eq!(invalidated, vec!["Volume"]);
+        let (changed, _) = property_delta(&HashMap::new(), &emitted);
+        assert_eq!(changed.len(), 2);
+    }
+}
+
+#[cfg(test)]
 mod mpris_tests {
     use super::*;
     use std::{
@@ -1460,6 +1586,27 @@ mod mpris_tests {
                 }
             }
         });
+        let rule = zbus::MatchRule::builder()
+            .msg_type(zbus::message::Type::Signal)
+            .interface("org.mpris.MediaPlayer2.Player")
+            .unwrap()
+            .member("Seeked")
+            .unwrap()
+            .path("/org/mpris/MediaPlayer2")
+            .unwrap()
+            .build();
+        let iterator =
+            zbus::blocking::MessageIterator::for_match_rule(rule, &client, None).unwrap();
+        let (seeks, seeked) = mpsc::channel();
+        thread::spawn(move || {
+            for message in iterator.flatten() {
+                if let Ok(position) = message.body().deserialize::<i64>() {
+                    if seeks.send(position).is_err() {
+                        break;
+                    }
+                }
+            }
+        });
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("fixture.wav");
         wav(&path, 20);
@@ -1492,7 +1639,7 @@ mod mpris_tests {
                     .recv_timeout(left)
                     .unwrap_or_else(|_| panic!("no PropertiesChanged for {what}"));
                 if check(&properties) {
-                    return at;
+                    return (at, properties);
                 }
             }
         };
@@ -1504,7 +1651,7 @@ mod mpris_tests {
             let title = format!("Fixture {index}");
             let changed = Instant::now();
             shared.merge(&json!({"track":{"ratingKey":"1","title":title,"duration":20000}}));
-            let at = wait_for("metadata", &|properties| {
+            let (at, _) = wait_for("metadata", &|properties| {
                 properties.get("Metadata").is_some_and(|metadata| {
                     format!("{metadata:?}").contains(&format!("Fixture {index}"))
                 })
@@ -1515,6 +1662,9 @@ mod mpris_tests {
                 "metadata change took {latency:?}"
             );
         }
+        // Occurrence 1 is the presented one: a Seeked resync may follow its
+        // Metadata, but not at a track start (below RESYNC_MIN_MS).
+        crate::mutex_lock(&shared.presented).shown = 1;
         // Transport changes come from the audio actor's change notification.
         engine
             .handle
@@ -1534,7 +1684,7 @@ mod mpris_tests {
             thread::sleep(Duration::from_millis(2));
         }
         let playing = Instant::now();
-        let at = wait_for("Playing", &|properties| {
+        let (at, _) = wait_for("Playing", &|properties| {
             properties
                 .get("PlaybackStatus")
                 .is_some_and(|status| format!("{status:?}").contains("Playing"))
@@ -1551,12 +1701,72 @@ mod mpris_tests {
         let active = platform.mpris_wakes.load(Ordering::SeqCst) - wakes;
         assert!(engine.handle.snapshot().position > position);
         assert!(active <= 4, "playing MPRIS woke {active} times in 2 s");
+        // Only changed properties are sent: an AVRCP bridge (BlueZ
+        // mpris-proxy) resets its position on any Metadata, so volume and
+        // pause/resume must not carry it.
+        while received.try_recv().is_ok() {}
+        engine.handle.volume(0.5).unwrap();
+        let (_, volume) = wait_for("Volume", &|properties| properties.contains_key("Volume"));
+        assert!(!volume.contains_key("Metadata"), "volume re-sent Metadata");
         engine.handle.pause().unwrap();
-        wait_for("Paused", &|properties| {
+        let (_, paused) = wait_for("Paused", &|properties| {
             properties
                 .get("PlaybackStatus")
                 .is_some_and(|status| format!("{status:?}").contains("Paused"))
         });
+        assert!(!paused.contains_key("Metadata"), "pause re-sent Metadata");
+        assert!(
+            seeked.recv_timeout(Duration::from_millis(200)).is_err(),
+            "a track start or transport change sent a Seeked resync"
+        );
+        let position = engine.handle.snapshot().position as i64 * 1000;
+        assert!(position >= 1_000_000);
+        // Same-occurrence Metadata while the presented model lags the engine:
+        // no resync until it has caught up, then one with the real position.
+        crate::mutex_lock(&shared.presented).shown = 99;
+        shared.merge(&json!({"track":{"ratingKey":"1","title":"Lagging","duration":20000}}));
+        wait_for("lagging metadata", &|properties| {
+            properties
+                .get("Metadata")
+                .is_some_and(|metadata| format!("{metadata:?}").contains("Lagging"))
+        });
+        assert!(
+            seeked.recv_timeout(Duration::from_millis(1500)).is_err(),
+            "Seeked was sent for an incoherent presented model"
+        );
+        crate::mutex_lock(&shared.presented).shown = 1;
+        let resync = seeked
+            .recv_timeout(Duration::from_secs(2))
+            .expect("deferred resync was never sent");
+        assert!(
+            (resync - position).abs() < 50_000,
+            "resync {resync} vs {position}"
+        );
+        // Coherent mid-track Metadata (e.g. artwork): resync follows promptly.
+        let changed = Instant::now();
+        shared.merge(&json!({"track":{"ratingKey":"1","title":"Artwork","duration":20000}}));
+        let resync = seeked
+            .recv_timeout(Duration::from_secs(1))
+            .expect("mid-track Metadata had no Seeked resync");
+        assert!(changed.elapsed() < Duration::from_millis(400));
+        assert!(
+            (resync - position).abs() < 50_000,
+            "resync {resync} vs {position}"
+        );
+        // Resume: status only.
+        while received.try_recv().is_ok() {}
+        engine.handle.play().unwrap();
+        let (_, resumed) = wait_for("resumed", &|properties| {
+            properties
+                .get("PlaybackStatus")
+                .is_some_and(|status| format!("{status:?}").contains("Playing"))
+        });
+        assert!(!resumed.contains_key("Metadata"), "resume re-sent Metadata");
+        assert!(
+            seeked.recv_timeout(Duration::from_millis(300)).is_err(),
+            "resume sent a Seeked resync"
+        );
+        engine.handle.pause().unwrap();
         let shutdown = Instant::now();
         drop(platform);
         assert!(shutdown.elapsed() < Duration::from_secs(1));

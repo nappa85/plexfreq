@@ -2284,3 +2284,39 @@ Sources consulted:
 - **Not cellular, by decision:** Bluetooth tethering (ConnMan or NM
   `bluetooth`) and phone hotspots over Wi-Fi are mobile data, but count as
   "not cellular". NM `Metered` would catch some of them; it is left for later.
+
+## MPRIS and the Bluetooth AVRCP bridge — 2026-10-21
+
+User report: the track cursor was at about half when a song ended; once the title
+showed only "Leprous". Read-only phone inspection (installed 0.1.7-1):
+- Logs, 2026-10-15..21: 71 audible transitions. For each, the heard time equals
+  the decoder duration within 75 ms, and the wall clock agrees. The engine
+  clock and the in-app slider (polled every 100 ms) are not the cause.
+- `mpris-proxy` runs (Sailfish `bluez5-5.87+git3-1.17.1.jolla`). It bridges
+  MPRIS players to AVRCP for car and headset displays. Sailfish's own
+  `Sailfish/Media/MprisControls.qml` shows no progress bar.
+- The empty title is server data: queue item 104279 (Leprous, *Bilateral*,
+  disc 2 track 1) has `title: ""` in the Plex response. The lock screen then
+  shows the artist alone. Not changed by this work.
+
+Sources consulted:
+- BlueZ `profiles/audio/media.c` at upstream tag 5.87 and at the Sailfish fork
+  (github.com/sailfishos/bluez5, master). `parse_player_metadata`, `set_status`,
+  `set_position`, `position_changed` and `local_player_get_position` are
+  identical in both. Every received `Metadata` ends with
+  `mp->position = 0; g_timer_start(mp->timer)` and a track-changed event,
+  whether or not the track changed. `set_status` freezes and continues the
+  position correctly. `Seeked` and `Position` call `set_position`.
+- BlueZ `tools/mpris-proxy.c` (5.87 and the Sailfish fork are identical):
+  - `player_signal` forwards PropertiesChanged and every
+    `org.mpris.MediaPlayer2.Player` signal (including Seeked) verbatim.
+  - `GetAll` runs only at registration.
+  - No timer re-sends Metadata.
+- MPRIS Player spec (already listed above): PropertiesChanged lists changed
+  properties. Seeked signals a position change inconsistent with playback.
+  A resync Seeked therefore stretches it: display clients only update their
+  position, but a scrobbler could log a spurious seek.
+
+Finding: PlexFreq re-sent the whole property set, Metadata included, on every
+projection change (play/pause, volume, queue length, artwork). Each re-send made
+the AVRCP remote restart its cursor at 0:00 mid-track.

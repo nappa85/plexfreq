@@ -963,10 +963,22 @@ and restores position only after native media becomes seekable. Startup publishe
 the saved track without a decoder URL or autoplay. CoreThread drains accepted
 requests at normal shutdown so the final checkpoint can finish.
 
-`app/src/mpris.*` exports Root/Player adaptors on the session bus under
-`org.mpris.MediaPlayer2.plexfreq`. Typed metadata and capabilities reflect Backend;
-transport methods invoke existing adapter/Rust commands. Position/length are
-microseconds, SetPosition checks occurrence identity and Seeked reports seeks.
+`src/runtime/platform.rs` (zbus, on the shared runtime) exports Root/Player on the
+session bus under `org.mpris.MediaPlayer2.plexfreq`. Typed metadata and capabilities
+reflect the presented model and the engine snapshot; transport methods send existing
+Core/audio commands. Position/length are microseconds, SetPosition checks occurrence
+identity and Seeked reports seeks. PropertiesChanged carries only properties whose
+value differs from the last successfully emitted set (missing ones are invalidated):
+BlueZ's AVRCP bridge (`mpris-proxy`) treats every received Metadata as a track change
+and restarts its position at zero, so pause, volume or queue changes must not resend
+it. After a Metadata emission the loop sends `Seeked` (a position resync, not a
+user seek) with the engine position of the occurrence that Metadata named. It
+waits while `presented.shown` differs from that occurrence, drops the resync if
+the occurrence changes or unloads, and skips it below 1 s into the track. The
+check is on occurrence identity, not on model contents: while `start_plan` or
+`settle_resolution` have set `shown` but not yet merged the model, Metadata can
+briefly carry the new trackid with the old title. The position is still the
+right one for that trackid, and the merge re-sends Metadata and the resync.
 Authenticated URLs are excluded; only cached local artwork is exported.
 
 ## Now-playing, discovery and offline metadata
