@@ -1,5 +1,5 @@
 TARGET = harbour-plexfreq
-VERSION = 0.1.7
+VERSION = 0.1.8
 # sailfishapp would install the whole qml/ tree, including the desktop
 # QtQuick.Controls 2 sources; ship only the Silica entry point and its imports.
 CONFIG += sailfishapp sailfishapp_no_deploy_qml c++11

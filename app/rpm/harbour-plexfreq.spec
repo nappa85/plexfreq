@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.7
+Version: 0.1.8
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,12 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Thu Oct 22 2026 PlexFreq contributors - 0.1.8-1
+- Next during a radio no longer waits for the server when the next track is downloaded
+- Send less metadata over Bluetooth, keeping the car's position in sync
+- Resume transcodes the server cuts short; play received audio before reporting a broken transfer
+- Show held downloads, failed offline saves and tracks no longer on the server
+- Artwork no longer carries the Plex token in image addresses; offline library browsing is paged
 * Mon Oct 19 2026 PlexFreq contributors - 0.1.7-1
 - Buffer before resuming a stalled stream; defer the next track's download while the current one catches up
 - Downloads yield to a starving stream; recover dropped streams in the engine (transcode restart)
