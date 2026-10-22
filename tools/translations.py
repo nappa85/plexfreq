@@ -35,7 +35,7 @@ def extract():
         for pattern in [r'Error::Input\(\s*"((?:[^"\\]|\\.)*)"', r'Error::ProtocolAt\(\s*"((?:[^"\\]|\\.)*)"']:
             for source in re.findall(pattern, text):
                 core.add(json.loads('"'+source+'"'))
-    core.update(["Backend unavailable", "Backend panic", "Network request failed (check connection and server address)", "Plex authorization failed; sign in again or check server token", "Unexpected Plex response", "Unexpected Plex response during %1", "Plex returned HTTP %1", "Invalid URL", "Invalid request data", "Cannot read or write application state", "Audio playback failed", "Audio streaming failed", "Next track decoding failed", "Invalid audio representation"])
+    core.update(["Backend unavailable", "Backend panic", "Network request failed (check connection and server address)", "Plex authorization failed; sign in again or check server token", "Unexpected Plex response", "Unexpected Plex response during %1", "Plex returned HTTP %1", "Invalid URL", "Invalid request data", "Cannot read or write application state", "Audio playback failed", "Audio streaming failed", "Next track decoding failed", "Invalid audio representation", "Cache requires an unencoded audio response", "Server returned non-audio content for this track"])
     for name, sources in [("Core",sorted(core)), ("AlbumType",["Albums","EPs","Singles","Live","Compilations"])]:
         context=next((c for c in template.findall("context") if c.findtext("name")==name),None)
         if context is None:context=ET.SubElement(template,"context");ET.SubElement(context,"name").text=name

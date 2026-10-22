@@ -1,1253 +1,876 @@
 # Architecture
 
-## Stale queue items / background item health (2026-10-18)
+PlexFreq is a Plex music player for Sailfish OS (Qt 5.6 + Silica) and desktop
+Linux (Qt 6 + Controls 2). This document describes how it works today, and lists
+the external facts it depends on with their sources. The code is authoritative
+wherever this document disagrees with it.
 
-Stage 1 of stale-queue recovery. A queued track whose ratingKey no longer exists
-(for example after a Music section was recreated) is detected in the background
-and stepped over. No new path ever waits on the network.
-
-**Detection.** Checks start only after a failure:
-- a cache-ahead download answered 404, or 400 for a transcode (`Cache::suspects`);
-- a gapless successor failed to pre-load;
-- the current stream failed after the cached and transcode fallbacks;
-- a synchronous metadata fetch for an item without Media answered 404
-  (`Health::request_probe`).
-
-The worker (`runtime/recovery.rs`) runs a status-only
-`GET /library/metadata/{key}` on the shared I/O runtime (`Plex::probe_metadata`,
-5 s, token in a header). Only a 404 carrying `X-Plex-Protocol` (PMS's own answer)
-means Gone; anything else is inconclusive. Limits:
-- 10 probes per rolling minute, 3 of them reserved for current-track failures;
-- 2 concurrent probes, one reserved for the current track;
-- a 60 s cooldown after an inconclusive result;
-- checks suspended for the epoch after 401/403.
-
-Results go into a lossless queue that the worker drains at the top of every loop
-iteration, before taking a request.
-
-**Marks.** Core keeps per-rating-key Gone marks (`src/health.rs`) with a 10 min
-TTL. They are cleared on Connect/SelectServer/Logout and on queue replacement:
-set aside while the replacement is planned, restored if it fails. A shared health
-epoch invalidates in-flight results across those changes and Core rebuilds.
-
-**Radio (stage 1b, 2026-10-19).** Radio uses the same checks and marks. A station
-continues like offline when it can no longer supply tracks:
-- **Refill center:** the station refill centers on the current item while it
-  is not gone. Otherwise it uses the last held, non-gone item: PMS answers
-  nothing after a center it no longer holds. If every held item is gone, it
-  uses the last held ID, once.
-- **Failed refill, track ahead:** the next item is still tried. The exception
-  is a Network/5xx failure, which keeps the offline rule of cycling cached
-  items first.
-- **Failed refill at the window's end:** a non-auth failure, including the
-  empty station of a recreated library, cycles the fully cached radio items
-  (`advance_cached_radio`). If nothing is cached, playback ends with the gone
-  notice when the current item is gone; otherwise the refill error is shown.
-- **Gone tail:** a forward move over an all-gone tail cycles the cached items
-  too.
-- **No trim:** the radio window is not trimmed after a failed refill, after a
-  move that stepped over gone items, or at the gone end, so cached history
-  stays available to the cycle. A station that keeps appending gone items
-  therefore grows by one row per advance until a normal advance trims it again.
-- **Ended station:** Next resumes from its last audible item, offline too: an
-  ended station then cycles its cached items instead of failing with "not
-  downloaded". After a gone end at the window's tail, the cursor rests on the
-  gone item. Previous steps back over it.
-- **Completion report:** a failed station report blocks continuation only for
-  `Unauthorized`.
-- **Accepted:** with nothing cached and an all-dead window, each dead item costs
-  a failed stream and a check, and the check budget can stop the walk with the
-  original error.
-
-**Navigation.** Next (manual and automatic), Previous, QueueRemove of the active
-item and gapless preparation step over Gone items that are not cache-served, in
-the direction of travel (`settle_forward`/`settle_back`).
-- Forward with nothing playable left: a natural end with a gone notice, persisted.
-- Previous with nothing playable behind: the queue is restored and an error shown.
-- An explicit Select or Resume clears the mark and retries.
-- `playback_plan` refuses a Gone item after the cache fast path.
-- Cache-ahead looks past Gone keys.
-
-**Current-track failures.** The failure event carries the pause intent and the
-user-action counter at failure time (`Shared::acted`, bumped at admission of
-transport commands and engine controls). When the verdict is Gone, the worker
-skips the item automatically only if all of these hold:
-- the item is still current;
-- the counter is unchanged;
-- no playback request is queued (`Shared::queued_transport`);
-- the skip target needs no metadata fetch (`Core::peek_skip`).
-
-Otherwise it shows "This track is no longer on the server". An inconclusive
-verdict, or no verdict within 8 s, shows the original error.
-
-**Gapless successor.** A successor that fails to pre-load is retired without a
-banner. Preparation is held until its verdict, and a Gone verdict re-prepares
-past it.
-
-**Track end.** `Event::End` now reports a non-radio `Next` error instead of
-stopping silently.
-
-**Diagnostics.** HTTP audio failures log `occurrence` and `status` (never the
-URI). The decoder logs the transfer's recorded failure behind Symphonia's
-generic probe error.
-
-## Pure-Rust decoding and PulseAudio output (2026-10-16)
-
-GStreamer is removed (Harbour rejects libgstreamer/libgstbase/libgstapp). The audio
-actor, Control/Event/Snapshot/Handle API, segment/transition accounting, crossfade,
-gain and EQ are unchanged; only the decoder, HTTP input and output sink were replaced.
+## 1. Overview and responsibilities
 
 ```
- actor thread (plexfreq-audio): commands, pump, DSP, PulseAudio mainloop dispatch
-   ├─ Decoder (current) ── thread plexfreq-decode: Symphonia demux/decode
-   │     └─ http::Source (blocking Read+Seek) ⇐ byte window ⇐ async HTTP task (plexfreq-rt)
-   ├─ Decoder (prepared successor) ── its own thread, same pipeline
-   └─ Output: PulseAudio stream | Fake (real-time) | Capture (instant, recorded)
+Silica (Qt5.6) / Controls2 (Qt6) QML            presentation, navigation (Session.qml)
+  │  backend.command(op,args) · backend.state/cache/playback · image://plexfreq
+C++ adapter (app/src)                            Backend QObject, EntryModel, ArtworkProvider,
+  │  C ABI: pf_runtime_submit / pf_runtime_poll  translations, window activation
+Rust runtime (src/runtime.rs)                    admission, Core worker, events
+  ├─ Core (src/lib.rs + domain modules)          Plex HTTP, queue/radio, cache, offline, store
+  ├─ audio engine (src/audio)                    Symphonia decode → rubato → DSP → libpulse
+  └─ platform (src/runtime/platform.rs, pulse/)  MPRIS, BlueZ, ConnMan/NM, recording hold
 ```
 
-- Decoding: `src/audio/decode.rs`. One thread per Decoder probes with Symphonia 0.6.1
-  (features flac, mp3, aac, alac, isomp4, ogg, vorbis, wav, pcm), selects the first
-  audio track with a compiled decoder (a cover-art video track is ignored), seeks
-  sample-accurately for resume, decodes, trims, maps channels to stereo (mono
-  duplicated; >2 channels ITU-style downmix normalized to full scale; LFE dropped)
-  and resamples to 48 kHz. It blocks only on a condvar (PCM ready ≥ the actor's
-  requested lead: 2 s plus crossfade tail) or on input bytes, re-checking stop at
-  least every 100 ms; Decoder::drop stops the reader and joins the thread.
-- Trimming: packet trim_start/trim_end are applied when the decoder has not already
-  done so (MP3/Vorbis apply them; AAC does not), and a block is capped at the packet
-  duration (a shortened final MP4 sample marks padding). Symphonia's MP4 demuxer
-  parses but ignores edit lists, so `src/audio/mp4.rs` taps the bytes the demuxer
-  already reads (no extra HTTP range request), keeps `moov` and derives delay/valid
-  length from iTunSMPB or the first non-empty `elst` edit (media duration minus delay
-  when it agrees with the millisecond movie-timescale edit duration).
-- Resampling: `src/audio/resample.rs`, rubato 5.0.1 `Async::new_sinc` (128 taps,
-  linear interpolation of a 256× oversampled Blackman-Harris² sinc, no FFT
-  dependency, comparable to GStreamer audioresample's default quality). The first
-  frame is extended backwards and the last frame forwards instead of zero padding,
-  the filter delay is discarded and the output length is exactly round(n × ratio).
-- HTTP input: `src/audio/http.rs`. The async task on the shared current-thread runtime
-  appends response bytes to a bounded 4 MiB window (Mutex + Condvar for the decoder,
-  tokio Notify for room); it never blocks. Seeks move the decoder's logical position
-  only; a read outside the window (or >64 KiB ahead of it) bumps a generation and
-  requests that offset, so stale bytes of a superseded request are never appended.
-  Probe-time End/Start round trips cost no request. Retries, validators, Content-Range
-  (`*` included), 200-ignoring-Range skipping, progressive transcodes (not
-  byte-seekable; resume via time offset) and the session closer are unchanged.
-- Output: `src/audio/output.rs` + `src/audio/pulse.rs`. One libpulse context per
-  engine (non-threaded `pa_mainloop`, dispatched without blocking by the actor every
-  pump, so callbacks run on the actor thread). Each load/seek creates a float32 stereo
-  48 kHz playback stream (START_CORKED, INTERPOLATE_TIMING, AUTO_TIMING_UPDATE,
-  ADJUST_LATENCY; tlength 300 ms, minreq 20 ms as pulsesink buffer-time/latency-time
-  did; prebuf server default). Pause/recording hold/starvation cork; Play uncorks;
-  load/seek/stop disconnect the stream (queued audio discarded immediately). End of
-  stream drains; the drain callback sets EOF. Stream properties: media.role (x-maemo on
-  Sailfish, music elsewhere), media.name, application.name=PlexFreq,
-  application.id=harbour-plexfreq. Policy request-cork clears play intent; request-uncork
-  is ignored (as REQUEST_STATE was). Stream failure (daemon restart, kill) reports
-  "Audio output is unavailable"; the next load reconnects. Volume stays Rust DSP gain.
-  Each actor service dispatches the mainloop until no event source fires (at most
-  64 iterations): on the socket-only transport (no shm/srbchannel) one iteration
-  reads about one server packet, and a single one per pump left write requests stale
-  behind timing replies after a seek (underflow ~300 ms into most new streams, found
-  by the server-backed tests, 2026-10-16; not reproducible with memfd/srbchannel).
-- Position: `pa_stream_get_time` (server read index minus sink latency, interpolated)
-  in frames, through the unchanged PositionClock (failed query keeps the last value,
-  jitter clamped, ≥1 s backwards jumps rebased, capped at submitted frames). Queued
-  bytes = (submitted − position) × 8, so the 0.5 s backpressure includes server and
-  sink latency. Snapshot.playing requires uncorked and started (not prebuffering or
-  underrun, via started/underflow callbacks); otherwise play intent shows buffering.
-- Format policy: `src/audio/formats.rs` is the single (container, audioCodec) table
-  derived from the compiled decoders; anything else, including empty/unknown values,
-  is transcoded for streaming, and original-quality downloads of such tracks are
-  server MP3 transcodes at 320 kbps (`cache::download_quality`). The runtime's single
-  decode-failure → transcode fallback is retained.
-
-## Typed command admission / worker channel (2026-10-15)
-
-`Runtime::submit` (and MPRIS/Bluetooth through `Shared::send`) parses the wire
-JSON into `crate::Command` (`src/command.rs`) once, at admission. Malformed,
-unknown and `_`-prefixed ops now fail synchronously there (`accepted:false`);
-transport controls (`audio_pause/stop/seek/volume/play/toggle`) are `Command`
-variants executed on the calling thread. `Command::class()` is an exhaustive
-match (no wildcard) giving listing/view-bound/passive/transport/re-prepare/
-session-reset/engine routing, so a new op cannot be added unclassified; `op()`
-comes from strum. The worker channel is `WorkerMsg { Request(Box<Request>),
-Checkpoint(Checkpoint), Shutdown }`: `Request` carries the `Command`, the request
-as submitted (echoed as the event's `request`; Qt reads only `op`) and typed
-routing facts (view generation, busy/page counters, page start, start-paused).
-QML's `_background`/`_refresh`/`_replace` stay wire flags read once at
-admission; `_paused` is now a typed MPRIS argument. Events carry their view
-generation beside the JSON (`Outgoing`) for delivery-time discard. Event and
-reply shapes (`_update`, `_audio_error`, `_discarded`, `_pageStart`,
-`_listAction`, correlated keys) are unchanged.
-
-Fixed-value strings are enums with serde spellings identical to the old
-strings: `model::ItemKind` (Plex `type` of items and library sections; unknown
-types keep their exact spelling in `Other(String)` and order by spelling),
-`queue::Repeat`, `radio::RadioKind`, `CollectionView`, `DownloadAction`,
-`PlaylistAction`, `SmartAction`, `features::AlbumType` (also the Qt
-"AlbumType" key), `PlaybackSource` (written by Core, read back by the runtime's
-decode-failure fallback), `DownloadKind` (plan/group kinds with exhaustive
-minute ranges and radio seeds) and `GroupId` (`kind:key`, persisted as that
-string; its derived order equals string order so `session.json` maps iterate
-unchanged; unparseable persisted entries are dropped instead of rejecting the
-document). The `strum` crate (0.27, derive) provides Display/FromStr/
-IntoStaticStr/EnumIter; tests round-trip every variant through strum and serde.
-Specific user-facing messages for unknown enum values ("Unknown repeat mode",
-"Unknown download action", ...) are mapped at admission.
-
-## Output position domain across sink resets (2026-10-15)
-
-Each Rust Output owns a position clock mapping queried sink frames into its
-appsrc/gapless segment coordinate domain. Failed queries retain the last position;
-minor backwards jitter is clamped. A backwards jump of at least one second rebases
-the offset at the last observed position. Results never exceed submitted frames.
-Load/seek replaces Output and its mapping. No wall-clock progress is fabricated.
-Raw query availability/frame/offset diagnostics distinguish a reset from ongoing
-query failure on the next installed incident. This is local reset-path hardening;
-the Oct 15 phone trace establishes broken timing but lacks raw query evidence.
-
-## Restored playback presentation (2026-10-13)
-
-Runtime::poll projects Core's saved resumePosition and selected track duration
-into the outgoing playback DTO when its audio occurrence is zero. Engine snapshots
-used for checkpoints remain untouched. Loaded/playing/seekable flags continue to
-describe the empty engine, so presentation does not fabricate a decoder or autoplay.
-Active and stopped nonzero occurrences continue to report their actual audio state.
-Qt's existing property/signal adapter presents the DTO on both shells.
-
-## Idle startup checkpoints / durable resume (2026-10-13)
-
-Rust runtime audio occurrence zero means no playback has been loaded. `record`
-rejects it even when the worker's current occurrence is also zero. Periodic,
-transport and shutdown checkpoints therefore cannot overwrite the selected saved
-track's durable position/history with a decoder-free startup snapshot. Nonzero
-matching occurrences still save position zero for genuine seeks/stops. Startup
-continues to publish saved metadata without autoplay; ordinary resume loads its
-saved position. No Qt/QML checkpoint policy is added.
-
-## Production-defect recovery / transparent float DSP (2026-10-13)
-
-Rust session/cache readers recover from malformed whole documents after saving
-their original bytes to a unique 0600 corruption backup using shared atomic writes.
-The invalid active file is removed only after backup success. Ordinary I/O failures
-remain errors. Read-only cache inspection does not write or quarantine. A cache
-quarantine marker protects unindexed media from startup orphan cleanup across
-reopen; it remains unplayable without valid metadata and counts toward quota.
-Symlink targets are excluded from disk accounting just as from lookup and GC.
-These contracts supersede earlier strict whole-index startup failure below.
-
-Ratings tolerate unusable non-finite strings as zero. Smart-rule DTOs always
-provide a valid limit; unsupported limits remain noneditable. Queue history trims
-at natural end without inventing a current selection. Crossfade zeroes unmatched
-output samples. DSP gain/EQ preserves finite float peaks above full scale and
-sanitizes non-finite results; user-selected headroom remains explicit. Downstream
-limiting/physical peak behavior is a separate design and validation question.
-
-Persistent diagnostics strip controls before key matching, redact bare/quoted
-credential assignments with identifier boundaries, and retain the existing
-whole-tail removal for credential-bearing records. Presentation remains Qt/QML-owned.
-
-## Buffered original-stream outage recovery (2026-10-13)
-
-The Rust HTTP reader retains appsrc/decoder state during transient network/5xx
-failures for original streams. A nonzero resume offset requires a representation
-validator; Range/If-Range and total/validator checks prevent mixing different media.
-Reconnect waits grow 1/2/4/8 seconds and remain capped at eight seconds until seek
-or Stop cancels them. Delivered bytes reset the consecutive-failure counter.
-Temporary failures send neither EOS nor a fatal bus error, so buffered PCM can
-continue and the audio actor's existing empty-output buffering state resumes when
-more bytes arrive. Permanent response failures, invalid representations and
-non-resumable progressive streams retain explicit failure behavior. HTTP work and
-retry sleeps remain off the audio actor; memory stays bounded by input watermarks.
-
-## Queue presentation / isolated cache-entry recovery (2026-10-12)
-
-Queue presentation materializes playback order into a linear editable queue and
-clears its shuffle policy. Core snapshots take the displayed items/current from
-that copy but the shuffle indicator from the source queue. Same-row QueueMove
-validates indexes and preserves the source queue and radio without materialization.
-Repeat-all previous wraps across the playback-order boundary.
-
-Cache index syntax and outer map shape remain strict. Individual malformed Entry
-values are skipped with count-only diagnostics; independently valid entries still
-undergo file/length validation and remain available. A manifest write/shutdown
-persists the recovered map. This differs from whole-index corruption, which fails
-before orphan cleanup and preserves evidence.
-
-Lyric JSON syntax failure is plain content; valid unsupported JSON is a protocol
-error. PMS fractional starts use nearest-millisecond rounding, rejecting negative
-or unrepresentable float values and falling back from line to first-span starts.
-
-## Terminal stream cancellation / viewport feedback (2026-10-12)
-
-The HTTP reader's watch value None is terminal cancellation. seek-data updates
-the offset conditionally under the channel write borrow and rejects a stopped
-reader, preventing teardown-time seeks from resurrecting requests. Stop publishes
-None even after receiver loss and supplies appsrc EOS before decoder NULL teardown.
-Existing nonblocking, bounded input feeding remains on the Rust HTTP worker.
-
-Backend exposes Rust audio Snapshot.buffering as a Qt property using the existing
-playbackChanged signal. Sailfish Library/detail and Now playing indicators sit
-outside their scroll content and read live busy/buffering rather than retained
-presentation snapshots; desktop uses its fixed top indicator. Native outgoing
-pages mark departure before route changes and suppress restorePage until their
-next activation, so early request completion cannot undo an intended forward push.
-Core request diagnostics record operation/success/elapsed time, excluding request
-arguments. Blocking metadata/reporting still shares Core's request worker; these
-changes do not make all metadata requests concurrent or remove their HTTP deadlines.
-
-## Production review admission / transport / storage bounds (2026-10-12)
-
-Runtime list generations publish only after successful request admission under a
-short admission mutex shared with generation readers. An unavailable queue cannot
-invalidate accepted replies. Audio structural controls retain a bounded FIFO;
-volume has a latest-value mailbox with one outstanding wake. Load failure returns
-an error before publishing occurrence identity; rejected successor controls are
-retried by the Core worker. Decoder dynamic pads query possible caps and defer
-unknown media types until CAPS, rather than discarding an unnegotiated audio pad.
-
-The HTTP reader alone produces decoder input. It bounds queued bytes explicitly
-with nonblocking pushes and seek/stop-aware waits. Playback/cache/probe share a
-normalized media MIME policy. Plex account/library JSON and async cache metadata
-are bounded to 8 MiB before deserialization. server_path accepts only query-free,
-origin-confined paths, rejecting literal/encoded traversal and separators;
-advertised station/artwork/filter queries have a separate credential-rejecting
-validator. Internal cleanup/filter requests pass query parameters separately.
-
-Cache index errors are explicit and precede orphan deletion. LRU touch is memory
-only until a manifest write/shutdown. Terminal downloads are excluded from retry
-passes; transient failures permit at most three retries per admitted batch.
-Unknown-size downloads reserve quota in 4 MiB windows (smaller fallback near full);
-eviction accounts disk once per pass. Protection identity is a namespace/key tuple.
-Lookup filesystem validation is outside the state mutex; mutation/status I/O still
-needs a larger storage-ownership refactor. A common page envelope uses raw server
-count independently of displayed rows and never advertises more at zero progress.
-
-
-## Rolling radio window / offline continuation (2026-10-12)
-
-Rust `Core::advance_next` replenishes station radio one unseen playQueueItemID per
-advance, including speculative native successor preparation. The prepared queue
-is still committed only when its occurrence becomes audible. Station startup
-(artist and discovery station paths) retains at most eleven tracks starting at
-the selected occurrence. Advancement trims old history so current + future +
-recent history fit eleven rows. Track sonic radio replenishes each advance;
-album sonic radio preserves whole-album groups and may exceed eleven rows.
-
-An empty/failed speculative refill retains an already available successor.
-At the window's end (or past an all-gone tail), any non-auth refill failure also
-cycles cached items (stale-queue stage 1b, above).
-Explicit offline mode, a known disconnected network observation, or a network/5xx
-refill error traverses the radio window in playback order, skips entries without
-usable completed audio and wraps, including repeating the sole cached track.
-The same cache namespace/length validation as ordinary local playback applies;
-partial files and unrelated cached music are never selected. Offline cycling
-retains the queue and radio source, so online advancement can resume replenishment.
-Network facts are distinguished from the initial unknown state. Timeline reporting
-is skipped when disconnected; completion-report failures other than
-`Unauthorized` do not block direct automatic continuation. Queue policy remains entirely Rust-owned.
-
-## Recording fixture synchronization (2026-10-12)
-
-The decoder-free recording fixture uses a capture sink to await actual initial PCM
-delivery, forcing exhaustion before the recording hold. Fresh PCM supplies preroll
-while held: PAUSED commits without delivering it, then recording release commits
-PLAYING and delivers that block. Explicit Pause still cancels retained resume intent.
-This extends the earlier final-Pause preroll fix to recording release and leaves
-production actor/recording policy unchanged.
-
-## Release distribution (2026-10-12)
-
-Tag releases publish the normally installed Sailfish aarch64 RPM and an Ubuntu
-24.04-built Linux amd64 desktop tar.gz. CPack's TGZ generator consumes the existing
-CMake install layout with relative bin/share paths. QML/translations are embedded;
-the archive relies on compatible host Qt6 and audio libraries/plugins. CI extracts
-and smoke-tests the desktop archive before publication. Rootless phone archives are no longer generated;
-Sailfish integration evidence must come from normal Sailjail installation/launch.
-
-## Recording fixture preroll (2026-10-12)
-
-The decoder-free recording actor fixture supplies fresh PCM before awaiting the
-final PAUSED transition. Non-live GStreamer sinks require preroll to commit that
-state; a previously played block may already have drained. The regression also
-awaits PLAYING after release, then verifies Pause cancels retained resume intent.
-
-## Temporary recording holds / bounded Bluetooth lifetime (2026-10-09)
-
-Rust `runtime/pulse/recording.rs` owns a persistent read-only libpulse subscription
-to sources and source-outputs. Two bounded lists identify uncorked non-monitor
-recording streams by indexes/flags only. No microphone samples or stream properties
-are read. Subscription changes trigger reconciliation; an idle loop wakes at 100 ms
-and refreshes every two seconds. Failed queries preserve the last hold until a
-successful observation; cancellation/retry is worker-owned under Audio permission.
-
-Recording changes go directly to the independent audio handle. The actor retains
-logical play intent separately from its recording hold, freezes the output and
-publishes paused rather than buffering. Ending the hold resumes only retained
-intent: manual/ Bluetooth-disconnect Pause or Stop cancels resume; Play during the
-hold remains inaudible until release. Source loads/seeks preserve the hold. Native
-REQUEST_STATE(PAUSED) is serviced before PCM/backpressure checks, with no unsolicited
-uncork resume. Clock-loss recovery cannot override a pause or recording hold.
-Paused snapshots reset the progress diagnostic baseline, so a recording hold is
-not mislabeled as stalled playback even while logical play intent is retained.
-
-Bluetooth facts include existing transport devices, including idle transports.
-Removing the selected device's audio transport now pauses even if Device1 remains
-connected via another profile. Signals are continuously drained while asynchronous
-ObjectManager queries await replies, avoiding zbus's bounded signal-queue/reply
-deadlock. Connection, subscription, queries and deregistration have two-second
-deadlines; shutdown is checked every 100 ms. A draining clone keeps cleanup replies
-deliverable while the match is removed before disconnect. Diagnostic BlueZ RPCs
-are also bounded. Stage-specific shutdown logs record worker joins and Core exit.
-
-Final installed recording pause/resume and close/reopen are user-confirmed and
-log-verified; car-profile-loss policy and stalled-RPC/signal-flood shutdown have
-local fixtures. Historical hang attribution remains probable, without a backtrace.
-
-## Native PulseAudio introspection (2026-10-07)
-
-`runtime/pulse.rs` replaces the sandbox-inaccessible pactl observer. Rust links
-libpulse directly and confines context/mainloop/operations to the existing
-diagnostic worker. Each sample opens the local `$XDG_RUNTIME_DIR/pulse/native`
-Unix socket (UID runtime fallback when unset), with NOAUTOSPAWN. Nonblocking
-iterations share a two-second connection/query deadline and check shutdown every
-iteration. A new connection per sample permits recovery after daemon failure.
-
-Concurrent sink-input/sink list queries must both finish successfully. At most
-32 entries per list are processed; overflow, timeout, denial or connection loss
-produces an unavailable record. Callback data is borrowed only during dispatch;
-technical fields are copied into bounded summaries and arbitrary strings are
-not persisted. Volume is the numeric channel min/max percentage. Stream matching
-retains the exact application.name=PlexFreq whitelist. Sink names are classified
-as bluetooth/null/native-other but never emitted. Indexes correlate stream routes
-with sink state, mute, actual/configured latency and sample specifications.
-
-Cancellation disables both callbacks before their stack userdata is destroyed;
-context teardown precedes mainloop teardown. No observer creates an audio stream,
-starts a daemon or changes routing/volume. C++/QML and playback policy retain their
-existing roles. `examples/pulse-diagnostics.rs` provides a read-only probe of this
-same code. Phone rootless smoke/probe pass; updated normally installed Sailjail
-execution remains pending RPM installation.
-
-## Installed diagnostics boundary / afternoon incident (2026-10-07)
-
-Normally installed Sailjail execution has now been inspected: diagnostics-v2
-audio/BlueZ records work, but `/usr/bin/pactl` is absent from the running app's
-filesystem namespace although it exists over SSH. Thus `runtime/platform.rs`'s
-subprocess observer cannot currently retain installed-app PulseAudio snapshots.
-Rootless log/transport tests do not cover that boundary. The native libpulse
-replacement above uses the existing Audio permission's socket access and retains
-technical-field filtering off the audio/GUI actors.
-
-Pipeline position and `heard_ms` are output-clock-derived estimates, not acoustic
-measurements. The 15:46 incident has advancing position, healthy local decoder
-queues and no pipeline warnings while the user reports stutter. BlueZ active
-transport counts likewise do not guarantee successful packet delivery. Correlated
-ElectricEel BLE failures and recovery following service/application restarts favor
-shared-stack trouble but do not isolate its origin. Playback/disconnect policy is
-unchanged by this read-only investigation.
-
-## Rotating multi-day diagnostics (2026-10-07)
-
-Rust `diagnostics.rs` captures framework and Rust stdout/stderr through a process
-pipe, assembles bounded lines, redacts URLs/token assignments, and writes each record
-to its current local calendar date. Timestamps include UTC offset, monotonic elapsed
-time and PID. Rotation runs independently of Qt event delivery. The Qt adapter
-selects Documents/PlexFreq or the existing AppData/logs fallback and owns one opaque
-log handle until backend and application teardown have completed. Shutdown restores
-stdout/stderr and joins the reader after draining queued records.
-
-Seven log dates are retained, with an 8 MiB active file and one 8 MiB backup per
-date (about 112 MiB maximum under normal operation). An oversized unterminated line
-is discarded through its newline, keeping memory bounded without persisting split
-secrets. Isolated-state tests do not enable persistent user logging.
-
-Audio diagnostics log controls, source class/resume, pipeline state/warnings,
-clock/latency events, HTTP status/offset/bytes, audible transitions and PCM queue
-levels. Snapshots and a two-second no-position-progress detector report stall and
-recovery without changing transport policy. Active heartbeats are ten seconds;
-idle heartbeats sixty. Repeated decoder/output warnings are sampled after their
-first ten occurrences while total warning/QoS counts remain in snapshots.
-
-A separate Rust platform worker observes BlueZ transport counts, load and whitelisted
-PulseAudio stream/sink fields. Read-only pactl queries are capped at two seconds and
-256 KiB; unavailable/denied snapshots are logged. These queries never run on audio
-or GUI actors and do not alter routing, pairing or services. Sampling wakes early
-on playback-state changes. Normally installed sandbox access is a separate runtime
-check; the app logs its own pipeline diagnostics even if pactl access is unavailable.
-
-## Overnight diagnostic scope (2026-10-07)
-
-Persistent Sailfish logging opens the dated file once at application startup.
-An app retained overnight continues writing to that startup-date file; there is
-no midnight rotation in the investigated build (superseded above). Output bus errors/clock loss and HTTP retries
-are logged, but downstream Bluetooth starvation without a bus error is not
-positively identified by these records. The OS owns Bluetooth transport/routing;
-PlexFreq's observer only applies disconnect pause policy. A default PulseAudio
-sink is not necessarily the route of the existing PlexFreq stream.
-
-## Car-trip playback resilience and branding (2026-10-06)
-
-Play explicitly resumes the Rust output pipeline before applying PCM backpressure,
-so a full paused queue can drain without reloading the track. Output bus handling
-recovers CLOCK_LOST through PAUSED/PLAYING only while play is desired and services
-LATENCY recalculation. Bluetooth reconnection itself still does not request play.
-
-Output appsrc retains at most about 0.75 s of PCM (0.5 s scheduling watermark),
-with bounded eight-block actor batches to recover from delayed wakes. PulseAudio
-requests 300 ms buffering and 20 ms latency. Each current/successor decoder retains
-two seconds of PCM plus its crossfade tail; HTTP input holds up to 4 MiB each.
-Original-stream HTTP retries are cancellable and bounded to three (1/2/4 s), resume
-only delivered bytes and require matching validators at nonzero offsets. They do
-not turn unfinished cache files into playable files or byte-resume transcodes.
-
-Sailfish daily diagnostics fall back from Documents/PlexFreq to
-`<AppDataLocation>/logs` if the Documents directory is unavailable in the sandbox.
-Generated PNG launcher assets and an embedded Qt icon derive from root `logo.png`;
-the regeneration tool is `tools/build-icons.py`. Rust retains all transport policy.
-
-Shared TextLink.qml renders compact underlined Show all and Read more/less actions
-on both platforms. Native adapters supply font/color and minimum touch height;
-the shared component handles mouse, keyboard and accessibility activation.
-
-Unfiltered title-sorted artist browse publishes its first bounded 100-item Plex page
-immediately. Session then requests subsequent pages automatically; runtime marks
-their nonzero offsets as background work and EntryModel appends them. The alphabet
-rail uses server offsets without issuing replacement requests. A shortcut beyond
-the loaded prefix remains pending until its page arrives. The rail's current letter
-follows the first card in the visible row; touch selection is a temporary preview.
-Footer grid access is explicit because QML IDs inside the footer component are not
-in the outer ListView's runtime scope.
-
-Rust marks verified `music.recent.added.<section>` and
-`music.recent.played.<section>` discovery hubs after validating the numeric suffix.
-Both shells retain the flattened outer model, section header and Show all action;
-the first item in either contiguous hub hosts a noninteractive nested card grid and
-the remaining duplicate outer rows collapse. Grid and host both clip; the host adds
-bottom separation after the measured card rows so the next section cannot overlap.
-Other Discover hubs remain rows.
-Standalone added/played collection routes also use the route grid and now participate
-in runtime listing append semantics. Favorites remains a list.
-Sailfish's thin translation adapter falls back to read-only `/etc/locale.conf`
-LC_MESSAGES/LANG when the launcher supplies no locale environment. Explicit
-PLEXFREQ_LANGUAGE or environment locale retains precedence; codeset suffixes are
-removed for catalogue lookup. No system settings are written.
-
-Discovery group headers reserve title width from the button's actual left edge.
-Sailfish overrides SectionHeader's built-in x margin and clips long titles; desktop
-uses its layout's width allocation without extra left padding. Show all is a shared
-translated label in Navigation. Qt5 fixture geometry now uses the production-like
-QQuickView hierarchy and SDK-only quick-private polish; no private Qt dependency is
-added to the production application.
-
-## Shared navigation/action catalogue
-
-`app/qml/shared/Navigation.qml` is the common presentation catalogue for the three
-primary destinations, page actions and secondary destinations. Stable IDs define
-order; `definition(id)` supplies translated labels, selection, visibility and
-enabled state. `activate(id)` checks the current capability before forwarding to
-Session or the existing backend command. Offline and Back shortcuts use the same
-definitions. Session owns route/history transitions; Rust owns data and enforcement.
-
-Desktop's `NavigationMenu.qml` uses Controls2 Instantiator/insertItem/removeItem;
-its primary row uses Repeater. Sailfish's LibraryPage uses native MenuItem and
-BackgroundItem repeaters. Both adapters handle only layout and native signals for
-Connection/Back. Sailfish supplies retained BrowsePageView DTOs, active-page state
-and whether the page can navigate root destinations. Stable ID models keep widgets
-alive when backend busy/capabilities/labels change. This replaces duplicated primary
-and main-menu definitions in the platform screens.
-
-Silica primary captions/highlights reference their destination control ID explicitly:
-BackgroundItem's default content parent is an internal item, not the control itself.
-The shared catalogue is now running in the phone's rootless bundle. Native stack
-and shared-policy checks pass; geometry fixture supplies the real Silica context
-and explicitly polishes a controlled Qt window for deterministic size assertions.
-
-Discovery group navigation belongs to section headers. Session's presentation-only
-`groupHub` resolves the common advertised hub key from the displayed group DTOs;
-ambiguous keys produce no shared link. Desktop uses current DTOs; Sailfish uses
-the page-local retained DTOs. Rust still validates and pages the hub endpoint.
-
-Desktop/mobile navigation alignment: desktop now exposes equal-size Discover,
-Library and Playlists destination controls in one full-width row. Selection follows
-the current route or its parent destination for detail pages. Back belongs to a
-separate contextual row. Two menu buttons mirror Sailfish's split: page operations
-(⋮) and secondary destinations/settings (☰). Queue is a normal destination, not a
-checkable toggle. This supersedes the earlier desktop standalone Home-button layout.
-
-Desktop navigation exposes Discovery Home directly at every connected destination,
-one Back control and a Library entry point; Queue is a menu destination. Session's
-`goHome` can reset history, while `browseLibrary` distinguishes entering Library,
-refining the current browse and a fresh browse. Existing no-argument home/browse
-entry points retain their behavior. Detail headers own detail titles, library
-selectors own category labels; contextual headings cover discovery/queue/collections.
-
-Discovery is the default initial destination after Session resolves music libraries.
-Sailfish Library uses an inline scrolling header and a collapsed control summary;
-IntrinsicLoader expands search/browse/sort on demand. Header/tabs use the full page
-width, while only list rows reserve space for the alphabet rail. That rail is a
-list-viewport child bounded below the visible header and above the playback dock.
-
-Sailfish destinations (2026-10-05): root headers expose Discovery Home, Library and
-Playlists directly. Pull-down contains contextual actions, pull-up secondary
-destinations/settings, and the playback dock exposes Queue. Browse/sort controls
-are library-route-only. An active page releases its retained presentation on a
-matching route completion, even when unrelated work remains busy; idle transitions
-retry restoration. Deactivating/off-stack pages keep their transition snapshots.
-Navigation remains in Session, data/grouping in Rust.
-
-## Current runtime (Rust-owned, 2026-10-04)
-
-Next recommendations (2026-10-05): `refresh.rs` serializes automatic metadata plans
-on a separate Rust thread using read-only planner state. Core commits current
-namespace/recipe/generation results, honoring network gates/backoff. `catalogue.rs`
-owns reusable normalized text/order; snapshot stamp, audio revision and plan epoch
-invalidate it. `filters.rs` owns validated scopes/choices/query URIs and smart
-mutations; `discovery.rs` owns scoped layout, hub confinement, measured insights
-and multi-waypoint paths. Qt/QML only edit and present these DTOs.
-
-`bluetooth.rs` tracks audio accessories; a BlueZ signal worker pauses the independent
-audio handle on tracked disconnect. Read errors/idle are not disconnects; reconnect
-never auto-plays. Async match removal precedes connection teardown. Bluetooth
-permission is declared. PCM clipping uses decoded segment limits to honor container
-priming/padding independently of Plex DB duration.
-
-This expansion is deployed in the phone's existing rootless bundle. Final local
-gates and Qt5.6 controller/navigation/MPRIS checks pass; live read-only filter
-choices and genre/year browsing pass. Smart mutations, physical Bluetooth
-disconnect behavior and installed sandbox permissions have distinct validation
-scope; see validation.md.
-
-Sailfish navigation (2026-10-05): each stacked library/detail page has a
-`BrowsePageView` presentation snapshot and a stable, page-local `EntryModel`.
-Session emits `beforeViewChange` before mutating the shared route or submitting
-a replacement request. Outgoing views retain their heading/detail/rows/alphabet
-through the native transition; deactivation also retains content for back/peek.
-Back restoration keeps that snapshot until the matching list request completes.
-Actions and playback still use Session/Rust; these snapshots contain presentation
-DTOs only and are not a second queue/navigation policy implementation.
-The snapshot adapter is validated against native Silica push/pop/reload and deployed
-in the phone's user-owned rootless bundle; see validation.md for exact runtime scope.
-
-Daily-use expansion: `src/quality.rs` owns quality policy/progressive transcode
-URLs and session confinement; `src/daily.rs` owns discovery, Sonic Adventure and
-bounded durable download plans. `Settings.quality` and `download_plans` default
-cleanly for old sessions. Cache entries/partials include representation quality
-so original and transcoded media do not share a cache key. Transcoded partials
-restart rather than byte-resume a freshly generated representation.
-
-Streaming still prefers complete local files. Wi-Fi/mobile caps select subsequent
-remote plans; explicit downloads use their own cap. A progressive decoder uses
-server time offsets and a fresh session for every load/seek. A bounded, Rust-owned
-cleanup worker closes discarded sessions without network waits in the audio actor;
-shutdown performs bounded best-effort cleanup. Cache download cleanup stays on
-the cache worker. The diagnostic `probe_quality` reads at most 256 KiB in memory
-and stops its own server session; it does not play/scrobble or persist that audio.
-
-Discovery returns flattened Rust DTOs tagged with server hub titles; Qt only
-exposes a `groupTitle` presentation role. Listing generations also cover discovery,
-sonic neighbors/adventures and paged offline search. Station metadata tolerates
-PMS's string-valued radio flag. Download plan specifications retain source, duration
-and refresh time separately from ordered track membership. Planning/refresh is
-transactional with respect to group membership and never replaces the playback queue.
-
-DSP retains both track/album gains, switching gain policy on the audio actor.
-Auto selects album gain for identified single-album queues/album radio, track gain
-otherwise. Optional 0–12 dB headroom precedes the existing sample clamp. Idle/paused
-audio control waits are 100 ms and command-wakeable; active scheduling remains 5 ms.
-MPRIS polling copies a small projection instead of full queues and publishes
-Next/Previous capability changes. Physical headset/call/routing tests remain distinct.
-
-Automation uses independent Rust/Qt/QML/i18n/Sailfish-cross jobs in CI; release
-packaging reuses these gates. Qt checks use local/offscreen/fake-sink fixtures,
-distinct from phone routing and live-account validation. Production-review fixes
-(2026-10-04): queue/cache limits enforced in Rust, malformed server entries
-skipped, artwork pending epoch-guarded, audio checkpoints overflow without
-blocking, ConnMan wifi uses the primary route, shared `mutex_lock` helper owns
-poison recovery.
-Review follow-ups (2026-10-04): natural-end queue edits preserve occurrence
-identity; offline detail fallback is paged; replacement-aware snapshot quotas and
-temporary-file reclamation/accounting cover interrupted atomic writes. Streaming
-and cache share Content-Range/validator helpers; full-response seek-prefix skipping
-requires a matching validator. List generations are checked both on execution and
-event delivery, including failures, and page completion carries `_pageStart`.
-Qt polls at 100 ms; download rows reuse one validated cache-status snapshot.
-Hardening (2026-10-04): corrupt queue cursors/orders rejected without worker
-panics, unknown-duration resume/position preserved, track gain preferred
-globally, bad next-track prepare keeps current audio, empty station keys fall
-back to sonic, MPRIS transport independent of list busy state, audio pipeline
-uses fallible construction, shared atomic-write/numeric helpers.
+**Rust** owns everything with policy or I/O. That covers Plex and media HTTP,
+credential persistence and use, models, queue and radio policy, worker
+lifetime, audio decoding, DSP and transport, the cache, offline snapshots,
+MPRIS, Bluetooth and network facts, persistence and diagnostics.
+
+**C++** is a thin adapter. It turns Rust JSON into Qt properties, keeps two list
+models, translates messages, serves images through a provider (the bytes come
+from Rust) and raises the window. It has no Plex endpoint, queue order or media
+API (no QMediaPlayer, no QThread). The only credential it handles is the token
+the user types for a manual connection, which it forwards to Rust (§11).
+
+**QML** handles presentation and navigation only. `app/qml/shared` holds
+QtQuick 2.6-compatible code used by both shells. `app/qml/pages` is Silica and
+`app/qml/desktop` is Controls 2. Shared QML never imports either toolkit.
+
+### Threads
+
+| Thread | Role |
+|---|---|
+| GUI | Qt event loop. Polls the runtime every 100 ms; transport controls run synchronously at admission. |
+| `plexfreq-core` | Runtime worker. Owns `Core`, handles requests, engine events, health and maintenance ticks. |
+| `plexfreq-audio` | Audio actor: controls, pump, DSP. Dispatches the libpulse playback mainloop without blocking. |
+| `plexfreq-decode` | One per current or prepared track: Symphonia demux/decode, trim, resample. |
+| `plexfreq-rt` | The process-wide tokio current-thread runtime (`src/rt.rs`). |
+| `plexfreq-rt-blk` | Tokio blocking pool, at most 8 threads: DNS, cache/artwork filesystem writes, libpulse diagnostic samples. |
+| `plexfreq-recording` | libpulse recording subscription, which uses a blocking mainloop. |
+| `plexfreq-plan-refresh` | Serialized refresh of download plans against a read-only `Core::inspect`. |
+| `plexfreq-log` | Captures stdout/stderr into the dated log (Sailfish only). |
+
+The runtime on `plexfreq-rt` runs the D-Bus observers, MPRIS, the diagnostic
+heartbeat, cache and artwork downloads, audio HTTP readers, health probes and
+the download-yield task. Nothing blocking may run on it; blocking work goes through `rt::unblock`, and
+waiting on a task from the runtime thread itself is refused. Core stays
+synchronous: it drives Plex requests with `rt::block_on` on its own thread, so
+JSON decoding never runs on the I/O thread. A current-thread runtime needs its
+own thread inside `Runtime::block_on` for that to work (tokio
+`Handle::block_on` docs). Dropping a `Task` aborts it. zbus uses its `tokio`
+feature, so its internal tasks run on the shared runtime.
+
+### Source map
+
+| Path | Content |
+|---|---|
+| `src/runtime.rs`, `src/runtime/` | Admission, worker loop, held-failure resolution, download yield; MPRIS, BlueZ and network observers, heartbeat, health probes, libpulse introspection and recording subscription. |
+| `src/lib.rs`, `src/command.rs` | `Core`: typed commands and routing, playback planning, gone navigation, cache scheduling. |
+| `src/plex.rs`, `src/quality.rs` | HTTP client, sign-in, bounded bodies, URL confinement, probes; bitrate policy and transcode URLs. |
+| `src/queue.rs`, `src/radio.rs`, `src/health.rs`, `src/history.rs` | Queue and occurrences, radio windows, gone marks, listen qualification. |
+| `src/cache.rs`, `src/offline.rs`, `src/artwork.rs` | Audio cache and downloads; metadata snapshots, lyrics and artwork store; `image://plexfreq` ids. |
+| `src/daily.rs`, `features.rs`, `discovery.rs`, `filters.rs`, `catalogue.rs`, `refresh.rs` | Discovery, download plans, playlists, mixes, filters, insights. |
+| `src/store.rs`, `src/diagnostics.rs` | Session files; log capture and redaction. |
+| `src/audio/*` | Audio engine. |
+| `src/ffi.rs`, `app/src/` | C ABI and Qt adapter. |
+| `app/qml/shared/Session.qml` | Routes, history, paging, sign-in polling, shared presentation helpers. |
+
+## 2. Runtime and command flow
+
+### C ABI
+
+`pf_runtime_new(state_dir)` starts the runtime, `pf_runtime_submit` takes a JSON
+request and returns an admission reply, `pf_runtime_poll` returns events,
+playback and busy state, and `pf_runtime_free` stops and joins the worker.
+Returned strings are freed by Rust, and every entry point runs under
+`catch_unwind`, so no panic unwinds into C++. Artwork handles outlive the
+runtime; once the worker has exited, their fetches fail.
+
+### Admission
+
+The runtime parses wire JSON into a typed `Command` (`src/command.rs`) once.
+Malformed, unknown and `_`-prefixed ops fail synchronously (`accepted:false`);
+the C++ adapter also refuses `_` ops before submitting. Every command has a
+routing class, assigned by an exhaustive match, so a new op cannot go
+unclassified:
+
+| Class | Effect |
+|---|---|
+| `engine` | Play/pause/stop/toggle/seek/volume run on the calling thread against the audio handle, without entering the worker queue. Toggle follows logical intent: a buffering, held-failure or recording-held track toggles to pause. |
+| `listing` | A start of 0 replaces the list and starts a new view generation; a nonzero start appends and counts as loading-more. |
+| `view_bound` | Listings and similar-artists. Their Plex requests are cancelled when the view moves on, and the reply is discarded. |
+| `passive` | Status, lyrics, timeline, checkpoints and similar. These never raise `busy`. |
+| `transport` | Play/next/previous/radio and similar. Counted as pending user actions until the worker dequeues them. |
+| `reprepare` | Queue edits, shuffle, repeat, quality and audio config. The gapless successor is prepared again. |
+| `resets_session` | Connect, select server and logout. These stop the engine and clear the presented state. |
+
+Requests go to the worker over a bounded channel (256). If it is full, the call
+fails with "Backend command queue is unavailable" and nothing is counted as
+busy. Position checkpoints from the GUI and MPRIS never block: they are kept
+per occurrence, newest first, and applied in order, so an older checkpoint can
+never move a saved position backwards.
+
+### Worker
+
+The worker handles one request at a time, interleaved with engine events,
+finished health probes and the held-failure state machine. Replies whose view
+went stale are discarded, both when they are produced and when Qt polls them.
+The artwork source is updated before each reply is sent, so the reply's image
+ids resolve.
+
+Maintenance runs every 5 s (position checkpoint and, while a track is loaded
+and playing, a `playing` timeline; §4.7), every 2 s (download refresh and a
+cache-status update) and every 30 s (history sync while online).
+
+At a gapless transition, the plan of the new occurrence is published exactly
+once, by whichever of the poll and the worker sees it first. Before any track
+has been decoded after start, the saved resume position and duration are shown
+for display only; that projection never reaches checkpoints.
+
+A Stop resets the saved position. The engine applies Stop asynchronously, so
+until it has, engine snapshots of the stopped occurrence are ignored and a
+stale position cannot overwrite the reset.
+
+### Panic containment
+
+Core execution runs under `catch_unwind`, and so does each worker iteration. A
+panic answers the request with "Backend panic", rebuilds Core from persisted
+state, re-applies the audio configuration, download control and last network
+facts, and publishes the rebuilt status. The audible track keeps playing. Every
+dequeued request is guarded, so a panic can never leave the UI busy. After 3
+panics within 60 s, or a panic during recovery, the worker stops. On exit it
+answers every queued request with an error, applies queued checkpoints, records
+a final position, stops the engine, clears the artwork credentials and releases
+the download hold.
+
+## 3. Plex integration
+
+### HTTP
+
+One pooled `reqwest` client (rustls) is shared by Core, plan refresh and
+artwork: 15 s total timeout, 5 s connect timeout, redirects disabled. The Plex
+token always travels in an `X-Plex-Token` request header; an open redirect could
+send that header to another origin, so a 3xx surfaces as a failure instead.
+Default headers are `Accept: application/json` (new clients should prefer JSON;
+https://developer.plex.tv/pms/), `X-Plex-Product`, `X-Plex-Version`,
+`X-Plex-Platform` and a persistent `X-Plex-Client-Identifier` (a UUID in the
+session).
+
+JSON bodies are bounded to 8 MiB before deserialization, lyrics to 512 KiB and
+artwork to 4 MiB. 401/403 map to Unauthorized, other non-2xx to an HTTP error,
+transport errors to Network. Reqwest's per-read timeout resets after every
+successful read, unlike the whole-request timeout (docs.rs reqwest 0.12
+`ClientBuilder::read_timeout`).
+
+URL confinement (`plex.rs`): a server URL must be a bare HTTP(S) origin.
+Request paths must be query-free and server-relative; `//`, `\`, dot segments,
+control characters, and literal or encoded separators/escapes
+(`%2e %2f %5c %25 %3f %23 %00`) are rejected, and the joined origin is checked.
+Advertised keys (station and artwork keys) may carry queries, but never an
+`X-Plex-*` parameter.
+
+### Authentication and servers
+
+- **PIN sign-in.** `POST https://plex.tv/api/v2/pins`, then poll
+  `api/v2/pins/{id}` while the user authorizes in a browser.
+- **Servers.** `api/v2/resources?includeHttps=1&includeRelay=1`
+  (python-plexapi `myplex.py`, a community implementation rather than a
+  stability promise). The resource list mixes servers with players. Players may
+  carry a null or missing `accessToken`, so only resources whose `provides`
+  contains exactly `server` are decoded. Malformed server entries are skipped
+  (https://www.plexopedia.com/plex-media-server/api-plextv/resources/).
+- **Connecting.** Connections are tried in this order: non-relay, then HTTPS,
+  then local, using the resource's own access token. Certificate validation is
+  never disabled.
+- **Manual connect.** The user enters a server origin and a token.
+- **Persistence.** Account and server tokens persist only in the private session
+  (§10). Server summaries sent to the UI never include tokens.
+
+### PMS endpoints used
+
+Music types are artist=8, album=9 and track=10. Pages use
+`X-Plex-Container-Start` and `X-Plex-Container-Size`, normally 100 items.
+Sources for this table: https://developer.plex.tv/pms/, python-plexapi
+(`library.py`, `audio.py`, `playqueue.py`, `playlist.py`, `media.py`,
+`mixins/rating.py`, `mixins/played_unplayed.py`) and https://plexapi.dev
+reference pages.
+
+| Purpose | Endpoint and behaviour |
+|---|---|
+| Browse | `/library/sections/N/all?type=…&sort=titleSort:asc[&title=…]`. Sort is `field:asc/desc`. |
+| Alphabet | `/library/sections/N/firstCharacter` (artist type, titleSort). Returns Directory groups with key/size/title; summed sizes give page offsets. |
+| Detail / children | `/library/metadata/N`, `/children`. Durations are in ms. Year and index values may be null and are parsed as signed. |
+| Similar artists | `/library/metadata/N/similar`. 400/404 mean unavailable. Capped at 12 numeric library artists. |
+| Sonic | `/library/metadata/{ids}/nearest`, section `computePath?startID&endID` (Sonic Adventure). Sonic analysis needs a server-admin Plex Pass on PMS ≥ 1.24 (https://support.plex.tv/articles/sonic-analysis-music/). A missing `musicAnalysisVersion` is not a signal; the endpoint answer is. |
+| Stations | Metadata with `includeStations=1`. `Stations` may be an array or a `{size, Metadata}` container. The station key becomes a play queue `server://{machine}/com.plexapp.plugins.library{key}` via `POST /playQueues`; windows come from `GET /playQueues/{id}?center=&window=&includeBefore=&includeAfter=`. |
+| Hubs / search | Section hubs; `/hubs/search?query&limit` returns `Hub.Metadata`. Recent hubs are identified by `music.recent.added.<section>` and `music.recent.played.<section>`. |
+| Lyrics | The `Part.Stream` with `streamType` 4 and its advertised key. The response may be plain/LRC or JSON `MediaContainer.Lyrics[].Line[].Span[].text`. A blank line is `{}` with no Span. Start times may be fractional ms. |
+| Rating | `PUT /:/rate?key&identifier=com.plexapp.plugins.library&rating=0..10`. |
+| Playlists | Regular items are identified by `playlistItemID` (uppercase on the server). Smart playlists have no occurrence ids and are read-only here. `leafCount`; duration may be absent for empty playlists. |
+| Timeline | `POST /:/timeline` with key/ratingKey, state, time, duration, `continuing`, plus `playQueueID`/`playQueueItemID` for stations. |
+| Scrobble | `GET /:/scrobble?key&identifier=com.plexapp.plugins.library`. This is the established python-plexapi form; the community OpenAPI describes POST with ratingKey. |
+| Transcode | See §4.2. |
+
+The parsers tolerate `gain`/`albumGain` as numeric strings (unusable values
+are omitted without invalidating the item) and radio flags given as `"1"`.
+
+### Missing items
+
+After a music section is re-created, old ratingKeys and Part URLs answer 404.
+The track comes back under a new ratingKey with the same `guid=plex://track/…`.
+PlexFreq does not look items up again by guid: a Gone item is skipped, and
+the user plays the new copy from the library.
+A transcode `start.m3u8?path=/library/metadata/<stale>` answers 400, not 404.
+
+PMS's own 404 carries `X-Plex-Protocol: 1.0` with an HTML body. A 404 without
+that header may come from a proxy and proves nothing. Only a 404 with the header
+counts as Gone; 401/403 is Auth; everything else is Unknown.
+
+An emptied station answers 200 with zero items for any `center`. A healthy queue
+answers zero items for a center it no longer holds. Zero items therefore does
+not prove a station is dead.
+
+## 4. Playback and queue
+
+### 4.1 Queue and occurrences
+
+The queue (`src/queue.rs`, at most 10 000 items) holds the items and cursor, the
+shuffle permutation, the repeat mode (off, one, all) and history behind the
+cursor.
+
+Shuffle keeps the current track and visits every item once in permutation
+order; Previous follows that permutation. Repeat-one applies to automatic
+advance only, so a user Next skips it. The queue ends with no selection unless
+repeat-all wraps. The queue view shows playback order as an editable linear
+list.
+
+Each start of a track creates a playback occurrence, which rejects stale
+checkpoints. The engine works in occurrences, not rating keys: station queues
+repeat songs under distinct `playQueueItemID`s, and playlists use
+`playlistItemID`. List row identity likewise includes these ids.
+
+### 4.2 Plans, sources and quality
+
+Core resolves the selected item into a plan: the queue, the visible track, the
+stream URL, the playback source (`cache`, `stream` or `transcode`) and the
+bitrate. A completed cache file is preferred before any metadata or network
+work. The stream URL never leaves Rust; it is stripped before anything reaches
+the model or Qt.
+
+Quality settings are a Wi-Fi, a mobile and a download bitrate (each original,
+or one of 64/96/128/160/192/256/320 kbps) and a codec-fallback switch. The
+mobile choice applies only on a known cellular link; Wi-Fi, Ethernet and an
+unknown network use the Wi-Fi choice. The mobile default is 320 kbps when
+nothing is stored; an explicitly stored "original" stays original.
+
+A plan transcodes when the streaming cap is nonzero, or when codec fallback is
+on and the original's (container, codec) pair is not decodable:
+
+| Codec | Containers |
+|---|---|
+| MP3 | mp3 |
+| FLAC | flac |
+| AAC | mp4/m4a/m4b/aac |
+| ALAC | mp4/m4a/m4b |
+| Vorbis | ogg |
+| PCM s16/24/32le | wav |
+
+Plex reports these as lowercase identifiers. Anything else, including empty
+values, is transcoded.
+
+**Progressive transcode** (`quality::transcode_url`):
+- `/music/:/transcode/universal/start.m3u8?path=/library/metadata/K&protocol=http`
+- `directPlay=0&directStream=0&directStreamAudio=0&audioCodec=mp3`
+- `musicBitrate`, `minAudioBitrate` and `maxAudioBitrate` set to the cap
+- `X-Plex-Client-Profile-Extra`: an mp3 musicProfile and a bitrate upper bound
+- a fresh `session` UUID and an `offset` in seconds
+
+With `protocol=http` the body is a progressive MP3, not an HLS playlist (Plex
+for Kodi `audioobject.py`; Music Assistant Plex provider). A transcode cannot
+seek by byte, so every load or seek creates a new session at a time offset. The
+old session is closed in the background with
+`/video/:/transcode/universal/stop?session=…` (OpenPHT
+`PlexMediaServerClient.cpp`); the server also expires idle sessions.
+
+### 4.3 Gapless preparation
+
+After any command that starts or changes playback, the worker computes the
+successor speculatively, without changing the queue or radio, and hands its plan
+to the engine, after the reply presenting the current track. Only one successor
+is predecoded at a time. Its queue position, radio refill and new occurrence are
+committed only when the engine reports that it became audible.
+
+### 4.4 Radio
+
+`src/radio.rs` owns the radio kinds and source URIs.
+
+- **Station radio** (artist and discovery stations) keeps the server
+  `playQueueID`. Its window is replenished one unseen `playQueueItemID` per
+  advance. History is trimmed so current, future and recent rows fit 11 rows.
+  When a station occurrence completes naturally, a `stopped` timeline with
+  `continuing=1` is reported before the refill.
+- **Sonic track radio** chooses nearest tracks and remembers up to 200 recent
+  seeds.
+- **Album radio** expands whole next albums and may exceed the window.
+- Unsupported seeds and failed continuations keep the previous queue
+  (transactional).
+
+Radio refuses shuffle and repeat. A failed completion report blocks
+continuation only for an authorization failure.
+
+**Offline and failure continuation.** In explicit offline mode, on a known
+disconnected network, after a network or 5xx refill error, and at the end of the
+window after any non-auth refill failure (including the empty station of a
+re-created library), the radio window is traversed in playback order, skipping
+entries without complete cached audio and wrapping.
+
+The window is not trimmed then, so cached history stays available. With nothing
+cached, playback ends with either the gone notice or the refill error. An ended
+station's Next resumes from its last audible item.
+
+**Background refill.** A move whose next item has complete cached audio does
+not wait for the server: the refill is owed (`Radio.refill.pending`, at most 12,
+persisted with the session) and the worker fetches it on a separate thread. The
+worker never blocks on that request. The result is applied between worker
+messages, and only to the state it was fetched for: the same radio instance
+(random per radio), source version, queue revision and server. Otherwise it is
+fetched again. It only appends, so queued queue commands keep their indices. A
+prepared successor of the same radio state receives the same items, so its
+commit keeps them; a successor already shown waits for its commit and a new
+fetch. A failed background refill clears the debt; the next move refills as
+usual. A move onto an uncached successor or at the end of the window still
+refills before moving, so its network-failure fallback above applies. The
+station completion report of an automatic move is still sent before the move.
+
+**Refill center.** The refill is centred on the current item if it is not gone.
+Otherwise it uses the last held non-gone item, because PMS answers nothing after
+a centre it no longer holds.
+
+### 4.5 Health and gone items
+
+Checks start only after a failure: a cache-ahead download answered 404 (or 400
+for a transcode), a gapless successor failed to pre-load, the current stream
+failed after the cache and transcode fallbacks, or a metadata fetch answered
+404. The check is a status-only `GET /library/metadata/{key}` (5 s, token in a
+header). At most 10 probes run per rolling minute and 2 at a time, with part of
+that budget reserved for current-track failures. A key is not probed again for 60 s after
+an inconclusive result, and an Auth result suspends probing. Results from before
+a queue, server or Core change are discarded.
+
+**Gone marks** (`src/health.rs`) last 10 minutes, because a rescan can restore
+an item. They are cleared on connect, select server and logout, and dropped when
+a queue replacement succeeds. An explicit Select, Play or Resume of a gone item
+clears its mark and retries it.
+
+Next (manual or automatic), Previous, removing the active item and successor
+preparation step over gone items that are not served from the cache, in the
+direction of travel. Forward with nothing playable left is a natural end with a
+gone notice, leaving the cursor on the last audible item; backward with nothing
+behind is an error, and the queue is restored. Cache-ahead looks past gone keys,
+so its window keeps its size. Gone rows are dimmed and labelled "No longer on
+the server" on both shells. A successor that fails to pre-load is dropped
+silently and checked, and preparation continues past it once the verdict is
+Gone, so a run of deleted tracks is found while the current track still plays.
+
+**Current-track verdict.** A Gone verdict skips automatically only if the item
+is still current, no user playback request is pending, and the target needs no
+metadata fetch. Otherwise the user sees "This track is no longer on the server".
+If the verdict is inconclusive, or none arrives within 8 s, the original error
+is shown.
+
+### 4.6 Held stream failures and restarts
+
+A current-track stream failure is held instead of discarded, so recovery can
+never override a later user control. When the current decoder fails, the
+successor is dropped, the output plays what was already submitted, and the
+engine publishes a held state that preserves position, listened time and play
+intent. While a failure is held, Play/Pause change the held intent, Seek moves
+the held position, and Stop or a new load end it. The worker resolves it
+(recover, replace or abandon); a failure that nothing resolves is given up after
+60 s. Toggle and MPRIS status count buffering and held failures as Playing.
+
+The recovery chain for the current item:
+1. **Cache.** The complete cached file, if one exists.
+2. **Transcode restart** (only when the failing source was a transcode). The
+   stream restarts at the held position, never within 5 s + crossfade of the
+   end. A restart needs new audio from the failed attempt; at most 4 attempts
+   are made without 10 s of new audio, with backoff 0, 2, 4 and 8 s. While
+   paused or known offline, the restart waits for Play or the network without
+   spending an attempt. A pending user request decides instead of a restart.
+3. **Transcode** of an original that failed.
+4. **Gone check** (§4.5), then skip or report.
+
+**Early transcode end.** PMS can end a transcode cleanly before the track's
+duration. That is treated as truncation and restarted as above. If a restart
+ends early again at the same point, the media is shorter than its metadata, and
+it is treated as the real end: the listen is recorded and playback advances
+(keeping a paused state), or ends without a banner if nothing follows.
+
+### 4.7 Listens, history and timelines
+
+The audio engine computes listened time per occurrence from output frames, so
+seeks do not count; Core qualifies and records it. A play qualifies at
+≥ min(half the duration, 240 s). Qualified plays are stored in `listens` (at
+most 10 000, for insights) and in the `history` outbox (at most 2 000).
+Delivered entries are evicted first; when the outbox is full of undelivered
+plays, recording fails until a sync.
+
+History sync scrobbles up to 20 undelivered plays per pass. It runs every 30 s
+while online, and when the user asks. The scrobble endpoint cannot restore the
+original listen time, and an acknowledgement lost in transit can cause a
+duplicate.
+
+While a track is loaded and playing, a `playing` timeline is sent about every
+5 s, within the "normally every 10 s" guidance at https://developer.plex.tv/pms/.
+Timelines are not sent for cached playback, in explicit offline mode, or on a
+known-offline network.
+
+## 5. Audio engine
+
+### 5.1 Structure
 
 ```
-Qt5.6/Silica or Qt6/Controls QML
- → small QObject/model/translation/window bridge (no QThread or QMediaPlayer)
- → Runtime C ABI submit/poll
- → Rust Core request actor + independent Rust audio actor/HTTP readers
- → Symphonia decoder threads → Rust resample/PCM/DSP → libpulse playback stream (music role)
- → Rust zbus MPRIS and read-only network workers
+plexfreq-audio actor: controls, pump, DSP, crossfade, PulseAudio mainloop dispatch
+  ├─ Decoder (current)   ── plexfreq-decode: Symphonia → trim → stereo → rubato 48 kHz
+  │     └─ http::Source (blocking Read+Seek) ⇐ byte window ⇐ async reader task (plexfreq-rt)
+  ├─ Decoder (successor) ── same pipeline, 1 MiB window until promoted
+  └─ Output: PulseAudio stream | Fake (real-time, silent) | Capture (instant, recorded)
 ```
 
-Rust owns worker lifetime and maintenance, request classification/generations,
-queue/radio/successor preparation, media HTTP/header credentials, decoded-frame
-scheduling, transport/position/heard-time, gain/EQ/crossfade, MPRIS and network facts.
-Qt only exposes properties, reconciles presentation models, translates UI/error
-messages and activates the window. Playback URLs/PCM no longer enter Qt audio APIs.
-Artwork still has a Qt Image fallback until its private Rust cache is ready.
-
-The blocking Core HTTP domain cannot stall audio transport/output. Prepared next
-queue snapshots are committed when their PCM becomes audible; the GUI can read
-audio snapshots independently of Core metadata work. One successor is predecoded
-with bounded buffering. PCM output is fixed 48 kHz stereo F32; EQ/gain/sample-clamp
-are Rust math and crossfades use equal-power curves. Output negotiation through
-PulseAudio is not a bit-perfect/sample-rate-matching claim.
-
-Translation catalogues and the build/check dictionary workflow are in
-`app/translations`, `tools/translations.json` and `tools/build-qm.sh`. Full locale,
-base language and English fallback is installed before QML. All 39 reference
-locales are packaged and embedded; context/placeholder coverage is checked.
-
-Earlier sections below record the previous Qt Multimedia baseline and how it was
-extended; `docs/audio-engine-plan.md` describes the replacement and its limits.
-
-Native stream role is selected in Rust from OS identity: Sailfish x-maemo for its
-mainvolume/stream-restore policy; desktop music. The app does not intercept hardware
-keys or alter system policy. Reply correlation includes failures for optional lyric/
-similar-artist requests; QML rejects stale keys and completes current loading states.
-Seek sliders synchronize idle values from playbackChanged after native drag handlers
-remove their initial value binding, retaining QML-only presentation ownership.
-Plex optional gain/albumGain analysis accepts finite JSON numbers/numeric strings;
-unusable gain is omitted instead of invalidating track and lyric metadata.
-Optional Plex gain/albumGain metadata accepts finite numbers and numeric strings;
-missing/unusable analysis must not prevent track/lyric metadata retrieval.
-
-```
-Silica (Qt5.6) / Controls2 (Qt6) QML
-        ↓ shared Session.qml navigation + browser login polling
-Backend QObject — Qt Multimedia platform adapter
-        ↓ queued work / queued completion
-CoreThread — one Rust handle, lifetime confined to worker
-        ↓ opaque C ABI: pf_new / pf_call / pf_free / pf_string_free
-Rust Core → Plex HTTP client, normalized models, session store, playback queue
-```
-
-Rust is the application backend. C++ contains no Plex endpoint, token storage,
-queue ordering or discovery policy. The native decoder/output adapter is Qt
-Multimedia so Sailfish's existing media integration is available without a
-privileged service. Shared UI logic only manages navigation and maps user input
-to backend commands.
-
-## Source map
-
-- `src/plex.rs`: request headers, bounded HTTP, PIN/discovery and origin-safe URLs.
-- `src/model.rs`: typed Plex JSON structures.
-- `src/queue.rs`: selection, shuffle permutation/history, repeat/off/one/all.
-- `src/store.rs`: durable atomic session storage; client UUID persists.
-- `src/lib.rs`: commands, music pagination, metadata resolution, stream planning.
-- `src/ffi.rs`, `app/src/plexfreq_core.h`: paired ownership contract.
-- `app/src/backend.*`: worker lifetime, Qt5/6 player adapter, QML state.
-- `app/qml/shared/Session.qml`: navigation/history, paging, browser authorization.
-- `app/qml/desktop/`, `app/qml/pages/`: platform-specific views.
-
-## Command contract
-
-Requests are JSON objects with `op` in snake_case, parsed into `Command` at
-runtime admission (invalid requests are rejected synchronously). Returns
-`{"ok":true,"data":{...}}` or `{"ok":false,"error":"human-readable"}`.
-
-Operations: `status`, `login`, `poll_login`, `servers`, `select_server` (index),
-`connect` (url/token), `libraries`, `browse` (section/kind/query/start), `children`
-(key/start), `playlists` (start), `play` (items/index), `select_track` (index),
-`next` (automatic), `previous`, `shuffle` (enabled), `repeat` (mode), `logout`.
-`play` enqueues the loaded tracks only; use Load more to expand before playback.
-Metadata is fetched on demand when a track lacks media parts.
-
-User skip ignores repeat-one; automatic EndOfMedia honors it. Shuffle retains
-the playing track and visits every track once in the generated permutation.
-Previous follows that permutation. Queue ends with no selected track; repeat-all
-wraps. Pause/seek/volume act directly on the audio adapter, independently of HTTP.
-
-## Threading and memory
-
-The QThread's `run()` initializes, calls and frees Rust. Inputs and outputs are
-copied byte arrays; no borrowed pointer crosses a thread. Every returned Rust
-string is freed by Rust. C ABI catches unwinds so no panic unwinds into C++.
-Shutdown waits for the bounded request to finish and discards pending requests.
-Large-library requests use bounded server pages. Artist browse displays page one,
-then fills automatically through background page requests; other large views remain
-scroll-triggered incremental pages. UI disables foreground request-producing actions
-while a command is pending.
-
-## Extension boundaries
-
-Add backend behavior and tests in Rust first. Keep native audio integration in
-the shim or add a dedicated Rust playback engine once gapless/DSP requirements
-justify it. Add device-facing capabilities only after checking the Qt5.6 API and
-permissions. Do not import Silica into shared/desktop QML.
-
-## Cross-platform runtime fixture
-
-`tests/qt_backend.cpp` runs unchanged against desktop Qt6 and device Qt5 using
-the same Rust library and `Backend` source. `tests/sailfish/` supplies a separate
-qmake/spec build; `tools/build-device-tests.sh` builds it without adding QtTest
-dependencies to the production app. It runs from a user-owned device directory,
-serves generated media over loopback and keeps session state in QTemporaryDir.
-This isolates the native audio adapter from real Plex credentials and content.
-
-## Account response handling
-
-Plex account resources are heterogeneous. `Plex::resources` filters the exact
-`server` capability before decoding the strict server fields (name, identifier,
-access token, connections). Player tokens can be missing/null and are irrelevant
-to music-server discovery. JSON failures carry only static operation labels,
-never raw response/error values. UI server summaries still omit credentials.
-
-The `savedAccountDiscovery` native test is explicitly opt-in through
-`PLEXFREQ_ACCOUNT_CHECK_STATE_DIR` and a selected QtTest case. It checks an
-existing authorized account without collecting credentials into fixture files;
-default local checks skip it and use synthetic loopback responses.
-
-Server choices are presented as prominent selection cards under a dedicated
-heading in each connection screen. The Sailfish page uses native BackgroundItem
-press handling; desktop uses ItemDelegate inside a scrolling panel. The UI still
-passes the selected resource index to Rust; it does not choose connection URLs
-or handle server tokens.
-
-## Radio and streaming
-
-`src/radio.rs` owns radio-kind/source metadata, station-key discovery and safe
-source URI construction. `Core` starts/extends radio transactionally: an
-unsupported seed or failed continuation retains the previous track/queue.
-
-- Station sources retain a server playQueueID; tracks carry playQueueItemID.
-  Refills exclude already-loaded occurrences, not repeated song ratingKeys.
-- Sonic sources retain a last seed and up to 200 recent seed IDs. Track radio
-  chooses same-type nearest tracks; album radio expands one whole next album.
-- Queue history retains up to 100 tracks behind the current selection after
-  advancement. Future metadata is loaded in station windows or full album groups.
-- QML sends `radio` with numeric key and artist/album/track kind. `stop_radio`
-  clears playback. Responses include a small `radio` summary (kind/title/source).
-- Qt reports its actual station state/time through `timeline`. Rust supplies the
-  server queue/occurrence fields and owns the HTTP request. A ten-second native
-  timer drives periodic reporting. Native transition/end events report the completed
-  station occurrence as stopped with `continuing=1` before successor preparation or
-  an end-of-window refill; terminal automatic refill failures are surfaced rather
-  than silently parking playback. No QML HTTP/media policy was added.
-
-Only the selected track's media is handed to Qt. Queue/radio preparation fetches
-metadata, not audio. There is no offline cache; sequential Qt playback still does
-not guarantee gapless transitions. Radio continuation can incur network latency.
-
-Installed Sailfish launches append stdout/stderr diagnostics to the private
-daily file `~/Documents/PlexFreq/plexfreq-YYYY-MM-DD.log`. Isolated-state smoke tests
-do not write this user log. Decoder and output errors include the underlying
-Symphonia/libpulse reason while the user-facing response stays stable and
-translated. Remote media credentials never reach a decoder: Rust's HTTP reader
-supplies bytes through a Read/Seek window (GStreamer appsrc before 2026-10-16).
-
-## Artist-first navigation and detail models
-
-- Root route is always an artist search/list. Artist activation opens a `detail`
-  route with artist metadata and album children. Album activation opens another
-  detail route with album metadata and tracks.
-- `detail(key,start)` fetches metadata on the first page only; subsequent child
-  pages append without clearing the header. Keys are validated numeric IDs.
-- Item models retain summary, art, Image URLs, year, track index and disc index.
-  Rust normalizes an authenticated photo gallery, deduplicates URLs and rejects
-  cross-origin paths. Optional detail values can be missing/null; metadata numbers
-  are signed. QML only presents returned fields.
-- Shared Session owns route/history and emits navigation intent. Sailfish maps
-  that intent to separate Artist/Album stack pages and restores parent routes on
-  return. Desktop reuses the same history with an in-list header.
-- `RadioIcon.qml` is a QtQuick2.6 scene-graph antenna/waves, wrapped by each platform's native button.
-  Radio seed type is retained explicitly; a lifetime subscription is not inferred
-  from a per-item analysis field. The recommendation endpoint decides availability.
-
-Detail headers use the shared `IntrinsicLoader.qml` size contract: explicit
-width, height from the loaded item's **implicitHeight**, and clipping to that
-region. Never bind Loader height to its item's actual height, because Loader
-assigns that height back to the item. The following list rows need the full
-intrinsic header size for placement. Row artwork is constrained to row bounds.
-
-## Audio cache
-
-`src/cache.rs` owns the file/index/download policy. The initial private cache is
-`<state-dir>/audio-cache` (normally under per-user AppData), with a 512 MiB default
-budget and a five-track look-ahead. This is not a Plex Sync/download-queue client;
-it directly caches the original Part representation already used for playback.
-
-- Separate Rust thread/current-thread Tokio runtime, async reqwest and cancellable
-  generation watch. Plex commands/UI do not wait for whole media downloads.
-- Jobs are replaced as playback moves; order follows the queue's actual shuffle
-  permutation. An explicit download list is retained in the current Core and
-  merged with priority current/upcoming tracks.
-- Strong ETag or Last-Modified If-Range, validated Content-Range/length, identity
-  encoding, served-representation size checks, and safe restart when a server returns 200
-  instead of the requested partial range. Non-audio error responses are rejected.
-  Partial files are never handed to the decoder.
-  PMS database Part.size is a hint, not the completion authority: the observed
-  server serves a slightly different byte count. Committed metadata retains the
-  actual received size.
-- 0600 media/metadata in a 0700 directory; SHA-256 namespace includes origin/token
-  and file key includes ratingKey/Part path. No raw token or authenticated media
-  URL is stored in the index. Different credentials/origins do not share entries.
-- Atomic completion rename and index commit; completed-file length checked on
-  lookup. LRU eviction protects current/upcoming/explicitly requested tracks.
-  The limit includes partial audio, not small JSON/lock-file overhead.
-- Process-exclusive cache file lock. On drop, cancel jobs, close the job channel
-  and join the worker before releasing the lock. Interrupted-job metadata permits
-  startup recovery. Diagnostic `pf_new_inspect` opens read-only cache state and
-  never starts media jobs or modifies LRU state.
-- Core prefers local completed files before metadata/network resolution. Cache
-  catalogue is persisted. The C++ adapter can retry a failed remote source from
-  a completed local file and restore position after decoder loading.
-- Cached station playback does not contact the timeline endpoint; offline play
-  history sync remains future work. New radio recommendations require a server.
-- Cache status uses a separate QObject `cache` property/notification so polling
-  does not reload biographies/gallery/models. Passive polls preserve user errors.
-
-Commands: `cache_status`, `cache_config` (enabled/limit_mb/ahead), `cache_tracks`,
-`cached_tracks`, `cached_playback`, `clear_cache`. Artwork/library snapshots,
-permanent download pins, complete queue/session persistence, and network-type
-controls are separate follow-ups.
-
-## Reactive UI and browsing updates
-
-The C++ adapter tracks total work separately from foreground busy and loadingMore.
-Passive polling/timeline/alphabet requests do not alter user-visible busy state.
-Cache notifications and generic state changes are emitted only for actual changes.
-EntryModel is a presentation adapter over immutable Rust-returned QVariant DTOs:
-append notifications and identity-based reconciliation preserve existing rows.
-
-List-request generations reject stale results after navigation. Explicit replace
-markers distinguish a letter jump/back-restored nonzero page from incremental
-append. Shared Session deduplicates pending page starts, debounces artist search,
-and snapshots detail metadata independently of generic list/state updates.
-
-Rust `alphabet(section)` reads/caches server firstCharacter groups with artist
-type/titleSort ordering. Session uses those offsets against the incrementally filled
-artist model, retaining a target until enough background pages have arrived.
-The legacy `jump_artist` command remains protocol-covered but normal UI shortcuts no
-longer replace the model. Filtered searches hide the rail. Recently added albums and
-recently played tracks share the responsive artwork/title grid; their normal paging
-starts at 75% and preserves the outer scroll offset while cards are appended.
-
-## Similar-artist navigation
-
-`similar_artists(key)` is an optional Rust metadata request to the documented
-PMS `/library/metadata/N/similar` endpoint. Its separate response contains
-`similarKey`, `similarArtists` and `similarAvailable`, never a replacement `items`
-list. Results are deduplicated numeric library artists, capped at 12, with the
-existing authenticated/origin-confined artwork normalization.
-
-Session requests similarity after the initial artist detail succeeds and keeps
-it separate from detail snapshots. C++ treats this request as passive, excludes
-its data from global state, suppresses global errors and discards replies from
-older view generations. Both platform headers activate cards through the same
-artist route/history path as normal library entries. Empty/unavailable similarity
-does not prevent browsing the artist's albums.
-
-## Queue persistence and media controls
-
-Private Settings now holds raw playback state (Queue, exact shuffle traversal,
-current occurrence, repeat, Radio, position and playback generation) and persistent
-download plans/groups. Queue DTOs follow actual playback order and normalize
-artwork on demand; generated framework URLs never enter session snapshots.
-`enqueue`, `enqueue_album`, `queue_move`, `queue_remove`, `play_album`, `resume`
-and `save_playback` keep this policy in Rust. Removing the final active occurrence
-stops rather than replaying an earlier track. Playback generations reject stale
-position checkpoints, including consecutive occurrences of the same rating key.
-
-The C++ adapter checkpoints native position periodically/on pause/seek/shutdown,
-and restores position only after native media becomes seekable. Startup publishes
-the saved track without a decoder URL or autoplay. CoreThread drains accepted
-requests at normal shutdown so the final checkpoint can finish.
-
-`src/runtime/platform.rs` (zbus, on the shared runtime) exports Root/Player on the
-session bus under `org.mpris.MediaPlayer2.plexfreq`. Typed metadata and capabilities
-reflect the presented model and the engine snapshot; transport methods send existing
-Core/audio commands. Position/length are microseconds, SetPosition checks occurrence
-identity and Seeked reports seeks. PropertiesChanged carries only properties whose
-value differs from the last successfully emitted set (missing ones are invalidated):
-BlueZ's AVRCP bridge (`mpris-proxy`) treats every received Metadata as a track change
-and restarts its position at zero, so pause, volume or queue changes must not resend
-it. After a Metadata emission the loop sends `Seeked` (a position resync, not a
-user seek) with the engine position of the occurrence that Metadata named. It
-waits while `presented.shown` differs from that occurrence, drops the resync if
-the occurrence changes or unloads, and skips it below 1 s into the track. The
-check is on occurrence identity, not on model contents: while `start_plan` or
-`settle_resolution` have set `shown` but not yet merged the model, Metadata can
-briefly carry the new trackid with the old title. The position is still the
-right one for that trackid, and the merge re-sends Metadata and the resync.
-Authenticated URLs are excluded; only cached local artwork is exported.
-
-## Now-playing, discovery and offline metadata
-
-Shared Session correlates lyrics to the current rating key, with passive requests
-and separate lyric state. Platform-specific now-playing views remain within their
-own import sets. `src/lyrics.rs` parses plain/LRC text, multiple timestamps and
-offsets. Rust fetches the advertised Part.Stream type-4 key with a 512 KiB bound.
-
-`search` flattens music hubs from `/hubs/search`; `collection` supplies paged
-favorites/added/played views; `favorite` uses a documented rating PUT. Local DTOs
-and cached snapshots update after successful rating changes. The played view is
-PMS history; ordinary and offline playback history synchronization is still a
-follow-up beyond existing station timeline reporting.
-
-`src/offline.rs` stores raw credential-scoped request snapshots (64 MiB including
-retrieved lyrics). Network/5xx failures may use saved pages; authorization failures
-do not silently fall back. Explicit offline mode bypasses Plex and cancels audio
-downloads. `offline_browse` merges saved metadata and completed audio catalogue;
-details use saved pages or known parent-child relationships. Unvisited data is
-not claimed to be present.
-
-A separate bounded Rust artwork worker uses header authentication, rejects
-redirects/cross-origin paths and stores private local images (4 MiB/image, 128 MiB
-total). Artwork publication is generation-guarded on connection changes/logout.
-C++ schedules returned metadata for artwork caching without owning HTTP policy.
-
-Pins retain group membership plus raw track plans. Scheduling protects permanent
-pins independently of temporary queue protection; cancellation does not unpin.
-Restart rebuilds protection and schedules retained plans. Overlapping album/
-playlist/track groups preserve shared downloads when one group is removed.
-
-### Lyric representations and playlist totals
-
-`lyrics::decode` selects plain/LRC versus PMS JSON. The latter extracts
-MediaContainer.Lyrics.Line.Span text, including empty stanza lines. Arbitrary JSON
-is never treated as display text. Offline retrieval repairs old caches containing
-literal JSON through the same normalization path.
-
-Items retain optional leafCount/durationInSeconds; playlist DTOs add totalDuration
-in milliseconds. Explicitly empty playlists have zero duration; missing metadata
-for nonempty playlists stays null. Shared Session formats total count/time for
-list rows and preserves the playlist seed while children paginate.
-
-Track DTOs distinguish albumArtwork (origin-confined parentThumb, falling back to
-track artwork). Passive cache status can update a newly available local album
-image without reloading the queue. Sailfish CoverBackground binds that image with
-bounded geometry above captions and native cover actions.
-
-## Playlist management, history and browsing/mixes
-
-`src/features.rs` implements regular playlist mutation, playlist metadata/items,
-chooser pagination, sorted library browsing, bounded album grouping, mix building,
-download group presentation/actions and history delivery. Playlist entry identity
-is playlistItemID, not ratingKey; smart contents remain read-only. Changed metadata/
-item/list snapshots are invalidated. QML dialogs use separate chooser state rather
-than replacing the current browser model.
-
-Native playback sampling accumulates elapsed time only when position advances
-while playing, and resets the position baseline on seeks. Playback occurrence IDs
-survive pause/resume/fallback but change for a new track occurrence. Rust qualifies
-listens, persists scoped history and records delivery acknowledgements. Ordinary
-remote playback sends timelines; cached/offline playback records a durable outbox
-and syncs scrobbles after reconnection. The replay endpoint cannot guarantee original
-server timestamps or exactly-once delivery after an acknowledgement is lost.
-
-Artists/albums/tracks can be browsed by title, added time and (where applicable)
-year. Optional artist-album grouping loads up to 1000 albums and exposes a separate
-albumGroup presentation role. Autoplay asks for actual nearest recommendations,
-then can fall back to the advertised artist station. Multi-seed mixes interleave
-shuffled per-seed pools and remove duplicate tracks; this policy is Rust-owned.
-
-## Engine-held stream failures (2026-10-19, Plan E1.4)
-
-The player's engine (`Engine::with_recovery`) holds a current-track stream
-failure instead of discarding it, so recovery can never override the user's
-later controls.
-
-**Drain, then hold.** On a fill failure of the current decoder, the actor:
-- stops decoding and drops the successor;
-- closes the failing segment at the last submitted frame;
-- lets the backend drain play out the audio already submitted. Its bound is
-  the queued time plus 3 s of un-paused play.
-
-Every exit then completes the segment timeline, so a queued successor reports
-its `Transition` first. The actor then enters the failed state. That state:
-- is published as `loaded`, `failed` and buffering (or paused);
-- keeps the position, listened time and play intent;
-- is reported by `Event::Error {recoverable, facts}`.
-
-**Controls while held.** Play/Pause change the held intent and Seek the held
-position (clamped). Stop and Load end the failure; Prepare is ignored.
-
-**Resolution.** The worker resolves the failure with
-`Handle::resolve(failed, seq, Recover|Replace|Abandon, expiry)`.
-- **`Recover`:** the same item, at the held position and intent.
-- **`Replace`:** a gone skip, with its own position and the held intent.
-- **Answer:** `Event::Resolved {Loaded, Refused, Abandoned, LoadFailed,
-  Expired}`. The engine abandons on its own after 90 s.
-
-**The worker's single failure slot.** Each failure follows the same chain,
-and the worker commits presentation only on `Loaded`:
-1. the cache;
-2. a transcode restart (below);
-3. a transcode;
-4. the stage-1 gone check (skip or report).
-
-A worker load supersedes the slot; its late outcome is ignored (`seq`). While
-a skip is pending, `current` is 0, so the failed engine id cannot record into
-Core's new item.
-
-**Transcode restart.** A dropped transcode restarts at the held position.
-- **Episode** (per logical occurrence): new audio is needed to start one; at
-  most 4 attempts without 10 s of new audio; backoff 0, 2, 4 and 8 s.
-- **Paused, or known offline:** the attempt waits for Play or the network.
-- **Near the end:** no restart.
-
-**Accepted limits:**
-- Decoder-buffered PCM (up to 2 s plus the crossfade tail) is not drained;
-  the recovery replays it from the drain-end position.
-- The HTTP reader reports a broken transfer before its buffered bytes, so a
-  drop is met as soon as it happens, not when playback reaches it.
-- A Play routed by a stale `loaded` snapshot can reach an unloaded engine;
-  pressing Play again resumes.
-- Pause during a gone check no longer cancels the skip: the skip loads paused.
-- Toggle and MPRIS status follow the logical intent: buffering and held
-  failures count as Playing.
-
-## Cellular streaming quality (2026-10-19)
-
-The network observer reports three facts for the default route: Wi-Fi, cellular
-and online.
-- **ConnMan:** the first ready/online service, skipping `vpn` services so the
-  carrier link underneath decides. `cellular` is its `Type == "cellular"`.
-- **NetworkManager:** `PrimaryConnectionType` `gsm`/`cdma` count as cellular.
-  For NM's own VPNs the primary connection is the underlying link, by NM's
-  definition. A VPN-type primary, if it ever occurs, counts as neither.
-- **Not cellular:** Bluetooth tethering and Wi-Fi hotspots count as not
-  cellular (accepted).
-- **Wi-Fi-only downloads:** skipping a ConnMan VPN also changes them. With a
-  VPN over Wi-Fi they are now allowed; before, they were blocked.
-
-`Command::NetworkState` carries `cellular` (default false). A change of any
-fact cancels and reschedules cache-ahead, and the fact is replayed after a
-Core rebuild. `quality.streaming(cellular)` returns the mobile choice only on a
-known cellular link: Wi-Fi, Ethernet and an unknown network use the Wi-Fi
-choice (user decision). The mobile choice defaults to 320 kbps only where no value
-is stored (new installs). Sessions saved by older builds store `mobileKbps: 0`
-explicitly and keep original quality: 0 is also a valid user choice, so there is
-no migration. Facts are not persisted, so the Wi-Fi choice applies until the
-first observation after start (up to the 5 s query deadline). A gapless
-successor prepared before a network change keeps its quality; the next
-preparation uses the new one. Download policy (`wifi_only`) still requires
-Wi-Fi.
-
-A dropped transcoded stream is restarted at its position by the engine-held
-failure recovery (above).
-
-## Stream buffering and download yield (2026-10-19, Plans E2.3/E3.3)
-
-**Successor pre-load timing (actor):**
-- A remote successor of a remote current track is kept as a pending source
-  and its decoder (and HTTP request) is created only when one of these holds:
-  - the current decoder reached its end;
-  - after the current decoder produced audio, its reader completed (the
-    window reaches `total` when known);
-  - its window holds ≥ 3/4 of its capacity, or ≥ 20 s of audio by an
-    advisory rate (`musicBitrate` for transcodes, size ÷ duration for
-    originals);
-  - ≤ 60 s plus the crossfade remain, with no stall in the last 10 s.
-- Local successors, and any successor of a local track, start at once.
-- A successor's reader window is 1 MiB until the gapless join promotes it,
-  then 4 MiB.
-- Stop, load, failure and a replacing Prepare drop a pending source. A seek
-  keeps it, and with a remote current a created remote successor becomes
-  pending again.
-
-**Resume gate (actor + output):**
-- **Start gate:** a fresh remote load or seek stays corked until 500 ms are
-  decoded (above PulseAudio's 300 ms prebuffer).
-- **Stall gate:** entered when nothing is pushable and `Output::starved()`
-  holds:
-  - PulseAudio: uncorked, not running, last fact an underflow;
-  - the real-time fake: uncorked with nothing queued;
-  - capture sinks: never.
-
-  The stream is corked and resumes only with 5 s of playable audio (the
-  crossfade reservation does not count), or at the decoded end, or after
-  15 s of un-paused waiting with ≥ 500 ms.
-- **Releases** below the prebuffer arm a one-shot `pa_stream_trigger` after
-  the next pump batch.
-- **One uncork path:** Play, recording end and the pushes all uncork only
-  without a gate, so a slow link gives a few long pauses instead of a run of
-  300 ms stutters. A local stream is never gated: it corks on starvation and
-  uncorks with its next block, as before.
-- **Crossfade:** a crossfade wait is never gated. If the output starves
-  there, that boundary's fade is dropped and the old tail plays unfaded.
-- `Snapshot`/`Change.starved` is true with play intent while a Stall gate
-  is set, or a Start gate has lasted over 1 s. `buffering` is unchanged.
-
-**Download yield (cache + runtime):**
-- A task owned by the runtime worker watches engine changes. It sets the
-  cache hold while the engine is `starved`.
-- **Release:** after 10 s of healthy playing, or at once when nothing plays
-  (paused, including a recording hold; stopped, unloaded or a held
-  failure), and at worker exit.
-- **Hold vs cancellation:** the hold is a `watch` in `cache::Gate`,
-  separate from `allowed()`, so it never cancels or resets progress. The
-  wanted state is stored in `Shared` and applied under the download-control
-  lock, so a control installed by a Core rebuild inherits it.
-- **What a hold does to a download:**
-  - an original with a validator and a known size drops its connection at
-    once (a paused read would not stop the server sending until socket
-    buffers fill) and resumes by range after release, spending no attempt;
-  - if that resume is answered with the whole file, the item is not
-    interrupted again in that batch (across its retry passes);
-  - a cancel always wins over a release that lands at the same time, and a
-    released item re-checks the batch epoch before any request;
-  - transcodes and other downloads finish the current item, and every item
-    waits for the release before it starts. Manual downloads follow the same
-    rules.
-- The cache status reports `held`; the UI does not show it yet.
-
-## Network-aware download cancellation
-
-QtDBus observes ConnMan/NetworkManager read-only and reports connection facts. Rust
-owns Wi-Fi-only/pause policy and the download scheduler. `DownloadControl` is a
-separate Arc-owned cancellation/gate handle cloned on the Core thread; the C ABI
-permits concurrent fact/policy hints without borrowing Core on the GUI thread.
-CoreThread coordinates its lifetime under its request mutex. Accepted early hints
-are retained, and stale queued observations do not overwrite newer atomic facts.
-
-The audio worker checks the gate before batches/jobs and selects cancellation
-during HTTP; artwork jobs are generation-invalidated (an already active bounded
-image request may finish but cannot publish after cancellation). Core stays
-thread-confined. GUI policy observation never changes system network settings.
-
-See `audio-engine-plan.md` for the current Rust/C++ boundary and a proposed future
-Rust-controlled audio pipeline. The current engine remains Qt Multimedia.
-
-## Session persistence split (2026-10-15)
-
-Session state is split: `session.json` (small settings and checkpoint, written
-atomically only when its bytes change), `queue.json` (queue + Radio, rewritten only
-when the queue's revision (replaced by every `Queue` mutation) or the Radio
-fingerprint changes; its revision is mirrored in `session.json` and
-a mismatch drops the stale position), and append-only `listens.jsonl` /
-`history.jsonl` (newest record per namespace+occurrence wins on replay, replay uses
-the same cap eviction as memory, damaged lines are skipped, atomic compaction when
-damaged, above 2x cap or diverged). A checkpoint writes at most one log line (with
-`sync_data`) plus ~0.7 KB `session.json`. The owner migrates old all-in-one sessions
-at startup by writing the new files first. `Core::inspect` never writes.
-
-## Shared I/O runtime (2026-10-15)
-
-One process-wide tokio current-thread runtime (thread `plexfreq-rt`, `src/rt.rs`)
-runs D-Bus observers, MPRIS, the diagnostic heartbeat, cache/artwork downloads and
-audio HTTP readers as tasks; filesystem and libpulse steps use the bounded blocking
-pool (`rt::unblock`). Core stays synchronous and drives Plex requests (one pooled
-async reqwest client) with `rt::block_on` on its own thread. Owners stop tasks
-deterministically (Halt watch where async D-Bus cleanup is needed, abort otherwise);
-zbus (tokio feature) runs its internal tasks on the shared runtime. No blocking
-filesystem/D-Bus/libpulse call may run on `plexfreq-rt`; use `rt::unblock`. MPRIS emits on an audio transport change
-watch (position excluded), model revisions and seeks, with a 1 s fallback. View-bound
-commands abort in-flight HTTP when navigation moves past their view; the reply is
-discarded. The audio actor (which also dispatches its libpulse playback mainloop),
-one decoder thread per current/prepared track, libpulse recording mainloop, log
-capture and Core worker remain dedicated threads.
-Decision (2026-10-15): stay on one current-thread runtime. Throughput is ample; the
-risk is a blocking call landing on `plexfreq-rt`. If audio stalls or I/O latency
-show up on the phone, switch to a 2-worker multi-thread runtime (tokio feature
-`rt-multi-thread`, builder change in `src/rt.rs`; tasks are already `Send`).
+Controls reach the actor over a bounded channel; the engine publishes a snapshot
+and a change watch (transport fields without position) that drives MPRIS, the
+heartbeat and the download yield without polling. `PLEXFREQ_AUDIO_SINK=fake`
+selects the fake sink.
+
+Output is fixed at 48 kHz, stereo, float32. There is no bit-perfect or
+sample-rate-matching claim.
+
+### 5.2 HTTP input (`src/audio/http.rs`)
+
+An async reader appends response bytes to a bounded window: 4 MiB for the
+current track and 1 MiB for a successor until promotion. It has a 5 s connect
+timeout and a 10 s read timeout, with redirects disabled. The token is sent as
+a header; the decoder never sees a URL. A read outside the window, or more than
+64 KiB ahead of it, starts a new request at that offset, and bytes of a
+superseded request are never used.
+
+Ranged resume follows RFC 9110 (§13.1.5 If-Range, §14.4 Content-Range,
+§15.3.7): a nonzero offset requires a strong ETag or Last-Modified validator and
+is sent with `Range` + `If-Range`; `Content-Range` is validated, including `*`
+for an unknown total; if the server ignores the range and answers 200, the
+prefix is skipped only when the validator matches.
+
+Retries:
+- Until bytes have entered the window, 3 retries are allowed (4 requests in
+  total, 1/2/4 s apart). Exhausting them fails the decoder, so the runtime can
+  choose a fallback. Entering the window is the only proof required; it does
+  not imply successful decoding or audible output.
+- After that, transient network and 5xx failures of a byte-resumable original
+  keep retrying the same representation, backing off 1/2/4/8 s (capped at 8 s),
+  until a seek or Stop. A response that makes no progress loses this status.
+- A progressive transcode is not resumable by bytes. Its broken transfer is a
+  stream failure, handled by the restart in §4.6.
+
+A broken transfer still hands over the bytes it already received, so playback
+continues to the heard position before the failure surfaces.
+
+### 5.3 Decoding (`src/audio/decode.rs`, `mp4.rs`, `resample.rs`)
+
+Symphonia 0.6.1 is built pure Rust, with default features off and `flac, mp3,
+aac, alac, isomp4, ogg, vorbis, wav, pcm` enabled. It has no Opus or WMA
+decoder (docs.rs/symphonia 0.6.1; crate sources).
+
+Each decoder picks the first audio track with a compiled decoder (ignoring
+cover-art video tracks) and seeks sample-accurately for resume. Mono is
+duplicated to stereo; more than 2 channels get an ITU-style downmix normalized
+to full scale, with LFE dropped. Symphonia's probe treats a read error as end of
+stream, so an HTTP failure during probing is logged alongside the "no suitable
+format reader" error.
+
+**Gapless trimming.**
+- Packet `trim_start`/`trim_end` are applied where the decoder does not already
+  do it. MP3 (LAME/Xing delay) and Vorbis trim in the decoder; AAC does not.
+- Symphonia's MP4 demuxer parses `elst` but does not apply it ("Since edits are
+  not currently supported", `symphonia-format-isomp4`). `mp4.rs` therefore taps
+  the bytes the demuxer already reads, with no extra HTTP request, and derives
+  delay and valid length from iTunSMPB or the first non-empty edit.
+
+**Resampling.** rubato 5.0.1 asynchronous sinc resampler (128 taps, no FFT
+dependency; rubato README and `Async` source). Edges are extended rather than
+zero-padded, the filter delay is discarded, and the output length is exactly
+round(n × ratio).
+
+### 5.4 Flow control and buffering (`src/audio/mod.rs`)
+
+Decoders keep 2 s of PCM ahead plus the crossfade tail. A remote successor of a
+remote current track is not opened until the current track is well buffered or
+close to its end, so the successor never competes with the audible stream for
+bandwidth. Local successors start at once.
+
+**Resume gates.** A fresh remote load or seek stays corked until 500 ms is
+decoded (the Start gate), above the 300 ms prebuffer. When nothing is pushable
+and the output is starved, the stream corks (the Stall gate) and resumes with
+5 s of playable audio, at the decoded end, or after 15 s of unpaused waiting
+with ≥ 500 ms buffered. A slow link therefore gives a few long pauses instead of repeated 300 ms
+stutters. Local streams are never gated. The engine reports `starved` when play
+is intended and a Stall gate is set or a Start gate has lasted over 1 s; this
+drives the download yield (§6.1). If the output starves during a crossfade wait,
+that boundary's fade is dropped.
+
+**Crossfade.** Equal-power, 0–12 s, off by default. It is suppressed between
+tracks of the same album and never exceeds a short, fully decoded successor.
+
+**Position.** `pa_stream_get_time` gives the server read index minus sink
+latency, interpolated with `INTERPOLATE_TIMING` + `AUTO_TIMING_UPDATE`. The
+reported position never exceeds submitted audio, small backward jitter is
+clamped, and a backward jump of at least 1 s rebases it.
+
+### 5.5 PulseAudio output (`src/audio/pulse.rs`, `output.rs`)
+
+Each engine has one libpulse context on a non-threaded `pa_mainloop`, dispatched
+by the actor without blocking, so all callbacks run on the actor thread. Each
+dispatch iterates until no event source fires: on a socket-only transport (no
+shm/srbchannel), libpulse's `pstream.c` reads one packet per iteration (libpulse
+16.1 `do_pstream_read_write`).
+
+Each load or seek creates a float32 stereo 48 kHz playback stream, started
+corked.
+- Buffer attributes: `tlength` = 300 ms, `minreq` = 20 ms, `prebuf` = -1
+  (equal to tlength), `maxlength` = server maximum.
+- `ADJUST_LATENCY` is not set, so `tlength` is the stream's own buffer rather
+  than total latency including the sink (PulseAudio 17.0 `pulse/stream.h`,
+  `def.h`).
+- The actor writes while `pa_stream_writable_size()` > 0, rather than trusting a
+  client-side estimate that drifts on Bluetooth and after a sink move.
+
+Stream properties: `media.role` = `x-maemo` when `/etc/os-release` has
+`ID=sailfishos`, otherwise `music`; `media.name` and `application.name` =
+`PlexFreq`; `application.id` = `harbour-plexfreq`.
+
+On Sailfish, mainvolume and stream-restore recognize `x-maemo`
+(`/etc/pulse/mainvolume-listening-time-notifier.conf` `role-list = x-maemo`;
+pulseaudio-modules-nemo `module-meego-mainvolume.c`). The user-session policy
+then owns volume keys and routing. The app writes no policy.
+
+Pause, a recording hold and the gates cork the stream; load, seek and stop
+disconnect it, discarding queued audio. A policy `request-cork` event clears
+play intent; `request-uncork` is ignored, because it is not permission to undo a
+user or disconnect pause. A stream failure (daemon restart) reports "Audio
+output is unavailable", and the next load reconnects. Volume is Rust DSP gain,
+not a stream volume.
+
+### 5.6 DSP (`src/audio/dsp.rs`)
+
+- 10-band peaking EQ at Q = 1, ±12 dB per band.
+- Normalization from the Part stream `gain`/`albumGain`: Track; Album (falling
+  back to track gain); Auto (album gain for identified single-album queues and
+  album radio, track gain otherwise).
+- Optional headroom of 0–12 dB, then volume gain. Float peaks above full scale
+  are preserved and non-finite samples are sanitized.
+
+Invalid configurations are rejected with "Audio settings exceed the supported
+range".
+
+## 6. Caching and offline
+
+### 6.1 Audio cache (`src/cache.rs`)
+
+The cache lives in `<state-dir>/audio-cache` (directory 0700, files 0600, one
+process-exclusive writer). The default budget is 512 MiB with 5 tracks of
+look-ahead. Entries are namespaced by SHA-256(server origin ‖ token), so
+different servers or accounts never share them, and keyed by ratingKey, Part
+path and quality, so original and transcoded media never share a key. The
+index stores no token or authenticated URL.
+
+Each download batch is the queue's actual upcoming order plus explicit
+downloads; a new schedule replaces it. Validators, ranges and `Content-Range`
+follow the same rules as streaming, and responses must be identity-encoded
+audio. PMS `Part.size` is only a hint: the served byte count can differ, so the
+received size is what is committed. Completion is an atomic rename plus index
+commit, and partial files are never handed to a decoder.
+
+A transcoded partial restarts rather than byte-resumes. Originals that cannot be
+decoded locally are downloaded as 320 kbps MP3 transcodes when the download
+quality is "original".
+
+Eviction and housekeeping:
+- LRU eviction protects the scheduled batch (normally the current track and the
+  look-ahead; automatic originals are not scheduled under a streaming cap, see
+  "Mobile cap") and permanent pins.
+- The quota includes partial files and excludes symlink targets.
+- Downloads of unknown size reserve space in windows of at least 4 MiB.
+- A malformed index is quarantined to a backup. Unindexed media is preserved
+  for 7 days for re-indexing.
+
+A batch makes up to 4 passes, waiting 30 s after a pass that left transient
+failures (interrupted, incomplete, network, 5xx). Cancellation and holds are not
+failures.
+
+**Refusal cooldown.** Refusals that would only repeat on retry (HTTP 4xx except
+401, 404, 408 and 429; non-audio or content-encoded responses) are remembered for 30 min per item and quality. Later batches skip them
+and show the stored error. The cooldown is cleared by any explicit download
+command, by changing the cache settings, and by clearing the cache. Local
+errors (disk, capacity) never cool down.
+
+**Gate and hold.** Downloads wait while the Wi-Fi-only policy meets a
+non-Wi-Fi network, while the user has paused them, in explicit offline mode, and
+during the yield hold.
+
+The yield hold is set while the engine reports `starved` (§5.4). It is released
+after 10 s of healthy playing, at once when nothing plays, and at exit. It never
+cancels downloads or resets progress:
+- An original with a validator and known size drops its connection at once and
+  resumes by range after release, spending no attempt.
+- Other downloads finish their current item.
+- Every item waits for release before it starts.
+
+The Downloads pages show "Downloads wait while the stream catches up" while held
+with work pending.
+
+**Mobile cap.** Automatic cache-ahead of originals is skipped while a streaming
+cap applies and download quality is original. Explicit downloads follow their
+own policy.
+
+### 6.2 Download plans and groups (`src/daily.rs`)
+
+Pinned groups are albums, playlists, single tracks, Plex stations, and artist,
+album and track radio plans. Each keeps its membership and track plans in the
+session. Plan refresh runs transactionally on its own thread, never replaces the
+playback queue, and honours the network gates. Automatic refresh attempts for a
+group are at least 900 s apart, in addition to the configured refresh interval
+(fixed throttling, not exponential backoff).
+
+Permanent pins are protected independently of the scheduled batch. Overlapping
+groups keep shared downloads when one group is removed. On restart, protection
+is rebuilt and retained plans are scheduled again.
+
+### 6.3 Offline metadata and browsing (`src/offline.rs`)
+
+Raw responses are stored as private snapshots scoped to the credential, up to
+64 MiB including saved lyrics. When over the limit, files with the oldest
+modification time are pruned first; reading a snapshot refreshes its time at
+most once an hour, so pruning approximates least recent use.
+
+On network or 5xx failures, saved pages may be used and the reply is flagged
+offline; authorization failures never fall back silently. Explicit offline mode
+bypasses Plex and cancels plan refresh, audio downloads and artwork downloads.
+Offline browsing merges saved metadata with the completed-audio catalogue, 100
+items per page, sorted by lowercase title then ratingKey so pages agree on one
+order. Details use saved pages or known parent-child relationships; unvisited
+data is never claimed to exist.
+
+When saving snapshots fails, the Downloads pages show "Offline library data
+could not be saved: …".
+
+### 6.4 Artwork
+
+Rust references each image as a `file://` URL of the private artwork cache when
+the file is cached, otherwise (online with a token) as a credential-free id
+`image://plexfreq/<first 16 hex of the namespace>/<hex of the server-relative
+path>` after the path has passed URL confinement, otherwise not at all. The
+namespace prefix keeps the same path on another server or account a distinct
+image in Qt's cache.
+
+The Rust artwork source holds the credential snapshot. It is updated before
+every reply, empty while signed out or offline, and cleared on exit, so a
+retained image provider cannot keep fetching with the credential. Fetches
+reject ids that are malformed or belong to another namespace, download with the
+token in a header (5 s, `image/*` only, at most 4 MiB, redirects disabled), and
+discard the result if the account changed meanwhile.
+
+Core also caches artwork for returned items: at most 4 MiB per image and
+128 MiB in total. MPRIS exports only `file:` artwork.
+
+The C++ provider is a `QQuickAsyncImageProvider`, available since Qt 5.6 (Qt 5.6
+`QQuickAsyncImageProvider` docs). Requests run on a bounded thread pool, so a
+stalled download never blocks shutdown or other images. Sources over 8192 px per
+side or 16 Mpx are refused, and images are only ever scaled down (1024 px on the
+longest side by default, never above 2048 px).
+
+## 7. Network policy
+
+The network observer reports three facts for the default route (online, Wi-Fi,
+cellular). It re-queries on D-Bus signals and every 15 s, with a 2 s deadline
+per call.
+
+- **ConnMan.** `net.connman.Manager.GetServices` returns services sorted
+  favourite-first. The first `ready`/`online` service is the default route.
+  `vpn` services are skipped so the carrier link underneath decides. `wifi` is
+  `Type == "wifi"` and `cellular` is `Type == "cellular"`. Sources: ConnMan
+  `doc/manager-api.txt` and `service-api.txt`.
+- **NetworkManager** is the fallback when ConnMan does not answer within 2 s.
+  `PrimaryConnectionType` is `802-11-wireless` for Wi-Fi and `gsm`/`cdma` for
+  cellular, and `State` ≥ 50 means online (NM_STATE_CONNECTED_LOCAL). For NM's
+  own VPNs the primary connection type is that of the underlying link; a
+  VPN-typed primary counts as neither Wi-Fi nor cellular. Source: https://networkmanager.dev/docs/api/latest/gdbus-org.freedesktop.NetworkManager.html
+  and `nm-dbus-types.html`.
+- **Not cellular.** Bluetooth tethering and Wi-Fi hotspots count as not
+  cellular.
+
+A failed or late query is unknown, never offline, and the last known facts are
+kept. On a change, Core updates the download gate, reschedules cache-ahead,
+cancels refresh and artwork downloads when downloads are no longer allowed, and
+restarts plan refresh when coming online.
+
+Facts are not persisted, so the Wi-Fi quality choice applies until the first
+observation after start. A successor prepared before a network change keeps its
+quality.
+
+## 8. Platform integration
+
+### 8.1 MPRIS
+
+`org.mpris.MediaPlayer2.plexfreq` on the session bus, at
+`/org/mpris/MediaPlayer2`, exports Root and Player through zbus. Spec:
+https://specifications.freedesktop.org/mpris-spec/latest/Player_Interface.html.
+
+`PlaybackStatus` follows logical intent: Playing while loaded with play intent
+(including buffering, gated or held failure), Paused when paused, Stopped
+otherwise. Metadata carries title, album, artist, length and a track id per
+occurrence; `mpris:artUrl` is a local `file:` URL only. `Next`/`Previous` keep
+the paused state, as the spec requires, and `Raise` brings the window to the
+front. `PropertiesChanged` carries only properties whose value actually changed,
+so pause, volume and queue changes never re-send Metadata. `Position` is read on
+demand; user seeks emit `Seeked`.
+
+**AVRCP resync.** On Sailfish, BlueZ's `mpris-proxy` bridges MPRIS to AVRCP. In
+BlueZ `profiles/audio/media.c`, every received `Metadata` ends with
+`mp->position = 0; g_timer_start(mp->timer)` plus a track-changed event, even
+when the track did not change. BlueZ `tools/mpris-proxy.c` forwards
+PropertiesChanged and every Player signal verbatim, and runs `GetAll` only at
+registration (BlueZ upstream 5.87; Sailfish fork github.com/sailfishos/bluez5).
+Re-sending Metadata mid-track would therefore reset the car's position to 0:00.
+So after each Metadata emission PlexFreq sends a `Seeked` carrying the real
+position of the track that Metadata named (skipped in the first second). The
+spec defines `Seeked` as a position change inconsistent with normal playback,
+so a scrobbler may see this resync as a seek.
+
+### 8.2 Bluetooth
+
+The BlueZ observer reads `org.bluez.Device1` objects with audio UUIDs (A2DP
+sink 110b, headset 1108, handsfree 111e) and `org.bluez.MediaTransport1` states
+through `org.freedesktop.DBus.ObjectManager` (BlueZ `doc/org.bluez.Device.rst`,
+`org.bluez.MediaTransport.rst`).
+
+Playback pauses when a tracked device disconnects or its audio transport
+disappears while playing. Device1 can stay connected through another profile
+after the audio profile is gone. An idle transport, a read error or an unknown
+fact is not a disconnect. Switching between accessories forgets the previous
+route, and reconnection never resumes playback.
+
+### 8.3 Recording hold
+
+A read-only libpulse subscription watches sources and source-outputs. An
+uncorked source-output on a non-monitor source is an active recording. Only
+indexes and flags are read, never samples or stream properties, and a failed
+query keeps the last state.
+
+While something records, the output freezes and the player shows paused. When
+the recording ends, only the retained intent resumes: a Pause, Stop or
+Bluetooth-disconnect pause during the hold cancels the resume, and Play during
+the hold stays inaudible until release.
+
+Under Sailjail the `Audio` permission exposes the PulseAudio socket
+(sailfishos/sailjail-permissions `permissions/Audio.permission`).
+
+### 8.4 Diagnostics observers
+
+A periodic heartbeat logs transport state, BlueZ counts and PulseAudio facts
+from read-only libpulse samples. It never creates streams, starts a daemon or
+changes routing, and it logs technical fields only, with sink names reduced to
+a class. `pactl` is not available inside the Sailjail namespace, which is why
+this uses libpulse. `examples/pulse-diagnostics.rs` probes the same code.
+
+### 8.5 Sailfish specifics
+
+- **Foundation.** Qt 5.6, QtQuick 2.6, Silica and libsailfishapp
+  (https://docs.sailfishos.org/Develop/Apps/).
+- **QML API limits.** Not available on Qt 5.6: Controls 2, new-style
+  Connections, `Column.forceLayout`, `Qt.callLater`.
+- **Silica quirks.** BackgroundItem reparents children into a content item, so
+  bind to explicit ids rather than `parent`. SectionHeader adds an x margin.
+  SliderBase writes `value` imperatively while dragging, which breaks bindings.
+  Loader geometry is applied to the loaded item, so `IntrinsicLoader` sizes from
+  `implicitHeight` (Qt 5.6 Loader docs).
+- **Permissions.** The desktop file declares
+  `[X-Sailjail] Permissions=Internet;Audio;Bluetooth` with
+  `OrganizationName=org.plexfreq` and `ApplicationName=harbour-plexfreq`
+  (https://docs.sailfishos.org/Develop/Apps/Application_Permissions/).
+  Sandboxing applies only to a normally installed app launched through
+  Sailjail. Sailjail rejects an `Exec` that does not match the installed
+  desktop file, so an unpacked binary cannot be tested in the sandbox.
+- **Harbour libraries.** Harbour validation (`mb2 check --suites harbour`)
+  rejects libgstreamer-1.0, libgstbase-1.0 and libgstapp-1.0, and accepts
+  libpulse. The allowed NEEDED set is libsailfishapp, libpulse, Qt5
+  Quick/Gui/Qml/Core, libstdc++, libm, libgcc_s, libc and ld-linux.
+
+Build, toolchain and packaging details are in [development.md](development.md).
+
+## 9. UI adapter
+
+**Backend** (`app/src/backend.*`) creates the runtime with the state directory
+(`QStandardPaths::AppDataLocation`, or `PLEXFREQ_STATE_DIR` for isolated tests)
+and polls it every 100 ms. It exposes the merged reply state, cache status,
+busy/error flags, playback fields and two list models, notifying only on
+change. Lyric and similar-artist replies never enter the shared state, and
+their failures never set the global error.
+
+**EntryModel** reconciles immutable lists by identity (type, ratingKey, key,
+`playQueueItemID`, `playlistItemID`), so existing rows survive updates.
+
+**Session.qml** owns routes, history, paging, search debounce, alphabet rail
+offsets, sign-in polling and shared presentation helpers. `Navigation.qml` is
+the shared destination/action catalogue.
+
+**Translations** (`app/src/i18n.cpp`). The locale is taken from
+`PLEXFREQ_LANGUAGE`, then the environment, then (on Sailfish, when no locale
+variable is set, for example in an SSH launch) `LC_MESSAGES` or `LANG` from
+`/etc/locale.conf` (https://man7.org/linux/man-pages/man5/locale.conf.5.html),
+with codeset and modifier suffixes stripped. The base-language catalogue is
+installed before the territory one, with English as the fallback. Rust error
+strings are translated in the `Core` context, including parameterized forms
+("Plex returned HTTP %1").
+
+## 10. Persistence and diagnostics
+
+### Session files (`src/store.rs`)
+
+| File | Content |
+|---|---|
+| `session.json` | Settings and the playback checkpoint, including the client id and account/server tokens. Rewritten atomically only when its bytes change. |
+| `queue.json` | Queue and radio. Rewritten only when they change. A queue revision mirrored in `session.json` ensures a saved position is never applied to another queue. |
+| `listens.jsonl`, `history.jsonl` | Append-only, with the same caps as in memory. Damaged lines are skipped, and the files are compacted atomically when damaged or too large. |
+
+Writes go to a synced 0600 temp file that is renamed into place, then the
+directory is synced. Stale temp files, which may contain tokens, are removed at
+startup. A malformed document is saved to a unique 0600 corruption backup
+before defaults are used. The read-only inspect mode never writes, migrates or
+compacts.
+
+### Logs (`src/diagnostics.rs`)
+
+On Sailfish, PlexFreq keeps a persistent log unless `PLEXFREQ_STATE_DIR` is set.
+The log directory is `~/Documents/PlexFreq` if it can be created, otherwise
+`<AppDataLocation>/logs`. There is one file per local date
+(`plexfreq-YYYY-MM-DD.log`), each at most 8 MiB with one backup, and 7 dates are
+kept. On the desktop, output goes to the terminal.
+
+Redaction removes full URLs and the rest of any line carrying a token-like
+value. It is best effort: framework output may still carry media URLs, so log
+files are not treated as redacted and should be checked before sharing.
+
+## 11. Security and credential handling
+
+- **Where tokens live.** Rust owns credential persistence and use; tokens are
+  stored only in the 0600 session files. Published models and replies omit
+  credentials: stream URLs are stripped from plans, server summaries omit
+  tokens, and artwork uses `image://plexfreq` ids resolved in Rust. The one
+  exception is the manual "connect directly" form, where QML collects the token
+  the user types and the C++ adapter forwards it to Rust in the connect request
+  (`app/qml/pages/SettingsPage.qml`, `app/qml/desktop/Main.qml`,
+  `app/src/backend.cpp`).
+- **How tokens travel.** In `X-Plex-Token` headers, on clients with redirects
+  disabled, to origin-confined paths. Advertised keys may not inject `X-Plex-*`
+  parameters.
+- **Isolation.** Response bodies are size-bounded (§3), and cache, offline
+  snapshots and artwork are namespaced per credential (§6).
+- **Read-only platform access.** No root, privileged helper or system-service
+  modification. Platform access is read-only (ConnMan/NM, BlueZ, libpulse
+  introspection) except the app's own playback stream and its MPRIS name.

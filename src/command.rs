@@ -289,6 +289,8 @@ pub enum Command {
     },
     OfflineBrowse {
         kind: ItemKind,
+        #[serde(default)]
+        start: usize,
     },
     CacheArtwork {
         items: Vec<Item>,
@@ -603,6 +605,7 @@ impl Command {
             | C::Browse { start, .. }
             | C::Children { start, .. }
             | C::Detail { start, .. }
+            | C::OfflineBrowse { start, .. }
             | C::Playlists { start } => *start,
             _ => 0,
         }

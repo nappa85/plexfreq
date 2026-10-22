@@ -884,7 +884,15 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -975,7 +983,15 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1377,6 +1393,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation type="unfinished" />
     </message>
@@ -1445,6 +1465,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation type="unfinished" />
     </message>
@@ -1477,6 +1501,10 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1533,6 +1561,10 @@
     </message>
     <message>
       <source>Open album</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>No longer on the server</source>
       <translation type="unfinished" />
     </message>
     <message>

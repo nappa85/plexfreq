@@ -884,8 +884,16 @@
       <translation>Nedlastinger · Venter · Wi-Fi · Lyd · Spill · Tilkoblet</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Lyd · Cache · Brukt</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Frakoblet · Bibliotek · Data · Lagre · Mislyktes · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Nedlastinger · Venter · Wi-Fi · Lyd · Spill · Tilkoblet</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Lyd · Cache · Brukt</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Frakoblet · Bibliotek · Data · Lagre · Mislyktes · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Frakoblet · Lagret · Bibliotek · Metadata</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Cache · Lyd</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Lastet ned</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Spor · Tjener · Utilgjengelig</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Prøv igjen · Laster</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Frakoblet · Lagret · Bibliotek · Metadata</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Åpne · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Spor · Tjener · Utilgjengelig</translation>
     </message>
     <message>
       <source>Downloaded</source>

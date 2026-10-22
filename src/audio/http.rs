@@ -711,13 +711,17 @@ impl io::Read for Source {
                     "audio reader stopped",
                 ));
             }
+            let end = window.start + window.data.len() as u64;
+            // A broken transfer still hands over what it received first: the
+            // decoder plays it, then fails at the heard position.
             if let Some(message) = window.error {
-                return Err(io::Error::other(message));
+                if self.position < window.start || self.position >= end {
+                    return Err(io::Error::other(message));
+                }
             }
             if window.total.is_some_and(|total| self.position >= total) {
                 return Ok(0);
             }
-            let end = window.start + window.data.len() as u64;
             if self.position < window.start
                 || self.position > end && (window.eof || self.position - end > FORWARD_WAIT)
             {
@@ -986,6 +990,43 @@ mod tests {
         server.join().unwrap();
     }
 
+    /// A transcode cannot be resumed by range, so its broken transfer is
+    /// final, but the bytes received before the break are still decoded.
+    #[test]
+    fn broken_transcode_hands_over_received_bytes_before_failing() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = thread::spawn(move || {
+            let mut stream = accept(&listener, Duration::from_secs(5));
+            read_request(&mut stream);
+            write!(stream, "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n{:x}\r\n", 65536).unwrap();
+            stream.write_all(&[7; 65536]).unwrap();
+            stream.write_all(b"\r\n").unwrap();
+            // Dropped without the terminating chunk: a broken transfer.
+        });
+        let (reader, mut source) = Reader::new(
+            format!("http://{address}/music/:/transcode/universal/start.m3u8?session=fixture"),
+            String::new(),
+            SessionCloser::new().unwrap(),
+            0,
+            CAPACITY,
+        )
+        .unwrap();
+        server.join().unwrap();
+        let until = std::time::Instant::now() + Duration::from_secs(5);
+        while reader.buffer.lock().error.is_none() {
+            assert!(std::time::Instant::now() < until, "transfer never failed");
+            thread::sleep(Duration::from_millis(10));
+        }
+        let mut bytes = Vec::new();
+        let result = source.read_to_end(&mut bytes);
+        assert!(result.is_err(), "the broken transfer must still fail");
+        assert_eq!(bytes.len(), 65536);
+        assert!(bytes.iter().all(|&v| v == 7));
+        drop(reader);
+    }
+
     #[test]
     fn interrupted_original_stream_resumes_without_duplicate_bytes() {
         resumed_original_stream(0);
@@ -1171,9 +1212,10 @@ mod tests {
             .unwrap();
         let (reader, mut source) = reader(address);
         let started = std::time::Instant::now();
-        // Backoff before the error is 1s + 2s + 4s.
+        // Backoff before the error is 1s + 2s + 4s, on the I/O runtime that
+        // every other test shares.
         assert!(
-            read_error(&mut source, Duration::from_secs(12)),
+            read_error(&mut source, Duration::from_secs(20)),
             "unproven source retried forever"
         );
         assert!(started.elapsed() >= Duration::from_secs(6));

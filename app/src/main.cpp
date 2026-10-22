@@ -1,8 +1,10 @@
+#include "artwork.h"
 #include "backend.h"
 #include "i18n.h"
 #include "plexfreq_core.h"
 #include <QGuiApplication>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QFile>
@@ -65,6 +67,7 @@ int main(int argc, char *argv[]) {
 #ifdef SAILFISH
     QQuickView *view = SailfishApp::createView();
     view->rootContext()->setContextProperty("backend", &backend);
+    view->engine()->addImageProvider(QStringLiteral("plexfreq"), new ArtworkProvider(backend.artworkSource()));
     const QString bundledQml = application->applicationDirPath() + "/qml/harbour-plexfreq.qml";
     view->setSource(QFileInfo(bundledQml).exists() ? QUrl::fromLocalFile(bundledQml)
         : SailfishApp::pathTo("qml/harbour-plexfreq.qml"));
@@ -73,6 +76,7 @@ int main(int argc, char *argv[]) {
 #else
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("backend", &backend);
+    engine.addImageProvider(QStringLiteral("plexfreq"), new ArtworkProvider(backend.artworkSource()));
     engine.load(QUrl("qrc:/qml/desktop/Main.qml"));
     if (engine.rootObjects().isEmpty()) return 1;
 #endif

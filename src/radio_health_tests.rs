@@ -14,7 +14,7 @@ use std::{
     thread,
 };
 
-fn item(key: usize) -> Item {
+pub(crate) fn item(key: usize) -> Item {
     Item {
         rating_key: key.to_string(),
         kind: ItemKind::Track,
@@ -32,7 +32,7 @@ fn item(key: usize) -> Item {
     }
 }
 
-fn station_json(items: &[usize]) -> String {
+pub(crate) fn station_json(items: &[usize]) -> String {
     let metadata: Vec<_> = items
         .iter()
         .map(|key| {
@@ -96,7 +96,7 @@ pub(crate) fn server(route: impl Fn(&str) -> (&'static str, String) + Send + 'st
 
 /// A station Core over `count` items, current at `start`, with `cached`
 /// items fully downloaded.
-fn station(
+pub(crate) fn station(
     dir: &std::path::Path,
     server: &Server,
     count: usize,
@@ -126,11 +126,11 @@ fn station(
         ..Default::default()
     };
     settings.playback.queue.replace(items, start).unwrap();
-    settings.playback.radio = Some(Radio {
-        kind: RadioKind::Artist,
-        title: "Fixture".into(),
-        source: Source::Station { queue_id: 50 },
-    });
+    settings.playback.radio = Some(Radio::new(
+        RadioKind::Artist,
+        "Fixture".into(),
+        Source::Station { queue_id: 50 },
+    ));
     crate::store::save(dir, &settings).unwrap();
     Core::new(dir.into()).unwrap()
 }
@@ -409,14 +409,14 @@ fn sonic_radio_whose_seed_is_gone_cycles_its_cached_items() {
     let dir = tempfile::tempdir().unwrap();
     let mut core = station(dir.path(), &server, 1, 0, &[1]);
     let mut settings = crate::store::load(dir.path()).unwrap();
-    settings.playback.radio = Some(Radio {
-        kind: RadioKind::Track,
-        title: "Fixture".into(),
-        source: Source::Sonic {
+    settings.playback.radio = Some(Radio::new(
+        RadioKind::Track,
+        "Fixture".into(),
+        Source::Sonic {
             seed: Box::new(item(1)),
             recent: vec!["1".into()],
         },
-    });
+    ));
     drop(core);
     crate::store::save(dir.path(), &settings).unwrap();
     core = Core::new(dir.path().into()).unwrap();

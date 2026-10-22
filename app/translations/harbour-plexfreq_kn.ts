@@ -884,8 +884,16 @@
       <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · Wi-Fi · ಆಡಿಯೋ · ಪ್ಲೇಮಾಡು · ಆನ್‌ಲೈನ್</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · ಆಡಿಯೋ · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ಆಡಿಯೋ · ಸಂಗ್ರಹ · ಬಳಸಲಾಗಿದೆ</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ಆಫ್‌ಲೈನ್ · ಗ್ರಂಥಾಲಯ · ದತ್ತಾಂಶ · ಉಳಿಸು · ವಿಫಲ · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · Wi-Fi · ಆಡಿಯೋ · ಪ್ಲೇಮಾಡು · ಆನ್‌ಲೈನ್</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · ಆಡಿಯೋ · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ಆಡಿಯೋ · ಸಂಗ್ರಹ · ಬಳಸಲಾಗಿದೆ</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ಆಫ್‌ಲೈನ್ · ಗ್ರಂಥಾಲಯ · ದತ್ತಾಂಶ · ಉಳಿಸು · ವಿಫಲ · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>ಆಫ್‌ಲೈನ್ · ಉಳಿಸಲಾಗಿದೆ · ಗ್ರಂಥಾಲಯ · ಮೆಟಾಡೇಟಾ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · ಆಡಿಯೋ · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>ಸಂಗ್ರಹ · ಆಡಿಯೋ</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>ಹಾಡು · ಸರ್ವರ್ · ಲಭ್ಯವಿಲ್ಲ</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>ಆಫ್‌ಲೈನ್ · ಉಳಿಸಲಾಗಿದೆ · ಗ್ರಂಥಾಲಯ · ಮೆಟಾಡೇಟಾ</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ಡೌನ್‌ಲೋಡ್‌ಗಳು · ಕಾಯುತ್ತಿದೆ · ಆಡಿಯೋ · ಲೋಡ್ ಆಗುತ್ತಿದೆ</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>ತೆರೆ · ಆಲ್ಬಮ್</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>ಹಾಡು · ಸರ್ವರ್ · ಲಭ್ಯವಿಲ್ಲ</translation>
     </message>
     <message>
       <source>Downloaded</source>

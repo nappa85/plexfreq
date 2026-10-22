@@ -884,8 +884,16 @@
       <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · Wi-Fi · ஒலி · இயக்கு · இணைப்பில்</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · ஒலி · ஏற்றப்படுகிறது</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ஒலி · தற்காலிகச் சேமிப்பு · பயன்படுத்தப்பட்டது</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>இணைப்பின்றி · நூலகம் · தரவு · சேமி · தோல்வி · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · Wi-Fi · ஒலி · இயக்கு · இணைப்பில்</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · ஒலி · ஏற்றப்படுகிறது</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ஒலி · தற்காலிகச் சேமிப்பு · பயன்படுத்தப்பட்டது</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>இணைப்பின்றி · நூலகம் · தரவு · சேமி · தோல்வி · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>இணைப்பின்றி · சேமிக்கப்பட்டது · நூலகம் · மேல்தரவு</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · ஒலி · ஏற்றப்படுகிறது</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>தற்காலிகச் சேமிப்பு · ஒலி</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>பதிவிறக்கப்பட்டது</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>பாடல் · சேவையகம் · கிடைக்கவில்லை</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>மீண்டும் முயற்சி · ஏற்றப்படுகிறது</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>இணைப்பின்றி · சேமிக்கப்பட்டது · நூலகம் · மேல்தரவு</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>பதிவிறக்கங்கள் · காத்திருக்கிறது · ஒலி · ஏற்றப்படுகிறது</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>திற · ஆல்பம்</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>பாடல் · சேவையகம் · கிடைக்கவில்லை</translation>
     </message>
     <message>
       <source>Downloaded</source>

@@ -479,11 +479,11 @@ fn radio_progress_alone_rewrites_the_queue_file() {
     let mut s = synthetic(0, 0, 3);
     save(dir.path(), &s).unwrap();
     let queue = ino(dir.path(), QUEUE);
-    s.playback.radio = Some(crate::radio::Radio {
-        kind: crate::radio::RadioKind::Track,
-        title: "Radio".into(),
-        source: crate::radio::Source::Station { queue_id: 7 },
-    });
+    s.playback.radio = Some(crate::radio::Radio::new(
+        crate::radio::RadioKind::Track,
+        "Radio".into(),
+        crate::radio::Source::Station { queue_id: 7 },
+    ));
     save(dir.path(), &s).unwrap();
     assert_ne!(queue, ino(dir.path(), QUEUE));
     assert_eq!(snapshot(&load(dir.path()).unwrap()), snapshot(&s));

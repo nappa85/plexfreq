@@ -103,6 +103,83 @@ pub unsafe extern "C" fn pf_runtime_free(runtime: *mut crate::runtime::Runtime) 
     }
 }
 
+/// The runtime's artwork source for the image provider. The handle stays valid
+/// after the runtime is freed (fetches then fail). Null for a null runtime.
+/// # Safety
+/// `runtime` is null or live. Free the handle with `pf_artwork_free`.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_artwork(
+    runtime: *mut crate::runtime::Runtime,
+) -> *mut std::sync::Arc<crate::artwork::Source> {
+    if runtime.is_null() {
+        return ptr::null_mut();
+    }
+    let source = unsafe { &*runtime }.artwork();
+    Box::into_raw(Box::new(source))
+}
+/// The image bytes of an `image://plexfreq` id (with or without the scheme),
+/// or null with `*len == 0`. Blocks on the network: call from a loader thread.
+/// # Safety
+/// `handle` is null or from `pf_runtime_artwork` and not freed; `id` is null
+/// or NUL-terminated text; `len` is null or writable. Free the result with
+/// `pf_bytes_free` and the same length.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_fetch(
+    handle: *const std::sync::Arc<crate::artwork::Source>,
+    id: *const c_char,
+    len: *mut usize,
+) -> *mut u8 {
+    if !len.is_null() {
+        unsafe { *len = 0 };
+    }
+    if handle.is_null() || id.is_null() || len.is_null() {
+        return ptr::null_mut();
+    }
+    let bytes = catch_unwind(AssertUnwindSafe(|| {
+        let id = unsafe { CStr::from_ptr(id) }.to_str().ok()?;
+        unsafe { &*handle }.fetch(id)
+    }))
+    .ok()
+    .flatten();
+    match bytes {
+        Some(bytes) if !bytes.is_empty() => {
+            let bytes = bytes.into_boxed_slice();
+            unsafe { *len = bytes.len() };
+            Box::into_raw(bytes).cast::<u8>()
+        }
+        _ => ptr::null_mut(),
+    }
+}
+/// Another handle to the same artwork source, freed independently.
+/// # Safety
+/// `handle` is null or from `pf_runtime_artwork`/`pf_artwork_clone`, not freed.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_clone(
+    handle: *const std::sync::Arc<crate::artwork::Source>,
+) -> *mut std::sync::Arc<crate::artwork::Source> {
+    if handle.is_null() {
+        return ptr::null_mut();
+    }
+    Box::into_raw(Box::new(unsafe { &*handle }.clone()))
+}
+/// # Safety
+/// `bytes` is null or returned by `pf_artwork_fetch` with this `len`, freed once.
+#[no_mangle]
+pub unsafe extern "C" fn pf_bytes_free(bytes: *mut u8, len: usize) {
+    if !bytes.is_null() {
+        drop(unsafe { Box::from_raw(ptr::slice_from_raw_parts_mut(bytes, len)) });
+    }
+}
+/// # Safety
+/// `handle` is null or from `pf_runtime_artwork`, freed once, with no fetch
+/// running on it.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_free(handle: *mut std::sync::Arc<crate::artwork::Source>) {
+    if !handle.is_null() {
+        drop(unsafe { Box::from_raw(handle) });
+    }
+}
+
 /// Create a thread-confined core. Returns null on invalid path or initialization failure.
 /// # Safety
 /// `dir` must be a valid NUL-terminated UTF-8 string for the duration of this call.

@@ -255,6 +255,11 @@ Item {
     }
     function maybeMore(fraction) { if (fraction >= 0.75) more() }
     function retryMore() { failedPageStart = -1; requestedPageStart = -1; more() }
+    // Downloads yield to a starving stream while they have work to do (and
+    // the user has not paused them).
+    property bool downloadsHeld:!!backend.cache.held && !!backend.cache.enabled && !backend.cache.paused && (!!backend.cache.downloading || (backend.cache.pending || 0) > 0)
+    // A track the server no longer has (recently checked).
+    function goneTrack(item) { return !!item && item.type === "track" && (backend.cache.goneKeys || []).indexOf(item.ratingKey) >= 0 }
     function artist(item) { if(!item) return ""; return item.originalTitle || item.grandparentTitle || item.parentTitle || "" }
     function time(ms) { var s = Math.floor(ms / 1000); return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 }
     function totalTime(ms) {var s=Math.floor(ms/1000);var h=Math.floor(s/3600);var m=Math.floor(s/60)%60;return h>0 ? h+":"+(m<10 ? "0" : "")+m+":"+(s%60<10 ? "0" : "")+s%60 : time(ms)}

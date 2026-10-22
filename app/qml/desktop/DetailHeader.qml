@@ -53,7 +53,7 @@ Item {
                 width:150; height:160; enabled:!backend.busy; onClicked:music.activate(modelData,index)
                 contentItem:Column {
                     spacing:8
-                    Image { width:parent.width; height:100; source:modelData.artwork || ""; asynchronous:true; fillMode:Image.PreserveAspectCrop }
+                    Image { sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height); width:parent.width; height:100; source:modelData.artwork || ""; asynchronous:true; fillMode:Image.PreserveAspectCrop }
                     Label { width:parent.width; text:modelData.title; maximumLineCount:2; wrapMode:Text.Wrap; elide:Text.ElideRight; color:"#ebad3d" }
                 }
             }

@@ -884,8 +884,16 @@
       <translation>Téléchargements · En attente · Wi-Fi · Audio · Lire · En ligne</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Téléchargements · En attente · Audio · Chargement</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Utilisé</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Hors ligne · Bibliothèque · Données · Enregistrer · Échec · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Téléchargements · En attente · Wi-Fi · Audio · Lire · En ligne</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Téléchargements · En attente · Audio · Chargement</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Utilisé</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Hors ligne · Bibliothèque · Données · Enregistrer · Échec · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Hors ligne · Enregistré · Bibliothèque · Métadonnées</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Téléchargements · En attente · Audio · Chargement</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Cache · Audio</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Téléchargé</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Piste · Serveur · Indisponible</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Réessayer · Chargement</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Hors ligne · Enregistré · Bibliothèque · Métadonnées</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Téléchargements · En attente · Audio · Chargement</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Ouvrir · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Piste · Serveur · Indisponible</translation>
     </message>
     <message>
       <source>Downloaded</source>

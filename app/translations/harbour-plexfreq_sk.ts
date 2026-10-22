@@ -884,8 +884,16 @@
       <translation>Sťahovanie · Čakanie · Wi-Fi · Zvuk · Prehrať · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Sťahovanie · Čakanie · Zvuk · Načítavanie</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Zvuk · Vyrovnávacia pamäť · Použité</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Knižnica · Údaje · Uložiť · Zlyhanie · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Sťahovanie · Čakanie · Wi-Fi · Zvuk · Prehrať · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Sťahovanie · Čakanie · Zvuk · Načítavanie</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Zvuk · Vyrovnávacia pamäť · Použité</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Knižnica · Údaje · Uložiť · Zlyhanie · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Uložené · Knižnica · Metaúdaje</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Sťahovanie · Čakanie · Zvuk · Načítavanie</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Vyrovnávacia pamäť · Zvuk</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Stiahnuté</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Skladba · Server · Nedostupné</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Skúsiť znova · Načítavanie</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Uložené · Knižnica · Metaúdaje</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Sťahovanie · Čakanie · Zvuk · Načítavanie</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Otvoriť · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Skladba · Server · Nedostupné</translation>
     </message>
     <message>
       <source>Downloaded</source>

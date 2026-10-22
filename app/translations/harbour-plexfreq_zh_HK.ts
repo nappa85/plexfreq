@@ -884,8 +884,16 @@
       <translation>下載 · 等候 · Wi-Fi · 音訊 · 播放 · 在線</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>下載 · 等候 · 音訊 · 載入中</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · 音訊 · 快取 · 已使用</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>離線 · 音樂庫 · 資料 · 儲存 · 失敗 · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>下載 · 等候 · Wi-Fi · 音訊 · 播放 · 在線</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>下載 · 等候 · 音訊 · 載入中</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · 音訊 · 快取 · 已使用</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>離線 · 音樂庫 · 資料 · 儲存 · 失敗 · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>離線 · 已儲存 · 音樂庫 · 中繼資料</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>下載 · 等候 · 音訊 · 載入中</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>快取 · 音訊</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>已下載</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>歌曲 · 伺服器 · 未能使用</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>重試 · 載入中</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>離線 · 已儲存 · 音樂庫 · 中繼資料</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>下載 · 等候 · 音訊 · 載入中</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>開啟 · 專輯</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>歌曲 · 伺服器 · 未能使用</translation>
     </message>
     <message>
       <source>Downloaded</source>

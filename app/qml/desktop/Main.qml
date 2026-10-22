@@ -51,7 +51,7 @@ ApplicationWindow {
         }
         Label { text: backend.error; visible: text.length > 0; color: "#ff998b"; wrapMode: Text.Wrap; Layout.fillWidth: true }
         Label {text:qsTr("Offline · showing saved library metadata");visible:!!backend.state.offline;Layout.fillWidth:true;color:"#9eaabd"}
-        Label { text: backend.cache.downloading ? qsTr("Caching audio…") : qsTr("%1 tracks ready offline").arg(backend.cache.tracks); visible: backend.cache.downloading || backend.cache.tracks > 0; color:"#9eaabd"; Layout.fillWidth:true }
+        Label { objectName:"cacheSummary"; text: session.downloadsHeld ? qsTr("Downloads wait while the stream catches up") : backend.cache.downloading ? qsTr("Caching audio…") : qsTr("%1 tracks ready offline").arg(backend.cache.tracks); visible: session.downloadsHeld || backend.cache.downloading || backend.cache.tracks > 0; color:"#9eaabd"; Layout.fillWidth:true; wrapMode: Text.Wrap }
         RowLayout {
             visible: !!backend.state.radio
             Label { text: backend.state.radio ? qsTr("Radio") + " · " + backend.state.radio.title : ""; color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap }
@@ -142,12 +142,13 @@ ApplicationWindow {
                     Rectangle {
                         Layout.preferredWidth: 62; Layout.preferredHeight: 62; radius: 8; color: "#253040"
                         Label { anchors.centerIn: parent; text: "♪"; color: "#ebad3d"; font.pixelSize: 30 }
-                        Image { anchors.fill: parent; source: itemData.artwork || ""; fillMode: Image.PreserveAspectCrop; asynchronous: true }
+                        Image { sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height); anchors.fill: parent; source: itemData.artwork || ""; fillMode: Image.PreserveAspectCrop; asynchronous: true }
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
+                        opacity: session.goneTrack(itemData) ? 0.5 : 1
                         Label { text: itemData.title; font.pixelSize: 18; elide: Text.ElideRight; Layout.fillWidth: true }
-                        Label { text: itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? session.playlistSummary(itemData) : session.artist(itemData); color: "#9eaabd"; elide: Text.ElideRight; Layout.fillWidth: true }
+                        Label { objectName:"rowSubtitle"; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? session.playlistSummary(itemData) : session.artist(itemData)) + (session.goneTrack(itemData) ? " · " + qsTr("No longer on the server") : ""); color: "#9eaabd"; elide: Text.ElideRight; Layout.fillWidth: true }
                     }
                     Label { text: itemData.type === "track" ? session.time(itemData.duration) : "›"; color: "#9eaabd" }
                     Label { text:qsTr("Downloaded"); visible:itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0; color:"#ebad3d" }
@@ -164,7 +165,7 @@ ApplicationWindow {
                         width:discoveryGrid.cellWidth;height:discoveryGrid.cellHeight;enabled:!backend.busy
                         onClicked:session.activate(card,modelData.sourceIndex)
                         contentItem:Column {spacing:8
-                            Image {x:8;width:parent.width-16;height:136;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                            Image {sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height);x:8;width:parent.width-16;height:136;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
                             Label {x:8;width:parent.width-16;text:card.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:cardMenu.open()
@@ -194,7 +195,7 @@ ApplicationWindow {
                         onClicked:session.activate(itemData,index)
                         contentItem:Column {
                             spacing:8
-                            Image {x:8;width:parent.width-16;height:136;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                            Image {sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height);x:8;width:parent.width-16;height:136;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
                             Label {x:8;width:parent.width-16;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:artistMenu.open()

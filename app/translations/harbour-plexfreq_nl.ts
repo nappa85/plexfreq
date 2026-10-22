@@ -884,8 +884,16 @@
       <translation>Downloads · Wachten · Wi-Fi · Audio · Afspelen · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Downloads · Wachten · Audio · Laden</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Gebruikt</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Bibliotheek · Gegevens · Opslaan · Mislukt · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Downloads · Wachten · Wi-Fi · Audio · Afspelen · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Downloads · Wachten · Audio · Laden</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Gebruikt</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Bibliotheek · Gegevens · Opslaan · Mislukt · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Opgeslagen · Bibliotheek · Metadata</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Downloads · Wachten · Audio · Laden</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Cache · Audio</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Gedownload</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Nummer · Server · Niet beschikbaar</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Opnieuw proberen · Laden</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Opgeslagen · Bibliotheek · Metadata</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Downloads · Wachten · Audio · Laden</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Openen · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Nummer · Server · Niet beschikbaar</translation>
     </message>
     <message>
       <source>Downloaded</source>

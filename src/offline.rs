@@ -4,8 +4,6 @@ use crate::{
     plex::{advertised_path, server_url},
     Error, Result,
 };
-use serde::Serialize;
-use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs::{self},
@@ -17,15 +15,6 @@ use std::{
     },
 };
 
-fn hash(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
-}
-pub fn write_json(path: &Path, value: &impl Serialize) -> Result<()> {
-    crate::atomic_write_json(path, value)
-}
-fn write_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    crate::atomic_write_bytes(path, bytes)
-}
 fn prune_excluding(root: &Path, extra: u64, limit: u64, exclude: Option<&Path>) -> Result<()> {
     if extra > limit {
         return Err(Error::Input("Artwork exceeds size limit"));
@@ -93,7 +82,7 @@ impl Library {
                 return Err(Error::Input("Offline data exceeds its storage limit"));
             }
             prune_excluding(&self.root, bytes.len() as u64, LIBRARY_LIMIT, Some(target))?;
-            write_bytes(target, &bytes)
+            crate::atomic_write_bytes(target, &bytes)
         });
         let mut health = crate::mutex_lock(&self.health);
         match result {
@@ -103,23 +92,21 @@ impl Library {
                 health.failing = true;
                 health.last_error = error.to_string();
                 health.last_kind = kind;
-                health.last_at = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
+                health.last_at = crate::unix_seconds();
                 drop(health);
                 crate::diagnostics::event(format_args!("offline {kind} not saved: {error}"));
             }
         }
     }
-    /// `{ok, failures, lastError, lastKind, lastAt}` of offline lyric and
+    /// `{ok, failures, error, lastKind, lastAt}` of offline lyric and
     /// metadata snapshot saves since this library was opened.
     pub fn store_status(&self) -> serde_json::Value {
         let health = crate::mutex_lock(&self.health);
         serde_json::json!({
             "ok": !health.failing,
             "failures": health.failures,
-            "lastError": health.last_error,
+            // Named `error`: the UI translates Core messages in such fields.
+            "error": health.last_error,
             "lastKind": health.last_kind,
             "lastAt": health.last_at,
         })
@@ -177,7 +164,7 @@ impl Library {
         let encoded = serde_json::to_string(params).unwrap_or_else(|_| format!("{params:?}"));
         self.root.join(format!(
             "{namespace}-{}.json",
-            hash(&format!("{path}\0{encoded}"))
+            crate::sha256_hex(&format!("{path}\0{encoded}"))
         ))
     }
     pub fn save(
@@ -282,7 +269,7 @@ impl Library {
                 // Rewriting untouched snapshots resets their prune age and
                 // wears flash for nothing.
                 if changed {
-                    let _ = write_json(&path, &c);
+                    let _ = crate::atomic_write_json(&path, &c);
                 }
             }
         }
@@ -306,8 +293,10 @@ impl Library {
         if safe {
             self.root.join(format!("{namespace}-lyrics-{key}.json"))
         } else {
-            self.root
-                .join(format!("{namespace}-lyrics-hash-{}.json", hash(key)))
+            self.root.join(format!(
+                "{namespace}-lyrics-hash-{}.json",
+                crate::sha256_hex(key)
+            ))
         }
     }
     pub fn save_lyrics(&self, namespace: &str, key: &str, lines: &[crate::lyrics::Line]) {
@@ -321,10 +310,21 @@ impl Library {
 
 /// Download one image: image content type only, at most 4 MiB.
 async fn fetch(client: &reqwest::Client, job: &Job) -> Result<Vec<u8>> {
-    let url = advertised_path(&server_url(&job.server)?, &job.path)?;
+    fetch_artwork(client, &job.server, &job.token, &job.path).await
+}
+/// Largest artwork image accepted, downloaded or read from the cache.
+pub(crate) const ARTWORK_LIMIT: u64 = 4 * 1024 * 1024;
+/// Download the image at server-relative `path`, the credential in a header.
+pub(crate) async fn fetch_artwork(
+    client: &reqwest::Client,
+    server: &str,
+    token: &str,
+    path: &str,
+) -> Result<Vec<u8>> {
+    let url = advertised_path(&server_url(server)?, path)?;
     let mut response = client
         .get(url)
-        .header("X-Plex-Token", &job.token)
+        .header("X-Plex-Token", token)
         .timeout(std::time::Duration::from_secs(5))
         .send()
         .await
@@ -345,7 +345,7 @@ async fn fetch(client: &reqwest::Client, job: &Job) -> Result<Vec<u8>> {
     {
         return Err(Error::ProtocolAt("artwork"));
     }
-    let bytes = crate::plex::bounded_body(&mut response, 4 * 1024 * 1024)
+    let bytes = crate::plex::bounded_body(&mut response, ARTWORK_LIMIT as usize)
         .await
         .map_err(|error| error.unwrap_or(Error::Input("Artwork exceeds size limit")))?;
     if bytes.is_empty() {
@@ -372,7 +372,7 @@ fn store(
     if epoch != generation.load(Ordering::SeqCst) {
         return Ok(());
     }
-    write_bytes(file, bytes)
+    crate::atomic_write_bytes(file, bytes)
 }
 
 struct Job {
@@ -381,6 +381,15 @@ struct Job {
     token: String,
     path: String,
     file: PathBuf,
+}
+/// The cached image file of `path` under `root`, if present: a regular,
+/// non-empty file (never a symlink).
+pub(crate) fn local_artwork(root: &Path, namespace: &str, path: &str) -> Option<PathBuf> {
+    let file = root.join(crate::sha256_hex(&format!("{namespace}\0{path}")));
+    fs::symlink_metadata(&file)
+        .ok()
+        .filter(|m| m.is_file() && !m.file_type().is_symlink() && m.len() > 0)?;
+    Some(file)
 }
 pub struct Artwork {
     gate: Option<Arc<crate::cache::Gate>>,
@@ -448,11 +457,11 @@ impl Artwork {
         })
     }
     pub fn local(&self, namespace: &str, path: &str) -> Option<String> {
-        let file = self.root.join(hash(&format!("{namespace}\0{path}")));
-        fs::symlink_metadata(&file)
-            .ok()
-            .filter(|m| m.is_file() && !m.file_type().is_symlink() && m.len() > 0)?;
+        let file = local_artwork(&self.root, namespace, path)?;
         url::Url::from_file_path(file).ok().map(String::from)
+    }
+    pub fn root(&self) -> &Path {
+        &self.root
     }
     pub fn schedule(&self, server: &str, token: &str, path: &str) {
         if self.gate.as_ref().is_some_and(|gate| !gate.allowed()) {
@@ -468,7 +477,7 @@ impl Artwork {
         if self.local(&ns, path).is_some() {
             return;
         }
-        let file = self.root.join(hash(&format!("{ns}\0{path}")));
+        let file = self.root.join(crate::sha256_hex(&format!("{ns}\0{path}")));
         if let Some(tx) = &self.jobs {
             let epoch = self.generation.load(Ordering::SeqCst);
             {
@@ -588,7 +597,7 @@ mod store_health_tests {
         assert_eq!(status["ok"], false);
         assert_eq!(status["failures"], 1);
         assert_eq!(status["lastKind"], "lyrics");
-        assert!(!status["lastError"].as_str().unwrap().is_empty());
+        assert!(!status["error"].as_str().unwrap().is_empty());
         library.save("ns", "/library/metadata/1", &[], &Container::default());
         let status = library.store_status();
         assert_eq!(status["failures"], 2);

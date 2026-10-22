@@ -34,6 +34,14 @@ struct Produced {
     duration: Option<u64>,
     warnings: u64,
     stop: bool,
+    /// Frames (engine rate, stereo) handed over since the decoder started.
+    produced: u64,
+}
+impl Produced {
+    fn push(&mut self, pcm: &[f32]) {
+        self.pcm.extend(pcm.iter().copied());
+        self.produced += (pcm.len() / CHANNELS) as u64;
+    }
 }
 #[derive(Default)]
 struct Shared {
@@ -55,6 +63,9 @@ pub(super) struct Decoder {
     /// Frames handed to the output (zero for an untouched successor).
     pub frames: u64,
     pub warnings: u64,
+    /// The thread ended without an error, having produced `produced` frames.
+    clean_end: bool,
+    produced: u64,
     shared: Arc<Shared>,
     worker: Option<thread::JoinHandle<()>>,
 }
@@ -160,6 +171,8 @@ impl Decoder {
             eof: false,
             frames: 0,
             warnings: 0,
+            clean_end: false,
+            produced: 0,
             shared,
             worker: Some(worker),
         })
@@ -199,11 +212,28 @@ impl Decoder {
         let wake = want > state.pcm.len() / CHANNELS && state.want != want;
         state.want = want;
         self.eof = state.finished && state.pcm.is_empty();
+        self.clean_end = state.finished;
+        self.produced = state.produced;
         drop(state);
         if wake {
             self.shared.changed.notify_all();
         }
         Ok(())
+    }
+    /// A transcode whose stream ended cleanly well before its duration: the
+    /// server stopped the session (a transcode has no length to check the
+    /// transfer against). `margin_ms` covers duration rounding and the
+    /// restart policy's own near-end window.
+    pub fn ended_early(&self, margin_ms: u64) -> bool {
+        let duration = self.source.duration;
+        let reached = self.source.resume + self.produced * 1000 / u64::from(RATE);
+        self.transcoded
+            && self.clean_end
+            && duration > 0
+            && reached + margin_ms.max(duration / 50) < duration
+    }
+    pub fn reached_ms(&self) -> u64 {
+        self.source.resume + self.produced * 1000 / u64::from(RATE)
     }
     pub fn take(&mut self, frames: usize) -> Vec<f32> {
         let count = (frames * CHANNELS).min(self.pcm.len());
@@ -670,7 +700,7 @@ fn decode(
                 &mut converted,
             );
             if !converted.is_empty() {
-                shared.lock().pcm.extend(converted.iter().copied());
+                shared.lock().push(&converted);
             }
         }
         if end.is_some_and(|end| position + (last - first) as i64 >= end) {
@@ -679,7 +709,7 @@ fn decode(
     }
     converted.clear();
     stage.finish(&mut converted);
-    shared.lock().pcm.extend(converted.iter().copied());
+    shared.lock().push(&converted);
     Ok(())
 }
 

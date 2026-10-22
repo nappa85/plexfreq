@@ -6,8 +6,8 @@ CONFIG += sailfishapp sailfishapp_no_deploy_qml c++11
 CONFIG += link_pkgconfig
 PKGCONFIG += libpulse
 DEFINES += SAILFISH PLEXFREQ_VERSION=\\\"$$VERSION\\\"
-SOURCES += src/main.cpp src/backend.cpp src/i18n.cpp
-HEADERS += src/backend.h src/plexfreq_core.h src/i18n.h
+SOURCES += src/main.cpp src/backend.cpp src/i18n.cpp src/artwork.cpp
+HEADERS += src/backend.h src/plexfreq_core.h src/i18n.h src/artwork.h
 RESOURCES += translations.qrc icons.qrc
 catalogues.files = translations/*.qm
 catalogues.path = /usr/share/harbour-plexfreq/translations

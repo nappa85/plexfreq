@@ -884,8 +884,16 @@
       <translation>In attesa di una connessione Wi-Fi verificata; lo streaming rimane disponibile.</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>I download attendono che lo streaming si stabilizzi</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 MiB di cache audio utilizzati</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Impossibile salvare i dati della libreria offline: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>In attesa di una connessione Wi-Fi verificata. La riproduzione in streaming rimane disponibile.</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>I download attendono che lo streaming si stabilizzi</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 MiB di cache audio utilizzati</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Impossibile salvare i dati della libreria offline: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · metadati salvati della libreria</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>I download attendono che lo streaming si stabilizzi</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Cache · Audio</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Scaricato</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Non più sul server</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Riprova · Caricamento</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · metadati salvati della libreria</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>I download attendono che lo streaming si stabilizzi</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Apri · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Non più sul server</translation>
     </message>
     <message>
       <source>Downloaded</source>

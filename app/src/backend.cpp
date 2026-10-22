@@ -32,7 +32,7 @@ static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"err
 Backend::Backend(const QString &directory,QObject *parent):QObject(parent),m_items(this),m_queue(this) {
     m_state={{"items",QVariantList()},{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"items",QVariantList()},{"repeat","off"},{"shuffled",false}}}};
     m_state.insert("networkOnline",false);m_state.insert("networkWifi",false);m_state.insert("networkCellular",false);
-    m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"pinnedKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"error",""}};
+    m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"pinnedKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"held",false},{"goneKeys",QVariantList()},{"error",""}};
     const auto directoryBytes=directory.toUtf8();m_runtime=pf_runtime_new(directoryBytes.constData());
     auto *timer=new QTimer(this);timer->setInterval(100);connect(timer,&QTimer::timeout,this,&Backend::poll);timer->start();
     if(m_runtime)command("status");

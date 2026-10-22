@@ -113,7 +113,7 @@ Page {
             Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; visible: !!backend.state.radio; text: backend.state.radio ? qsTr("Radio") + " · " + backend.state.radio.title : ""; color: Theme.highlightColor; wrapMode: Text.Wrap }
             Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: pageView.error; visible: text.length > 0; color: Theme.errorColor; wrapMode: Text.Wrap }
             Label {x:Theme.horizontalPageMargin;width:parent.width-2*x;visible:pageView.offline;text:qsTr("Offline · showing saved library metadata");wrapMode:Text.Wrap;color:Theme.secondaryColor}
-            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: backend.cache.downloading ? qsTr("Caching audio…") : qsTr("%1 tracks ready offline").arg(backend.cache.tracks); visible: backend.cache.downloading || backend.cache.tracks > 0; color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall }
+            Label { x: Theme.horizontalPageMargin; width: parent.width - 2*x; text: music.downloadsHeld ? qsTr("Downloads wait while the stream catches up") : backend.cache.downloading ? qsTr("Caching audio…") : qsTr("%1 tracks ready offline").arg(backend.cache.tracks); visible: music.downloadsHeld || backend.cache.downloading || backend.cache.tracks > 0; color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; wrapMode: Text.Wrap }
             ComboBox {
                 width: parent.width; label: qsTr("Library"); enabled: !backend.busy; visible: pageKind === "root" && !pageView.showQueue && backend.state.libraries.length > 1
                 menu: ContextMenu {
@@ -191,14 +191,16 @@ Page {
                 id: art; x: Theme.horizontalPageMargin; anchors.verticalCenter: parent.verticalCenter
                 height: Math.max(0, Math.min(Theme.iconSizeLarge, parent.height - 2 * Theme.paddingSmall)); width: height
                 visible:!discoveryGridItem;source: itemData.artwork || ""; asynchronous: true; fillMode: Image.PreserveAspectCrop
+                sourceSize.width: width; sourceSize.height: height
             }
             Column {
                 id: rowDetails
                 visible:!discoveryGridItem
+                opacity: music.goneTrack(itemData) ? 0.5 : 1
                 anchors.left: art.right; anchors.leftMargin: Theme.paddingMedium; anchors.right: radioAction.visible ? radioAction.left : parent.right
                 anchors.rightMargin: Theme.paddingMedium; anchors.verticalCenter: parent.verticalCenter
                 Label { width: parent.width; text: itemData.title; truncationMode: TruncationMode.Fade }
-                Label { width: parent.width; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? music.playlistSummary(itemData) : (itemData.index > 0 ? qsTr("Track") + " " + itemData.index + " · " : "") + music.artist(itemData)) + (itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0 ? " · " + qsTr("Downloaded") : ""); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; truncationMode: TruncationMode.Fade }
+                Label { width: parent.width; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? music.playlistSummary(itemData) : (itemData.index > 0 ? qsTr("Track") + " " + itemData.index + " · " : "") + music.artist(itemData)) + (itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0 ? " · " + qsTr("Downloaded") : "") + (music.goneTrack(itemData) ? " · " + qsTr("No longer on the server") : ""); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; truncationMode: TruncationMode.Fade }
             }
             RadioAction {
                 id: radioAction
@@ -227,7 +229,7 @@ Page {
                         }
                     }
                     Column {anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
-                        Image {width:parent.width;height:width;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                        Image {sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height);width:parent.width;height:width;source:card.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
                         Label {width:parent.width;text:card.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:Theme.highlightColor;font.pixelSize:Theme.fontSizeSmall;horizontalAlignment:Text.AlignHCenter}
                     }
                 }
@@ -270,7 +272,7 @@ Page {
                     }
                     Column {
                         anchors.fill:parent;anchors.margins:Theme.paddingSmall;spacing:Theme.paddingSmall
-                        Image {width:parent.width;height:width;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
+                        Image {sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height);width:parent.width;height:width;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
                         Label {width:parent.width;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:Theme.highlightColor;font.pixelSize:Theme.fontSizeSmall;horizontalAlignment:Text.AlignHCenter}
                     }
                 }

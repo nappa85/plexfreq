@@ -17,12 +17,11 @@ const SETUP: Duration = Duration::from_secs(2);
 /// asking the shared audio server for low-latency playback.
 const TARGET_MS: u32 = 300;
 const REQUEST_MS: u32 = 20;
-const FRAME_BYTES: u32 = 8;
 /// Upper bound of mainloop iterations per non-blocking dispatch.
 const DISPATCH_ITERATIONS: usize = 64;
 
 fn bytes(milliseconds: u32) -> u32 {
-    super::RATE / 1000 * milliseconds * FRAME_BYTES
+    super::RATE / 1000 * milliseconds * super::FRAME_BYTES as u32
 }
 
 /// Microseconds of stream time to frames, without overflow on long sessions.

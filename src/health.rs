@@ -50,6 +50,17 @@ impl Health {
     pub(crate) fn is_gone(&self, key: &str) -> bool {
         self.gone.get(key).is_some_and(|at| at.elapsed() < GONE_TTL)
     }
+    /// Keys whose Gone mark is still trusted, sorted (shown on track rows).
+    pub(crate) fn gone_keys(&self) -> Vec<String> {
+        let mut keys: Vec<_> = self
+            .gone
+            .keys()
+            .filter(|key| self.is_gone(key))
+            .cloned()
+            .collect();
+        keys.sort_unstable();
+        keys
+    }
     pub(crate) fn gone_len(&self) -> usize {
         self.gone.len()
     }
@@ -123,6 +134,16 @@ mod tests {
         assert!(!health.may_probe("2"));
         health.forget("2");
         assert!(health.may_probe("2"));
+    }
+
+    #[test]
+    fn gone_keys_lists_only_trusted_marks_sorted() {
+        let mut health = Health::default();
+        health.mark_gone("9");
+        health.mark_gone("10");
+        health.mark_gone("3");
+        health.gone.insert("3".into(), Instant::now() - GONE_TTL);
+        assert_eq!(health.gone_keys(), vec!["10".to_owned(), "9".to_owned()]);
     }
 
     #[test]

@@ -77,7 +77,7 @@ impl Core {
         let since = if days == 0 {
             0
         } else {
-            crate::history::now().saturating_sub(u64::from(days) * 86400)
+            crate::unix_seconds().saturating_sub(u64::from(days) * 86400)
         };
         let listens: Vec<_> = self
             .settings

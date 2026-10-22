@@ -884,8 +884,16 @@
       <translation>Загрузки · Ожидание · Wi-Fi · Звук · Воспроизвести · В сети</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Загрузки · Ожидание · Звук · Загрузка</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Звук · Кэш · Использовано</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Без сети · Медиатека · Данные · Сохранить · Ошибка · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Загрузки · Ожидание · Wi-Fi · Звук · Воспроизвести · В сети</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Загрузки · Ожидание · Звук · Загрузка</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Звук · Кэш · Использовано</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Без сети · Медиатека · Данные · Сохранить · Ошибка · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Без сети · Сохранено · Медиатека · Метаданные</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Загрузки · Ожидание · Звук · Загрузка</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Кэш · Звук</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Загружено</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Трек · Сервер · Недоступно</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Повторить попытку · Загрузка</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Без сети · Сохранено · Медиатека · Метаданные</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Загрузки · Ожидание · Звук · Загрузка</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Открыть · Альбом</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Трек · Сервер · Недоступно</translation>
     </message>
     <message>
       <source>Downloaded</source>

@@ -93,3 +93,6 @@ CMakeUserPresets.json
 *.bak
 .DS_Store
 Thumbs.db
+
+# Local review records (see AGENTS.md); never part of the documentation.
+/review-notes/

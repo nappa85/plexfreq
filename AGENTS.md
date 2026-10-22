@@ -1,8 +1,16 @@
 # PlexFreq development rules
 
-- Read `docs/research.md`, `docs/architecture.md`, `docs/validation.md` and
-  `docs/roadmap.md` before changing platform integration. Record new findings,
-  consulted sources and actual check results in these documents.
+- Read `docs/architecture.md` and `docs/development.md` before changing platform
+  integration.
+- Documentation describes the current behaviour and the verified external facts
+  it relies on, with their sources. It is not a log: no dates, incidents,
+  outcomes, review rounds or TODO lists. Update the relevant section when
+  behaviour changes and delete what no longer applies.
+- `README.md` is for users: what PlexFreq does, installation, settings,
+  troubleshooting and a feature comparison with Plexamp. Keep technical detail
+  in `docs/`.
+- Unfinished work is fixed, not documented. The only known gaps are missing
+  Plexamp features, listed in the README comparison table.
 - Research documented APIs/other implementations before choosing integration
   approaches. Develop local tests before live Plex or phone experiments.
 - Rust owns Plex/media HTTP, credentials, models/queue policy, worker lifetime,
@@ -35,9 +43,10 @@
   fidelity, deployability (Sailfish Qt5.6/Silica, Harbour, desktop Qt6), suitable
   existing libraries, duplicate logic, maintainability and production practices.
   Prefer a read-only reviewer; the implementer owns fixes.
-- Record the reviewed scope, findings, severity, disposition, regression checks and
-  verification in `docs/reviews/`, and summarize blockers/handoff in the "Open items"
-  section of `docs/roadmap.md`. Review findings are not proof of correctness.
+- Record the reviewed scope, findings, severity, disposition and verification in
+  the gitignored `review-notes/` folder (and summarize them in the commit message
+  when committing), never in `docs/`. Review findings are not proof of
+  correctness.
 - Reviewer setup (adopted from ../mimik, user decision 2026-10-16):
   - Main reviewers: OpenAI Sol (`openai/gpt-6.1-sol` via
     `tools/external_review.py --chain main`) and a fresh Sonnet subagent, in parallel.
@@ -59,7 +68,7 @@
 - Disposable experiments (inspection scripts, benchmarks and prototypes under
   `tools/` or ignored `build/`/`target/` paths that never ship in the RPM or desktop
   archive) may use a lighter process: a self-check plus a short results note in
-  `docs/` with exact scope, denominators and limitations.
+  `review-notes/` with exact scope, denominators and limitations.
 - Independent review is still required before experiment results drive a product or
   architecture decision, and before any prototype code moves into the shipped app.
 - Security and data rules still apply in full: no tokens read back or sent to

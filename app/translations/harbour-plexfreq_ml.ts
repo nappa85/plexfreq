@@ -884,8 +884,16 @@
       <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · Wi-Fi · ഓഡിയോ · പ്ലേ ചെയ്യുക · ഓൺലൈൻ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · ഓഡിയോ · ലോഡ് ചെയ്യുന്നു</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ഓഡിയോ · കാഷെ · ഉപയോഗിച്ചത്</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ഓഫ്‌ലൈൻ · ലൈബ്രറി · ഡാറ്റ · സംരക്ഷിക്കുക · പരാജയപ്പെട്ടു · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · Wi-Fi · ഓഡിയോ · പ്ലേ ചെയ്യുക · ഓൺലൈൻ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · ഓഡിയോ · ലോഡ് ചെയ്യുന്നു</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ഓഡിയോ · കാഷെ · ഉപയോഗിച്ചത്</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ഓഫ്‌ലൈൻ · ലൈബ്രറി · ഡാറ്റ · സംരക്ഷിക്കുക · പരാജയപ്പെട്ടു · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>ഓഫ്‌ലൈൻ · സംരക്ഷിച്ചത് · ലൈബ്രറി · മെറ്റാഡാറ്റ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · ഓഡിയോ · ലോഡ് ചെയ്യുന്നു</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>കാഷെ · ഓഡിയോ</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>ഡൗൺലോഡ് ചെയ്തു</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>ഗാനം · സെർവർ · ലഭ്യമല്ല</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>വീണ്ടും ശ്രമിക്കുക · ലോഡ് ചെയ്യുന്നു</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>ഓഫ്‌ലൈൻ · സംരക്ഷിച്ചത് · ലൈബ്രറി · മെറ്റാഡാറ്റ</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ഡൗൺലോഡുകൾ · കാത്തിരിക്കുന്നു · ഓഡിയോ · ലോഡ് ചെയ്യുന്നു</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>തുറക്കുക · ആൽബം</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>ഗാനം · സെർവർ · ലഭ്യമല്ല</translation>
     </message>
     <message>
       <source>Downloaded</source>

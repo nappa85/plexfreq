@@ -884,8 +884,16 @@
       <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · Wi-Fi · ఆడియో · ప్లే చేయి · ఆన్‌లైన్</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ఆడియో · కాష్ · వాడినది</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ఆఫ్‌లైన్ · లైబ్రరీ · డేటా · భద్రపరచు · విఫలమైంది · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · Wi-Fi · ఆడియో · ప్లే చేయి · ఆన్‌లైన్</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ఆడియో · కాష్ · వాడినది</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ఆఫ్‌లైన్ · లైబ్రరీ · డేటా · భద్రపరచు · విఫలమైంది · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>ఆఫ్‌లైన్ · భద్రపరచినది · లైబ్రరీ · మెటాడేటా</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>కాష్ · ఆడియో</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>డౌన్‌లోడ్ అయింది</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>మళ్లీ ప్రయత్నించు · లోడ్ అవుతోంది</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>ఆఫ్‌లైన్ · భద్రపరచినది · లైబ్రరీ · మెటాడేటా</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>తెరువు · ఆల్బమ్</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Downloaded</source>

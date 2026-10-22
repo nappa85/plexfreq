@@ -40,7 +40,8 @@ jobs:
           key: ${{ runner.os }}-rust-host-${{ steps.toolchain.outputs.cachekey }}-${{ hashFiles('Cargo.lock', 'Cargo.toml') }}
       - run: cargo fmt --all --check
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
-      - run: cargo test --locked --all-features
+      # Isolated from the runner's audio server and D-Bus buses, as tools/check.sh.
+      - run: bash tools/isolated-test.sh cargo test --locked --all-features
 
   pulse:
     name: PulseAudio output against a headless server

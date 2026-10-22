@@ -68,6 +68,10 @@ signals:
 private:
     void poll();void handle(const QVariantMap &event);void status(const QVariantMap &value);
     Runtime *m_runtime=nullptr;
+public:
+    // A new artwork source handle for the image provider (caller owns it).
+    ArtworkSource *artworkSource() const {return m_runtime ? pf_runtime_artwork(m_runtime) : nullptr;}
+private:
     QVariantMap m_state,m_cache,m_playback;
     QString m_error;bool m_busy=false,m_more=false;
     EntryModel m_items,m_queue;

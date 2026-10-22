@@ -126,6 +126,8 @@ pub(crate) struct Shared {
     pub(crate) model: Arc<Mutex<Value>>,
     pub(crate) control: Arc<Mutex<Option<crate::cache::DownloadControl>>>,
     pub(crate) stop: Arc<AtomicBool>,
+    /// What the image provider may fetch artwork with (see `crate::artwork`).
+    pub(crate) artwork: Arc<crate::artwork::Source>,
     foreground: Arc<AtomicUsize>,
     pages: Arc<AtomicUsize>,
     view: Arc<AtomicU64>,
@@ -163,6 +165,7 @@ impl Shared {
             model: Arc::new(Mutex::new(model)),
             control: Arc::new(Mutex::new(None)),
             stop: Arc::new(AtomicBool::new(false)),
+            artwork: Arc::default(),
             foreground: Arc::new(AtomicUsize::new(0)),
             pages: Arc::new(AtomicUsize::new(0)),
             view: Arc::new(AtomicU64::new(0)),
@@ -493,7 +496,14 @@ impl Runtime {
     pub fn submit(&self, request: Value) -> Result<Value> {
         self.shared.send(request)
     }
+    /// The artwork source shared with the image provider.
+    pub(crate) fn artwork(&self) -> Arc<crate::artwork::Source> {
+        self.shared.artwork.clone()
+    }
     pub fn poll(&self) -> Value {
+        // Held while draining: an update the worker sends under this lock
+        // (a radio refill) is delivered before any successor published below.
+        let mut presented = crate::mutex_lock(&self.shared.presented);
         // A reply can finish before navigation but remain unpolled until after
         // it. Check generations at delivery as well as on the Core worker.
         let mut events: Vec<_> = self
@@ -523,14 +533,11 @@ impl Runtime {
         // The engine switches its occurrence at the audible transition: show
         // the prepared plan then, even while the worker is busy. The worker
         // publishes the same transition only if this did not.
-        if playback.id != 0 {
-            let mut presented = crate::mutex_lock(&self.shared.presented);
-            if playback.id != presented.shown {
-                if let Some(plan) = presented.plans.get(&playback.id).cloned() {
-                    presented.shown = playback.id;
-                    self.shared.merge(&plan);
-                    events.push(update(plan));
-                }
+        if playback.id != 0 && playback.id != presented.shown {
+            if let Some(plan) = presented.plans.get(&playback.id).cloned() {
+                presented.shown = playback.id;
+                self.shared.merge(&plan);
+                events.push(update(plan));
             }
         }
         json!({"events":events,"playback":playback,"busy":self.shared.busy(),"loadingMore":self.shared.loading_more()})
@@ -688,18 +695,21 @@ const CHECKPOINT_OCCURRENCES: usize = 8;
 /// are tracked per occurrence: an interleaved checkpoint of another occurrence
 /// must not re-admit a stale one. Occurrence ids only grow, so the oldest
 /// entries are dropped first.
+///
+/// Returns whether a checkpoint of the current occurrence was applied, and if
+/// so whether it was a stop (`reset`).
 fn apply_checkpoint(
     core: &mut Core,
     current: u64,
     newest: &mut BTreeMap<u64, u64>,
     checkpoint: &Checkpoint,
-) {
+) -> Option<bool> {
     let state = &checkpoint.snapshot;
     if newest
         .get(&state.id)
         .is_some_and(|seq| checkpoint.seq <= *seq)
     {
-        return;
+        return None;
     }
     newest.insert(state.id, checkpoint.seq);
     while newest.len() > CHECKPOINT_OCCURRENCES {
@@ -713,6 +723,7 @@ fn apply_checkpoint(
         state.listened,
         state.duration,
     );
+    (state.id == current && current != 0).then_some(checkpoint.reset)
 }
 fn worker(
     directory: PathBuf,
@@ -732,6 +743,7 @@ fn worker(
         Err(error) => return abandon(&shared, receiver, &events, &error),
     };
     let _ = engine.handle.configure(core.audio_config());
+    shared.artwork.set(core.artwork_snapshot());
     shared.install_control(Some(core.download_control()));
     // Owned here: dropped (aborted) before `_exit` releases the control.
     let _yield = crate::rt::spawn(yield_downloads(
@@ -744,10 +756,16 @@ fn worker(
     let mut serial = 0u64;
     let mut prepared: Option<(u64, Prepared)> = None;
     let mut retry_prepare = false;
+    // The radio refill in flight off the worker, if any.
+    let mut refill: Option<mpsc::Receiver<crate::RefillFetched>> = None;
     let mut maintenance = Instant::now();
     let mut cache_tick = Instant::now();
     let mut history_tick = Instant::now();
     let mut newest_checkpoint = BTreeMap::new();
+    // The occurrence the user stopped (a reset checkpoint): the engine applies
+    // Stop asynchronously, so until then its snapshot still carries the old
+    // position and must not overwrite the reset.
+    let mut stopped: Option<u64> = None;
     let mut recovery = recovery::Recovery::new();
     core.set_health_epoch(recovery.epoch_handle.clone());
     // Direction of travel of the current occurrence (Previous → back): an
@@ -779,230 +797,429 @@ fn worker(
             }
         };
     }
+    // Recent panicking iterations: a deterministic panic must not rebuild
+    // Core forever.
+    let mut panics: Vec<Instant> = Vec::new();
     while !shared.stop.load(Ordering::SeqCst) {
-        // Background health: apply finished probes, start new ones for fresh
-        // failures, and settle a current-track failure whose verdict is in.
-        // Runs before any request is taken this iteration, so a playback
-        // request still in the channel counts as pending user intent.
-        for (key, probe) in recovery.drain(&mut core) {
-            if probe == Probe::Gone
-                && recovery
-                    .hold_prepare
-                    .as_ref()
-                    .is_some_and(|(_, held)| *held == key)
-            {
-                recovery.hold_prepare = None;
-                retry_prepare = true;
-            }
-            if recovery.waiting.as_ref().is_some_and(|w| w.key == key) {
-                if let Some(waiting) = recovery.waiting.take() {
-                    retry_prepare |= playback!().settle_failure(waiting, Some(probe));
-                }
-            }
-        }
-        // One new suspect per pass; a dropped one fails again on a later
-        // cache attempt.
-        // A pending failure dropped by an epoch change (e.g. the same server
-        // saved again) still reports, unless playback moved on.
-        if let Some(waiting) = recovery.orphaned.take() {
-            if core.current_key() == Some(waiting.key.as_str()) && current == waiting.occurrence {
-                playback!().give_up(waiting.occurrence, Some(waiting.message.to_owned()));
-            }
-        }
-        if let Some(key) = core
-            .take_cache_suspects()
-            .into_iter()
-            .find(|key| core.queue_contains(key))
-        {
-            recovery.request(&core, &key, recovery::Class::Background);
-        }
-        for key in core.take_probe_requests() {
-            recovery.request(&core, &key, recovery::Class::Background);
-        }
-        if recovery
-            .waiting
-            .as_ref()
-            .is_some_and(|waiting| waiting.deadline <= Instant::now())
-        {
-            if let Some(waiting) = recovery.waiting.take() {
-                retry_prepare |= playback!().settle_failure(waiting, None);
-            }
-        }
-        // A held failure: give up at its deadline (silently if the user
-        // paused meanwhile), or run a due transcode restart once playing and
-        // online.
-        // Retry a resolution a full engine queue refused.
-        if let Some(pending) = &mut failures.pending {
-            if let Some((resolution, expiry)) = pending.unsent.take() {
-                if let Err(resolution) =
-                    engine
-                        .handle
-                        .resolve(pending.failed, pending.seq, resolution, expiry)
+        // A panic anywhere in an iteration (event handling, ticks, request
+        // bookkeeping) costs that iteration only: Core is rebuilt from its
+        // persisted state, as for a panicking request.
+        let flow = catch_unwind(AssertUnwindSafe(|| -> Flow {
+            #[cfg(test)]
+            crate::test_hooks::check(&directory, "iteration");
+            // Background health: apply finished probes, start new ones for fresh
+            // failures, and settle a current-track failure whose verdict is in.
+            // Runs before any request is taken this iteration, so a playback
+            // request still in the channel counts as pending user intent.
+            for (key, probe) in recovery.drain(&mut core) {
+                if probe == Probe::Gone
+                    && recovery
+                        .hold_prepare
+                        .as_ref()
+                        .is_some_and(|(_, held)| *held == key)
                 {
-                    pending.unsent = Some((*resolution, expiry));
+                    recovery.hold_prepare = None;
+                    retry_prepare = true;
+                }
+                if recovery.waiting.as_ref().is_some_and(|w| w.key == key) {
+                    if let Some(waiting) = recovery.waiting.take() {
+                        retry_prepare |= playback!().settle_failure(waiting, Some(probe));
+                    }
                 }
             }
-        }
-        if failures.pending.is_none() {
-            if let Some(held) = &failures.held {
-                let now = Instant::now();
-                let snapshot = engine.handle.snapshot();
-                let engine_holds = snapshot.failed && snapshot.id == held.id;
-                let same = core.current_key() == Some(held.key.as_str())
-                    && core.occurrence() == held.occurrence
-                    && held.epoch == recovery.epoch_handle.load(Ordering::SeqCst);
-                if !engine_holds && recovery.waiting.is_none() {
-                    // The user stopped or replaced it; the engine let it go.
-                    failures.held = None;
-                } else if engine_holds && (!same || core.offline_mode()) {
-                    // Core moved on (server or queue change): release it.
-                    let id = held.id;
-                    recovery.waiting = None;
-                    playback!().give_up(id, None);
-                } else if now >= held.deadline {
-                    let (id, message) = (held.id, held.message);
-                    recovery.waiting = None;
-                    let banner = snapshot.intent.then(|| message.to_owned());
-                    playback!().give_up(id, banner);
-                } else if held.restart_due.is_some_and(|due| {
-                    due <= now
+            // One new suspect per pass; a dropped one fails again on a later
+            // cache attempt.
+            // A pending failure dropped by an epoch change (e.g. the same server
+            // saved again) still reports, unless playback moved on.
+            if let Some(waiting) = recovery.orphaned.take() {
+                if core.current_key() == Some(waiting.key.as_str()) && current == waiting.occurrence
+                {
+                    playback!().give_up(waiting.occurrence, Some(waiting.message.to_owned()));
+                }
+            }
+            if let Some(key) = core
+                .take_cache_suspects()
+                .into_iter()
+                .find(|key| core.queue_contains(key))
+            {
+                recovery.request(&core, &key, recovery::Class::Background);
+            }
+            for key in core.take_probe_requests() {
+                recovery.request(&core, &key, recovery::Class::Background);
+            }
+            if recovery
+                .waiting
+                .as_ref()
+                .is_some_and(|waiting| waiting.deadline <= Instant::now())
+            {
+                if let Some(waiting) = recovery.waiting.take() {
+                    retry_prepare |= playback!().settle_failure(waiting, None);
+                }
+            }
+            // A held failure: give up at its deadline (silently if the user
+            // paused meanwhile), or run a due transcode restart once playing and
+            // online.
+            // Retry a resolution a full engine queue refused.
+            if let Some(pending) = &mut failures.pending {
+                if let Some((resolution, expiry)) = pending.unsent.take() {
+                    if let Err(resolution) =
+                        engine
+                            .handle
+                            .resolve(pending.failed, pending.seq, resolution, expiry)
+                    {
+                        pending.unsent = Some((*resolution, expiry));
+                    }
+                }
+            }
+            if failures.pending.is_none() {
+                if let Some(held) = &failures.held {
+                    let now = Instant::now();
+                    let snapshot = engine.handle.snapshot();
+                    let engine_holds = snapshot.failed && snapshot.id == held.id;
+                    let same = core.current_key() == Some(held.key.as_str())
+                        && core.occurrence() == held.occurrence
+                        && held.epoch == recovery.epoch_handle.load(Ordering::SeqCst);
+                    if !engine_holds && recovery.waiting.is_none() {
+                        // The user stopped or replaced it; the engine let it go.
+                        failures.held = None;
+                    } else if engine_holds && (!same || core.offline_mode()) {
+                        // Core moved on (server or queue change): release it.
+                        let id = held.id;
+                        recovery.waiting = None;
+                        playback!().give_up(id, None);
+                    } else if now >= held.deadline {
+                        let (id, message) = (held.id, held.message);
+                        recovery.waiting = None;
+                        let banner = snapshot.intent.then(|| message.to_owned());
+                        playback!().give_up(id, banner);
+                    } else if held.restart_due.is_some_and(|due| {
+                        due <= now
                         && snapshot.intent
                         && !core.known_offline()
                         // A queued request decides instead of a restart.
                         && shared.queued_transport.load(Ordering::SeqCst) == 0
-                }) && core.is_gone(&held.key)
-                {
-                    // Learned gone meanwhile: the gone path, not a restart.
-                    let id = held.id;
-                    if let Some(held) = &mut failures.held {
-                        held.restart_due = None;
-                    }
-                    playback!().verdict_or_give_up(id);
-                } else if held.restart_due.is_some_and(|due| {
-                    due <= now
-                        && snapshot.intent
-                        && !core.known_offline()
-                        && shared.queued_transport.load(Ordering::SeqCst) == 0
-                }) {
-                    let (id, progress, admitted) = (held.id, held.progress, held.admitted);
-                    let occurrence = held.occurrence.clone();
-                    if let Some(held) = &mut failures.held {
-                        held.restart_due = None;
-                    }
-                    if !admitted {
-                        // Deferred while paused or offline: admit now; the
-                        // restart itself follows after its backoff.
-                        match failures.admit_restart(&occurrence, progress) {
-                            Some(attempt) => {
-                                if let Some(held) = &mut failures.held {
-                                    held.admitted = true;
-                                    held.restart_due = Some(now + restart_backoff(attempt));
-                                }
-                            }
-                            None => playback!().verdict_or_give_up(id),
+                    }) && core.is_gone(&held.key)
+                    {
+                        // Learned gone meanwhile: the gone path, not a restart.
+                        let id = held.id;
+                        if let Some(held) = &mut failures.held {
+                            held.restart_due = None;
                         }
-                    } else {
-                        match core.execute(Command::RestartTranscode) {
-                            Ok(data) => playback!().send_resolve(
-                                id,
-                                PendingKind::Same(with_resume(
-                                    data,
-                                    snapshot.position,
-                                    snapshot.listened,
-                                )),
-                            ),
-                            Err(_) => playback!().verdict_or_give_up(id),
+                        playback!().verdict_or_give_up(id);
+                    } else if held.restart_due.is_some_and(|due| {
+                        due <= now
+                            && snapshot.intent
+                            && !core.known_offline()
+                            && shared.queued_transport.load(Ordering::SeqCst) == 0
+                    }) {
+                        let (id, progress, admitted) = (held.id, held.progress, held.admitted);
+                        let occurrence = held.occurrence.clone();
+                        if let Some(held) = &mut failures.held {
+                            held.restart_due = None;
+                        }
+                        if !admitted {
+                            // Deferred while paused or offline: admit now; the
+                            // restart itself follows after its backoff.
+                            match failures.admit_restart(&occurrence, progress) {
+                                Some(attempt) => {
+                                    if let Some(held) = &mut failures.held {
+                                        held.admitted = true;
+                                        held.restart_due = Some(now + restart_backoff(attempt));
+                                    }
+                                }
+                                None => playback!().verdict_or_give_up(id),
+                            }
+                        } else {
+                            match core.execute(Command::RestartTranscode) {
+                                Ok(data) => playback!().send_resolve(
+                                    id,
+                                    PendingKind::Same(with_resume(
+                                        data,
+                                        snapshot.position,
+                                        snapshot.listened,
+                                    )),
+                                ),
+                                Err(_) => playback!().verdict_or_give_up(id),
+                            }
                         }
                     }
                 }
             }
-        }
-        // No successor for a held failure: its resolution replaces playback.
-        if retry_prepare && failures.held.is_none() && failures.pending.is_none() {
-            retry_prepare = !prepare(
-                &mut core,
-                &shared,
-                &engine,
-                &mut serial,
-                &mut prepared,
-                held!(),
-            );
-        }
-        for event in engine.events() {
-            match event {
-                Event::Transition {
-                    old,
-                    new,
-                    listened,
-                    position,
-                } => {
-                    if core.station_radio_active() {
-                        let _ = core.execute(Command::Timeline {
-                            state: "stopped".into(),
-                            position,
-                            duration: position,
-                            continuing: true,
-                        });
+            // A radio refill owed by a move that did not wait for it is fetched
+            // off the worker and applied here, between messages. It only
+            // appends, so queued commands keep their indices.
+            if let Some(receiver) = &refill {
+                match receiver.try_recv() {
+                    Ok(fetched) => {
+                        refill = None;
+                        // Under the presentation lock: `poll` must not publish the
+                        // prepared plan between the check and its update.
+                        let mut presented = crate::mutex_lock(&shared.presented);
+                        let landed = match &mut prepared {
+                            // Already shown: its transition commits the prepared
+                            // queue, and the refill is fetched again for it.
+                            Some((id, _)) if presented.shown == *id => None,
+                            Some((id, next)) => {
+                                let landed = core.refill_apply_landed(fetched, Some(next));
+                                if landed.is_some() {
+                                    if let Some(plan) = presented.plans.get_mut(id) {
+                                        *plan = visible_plan(&next.plan);
+                                    }
+                                }
+                                landed
+                            }
+                            None => core.refill_apply_landed(fetched, None),
+                        };
+                        // Sent under the lock: `poll` delivers it before it can
+                        // publish the successor, whose queue already has the items.
+                        let appended = landed.is_some();
+                        if let Some(data) = landed {
+                            shared.merge(&data);
+                            let _ = events.send(update(data).into());
+                        }
+                        drop(presented);
+                        if appended {
+                            core.refill_persist();
+                        }
                     }
-                    let _ = record(&mut core, old, current, position, listened, position);
-                    if let Some((id, next)) = prepared.take() {
-                        if id == new {
-                            if let Ok(data) = core.commit_prepared(next) {
-                                failures.clear();
-                                current = new;
-                                back = false;
-                                #[cfg(test)]
-                                shared.transitions.fetch_add(1, Ordering::SeqCst);
-                                let mut presented = crate::mutex_lock(&shared.presented);
-                                // Only the audible occurrence remains; `prepare`
-                                // below adds its successor.
-                                presented.plans.retain(|id, _| *id == new);
-                                shared.merge(&data);
-                                if presented.shown != new {
-                                    presented.shown = new;
-                                    let _ = events.send(update(data).into());
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    // The fetch thread died: drop the debt, the next move refills.
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        refill = None;
+                        core.refill_abandon(prepared.as_mut().map(|(_, next)| next));
+                    }
+                }
+            }
+            if refill.is_none() {
+                if let Some(job) = core.refill_job() {
+                    let (sender, receiver) = mpsc::channel();
+                    let spawned = std::thread::Builder::new()
+                        .name("plexfreq-radio".into())
+                        .spawn(move || {
+                            let _ = sender.send(job.fetch());
+                        });
+                    match spawned {
+                        Ok(_) => refill = Some(receiver),
+                        Err(error) => {
+                            crate::diagnostics::event(format_args!(
+                                "radio refill thread failed: {error}"
+                            ));
+                            core.refill_abandon(prepared.as_mut().map(|(_, next)| next));
+                        }
+                    }
+                }
+            }
+            // No successor for a held failure: its resolution replaces playback.
+            if retry_prepare && failures.held.is_none() && failures.pending.is_none() {
+                retry_prepare = !prepare(
+                    &mut core,
+                    &shared,
+                    &engine,
+                    &mut serial,
+                    &mut prepared,
+                    held!(),
+                );
+            }
+            for event in engine.events() {
+                match event {
+                    Event::Transition {
+                        old,
+                        new,
+                        listened,
+                        position,
+                    } => {
+                        if core.station_radio_active() {
+                            let _ = core.execute(Command::Timeline {
+                                state: "stopped".into(),
+                                position,
+                                duration: position,
+                                continuing: true,
+                            });
+                        }
+                        let _ = record(&mut core, old, current, position, listened, position);
+                        if let Some((id, next)) = prepared.take() {
+                            if id == new {
+                                if let Ok(data) = core.commit_prepared(next) {
+                                    failures.clear();
+                                    current = new;
+                                    back = false;
+                                    #[cfg(test)]
+                                    shared.transitions.fetch_add(1, Ordering::SeqCst);
+                                    let mut presented = crate::mutex_lock(&shared.presented);
+                                    // Only the audible occurrence remains; `prepare`
+                                    // below adds its successor.
+                                    presented.plans.retain(|id, _| *id == new);
+                                    shared.merge(&data);
+                                    if presented.shown != new {
+                                        presented.shown = new;
+                                        let _ = events.send(update(data).into());
+                                    }
                                 }
                             }
                         }
+                        retry_prepare = !prepare(
+                            &mut core,
+                            &shared,
+                            &engine,
+                            &mut serial,
+                            &mut prepared,
+                            held!(),
+                        );
                     }
-                    retry_prepare = !prepare(
-                        &mut core,
-                        &shared,
-                        &engine,
-                        &mut serial,
-                        &mut prepared,
-                        held!(),
-                    );
-                }
-                Event::End {
-                    id,
-                    listened,
-                    position,
-                } => {
-                    let radio = core.radio_active();
-                    let _ = record(&mut core, id, current, position, listened, position);
-                    let next = core.execute(Command::Next { automatic: true });
-                    let gone_notice = core.take_gone_notice();
-                    match next {
-                        Ok(data) => {
-                            failures.clear();
-                            if let Err(error) = start_plan(
-                                &data,
-                                &shared,
-                                &engine,
-                                &mut serial,
-                                &mut current,
-                                false,
-                            ) {
-                                let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
+                    Event::End {
+                        id,
+                        listened,
+                        position,
+                    } => {
+                        let radio = core.radio_active();
+                        let _ = record(&mut core, id, current, position, listened, position);
+                        let next = core.execute(Command::Next { automatic: true });
+                        let gone_notice = core.take_gone_notice();
+                        match next {
+                            Ok(data) => {
+                                failures.clear();
+                                if let Err(error) = start_plan(
+                                    &data,
+                                    &shared,
+                                    &engine,
+                                    &mut serial,
+                                    &mut current,
+                                    false,
+                                ) {
+                                    let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
+                                    continue;
+                                }
+                                back = false;
+                                shared.merge(&data);
+                                let _ = events.send(update(visible_plan(&data)).into());
+                                if gone_notice {
+                                    audio_error(&events, GONE_MESSAGE);
+                                }
+                                retry_prepare = !prepare(
+                                    &mut core,
+                                    &shared,
+                                    &engine,
+                                    &mut serial,
+                                    &mut prepared,
+                                    held!(),
+                                );
+                            }
+                            Err(error) if radio => {
+                                let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
+                            }
+                            // Never stop silently at a track end.
+                            Err(error) => audio_error(&events, &error.to_string()),
+                        }
+                    }
+                    Event::Error {
+                        id,
+                        recoverable: true,
+                        position,
+                        listened,
+                        duration,
+                        progress,
+                        early_end,
+                        ..
+                    } => {
+                        if failures.pending.is_some() {
+                            // Not expected (outcomes precede new failures on the
+                            // event channel); the pending outcome decides.
+                            crate::diagnostics::event(format_args!(
+                                "held failure while resolving occurrence={id}"
+                            ));
+                            continue;
+                        }
+                        if id != current {
+                            // Not the item the worker plays: end it rather than
+                            // leave it held.
+                            playback!().give_up(id, Some(stream_failure().to_owned()));
+                            continue;
+                        }
+                        // The engine dropped its successor with the failing decoder.
+                        if let Some((prepared_id, _)) = prepared.take() {
+                            crate::mutex_lock(&shared.presented)
+                                .plans
+                                .remove(&prepared_id);
+                        }
+                        // A restarted transcode that again ends cleanly where the
+                        // previous attempt did: the media is shorter than its
+                        // metadata, so this is the track's real end.
+                        #[cfg(test)]
+                        crate::test_hooks::check(&directory, "held_failure");
+                        let occurrence = core.occurrence().to_owned();
+                        if early_end
+                            && failures.episode.as_ref().is_some_and(|episode| {
+                                episode.occurrence == occurrence
+                                    && episode
+                                        .early_at
+                                        .is_some_and(|at| position <= at + REPEATED_EARLY_END_MS)
+                            })
+                        {
+                            crate::diagnostics::event(format_args!(
+                            "transcode ends early again at position_ms={position}; treating as the track end occurrence={id}"
+                        ));
+                            failures.episode = None;
+                            playback!().end_held(id, listened, position);
+                            continue;
+                        }
+                        let _ = record(&mut core, id, current, position, listened, duration);
+                        failures.held = core.current_key().map(|key| Held {
+                            id,
+                            key: key.to_owned(),
+                            occurrence: core.occurrence().to_owned(),
+                            message: stream_failure(),
+                            deadline: Instant::now() + HELD_LIMIT,
+                            restart_due: None,
+                            progress,
+                            admitted: false,
+                            epoch: 0,
+                        });
+                        if let Some(held) = &mut failures.held {
+                            held.epoch = recovery.epoch_handle.load(Ordering::SeqCst);
+                        } else {
+                            playback!().give_up(id, Some(stream_failure().to_owned()));
+                            continue;
+                        }
+                        playback!().recover_failure(id, progress, position, duration, listened);
+                        if let Some(episode) = &mut failures.episode {
+                            if episode.occurrence == occurrence {
+                                episode.early_at = early_end.then_some(position);
+                            }
+                        }
+                    }
+                    Event::Resolved {
+                        failed,
+                        seq,
+                        outcome,
+                    } => {
+                        let pending = match failures.pending.take() {
+                            Some(pending) if pending.seq == seq => pending,
+                            Some(pending)
+                                if outcome == audio::Outcome::Expired
+                                    && pending.failed == failed =>
+                            {
+                                // The engine expired the failure before our
+                                // resolution reached it.
+                                if playback!().settle_resolution(pending, outcome) {
+                                    retry_prepare = true;
+                                }
                                 continue;
                             }
-                            back = false;
-                            shared.merge(&data);
-                            let _ = events.send(update(visible_plan(&data)).into());
-                            if gone_notice {
-                                audio_error(&events, GONE_MESSAGE);
+                            other => {
+                                failures.pending = other;
+                                // The engine's own expiry of a failure still held
+                                // here: report it.
+                                if outcome == audio::Outcome::Expired
+                                    && failures.held.as_ref().is_some_and(|held| held.id == failed)
+                                {
+                                    failures.held = None;
+                                    recovery.waiting = None;
+                                    audio_error(&events, stream_failure());
+                                }
+                                continue;
                             }
+                        };
+                        if playback!().settle_resolution(pending, outcome) {
                             retry_prepare = !prepare(
                                 &mut core,
                                 &shared,
@@ -1012,94 +1229,321 @@ fn worker(
                                 held!(),
                             );
                         }
-                        Err(error) if radio => {
-                            let _=events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
-                        }
-                        // Never stop silently at a track end.
-                        Err(error) => audio_error(&events, &error.to_string()),
                     }
-                }
-                Event::Error {
-                    id,
-                    recoverable: true,
-                    position,
-                    listened,
-                    duration,
-                    progress,
-                    ..
-                } => {
-                    if failures.pending.is_some() {
-                        // Not expected (outcomes precede new failures on the
-                        // event channel); the pending outcome decides.
-                        crate::diagnostics::event(format_args!(
-                            "held failure while resolving occurrence={id}"
-                        ));
-                        continue;
-                    }
-                    if id != current {
-                        // Not the item the worker plays: end it rather than
-                        // leave it held.
-                        playback!().give_up(id, Some(stream_failure().to_owned()));
-                        continue;
-                    }
-                    let _ = record(&mut core, id, current, position, listened, duration);
-                    // The engine dropped its successor with the failing decoder.
-                    if let Some((prepared_id, _)) = prepared.take() {
-                        crate::mutex_lock(&shared.presented)
-                            .plans
-                            .remove(&prepared_id);
-                    }
-                    failures.held = core.current_key().map(|key| Held {
-                        id,
-                        key: key.to_owned(),
-                        occurrence: core.occurrence().to_owned(),
-                        message: stream_failure(),
-                        deadline: Instant::now() + HELD_LIMIT,
-                        restart_due: None,
-                        progress,
-                        admitted: false,
-                        epoch: 0,
-                    });
-                    if let Some(held) = &mut failures.held {
-                        held.epoch = recovery.epoch_handle.load(Ordering::SeqCst);
-                    } else {
-                        playback!().give_up(id, Some(stream_failure().to_owned()));
-                        continue;
-                    }
-                    playback!().recover_failure(id, progress, position, duration, listened);
-                }
-                Event::Resolved {
-                    failed,
-                    seq,
-                    outcome,
-                } => {
-                    let pending = match failures.pending.take() {
-                        Some(pending) if pending.seq == seq => pending,
-                        Some(pending)
-                            if outcome == audio::Outcome::Expired && pending.failed == failed =>
+                    Event::Error { id, message, .. } => {
+                        // A gapless successor that failed to pre-load: drop it
+                        // silently, check whether it is gone, and keep playing.
+                        if prepared
+                            .as_ref()
+                            .is_some_and(|(prepared_id, _)| *prepared_id == id)
                         {
-                            // The engine expired the failure before our
-                            // resolution reached it.
-                            if playback!().settle_resolution(pending, outcome) {
-                                retry_prepare = true;
+                            let key = prepared
+                                .take()
+                                .and_then(|(_, next)| next.key().map(str::to_owned));
+                            crate::mutex_lock(&shared.presented).plans.remove(&id);
+                            let _ = engine.handle.prepare(None);
+                            crate::diagnostics::event(format_args!(
+                                "prepared successor failed occurrence={id}: {message}"
+                            ));
+                            if let Some(key) = key {
+                                // Held for this occurrence whether or not a check
+                                // could start: re-preparing would fetch it again.
+                                recovery.request(&core, &key, recovery::Class::Background);
+                                recovery.hold_prepare = Some((current, key));
                             }
                             continue;
                         }
-                        other => {
-                            failures.pending = other;
-                            // The engine's own expiry of a failure still held
-                            // here: report it.
-                            if outcome == audio::Outcome::Expired
-                                && failures.held.as_ref().is_some_and(|held| held.id == failed)
-                            {
-                                failures.held = None;
-                                recovery.waiting = None;
-                                audio_error(&events, stream_failure());
-                            }
+                        if id != current && message == "Next track decoding failed" {
+                            // A successor already replaced: nothing to report.
+                            crate::diagnostics::event(format_args!(
+                                "stale successor error occurrence={id}: {message}"
+                            ));
                             continue;
+                        }
+                        let snapshot = engine.handle.snapshot();
+                        let _ = record(
+                            &mut core,
+                            id,
+                            current,
+                            snapshot.position,
+                            snapshot.listened,
+                            snapshot.duration,
+                        );
+                        audio_error(&events, message);
+                    }
+                    Event::Seeked(position) => {
+                        crate::mutex_lock(&shared.seeks).push(position as i64 * 1000);
+                        shared.touched();
+                        let _ = events.send(json!({"kind":"seeked","position":position}).into());
+                    }
+                }
+            }
+            let input = match receiver.recv_timeout(Duration::from_millis(25)) {
+                Ok(input) => Some(input),
+                Err(mpsc::RecvTimeoutError::Timeout) => None,
+                Err(_) => return Flow::Stop,
+            };
+            // Guarded from the moment it leaves the channel: even a panic
+            // before the request is handled answers it and releases its
+            // admission counters.
+            let mut guard = match &input {
+                Some(WorkerMsg::Request(request)) => Some(Admitted::new(&shared, &events, request)),
+                _ => None,
+            };
+            // Drain non-blocking checkpoint overflow first so pause/stop scrobble
+            // data isn't lost when the request queue was momentarily full.
+            // The GUI thread never blocks; the worker applies them in order.
+            for checkpoint in shared.take_checkpoints() {
+                if let Some(reset) =
+                    apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint)
+                {
+                    stopped = reset.then_some(current);
+                }
+            }
+            match input {
+                Some(WorkerMsg::Shutdown) => return Flow::Stop,
+                Some(WorkerMsg::Checkpoint(checkpoint)) => {
+                    if let Some(reset) =
+                        apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint)
+                    {
+                        stopped = reset.then_some(current);
+                    }
+                    return Flow::Next;
+                }
+                Some(WorkerMsg::Request(request)) => {
+                    let Request {
+                        command,
+                        echo,
+                        view,
+                        page,
+                        paused,
+                        ..
+                    } = *request;
+                    let Some(mut admitted) = guard.take() else {
+                        unreachable!("a dequeued request has its guard")
+                    };
+                    #[cfg(test)]
+                    crate::test_hooks::check(&directory, "admitted");
+                    let previous = matches!(command, Command::Previous);
+                    let op = command.op();
+                    let class = command.class();
+                    let (keyed, tags) = correlation(&command);
+                    let logout = matches!(command, Command::Logout);
+                    crate::diagnostics::event(format_args!("core request begin op={op}"));
+                    let request_started = Instant::now();
+                    if class.transport {
+                        crate::diagnostics::event(format_args!("core transport begin op={op}"));
+                        let snapshot = engine.handle.snapshot();
+                        if stopped != Some(snapshot.id) {
+                            let _ = record(
+                                &mut core,
+                                snapshot.id,
+                                current,
+                                snapshot.position,
+                                snapshot.listened,
+                                snapshot.duration,
+                            );
+                        }
+                        stopped = None;
+                    }
+                    let command_started = Instant::now();
+                    let mut recovered = None;
+                    // The successor is prepared only after the reply is queued: the
+                    // engine cannot make it audible (and `poll` cannot show it)
+                    // before the reply presenting its predecessor.
+                    let mut reprepare = false;
+                    // A view-bound command's Plex requests abort as soon as navigation
+                    // makes its reply stale, instead of finishing a discarded transfer.
+                    if let Some(view) = view {
+                        core.plex
+                            .bind_view(Some((shared.navigation.subscribe(), view)));
+                    }
+                    let result = if let Command::AudioConfig { config } = command {
+                        core.set_audio_config(config.clone()).and_then(|()| {
+                            engine.handle.configure(config.clone())?;
+                            Ok(json!({"audioConfig":config}))
+                        })
+                    } else {
+                        // Contain a Core panic to the request that caused it: the reply
+                        // clears its busy state, and the Core it may have left
+                        // partially mutated is replaced from persisted state.
+                        match catch_unwind(AssertUnwindSafe(|| core.execute(command))) {
+                            Ok(result) => result,
+                            Err(_) => {
+                                crate::diagnostics::event(format_args!(
+                                "core request panicked op={op}; rebuilding from persisted state"
+                            ));
+                                recovery.reset();
+                                failures.clear();
+                                recovered = Some(recover(
+                                    &mut core,
+                                    &directory,
+                                    &shared,
+                                    &engine,
+                                    &mut prepared,
+                                    current,
+                                    recovery.epoch_handle.clone(),
+                                ));
+                                Err(Error::Input("Backend panic"))
+                            }
                         }
                     };
-                    if playback!().settle_resolution(pending, outcome) {
+                    let cancelled = core.plex.cancelled();
+                    core.plex.bind_view(None);
+                    // Navigation stepped over gone items to a natural end.
+                    let gone_notice = core.take_gone_notice();
+                    if cancelled {
+                        crate::diagnostics::event(format_args!(
+                            "core request cancelled by navigation op={op} elapsed_ms={}",
+                            command_started.elapsed().as_millis()
+                        ));
+                    }
+                    if class.transport {
+                        crate::diagnostics::event(format_args!(
+                            "core transport complete op={op} success={} elapsed_ms={}",
+                            result.is_ok(),
+                            command_started.elapsed().as_millis()
+                        ));
+                    }
+                    let mut audio_failure = None;
+                    let mut response = match result {
+                        // Navigation aborted it: the reply is stale by construction.
+                        _ if cancelled => json!({"ok":true,"data":{"_discarded":true}}),
+                        Ok(mut data) => {
+                            if shared.stale(view) {
+                                data = json!({"_discarded":true});
+                            } else {
+                                if class.resets_session {
+                                    let _ = engine.handle.stop();
+                                    failures.clear();
+                                    current = 0;
+                                    prepared = None;
+                                    retry_prepare = false;
+                                    *crate::mutex_lock(&shared.presented) = Presented::default();
+                                    data["track"] = Value::Null;
+                                    data["items"] = json!([]);
+                                    data["detail"] = json!({});
+                                    data["playlistChoices"] = json!([]);
+                                    data["hasMore"] = json!(false);
+                                    data["queue"] =
+                                        json!({"items":[],"repeat":"off","shuffled":false});
+                                    if logout {
+                                        data["servers"] = json!([]);
+                                        data["libraries"] = json!([]);
+                                    }
+                                }
+                                if data.get("stream").is_some() {
+                                    failures.clear();
+                                    let started = start_plan(
+                                        &data,
+                                        &shared,
+                                        &engine,
+                                        &mut serial,
+                                        &mut current,
+                                        paused,
+                                    );
+                                    if let Err(error) = started {
+                                        audio_failure = Some(error);
+                                    } else {
+                                        back = previous;
+                                        reprepare = true;
+                                    }
+                                } else if class.reprepare {
+                                    reprepare = true;
+                                }
+                                if let Some((field, key)) = &keyed {
+                                    data[*field] = json!(key);
+                                }
+                                if let Some(items) = data["items"].as_array() {
+                                    let mut artwork = items.clone();
+                                    if data["detail"].is_object() {
+                                        artwork.insert(0, data["detail"].clone());
+                                    }
+                                    if data["track"].is_object() {
+                                        artwork.insert(0, data["track"].clone());
+                                    }
+                                    let _ = core.execute(Command::CacheArtwork {
+                                        items: artwork
+                                            .into_iter()
+                                            .filter_map(|i| serde_json::from_value(i).ok())
+                                            .collect(),
+                                    });
+                                }
+                                artwork_delta(&shared, &mut data);
+                                shared.merge(&data);
+                            }
+                            json!({"ok":true,"data":visible_plan(&data)})
+                        }
+                        Err(error) => json!({"ok":false,"error":error.to_string()}),
+                    };
+                    if let Some(error) = audio_failure {
+                        response = json!({"ok":false,"error":error.to_string()});
+                    }
+                    // Correlate failures as well as successes; the presentation must be
+                    // able to leave its loading state without accepting a stale reply.
+                    let stale = shared.stale(view);
+                    if stale {
+                        response["data"] = json!({"_discarded":true});
+                    }
+                    if let Some((field, key)) = keyed {
+                        if !(cancelled || stale) {
+                            if !response["data"].is_object() {
+                                response["data"] = json!({});
+                            }
+                            response["data"][field] = json!(key);
+                        }
+                    }
+                    if (class.listing || !tags.is_empty()) && !response["data"].is_object() {
+                        response["data"] = json!({});
+                    }
+                    for (field, value) in tags {
+                        response["data"][field] = value;
+                    }
+                    if response["data"].is_object() {
+                        if let Some(start) = page {
+                            response["data"]["_pageStart"] = json!(start);
+                        }
+                        let action = if !class.listing {
+                            ListAction::None
+                        } else if page.is_some() && response["data"]["replaceItems"] != true {
+                            ListAction::Append
+                        } else {
+                            ListAction::Replace
+                        };
+                        response["data"]["_listAction"] = json!(action);
+                    }
+                    // Before the reply: its artwork ids must resolve.
+                    shared.artwork.set(core.artwork_snapshot());
+                    admitted.release();
+                    crate::diagnostics::event(format_args!(
+                        "core request complete op={op} success={} elapsed_ms={}",
+                        response["ok"] == true,
+                        request_started.elapsed().as_millis()
+                    ));
+                    let _ = events.send(Outgoing {
+                        view,
+                        event: json!({"request":echo,"response":response}),
+                    });
+                    if gone_notice && response["ok"] == true && !(cancelled || stale) {
+                        audio_error(&events, GONE_MESSAGE);
+                    }
+                    // After the failed reply, present the rebuilt session (queue,
+                    // track, settings) so the UI drops whatever the panicking
+                    // request may already have shown.
+                    if recovered.is_some() {
+                        reprepare = true;
+                    }
+                    match recovered {
+                        Some(Ok(status)) => {
+                            shared.merge(&status);
+                            let _ = events.send(update(status).into());
+                        }
+                        Some(Err(error)) => {
+                            let _ = events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}).into());
+                        }
+                        None => {}
+                    }
+                    if reprepare {
                         retry_prepare = !prepare(
                             &mut core,
                             &shared,
@@ -1110,359 +1554,147 @@ fn worker(
                         );
                     }
                 }
-                Event::Error { id, message, .. } => {
-                    // A gapless successor that failed to pre-load: drop it
-                    // silently, check whether it is gone, and keep playing.
-                    if prepared
-                        .as_ref()
-                        .is_some_and(|(prepared_id, _)| *prepared_id == id)
-                    {
-                        let key = prepared
-                            .take()
-                            .and_then(|(_, next)| next.key().map(str::to_owned));
-                        crate::mutex_lock(&shared.presented).plans.remove(&id);
-                        let _ = engine.handle.prepare(None);
-                        crate::diagnostics::event(format_args!(
-                            "prepared successor failed occurrence={id}: {message}"
-                        ));
-                        if let Some(key) = key {
-                            // Held for this occurrence whether or not a check
-                            // could start: re-preparing would fetch it again.
-                            recovery.request(&core, &key, recovery::Class::Background);
-                            recovery.hold_prepare = Some((current, key));
-                        }
-                        continue;
-                    }
-                    if id != current && message == "Next track decoding failed" {
-                        // A successor already replaced: nothing to report.
-                        crate::diagnostics::event(format_args!(
-                            "stale successor error occurrence={id}: {message}"
-                        ));
-                        continue;
-                    }
-                    let snapshot = engine.handle.snapshot();
+                None => {}
+            }
+            if maintenance.elapsed() >= Duration::from_secs(5) {
+                let state = engine.handle.snapshot();
+                if stopped != Some(state.id) {
                     let _ = record(
                         &mut core,
-                        id,
+                        state.id,
                         current,
-                        snapshot.position,
-                        snapshot.listened,
-                        snapshot.duration,
-                    );
-                    audio_error(&events, message);
-                }
-                Event::Seeked(position) => {
-                    crate::mutex_lock(&shared.seeks).push(position as i64 * 1000);
-                    shared.touched();
-                    let _ = events.send(json!({"kind":"seeked","position":position}).into());
-                }
-            }
-        }
-        let input = match receiver.recv_timeout(Duration::from_millis(25)) {
-            Ok(input) => Some(input),
-            Err(mpsc::RecvTimeoutError::Timeout) => None,
-            Err(_) => break,
-        };
-        // Drain non-blocking checkpoint overflow first so pause/stop scrobble
-        // data isn't lost when the request queue was momentarily full.
-        // The GUI thread never blocks; the worker applies them in order.
-        for checkpoint in shared.take_checkpoints() {
-            apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint);
-        }
-        match input {
-            Some(WorkerMsg::Shutdown) => break,
-            Some(WorkerMsg::Checkpoint(checkpoint)) => {
-                apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint);
-                continue;
-            }
-            Some(WorkerMsg::Request(request)) => {
-                let Request {
-                    command,
-                    echo,
-                    view,
-                    foreground,
-                    page,
-                    paused,
-                    counted,
-                } = *request;
-                if counted {
-                    shared.queued_transport.fetch_sub(1, Ordering::SeqCst);
-                }
-                let previous = matches!(command, Command::Previous);
-                let op = command.op();
-                let class = command.class();
-                let (keyed, tags) = correlation(&command);
-                let logout = matches!(command, Command::Logout);
-                crate::diagnostics::event(format_args!("core request begin op={op}"));
-                let request_started = Instant::now();
-                if class.transport {
-                    crate::diagnostics::event(format_args!("core transport begin op={op}"));
-                    let snapshot = engine.handle.snapshot();
-                    let _ = record(
-                        &mut core,
-                        snapshot.id,
-                        current,
-                        snapshot.position,
-                        snapshot.listened,
-                        snapshot.duration,
+                        state.position,
+                        state.listened,
+                        state.duration,
                     );
                 }
-                let command_started = Instant::now();
-                let mut recovered = None;
-                // The successor is prepared only after the reply is queued: the
-                // engine cannot make it audible (and `poll` cannot show it)
-                // before the reply presenting its predecessor.
-                let mut reprepare = false;
-                // A view-bound command's Plex requests abort as soon as navigation
-                // makes its reply stale, instead of finishing a discarded transfer.
-                if let Some(view) = view {
-                    core.plex
-                        .bind_view(Some((shared.navigation.subscribe(), view)));
+                if state.loaded && state.playing {
+                    let _ = core.execute(Command::Timeline {
+                        state: "playing".into(),
+                        position: state.position,
+                        duration: state.duration,
+                        continuing: false,
+                    });
                 }
-                let result = if let Command::AudioConfig { config } = command {
-                    core.set_audio_config(config.clone()).and_then(|()| {
-                        engine.handle.configure(config.clone())?;
-                        Ok(json!({"audioConfig":config}))
-                    })
-                } else {
-                    // Contain a Core panic to the request that caused it: the reply
-                    // clears its busy state, and the Core it may have left
-                    // partially mutated is replaced from persisted state.
-                    match catch_unwind(AssertUnwindSafe(|| core.execute(command))) {
-                        Ok(result) => result,
-                        Err(_) => {
-                            crate::diagnostics::event(format_args!(
-                                "core request panicked op={op}; rebuilding from persisted state"
-                            ));
-                            recovery.reset();
-                            failures.clear();
-                            recovered = Some(recover(
-                                &mut core,
-                                &directory,
-                                &shared,
-                                &engine,
-                                &mut prepared,
-                                current,
-                                recovery.epoch_handle.clone(),
-                            ));
-                            Err(Error::Input("Backend panic"))
-                        }
-                    }
-                };
-                let cancelled = core.plex.cancelled();
-                core.plex.bind_view(None);
-                // Navigation stepped over gone items to a natural end.
-                let gone_notice = core.take_gone_notice();
-                if cancelled {
-                    crate::diagnostics::event(format_args!(
-                        "core request cancelled by navigation op={op} elapsed_ms={}",
-                        command_started.elapsed().as_millis()
-                    ));
-                }
-                if class.transport {
-                    crate::diagnostics::event(format_args!(
-                        "core transport complete op={op} success={} elapsed_ms={}",
-                        result.is_ok(),
-                        command_started.elapsed().as_millis()
-                    ));
-                }
-                let mut audio_failure = None;
-                let mut response = match result {
-                    // Navigation aborted it: the reply is stale by construction.
-                    _ if cancelled => json!({"ok":true,"data":{"_discarded":true}}),
-                    Ok(mut data) => {
-                        if shared.stale(view) {
-                            data = json!({"_discarded":true});
-                        } else {
-                            if class.resets_session {
-                                let _ = engine.handle.stop();
-                                failures.clear();
-                                current = 0;
-                                prepared = None;
-                                retry_prepare = false;
-                                *crate::mutex_lock(&shared.presented) = Presented::default();
-                                data["track"] = Value::Null;
-                                data["items"] = json!([]);
-                                data["detail"] = json!({});
-                                data["playlistChoices"] = json!([]);
-                                data["hasMore"] = json!(false);
-                                data["queue"] = json!({"items":[],"repeat":"off","shuffled":false});
-                                if logout {
-                                    data["servers"] = json!([]);
-                                    data["libraries"] = json!([]);
-                                }
-                            }
-                            if data.get("stream").is_some() {
-                                failures.clear();
-                                let started = start_plan(
-                                    &data,
-                                    &shared,
-                                    &engine,
-                                    &mut serial,
-                                    &mut current,
-                                    paused,
-                                );
-                                if let Err(error) = started {
-                                    audio_failure = Some(error);
-                                } else {
-                                    back = previous;
-                                    reprepare = true;
-                                }
-                            } else if class.reprepare {
-                                reprepare = true;
-                            }
-                            if let Some((field, key)) = &keyed {
-                                data[*field] = json!(key);
-                            }
-                            if let Some(items) = data["items"].as_array() {
-                                let mut artwork = items.clone();
-                                if data["detail"].is_object() {
-                                    artwork.insert(0, data["detail"].clone());
-                                }
-                                if data["track"].is_object() {
-                                    artwork.insert(0, data["track"].clone());
-                                }
-                                let _ = core.execute(Command::CacheArtwork {
-                                    items: artwork
-                                        .into_iter()
-                                        .filter_map(|i| serde_json::from_value(i).ok())
-                                        .collect(),
-                                });
-                            }
-                            artwork_delta(&shared, &mut data);
-                            shared.merge(&data);
-                        }
-                        json!({"ok":true,"data":visible_plan(&data)})
-                    }
-                    Err(error) => json!({"ok":false,"error":error.to_string()}),
-                };
-                if let Some(error) = audio_failure {
-                    response = json!({"ok":false,"error":error.to_string()});
-                }
-                // Correlate failures as well as successes; the presentation must be
-                // able to leave its loading state without accepting a stale reply.
-                let stale = shared.stale(view);
-                if stale {
-                    response["data"] = json!({"_discarded":true});
-                }
-                if let Some((field, key)) = keyed {
-                    if !(cancelled || stale) {
-                        if !response["data"].is_object() {
-                            response["data"] = json!({});
-                        }
-                        response["data"][field] = json!(key);
-                    }
-                }
-                if (class.listing || !tags.is_empty()) && !response["data"].is_object() {
-                    response["data"] = json!({});
-                }
-                for (field, value) in tags {
-                    response["data"][field] = value;
-                }
-                if response["data"].is_object() {
-                    if let Some(start) = page {
-                        response["data"]["_pageStart"] = json!(start);
-                    }
-                    let action = if !class.listing {
-                        ListAction::None
-                    } else if page.is_some() && response["data"]["replaceItems"] != true {
-                        ListAction::Append
-                    } else {
-                        ListAction::Replace
-                    };
-                    response["data"]["_listAction"] = json!(action);
-                }
-                shared.release(foreground, page.is_some());
-                crate::diagnostics::event(format_args!(
-                    "core request complete op={op} success={} elapsed_ms={}",
-                    response["ok"] == true,
-                    request_started.elapsed().as_millis()
-                ));
-                let _ = events.send(Outgoing {
-                    view,
-                    event: json!({"request":echo,"response":response}),
-                });
-                if gone_notice && response["ok"] == true && !(cancelled || stale) {
-                    audio_error(&events, GONE_MESSAGE);
-                }
-                // After the failed reply, present the rebuilt session (queue,
-                // track, settings) so the UI drops whatever the panicking
-                // request may already have shown.
-                if recovered.is_some() {
-                    reprepare = true;
-                }
-                match recovered {
-                    Some(Ok(status)) => {
-                        shared.merge(&status);
-                        let _ = events.send(update(status).into());
-                    }
-                    Some(Err(error)) => {
-                        let _ = events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}).into());
-                    }
-                    None => {}
-                }
-                if reprepare {
-                    retry_prepare = !prepare(
-                        &mut core,
-                        &shared,
-                        &engine,
-                        &mut serial,
-                        &mut prepared,
-                        held!(),
-                    );
-                }
+                maintenance = Instant::now();
             }
-            None => {}
-        }
-        if maintenance.elapsed() >= Duration::from_secs(5) {
-            let state = engine.handle.snapshot();
-            let _ = record(
-                &mut core,
-                state.id,
-                current,
-                state.position,
-                state.listened,
-                state.duration,
-            );
-            if state.loaded && state.playing {
-                let _ = core.execute(Command::Timeline {
-                    state: "playing".into(),
-                    position: state.position,
-                    duration: state.duration,
-                    continuing: false,
-                });
-            }
-            maintenance = Instant::now();
-        }
-        if cache_tick.elapsed() >= Duration::from_secs(2) {
-            let _ = core.execute(Command::RefreshDownloads);
-            if let Ok(data) = core.execute(Command::CacheStatus) {
-                let mut data = data;
-                artwork_delta(&shared, &mut data);
-                data["history"] =
-                    core.execute(Command::Status).unwrap_or_default()["history"].clone();
-                let _ = events.send(update(data).into());
-            }
-            cache_tick = Instant::now();
-        }
-        if history_tick.elapsed() >= Duration::from_secs(30) {
-            if crate::mutex_lock(&shared.model)["networkOnline"] == true {
-                if let Ok(data) = core.execute(Command::SyncHistory) {
+            if cache_tick.elapsed() >= Duration::from_secs(2) {
+                let _ = core.execute(Command::RefreshDownloads);
+                if let Ok(data) = core.execute(Command::CacheStatus) {
+                    let mut data = data;
+                    artwork_delta(&shared, &mut data);
+                    data["history"] =
+                        core.execute(Command::Status).unwrap_or_default()["history"].clone();
                     let _ = events.send(update(data).into());
                 }
+                cache_tick = Instant::now();
             }
-            history_tick = Instant::now();
+            if history_tick.elapsed() >= Duration::from_secs(30) {
+                if crate::mutex_lock(&shared.model)["networkOnline"] == true {
+                    if let Ok(data) = core.execute(Command::SyncHistory) {
+                        let _ = events.send(update(data).into());
+                    }
+                }
+                history_tick = Instant::now();
+            }
+            Flow::Next
+        }));
+        match flow {
+            Ok(Flow::Next) => {}
+            Ok(Flow::Stop) => break,
+            Err(_) => {
+                let now = Instant::now();
+                panics.retain(|at| now.duration_since(*at) < PANIC_WINDOW);
+                panics.push(now);
+                crate::diagnostics::event(format_args!(
+                    "worker iteration panicked ({} in {}s); rebuilding from persisted state",
+                    panics.len(),
+                    PANIC_WINDOW.as_secs()
+                ));
+                if panics.len() >= PANIC_LIMIT {
+                    crate::diagnostics::event(format_args!("worker keeps panicking; stopping"));
+                    break;
+                }
+                // A panicking tick waits for its interval again.
+                maintenance = now;
+                cache_tick = now;
+                history_tick = now;
+                let rebuilt = catch_unwind(AssertUnwindSafe(|| {
+                    recovery.reset();
+                    failures.clear();
+                    let recovered = recover(
+                        &mut core,
+                        &directory,
+                        &shared,
+                        &engine,
+                        &mut prepared,
+                        current,
+                        recovery.epoch_handle.clone(),
+                    );
+                    // Before publishing: the rebuilt state's artwork ids must resolve.
+                    shared.artwork.set(core.artwork_snapshot());
+                    match recovered {
+                        Ok(status) => {
+                            shared.merge(&status);
+                            let _ = events.send(update(status).into());
+                        }
+                        Err(error) => {
+                            let _ = events.send(json!({"request":{"op":"status"},"response":{"ok":false,"error":error.to_string()}}).into());
+                        }
+                    }
+                    // The panic may have interrupted the handling of a held
+                    // failure: nothing would resolve it any more.
+                    let snapshot = engine.handle.snapshot();
+                    if snapshot.failed {
+                        playback!().give_up(snapshot.id, None);
+                    }
+                }));
+                if rebuilt.is_err() {
+                    crate::diagnostics::event(format_args!("worker recovery panicked; stopping"));
+                    break;
+                }
+                retry_prepare = true;
+            }
+        }
+    }
+    // Under admission: answer every request still queued (the runtime may
+    // outlive a stopped worker) and apply the checkpoints the GUI queued
+    // before shutdown (pause, stop); then no request can be queued any more.
+    let admission = crate::mutex_lock(&shared.admission);
+    let mut queued = shared.take_checkpoints();
+    for message in receiver.try_iter() {
+        match message {
+            WorkerMsg::Checkpoint(checkpoint) => queued.push(checkpoint),
+            WorkerMsg::Request(request) => {
+                shared.release(request.foreground, request.page.is_some());
+                let _ = events.send(Outgoing {
+                    view: request.view,
+                    event: json!({"request":request.echo,"response":{"ok":false,"error":"Backend command queue is unavailable"}}),
+                });
+            }
+            WorkerMsg::Shutdown => {}
+        }
+    }
+    drop(receiver);
+    drop(admission);
+    for checkpoint in queued {
+        if let Some(reset) =
+            apply_checkpoint(&mut core, current, &mut newest_checkpoint, &checkpoint)
+        {
+            stopped = reset.then_some(current);
         }
     }
     let state = engine.handle.snapshot();
-    let _ = record(
-        &mut core,
-        state.id,
-        current,
-        state.position,
-        state.listened,
-        state.duration,
-    );
+    if stopped != Some(state.id) {
+        let _ = record(
+            &mut core,
+            state.id,
+            current,
+            state.position,
+            state.listened,
+            state.duration,
+        );
+    }
     let _ = engine.handle.stop();
     crate::diagnostics::event(format_args!(
         "shutdown checkpoint complete; joining platform"
@@ -1523,6 +1755,64 @@ fn recover(
     crate::diagnostics::event(format_args!("core rebuilt from persisted state"));
     core.execute(Command::Status)
 }
+/// Panicking worker iterations tolerated within [`PANIC_WINDOW`].
+const PANIC_LIMIT: usize = 3;
+const PANIC_WINDOW: Duration = Duration::from_secs(60);
+/// How a worker iteration ends.
+enum Flow {
+    Next,
+    Stop,
+}
+/// An admitted request the worker is handling. Dropped without
+/// [`Admitted::release`] (a panic before the reply), it releases the admission
+/// counters and answers the request with an error, so the UI cannot stay
+/// busy waiting for it.
+struct Admitted<'a> {
+    shared: &'a Shared,
+    events: &'a mpsc::Sender<Outgoing>,
+    view: Option<u64>,
+    echo: Value,
+    foreground: bool,
+    page: bool,
+    released: bool,
+}
+impl<'a> Admitted<'a> {
+    /// Take charge of a request just dequeued: it no longer counts as queued
+    /// user intent.
+    fn new(shared: &'a Shared, events: &'a mpsc::Sender<Outgoing>, request: &Request) -> Self {
+        if request.counted {
+            shared.queued_transport.fetch_sub(1, Ordering::SeqCst);
+        }
+        Self {
+            shared,
+            events,
+            view: request.view,
+            echo: request.echo.clone(),
+            foreground: request.foreground,
+            page: request.page.is_some(),
+            released: false,
+        }
+    }
+    /// The reply is being sent normally: release the counters now.
+    fn release(&mut self) {
+        if !self.released {
+            self.released = true;
+            self.shared.release(self.foreground, self.page);
+        }
+    }
+}
+impl Drop for Admitted<'_> {
+    fn drop(&mut self) {
+        if self.released {
+            return;
+        }
+        self.release();
+        let _ = self.events.send(Outgoing {
+            view: self.view,
+            event: json!({"request":self.echo,"response":{"ok":false,"error":"Backend panic"}}),
+        });
+    }
+}
 /// Marks the runtime stopped and releases the transport/download handles when
 /// the worker exits, including by unwinding. Platform observers are joined
 /// before this runs; `Platform::drop` raises the same stop flag itself.
@@ -1530,6 +1820,8 @@ struct Exit<'a>(&'a Shared);
 impl Drop for Exit<'_> {
     fn drop(&mut self) {
         self.0.stop.store(true, Ordering::SeqCst);
+        // A retained image provider must not keep fetching with the credential.
+        self.0.artwork.set(None);
         self.0.hold_downloads(false);
         self.0.install_control(None);
         *crate::mutex_lock(&self.0.audio) = None;
@@ -1622,6 +1914,9 @@ async fn yield_downloads(
         }
     }
 }
+/// A restarted transcode ending early within this much of where the previous
+/// attempt ended early has reached the media's real end.
+const REPEATED_EARLY_END_MS: u64 = 1000;
 /// Restart attempts of an interrupted transcode without new audio.
 const RESTART_ATTEMPTS: u32 = 4;
 /// New audio that proves a restarted transcode works again (resets attempts).
@@ -1666,6 +1961,8 @@ enum PendingKind {
 struct Episode {
     occurrence: String,
     attempts: u32,
+    /// Media position where the last attempt's transcode ended cleanly early.
+    early_at: Option<u64>,
 }
 #[derive(Default)]
 struct Failures {
@@ -1701,6 +1998,7 @@ impl Failures {
                 self.episode = Some(Episode {
                     occurrence: occurrence.to_owned(),
                     attempts: 1,
+                    early_at: None,
                 });
                 Some(1)
             }
@@ -1783,6 +2081,45 @@ impl Playback<'_> {
             new,
             kind,
         });
+    }
+    /// A held failure that is really the track's end: record the listen and
+    /// resolve the hold with the next item, as a gone skip does (the engine
+    /// keeps the user's paused state), or end without a banner when nothing
+    /// follows.
+    fn end_held(&mut self, failed: u64, listened: u64, position: u64) {
+        let radio = self.core.radio_active();
+        let _ = record(
+            self.core,
+            failed,
+            *self.current,
+            position,
+            listened,
+            position,
+        );
+        let next = self.core.execute(Command::Next { automatic: true });
+        let gone_notice = self.core.take_gone_notice();
+        let data = match next {
+            Ok(data) => data,
+            Err(error) => {
+                self.give_up(failed, (!radio).then(|| error.to_string()));
+                return;
+            }
+        };
+        if let Some((id, _)) = self.prepared.take() {
+            crate::mutex_lock(&self.shared.presented).plans.remove(&id);
+        }
+        // Core moved on: the failed engine id must no longer record into
+        // Core's (new) current item.
+        *self.current = 0;
+        if self.superseded() || data["stream"].as_str().unwrap_or("").is_empty() {
+            self.present_unloaded(&data);
+            self.give_up(failed, None);
+            return;
+        }
+        if gone_notice {
+            audio_error(self.events, GONE_MESSAGE);
+        }
+        self.send_resolve(failed, PendingKind::Replace { data, back: false });
     }
     fn give_up(&mut self, failed: u64, banner: Option<String>) {
         self.send_resolve(failed, PendingKind::Abandon(banner));

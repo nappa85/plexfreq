@@ -161,10 +161,10 @@ fn music_browse_play_and_persistent_session() {
         .as_str()
         .unwrap()
         .contains("/library/parts/42/file.flac?X-Plex-Token=secret"));
-    assert!(play["track"]["artwork"]
-        .as_str()
-        .unwrap()
-        .contains("/library/metadata/9/thumb/1"));
+    // Artwork reaches the UI as a credential-free provider id.
+    let artwork = play["track"]["artwork"].as_str().unwrap();
+    assert!(!artwork.contains("secret"));
+    assert!(image_path(artwork).contains("/library/metadata/9/thumb/1"));
     task.join().unwrap();
     let state = std::fs::metadata(dir.path().join("session.json")).unwrap();
     assert_eq!(state.permissions().mode() & 0o777, 0o600);
@@ -522,4 +522,18 @@ fn similar_artists_are_filtered_deduplicated_and_keep_library_list_separate() {
         })
         .is_err());
     task.join().unwrap();
+}
+
+/// The server path inside an `image://plexfreq/<namespace>/<hex path>` id.
+fn image_path(id: &str) -> String {
+    let hex = id
+        .strip_prefix("image://plexfreq/")
+        .and_then(|rest| rest.split_once('/'))
+        .map(|(_, hex)| hex)
+        .unwrap_or_else(|| panic!("not an artwork id: {id}"));
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    String::from_utf8(bytes).unwrap()
 }
