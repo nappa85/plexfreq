@@ -30,6 +30,7 @@ done
 cp "$root/tests/qt_backend.cpp" "$stage/"
 cp "$root/app/src/backend.cpp" "$root/app/src/backend.h" "$root/app/src/plexfreq_core.h" "$stage/"
 cp "$root/app/src/i18n.cpp" "$root/app/src/i18n.h" "$stage/"
+cp "$root/app/src/artwork.cpp" "$root/app/src/artwork.h" "$stage/"
 cp "$root/app/translations.qrc" "$stage/app/"
 cp -a "$root/app/translations" "$stage/app/"
 cp "$root/tests/sailfish/plexfreq-backend-test.pro" "$stage/"

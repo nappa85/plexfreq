@@ -884,8 +884,16 @@
       <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · Wi-Fi · ਆਡੀਓ · ਚਲਾਓ · ਆਨਲਾਈਨ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · ਆਡੀਓ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ਆਡੀਓ · ਕੈਸ਼ · ਵਰਤਿਆ</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ਆਫ਼ਲਾਈਨ · ਲਾਇਬ੍ਰੇਰੀ · ਡਾਟਾ · ਸੰਭਾਲੋ · ਅਸਫਲ · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · Wi-Fi · ਆਡੀਓ · ਚਲਾਓ · ਆਨਲਾਈਨ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · ਆਡੀਓ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · ਆਡੀਓ · ਕੈਸ਼ · ਵਰਤਿਆ</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>ਆਫ਼ਲਾਈਨ · ਲਾਇਬ੍ਰੇਰੀ · ਡਾਟਾ · ਸੰਭਾਲੋ · ਅਸਫਲ · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>ਆਫ਼ਲਾਈਨ · ਸੰਭਾਲਿਆ · ਲਾਇਬ੍ਰੇਰੀ · ਮੈਟਾਡਾਟਾ</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · ਆਡੀਓ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>ਕੈਸ਼ · ਆਡੀਓ</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>ਡਾਊਨਲੋਡ ਹੋਇਆ</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>ਗੀਤ · ਸਰਵਰ · ਉਪਲਬਧ ਨਹੀਂ</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>ਆਫ਼ਲਾਈਨ · ਸੰਭਾਲਿਆ · ਲਾਇਬ੍ਰੇਰੀ · ਮੈਟਾਡਾਟਾ</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ਡਾਊਨਲੋਡ · ਉਡੀਕ · ਆਡੀਓ · ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>ਖੋਲ੍ਹੋ · ਐਲਬਮ</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>ਗੀਤ · ਸਰਵਰ · ਉਪਲਬਧ ਨਹੀਂ</translation>
     </message>
     <message>
       <source>Downloaded</source>

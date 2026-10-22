@@ -884,8 +884,16 @@
       <translation>Atsiuntimai · Laukiama · Wi-Fi · Garsas · Groti · Prisijungus</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Atsiuntimai · Laukiama · Garsas · Įkeliama</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Garsas · Podėlis · Panaudota</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Neprisijungus · Biblioteka · Duomenys · Įrašyti · Nepavyko · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Atsiuntimai · Laukiama · Wi-Fi · Garsas · Groti · Prisijungus</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Atsiuntimai · Laukiama · Garsas · Įkeliama</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Garsas · Podėlis · Panaudota</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Neprisijungus · Biblioteka · Duomenys · Įrašyti · Nepavyko · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Neprisijungus · Įrašyta · Biblioteka · Metaduomenys</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Atsiuntimai · Laukiama · Garsas · Įkeliama</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Podėlis · Garsas</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Atsiųsta</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Takelis · Serveris · Nepasiekiama</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Bandyti dar kartą · Įkeliama</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Neprisijungus · Įrašyta · Biblioteka · Metaduomenys</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Atsiuntimai · Laukiama · Garsas · Įkeliama</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Atverti · Albumas</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Takelis · Serveris · Nepasiekiama</translation>
     </message>
     <message>
       <source>Downloaded</source>

@@ -443,7 +443,7 @@ impl Core {
                     namespace: namespace.clone(),
                     key: key.into(),
                     occurrence: occurrence.into(),
-                    played_at: crate::history::now(),
+                    played_at: crate::unix_seconds(),
                     listened_ms: listened,
                     title: track.title.clone(),
                     artist,
@@ -477,7 +477,7 @@ impl Core {
                 namespace,
                 key: crate::numeric(key)?.into(),
                 occurrence: occurrence.into(),
-                played_at: crate::history::now(),
+                played_at: crate::unix_seconds(),
                 delivered: false,
             });
         }

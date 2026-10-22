@@ -67,7 +67,7 @@ Column {
             enabled:!backend.busy; onClicked:music.activate(modelData,index)
             Column {
                 anchors.fill:parent; anchors.margins:Theme.paddingSmall; spacing:Theme.paddingSmall
-                Image { width:parent.width; height:width*0.8; source:modelData.artwork || ""; asynchronous:true; fillMode:Image.PreserveAspectCrop }
+                Image { sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height); width:parent.width; height:width*0.8; source:modelData.artwork || ""; asynchronous:true; fillMode:Image.PreserveAspectCrop }
                 Label { width:parent.width; text:modelData.title; maximumLineCount:2; wrapMode:Text.Wrap; elide:Text.ElideRight; color:Theme.highlightColor; font.pixelSize:Theme.fontSizeSmall }
             }
         }

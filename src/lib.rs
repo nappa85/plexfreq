@@ -1,3 +1,4 @@
+mod artwork;
 pub mod audio;
 mod bluetooth;
 pub mod cache;
@@ -18,6 +19,8 @@ pub mod model;
 #[cfg(test)]
 mod network_quality_tests;
 pub mod offline;
+#[cfg(test)]
+mod offline_browse_tests;
 mod pagination;
 pub mod plex;
 pub mod quality;
@@ -25,6 +28,8 @@ pub mod queue;
 pub mod radio;
 #[cfg(test)]
 mod radio_health_tests;
+#[cfg(test)]
+mod radio_refill_tests;
 mod refresh;
 mod rt;
 pub mod runtime;
@@ -65,6 +70,22 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Seconds since the Unix epoch (0 if the clock is before it).
+pub(crate) fn unix_seconds() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+}
+/// Lowercase hex SHA-256 of `value`: cache keys, namespaces, file names.
+pub(crate) fn sha256_hex(value: &str) -> String {
+    use sha2::Digest;
+    format!("{:x}", sha2::Sha256::digest(value.as_bytes()))
+}
+
+/// Saved items per offline browse page.
+const OFFLINE_BROWSE_PAGE: usize = 100;
+
 /// Fault injection for unit tests: panic inside `Core::execute` after a
 /// command already changed in-memory state but before it was persisted.
 #[cfg(test)]
@@ -75,6 +96,12 @@ pub(crate) mod test_hooks {
     /// Arm one panic for the next `op` executed by the Core owning `dir`.
     pub(crate) fn panic_after(dir: &Path, op: &'static str) {
         crate::mutex_lock(&PANIC_AFTER).push((dir.to_path_buf(), op));
+    }
+    /// Whether a panic for `op` is still armed (has not fired yet).
+    pub(crate) fn armed(dir: &Path, op: &str) -> bool {
+        crate::mutex_lock(&PANIC_AFTER)
+            .iter()
+            .any(|(d, o)| d == dir && *o == op)
     }
     pub(crate) fn check(dir: &Path, op: &str) {
         let mut armed = crate::mutex_lock(&PANIC_AFTER);
@@ -243,6 +270,43 @@ pub(crate) struct Prepared {
     cached: bool,
     pub plan: Value,
 }
+/// A radio refill to fetch off the Core worker. The token lives only in
+/// memory and is sent as a header; this type is deliberately not `Debug`.
+pub(crate) struct RefillRequest {
+    base: url::Url,
+    token: String,
+    path: String,
+    params: Vec<(&'static str, String)>,
+    identity: RefillIdentity,
+}
+#[derive(PartialEq)]
+struct RefillIdentity {
+    server: String,
+    instance: u64,
+    version: u64,
+    queue: u64,
+}
+pub(crate) struct RefillJob {
+    request: RefillRequest,
+    plex: Plex,
+}
+pub(crate) struct RefillFetched {
+    request: RefillRequest,
+    result: Result<model::Container>,
+}
+impl RefillJob {
+    /// Blocking fetch; never call it on the shared runtime thread.
+    pub(crate) fn fetch(self) -> RefillFetched {
+        let RefillJob { request, plex } = self;
+        let result = plex.container(
+            &request.base,
+            &request.token,
+            &request.path,
+            &request.params,
+        );
+        RefillFetched { request, result }
+    }
+}
 impl Prepared {
     /// Rating key of the prepared successor.
     pub(crate) fn key(&self) -> Option<&str> {
@@ -275,8 +339,7 @@ impl Core {
         let next_cached = std::mem::replace(&mut self.cached_playback, cached);
         let prepared = match result {
             Ok(mut plan) if queue.track().is_some() => {
-                let q = queue.presentation();
-                plan["queue"] = json!({"items":q.items().iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current(),"repeat":q.repeat(),"shuffled":queue.shuffled()});
+                plan["queue"] = self.queue_json(&queue);
                 Ok(Some(Prepared {
                     queue,
                     radio: next_radio,
@@ -309,6 +372,7 @@ impl Core {
         if let Some(object) = plan.as_object_mut() {
             object.remove("stream");
         }
+        plan["queue"] = self.queue_json(&self.queue);
         plan["playbackOccurrence"] = json!(self.settings.playback.occurrence);
         plan["playbackGeneration"] = json!(self.playback_generation);
         Ok(plan)
@@ -373,7 +437,7 @@ impl Core {
                     kind: group.kind,
                     key: group.key.clone(),
                     minutes: 0,
-                    refreshed_at: history::now(),
+                    refreshed_at: crate::unix_seconds(),
                 };
                 settings.download_plans.insert(group, plan);
             }
@@ -547,10 +611,21 @@ impl Core {
                     "This library page has not been saved offline yet",
                 ));
         }
-        match self
+        let fetched = self
             .plex
-            .container(&self.base()?, &self.settings.server_token, path, params)
-        {
+            .container(&self.base()?, &self.settings.server_token, path, params);
+        self.cached_response(path, params, fetched)
+    }
+    /// Save a fetched library page for offline use, or fall back to the saved
+    /// copy when the server is unreachable. Returns whether it is the copy.
+    fn cached_response(
+        &self,
+        path: &str,
+        params: &[(&str, String)],
+        fetched: Result<model::Container>,
+    ) -> Result<(model::Container, bool)> {
+        let ns = self.cache_namespace();
+        match fetched {
             Ok(c) => {
                 self.library.save(&ns, path, params, &c);
                 Ok((c, false))
@@ -594,6 +669,42 @@ impl Core {
         }
         Ok(result)
     }
+    /// How the UI shows the image at server-relative `path`: the cached file,
+    /// else (online) a credential-free `image://plexfreq` id, else nothing.
+    fn image_ref(&self, path: &str) -> Option<String> {
+        if path.is_empty() {
+            return None;
+        }
+        let namespace = self.cache_namespace();
+        if let Some(local) = self.artwork.local(&namespace, path) {
+            return Some(local);
+        }
+        if self.offline_mode || self.settings.server_token.is_empty() {
+            return None;
+        }
+        let base = self.base().ok()?;
+        plex::advertised_path(&base, path).ok()?;
+        Some(artwork::id(&namespace, path))
+    }
+    /// The artwork source for the image provider; None while it cannot fetch.
+    pub(crate) fn artwork_snapshot(&self) -> Option<artwork::Snapshot> {
+        if self.offline_mode
+            || self.settings.server_url.is_empty()
+            || self.settings.server_token.is_empty()
+        {
+            return None;
+        }
+        Some(artwork::Snapshot {
+            server: self.settings.server_url.clone(),
+            token: self.settings.server_token.clone(),
+            namespace: self.cache_namespace(),
+            store: self.artwork.store().clone(),
+        })
+    }
+    #[cfg(test)]
+    pub(crate) fn display_item_for_tests(&self, item: &Item) -> Value {
+        self.display_item(item)
+    }
     fn display_item(&self, item: &Item) -> Value {
         let mut value = serde_json::to_value(item).unwrap_or_else(|_| serde_json::json!({}));
         let thumb = if item.thumb.is_empty() {
@@ -601,19 +712,7 @@ impl Core {
         } else {
             &item.thumb
         };
-        let artwork = if thumb.is_empty()
-            || self.offline_mode && self.artwork.local(&self.cache_namespace(), thumb).is_none()
-        {
-            String::new()
-        } else {
-            if let Some(local) = self.artwork.local(&self.cache_namespace(), thumb) {
-                local
-            } else {
-                self.base()
-                    .and_then(|base| authenticated_url(&base, thumb, &self.settings.server_token))
-                    .unwrap_or_default()
-            }
-        };
+        let artwork = self.image_ref(thumb).unwrap_or_default();
         value["artwork"] = json!(artwork);
         if item.kind == crate::model::ItemKind::Track {
             if let Some(object) = value.as_object_mut() {
@@ -629,20 +728,7 @@ impl Core {
                     .map(|seconds| seconds.saturating_mul(1000))
             });
         }
-        let image_url = |path: &str| {
-            if path.is_empty() {
-                return None;
-            }
-            if let Some(local) = self.artwork.local(&self.cache_namespace(), path) {
-                return Some(local);
-            }
-            if self.offline_mode {
-                return None;
-            }
-            self.base()
-                .and_then(|base| authenticated_url(&base, path, &self.settings.server_token))
-                .ok()
-        };
+        let image_url = |path: &str| self.image_ref(path);
         let mut photos = Vec::new();
         for path in std::iter::once(thumb)
             .chain(std::iter::once(&item.art))
@@ -972,6 +1058,8 @@ impl Core {
             .map(|i| &i.rating_key)
             .collect::<Vec<_>>());
         value["pinnedGroups"] = json!(self.settings.download_groups.keys().collect::<Vec<_>>());
+        // Tracks known to be missing from the server, for the track rows.
+        value["goneKeys"] = json!(self.health.gone_keys());
         value["jobs"] = json!(self.download_rows_from_status(&value));
         value["autoRefresh"] = json!(self.settings.refresh_policy.enabled);
         value["refreshHours"] = json!(self.settings.refresh_policy.interval_hours);
@@ -1145,11 +1233,7 @@ impl Core {
         let mut queue = Queue::default();
         queue.replace(items, start)?;
         let previous_queue = std::mem::replace(&mut self.queue, queue);
-        let previous_radio = self.radio.replace(Radio {
-            kind,
-            title,
-            source,
-        });
+        let previous_radio = self.radio.replace(Radio::new(kind, title, source));
         let result = self.playback();
         if result.is_err() {
             self.queue = previous_queue;
@@ -1159,23 +1243,70 @@ impl Core {
     }
 
     fn extend_radio(&mut self) -> Result<()> {
-        let mut radio = self.radio.clone().ok_or(Error::Input("No active radio"))?;
-        let items = match &mut radio.source {
+        let request = self.refill_request()?;
+        let fetched = self.plex.container(
+            &request.base,
+            &request.token,
+            &request.path,
+            &request.params,
+        );
+        self.refill_apply(&request, fetched).map(|_| ())
+    }
+    /// What replenishing the radio by one step asks the server.
+    fn refill_request(&self) -> Result<RefillRequest> {
+        let radio = self.radio.as_ref().ok_or(Error::Input("No active radio"))?;
+        let (path, params) = match &radio.source {
             Source::Station { queue_id } => {
                 let center = self
                     .station_center()
                     .ok_or(Error::ProtocolAt("radio queue center"))?;
-                let c = self.plex.container(
-                    &self.base()?,
-                    &self.settings.server_token,
-                    &format!("/playQueues/{queue_id}"),
-                    &[
+                (
+                    format!("/playQueues/{queue_id}"),
+                    vec![
                         ("center", center.to_string()),
                         ("window", "50".into()),
                         ("includeBefore", "0".into()),
                         ("includeAfter", "1".into()),
                     ],
-                )?;
+                )
+            }
+            Source::Sonic { seed, .. } => (
+                format!("/library/metadata/{}/nearest", numeric(&seed.rating_key)?),
+                vec![("limit", "50".into())],
+            ),
+        };
+        Ok(RefillRequest {
+            base: self.base()?,
+            token: self.settings.server_token.clone(),
+            path,
+            params,
+            identity: self
+                .refill_identity()
+                .ok_or(Error::Input("No active radio"))?,
+        })
+    }
+    /// The radio instance, its source version and the queue revision: a
+    /// refill fetched for any other state is stale.
+    fn refill_identity(&self) -> Option<RefillIdentity> {
+        let radio = self.radio.as_ref()?;
+        Some(RefillIdentity {
+            server: self.settings.server_url.clone(),
+            instance: radio.refill.instance,
+            version: radio.refill.version,
+            queue: self.queue.revision(),
+        })
+    }
+    /// Append what a refill request returned and advance the radio source.
+    /// Returns the appended items.
+    fn refill_apply(
+        &mut self,
+        request: &RefillRequest,
+        fetched: Result<model::Container>,
+    ) -> Result<Vec<Item>> {
+        let mut radio = self.radio.clone().ok_or(Error::Input("No active radio"))?;
+        let items: Vec<Item> = match &mut radio.source {
+            Source::Station { queue_id } => {
+                let c = fetched?;
                 if c.play_queue_id.is_some_and(|id| id != *queue_id) {
                     return Err(Error::ProtocolAt("radio queue continuation"));
                 }
@@ -1197,7 +1328,12 @@ impl Core {
                     .collect()
             }
             Source::Sonic { seed, recent } => {
-                let neighbors = self.nearest(seed)?;
+                let (c, _) = self.cached_response(&request.path, &request.params, fetched)?;
+                let neighbors: Vec<Item> = c
+                    .items
+                    .into_iter()
+                    .filter(|i| i.kind == seed.kind && i.rating_key != seed.rating_key)
+                    .collect();
                 let next = neighbors
                     .iter()
                     .find(|i| !recent.contains(&i.rating_key))
@@ -1219,9 +1355,147 @@ impl Core {
                 items
             }
         };
-        self.queue.append(items)?;
+        self.queue.append(items.clone())?;
+        radio.refill.paid();
         self.radio = Some(radio);
-        Ok(())
+        Ok(items)
+    }
+    /// Whether this move must replenish the radio: a station keeps a window
+    /// of upcoming items, track radio adds one per move, and every radio
+    /// refills at its end.
+    fn refill_wanted(&self) -> bool {
+        (self.station_radio_active() && self.queue.upcoming(12).len() <= 11)
+            || self
+                .radio
+                .as_ref()
+                .is_some_and(|radio| radio.kind == RadioKind::Track)
+            || self.queue.at_end()
+    }
+    /// A move can leave the refill to the background when it does not need
+    /// it: the queue continues with an item that plays from the cache, so
+    /// neither the move nor its playback waits on the server.
+    fn refill_can_wait(&self) -> bool {
+        !self.queue.at_end()
+            && self.queue.upcoming(2).get(1).is_some_and(|next| {
+                self.cache
+                    .lookup(&self.cache_namespace(), next, false)
+                    .is_some()
+            })
+    }
+    /// The refill owed by moves that did not wait, for the runtime to fetch
+    /// off the worker. Owed refills that no longer apply are dropped.
+    pub(crate) fn refill_job(&mut self) -> Option<RefillJob> {
+        let pending = self.radio.as_ref()?.refill.pending;
+        if pending == 0 || self.offline_mode || (self.network_known && !self.network_online) {
+            return None;
+        }
+        let album = self
+            .radio
+            .as_ref()
+            .is_some_and(|radio| radio.kind == RadioKind::Album);
+        let request = if album || !self.refill_wanted() {
+            None
+        } else {
+            self.refill_request().ok()
+        };
+        let Some(request) = request else {
+            if let Some(radio) = &mut self.radio {
+                radio.refill.pending = 0;
+            }
+            return None;
+        };
+        let plex = Plex::new(
+            &self.settings.client_identifier,
+            self.plex.account_url.clone(),
+        )
+        .ok()?;
+        Some(RefillJob { request, plex })
+    }
+    /// Give up an owed refill that could not be fetched, also in a prepared
+    /// successor of the same radio, whose commit would otherwise restore it.
+    pub(crate) fn refill_abandon(&mut self, prepared: Option<&mut Prepared>) {
+        let instance = self.radio.as_ref().map(|radio| radio.refill.instance);
+        let prepared = prepared.and_then(|prepared| prepared.radio.as_mut());
+        for radio in [self.radio.as_mut(), prepared].into_iter().flatten() {
+            if Some(radio.refill.instance) == instance {
+                radio.refill.pending = 0;
+            }
+        }
+    }
+    /// [`Core::refill_apply_landed`] followed by [`Core::refill_persist`].
+    #[cfg(test)]
+    pub(crate) fn refill_landed(
+        &mut self,
+        fetched: RefillFetched,
+        prepared: Option<&mut Prepared>,
+    ) -> Option<Value> {
+        let landed = self.refill_apply_landed(fetched, prepared);
+        if landed.is_some() {
+            self.refill_persist();
+        }
+        landed
+    }
+    /// Persist and schedule caching after [`Core::refill_apply_landed`]
+    /// appended. Kept apart so the runtime can run it outside its
+    /// presentation lock.
+    pub(crate) fn refill_persist(&mut self) {
+        self.schedule_cache();
+        self.save_session();
+    }
+    /// Apply a refill fetched off the worker to the radio and, when it is
+    /// the same radio state, to the prepared successor, so its commit keeps
+    /// the appended items. Returns the update to publish; the caller then
+    /// runs [`Core::refill_persist`].
+    pub(crate) fn refill_apply_landed(
+        &mut self,
+        fetched: RefillFetched,
+        prepared: Option<&mut Prepared>,
+    ) -> Option<Value> {
+        let RefillFetched { request, result } = fetched;
+        if self.refill_identity().as_ref() != Some(&request.identity) {
+            crate::diagnostics::event(format_args!("radio refill result is stale; fetching again"));
+            return None;
+        }
+        let version = request.identity.version;
+        let same = |radio: &Option<Radio>| {
+            radio.as_ref().is_some_and(|radio| {
+                radio.refill.instance == request.identity.instance
+                    && radio.refill.version == version
+            })
+        };
+        let prepared = prepared.filter(|prepared| same(&prepared.radio));
+        match self.refill_apply(&request, result) {
+            Err(error) => {
+                crate::diagnostics::event(format_args!("radio refill failed: {error}"));
+                for radio in [Some(&mut self.radio), prepared.map(|p| &mut p.radio)]
+                    .into_iter()
+                    .flatten()
+                    .flatten()
+                {
+                    radio.refill.pending = 0;
+                }
+                None
+            }
+            Ok(items) => {
+                if let (Some(prepared), Some(radio)) = (prepared, &self.radio) {
+                    // Should it fail, the commit restores the prepared state
+                    // and its radio still owes the refill.
+                    match prepared.queue.append(items) {
+                        Ok(()) => {
+                            if let Some(next) = &mut prepared.radio {
+                                next.source = radio.source.clone();
+                                next.refill.paid();
+                            }
+                            prepared.plan["queue"] = self.queue_json(&prepared.queue);
+                        }
+                        Err(error) => crate::diagnostics::event(format_args!(
+                            "radio refill not added to the prepared successor: {error}"
+                        )),
+                    }
+                }
+                Some(json!({"queue":self.queue_json(&self.queue),"radio":self.radio_summary()}))
+            }
+        }
     }
 
     /// The station item to continue after: the current one as long as it is
@@ -1329,13 +1603,13 @@ impl Core {
             }
             // Station/track radio replenishes as each track is consumed. Album
             // radio retains ordered album groups and requests the next at its end.
-            let refill = (self.station_radio_active() && self.queue.upcoming(12).len() <= 11)
-                || self
-                    .radio
-                    .as_ref()
-                    .is_some_and(|radio| radio.kind == RadioKind::Track)
-                || self.queue.at_end();
-            if refill {
+            // A move onto a cached successor does not wait for the server: the
+            // refill is owed and the runtime fetches it in the background.
+            if self.refill_wanted() && self.refill_can_wait() {
+                if let Some(radio) = &mut self.radio {
+                    radio.refill.owe();
+                }
+            } else if self.refill_wanted() {
                 if let Err(error) = self.extend_radio() {
                     refill_failed = true;
                     let network = matches!(error, Error::Network | Error::Http(500..=599));
@@ -1729,6 +2003,18 @@ impl Core {
                 | Command::PlayDownload { .. }
                 | Command::Station { .. }
         );
+        // An explicit download request retries what the server refused.
+        if matches!(
+            &command,
+            Command::Pin { .. }
+                | Command::DownloadAction { .. }
+                | Command::DownloadPlan { .. }
+                | Command::DownloadStation { .. }
+                | Command::PlayDownload { .. }
+                | Command::CacheTracks { .. }
+        ) {
+            self.cache.forget_failures();
+        }
         let resuming = matches!(
             &command,
             Command::Resume
@@ -1792,28 +2078,39 @@ impl Core {
             result["playbackOccurrence"] = json!(self.settings.playback.occurrence);
             result["resumeListened"] = json!(self.settings.playback.listened);
         }
-        if persist && self.writable {
-            self.settings.playback = store::Playback {
-                queue: self.queue.clone(),
-                radio: self.radio.clone(),
-                position: self.resume_position,
-                generation: self.playback_generation,
-                occurrence: self.settings.playback.occurrence.clone(),
-                listened: self.settings.playback.listened,
-            };
-            self.settings.downloads = self.manual_cache.clone();
-            // The command already took effect in memory (queue, pins, stream
-            // plan). Failing it now would hide a plan the UI must follow; keep
-            // the consistent in-memory state and retry at the next checkpoint.
-            if let Err(error) = store::save(&self.dir, &self.settings) {
-                diagnostics::event(format_args!("session checkpoint not saved: {error}"));
-            }
+        if persist {
+            self.save_session();
         }
         if result.get("queue").is_some() {
-            let q = self.queue.presentation();
-            result["queue"] = json!({"items":q.items().iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current(),"repeat":q.repeat(),"shuffled":self.queue.shuffled()});
+            result["queue"] = self.queue_json(&self.queue);
         }
         Ok(result)
+    }
+    /// Persist the session (queue, radio, position, downloads) after a change
+    /// that already took effect in memory.
+    fn save_session(&mut self) {
+        if !self.writable {
+            return;
+        }
+        self.settings.playback = store::Playback {
+            queue: self.queue.clone(),
+            radio: self.radio.clone(),
+            position: self.resume_position,
+            generation: self.playback_generation,
+            occurrence: self.settings.playback.occurrence.clone(),
+            listened: self.settings.playback.listened,
+        };
+        self.settings.downloads = self.manual_cache.clone();
+        // Failing the change now would hide a plan the UI must follow; keep
+        // the consistent in-memory state and retry at the next checkpoint.
+        if let Err(error) = store::save(&self.dir, &self.settings) {
+            diagnostics::event(format_args!("session checkpoint not saved: {error}"));
+        }
+    }
+    /// The queue as the UI presents it.
+    fn queue_json(&self, queue: &Queue) -> Value {
+        let q = queue.presentation();
+        json!({"items":q.items().iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"current":q.current(),"repeat":q.repeat(),"shuffled":queue.shuffled()})
     }
     pub fn download_control(&self) -> cache::DownloadControl {
         self.cache.control(self.artwork.generation())
@@ -2052,7 +2349,7 @@ impl Core {
                                 kind: DownloadKind::Playlist,
                                 key: key.clone(),
                                 minutes: 0,
-                                refreshed_at: history::now(),
+                                refreshed_at: crate::unix_seconds(),
                             },
                         );
                     }
@@ -2097,17 +2394,32 @@ impl Core {
                 }
                 Ok(json!({"offlineMode":enabled}))
             }
-            Command::OfflineBrowse { kind } => {
+            Command::OfflineBrowse { kind, start } => {
                 if !kind.is_music() {
                     return Err(Error::Input("Unknown offline music type"));
                 }
                 let mut items = self.offline_catalogue();
                 let mut seen = std::collections::BTreeSet::new();
                 items.retain(|i| i.kind == kind && seen.insert(i.rating_key.clone()));
-                items.sort_by_cached_key(|i| i.title.to_lowercase());
-                Ok(
-                    json!({"items":items.iter().map(|i|self.display_item(i)).collect::<Vec<_>>(),"start":0,"next":0,"hasMore":false,"offline":true}),
-                )
+                // The key breaks title ties: pages must agree on one order.
+                items.sort_by_cached_key(|i| (i.title.to_lowercase(), i.rating_key.clone()));
+                let total = items.len();
+                // Only the page is presented (an artwork and a cache lookup each).
+                let page: Vec<_> = items
+                    .iter()
+                    .skip(start)
+                    .take(OFFLINE_BROWSE_PAGE)
+                    .map(|i| self.display_item(i))
+                    .collect();
+                let received = page.len();
+                Ok(crate::pagination::page(
+                    page,
+                    start,
+                    received,
+                    OFFLINE_BROWSE_PAGE,
+                    Some(total),
+                    true,
+                ))
             }
             Command::Lyrics { key } => {
                 let id = numeric(&key)?;

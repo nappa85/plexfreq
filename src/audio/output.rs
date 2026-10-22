@@ -306,7 +306,7 @@ impl Output {
     /// Queued (submitted but not yet audible) PCM in bytes.
     pub fn queued_bytes(&mut self) -> u64 {
         let position = self.position();
-        self.frames.saturating_sub(position) * (CHANNELS * 4) as u64
+        self.frames.saturating_sub(position) * super::FRAME_BYTES as u64
     }
     /// Whether the output wants more PCM now. PulseAudio's own flow control
     /// decides for the real sink: a submitted-minus-played estimate drifts

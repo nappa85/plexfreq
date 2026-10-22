@@ -1,7 +1,7 @@
 use crate::{Command, Core};
 use serde_json::json;
 use std::{
-    ffi::{CStr, CString},
+    ffi::{c_void, CStr, CString},
     os::raw::c_char,
     panic::{catch_unwind, AssertUnwindSafe},
     path::PathBuf,
@@ -100,6 +100,99 @@ pub unsafe extern "C" fn pf_runtime_poll(runtime: *mut crate::runtime::Runtime) 
 pub unsafe extern "C" fn pf_runtime_free(runtime: *mut crate::runtime::Runtime) {
     if !runtime.is_null() {
         drop(unsafe { Box::from_raw(runtime) });
+    }
+}
+
+/// The runtime's artwork source for the image provider. The handle stays valid
+/// after the runtime is freed (fetches then fail). Null for a null runtime.
+/// # Safety
+/// `runtime` is null or live. Free the handle with `pf_artwork_free`.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_artwork(
+    runtime: *mut crate::runtime::Runtime,
+) -> *mut std::sync::Arc<crate::artwork::Source> {
+    if runtime.is_null() {
+        return ptr::null_mut();
+    }
+    let source = unsafe { &*runtime }.artwork();
+    Box::into_raw(Box::new(source))
+}
+/// Called once per request with the image bytes (valid only during the call)
+/// or null, normally from the async runtime thread (from whichever thread
+/// drops the request's task at process teardown): copy the bytes and return.
+pub type ArtworkDone = unsafe extern "C" fn(context: *mut c_void, bytes: *const u8, len: usize);
+
+/// The caller's context pointer, handed back to its own callback.
+struct Context(*mut c_void);
+// SAFETY: the pointer is only passed back to the caller's callback, whose
+// contract (see `pf_artwork_request`) makes it usable from any thread.
+unsafe impl Send for Context {}
+
+/// Start loading the image of an `image://plexfreq` id (with or without the
+/// scheme). `done(context, …)` is called exactly once (see [`ArtworkDone`]
+/// for the thread), possibly before this returns, unless `pf_artwork_cancel` or
+/// `pf_artwork_release` came first. Returns null for a null `done` or an
+/// internal failure: then `done` is never called.
+/// # Safety
+/// `handle` is null or from `pf_runtime_artwork` and not freed; `id` is null or
+/// NUL-terminated text; `context` stays valid until the request is cancelled,
+/// released or answered. Release the result with `pf_artwork_release`.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_request(
+    handle: *const std::sync::Arc<crate::artwork::Source>,
+    id: *const c_char,
+    done: Option<ArtworkDone>,
+    context: *mut c_void,
+) -> *mut crate::artwork::Request {
+    let Some(done) = done else {
+        return ptr::null_mut();
+    };
+    let context = Context(context);
+    let callback: crate::artwork::Done = Box::new(move |bytes: Option<&[u8]>| {
+        let context = &context;
+        let (data, len) = bytes.map_or((ptr::null(), 0), |b| (b.as_ptr(), b.len()));
+        unsafe { done(context.0, data, len) };
+    });
+    catch_unwind(AssertUnwindSafe(|| {
+        let id = (!id.is_null())
+            .then(|| unsafe { CStr::from_ptr(id) }.to_str().ok())
+            .flatten();
+        let request = match (handle.is_null(), id) {
+            (false, Some(id)) => unsafe { &*handle }.request(id, callback),
+            _ => crate::artwork::Request::failed(callback),
+        };
+        Box::into_raw(Box::new(request))
+    }))
+    .unwrap_or(ptr::null_mut())
+}
+/// After this returns the request's callback never runs; a callback already
+/// running is waited for. Callable from any thread, more than once.
+/// # Safety
+/// `request` is null or from `pf_artwork_request` and not released.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_cancel(request: *const crate::artwork::Request) {
+    if !request.is_null() {
+        let _ = catch_unwind(AssertUnwindSafe(|| unsafe { &*request }.cancel()));
+    }
+}
+/// Cancel and free a request.
+/// # Safety
+/// `request` is null or from `pf_artwork_request`, released once, with no
+/// `pf_artwork_cancel` running on it.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_release(request: *mut crate::artwork::Request) {
+    if !request.is_null() {
+        let request = unsafe { Box::from_raw(request) };
+        let _ = catch_unwind(AssertUnwindSafe(|| request.cancel()));
+    }
+}
+/// # Safety
+/// `handle` is null or from `pf_runtime_artwork`, freed once. Requests made
+/// with it stay valid.
+#[no_mangle]
+pub unsafe extern "C" fn pf_artwork_free(handle: *mut std::sync::Arc<crate::artwork::Source>) {
+    if !handle.is_null() {
+        drop(unsafe { Box::from_raw(handle) });
     }
 }
 

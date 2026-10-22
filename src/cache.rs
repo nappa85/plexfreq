@@ -6,9 +6,8 @@ use crate::{
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     fs::{self, OpenOptions},
     io::Write,
     os::unix::fs::{OpenOptionsExt, PermissionsExt},
@@ -144,6 +143,13 @@ struct State {
     reclaimed: u64,
     /// While set (and in the future), unindexed media is preserved.
     preserve_until: Option<u64>,
+    /// Downloads (by download id) the server answered with a lasting refusal,
+    /// and that error: skipped by later batches until [`COOLDOWN`] passes or
+    /// the user asks again, instead of being re-requested on every schedule.
+    cooldown: HashMap<String, (Instant, String)>,
+    /// Batches up to this epoch ran before the user asked to retry: their
+    /// refusals are not cooled down any more.
+    forgotten: u64,
 }
 
 /// Playback lookups update LRU timestamps in memory; persist them at most this
@@ -155,6 +161,10 @@ const LRU_PERSIST_INTERVAL: Duration = Duration::from_secs(60);
 /// hash), then resume normal orphan reclamation. Quota pressure reclaims
 /// preserved orphans earlier, before any playable track.
 const CORRUPT_PRESERVE_WINDOW: Duration = Duration::from_secs(7 * 24 * 60 * 60);
+/// How long a refused download is not requested again automatically.
+const COOLDOWN: Duration = Duration::from_secs(30 * 60);
+const UNENCODED_REQUIRED: &str = "Cache requires an unencoded audio response";
+const NON_AUDIO: &str = "Server returned non-audio content for this track";
 /// Transcode bitrates a download id may encode.
 const TRANSCODE_KBPS: &[u32] = crate::quality::BITRATES;
 
@@ -191,6 +201,21 @@ impl Failure {
             Self::Interrupted | Self::Incomplete | Self::Restart => true,
             Self::Cancelled | Self::Held => false,
             Self::Other(error) => matches!(error, Error::Network | Error::Http(500..=599)),
+        }
+    }
+    /// A refusal that a retry within [`COOLDOWN`] would only repeat: client
+    /// errors except authorization (401: the sign-in, not the item), missing
+    /// (404, checked by the runtime), timeout and rate limit, and responses that are not cacheable audio. Local errors
+    /// (disk, capacity) never qualify: the user can fix them at any time.
+    fn lasting(&self) -> bool {
+        match self {
+            Self::Other(Error::Http(status)) => {
+                (400..500).contains(status) && !matches!(status, 401 | 404 | 408 | 429)
+            }
+            Self::Other(Error::Input(message)) => {
+                *message == UNENCODED_REQUIRED || *message == NON_AUDIO
+            }
+            _ => false,
         }
     }
     fn into_error(self) -> Error {
@@ -231,6 +256,8 @@ impl State {
             recovered: 0,
             reclaimed: 0,
             preserve_until: None,
+            cooldown: HashMap::new(),
+            forgotten: 0,
         }
     }
     fn touch_catalogue(&mut self) {
@@ -392,16 +419,7 @@ pub struct Cache {
 }
 
 pub fn namespace(server: &str, token: &str) -> String {
-    hash(&format!("{server}\0{token}"))
-}
-fn hash(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
-}
-fn now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
+    crate::sha256_hex(&format!("{server}\0{token}"))
 }
 fn seconds(time: std::io::Result<SystemTime>) -> Option<u64> {
     Some(time.ok()?.duration_since(UNIX_EPOCH).ok()?.as_secs())
@@ -415,7 +433,7 @@ fn part_key(item: &Item) -> Option<&str> {
         .filter(|p| !p.is_empty())
 }
 fn key(namespace: &str, item: &Item) -> String {
-    hash(&format!(
+    crate::sha256_hex(&format!(
         "{namespace}\0{}\0{}",
         item.rating_key,
         part_key(item).unwrap_or("")
@@ -425,7 +443,7 @@ fn key(namespace: &str, item: &Item) -> String {
 fn download_id(namespace: &str, item: &Item, quality: u32) -> String {
     let original = key(namespace, item);
     if quality > 0 {
-        hash(&format!("{original}\0mp3:{quality}"))
+        crate::sha256_hex(&format!("{original}\0mp3:{quality}"))
     } else {
         original
     }
@@ -438,9 +456,6 @@ fn usable(root: &Path, entry: &Entry) -> bool {
         && entry.bytes > 0
         && fs::symlink_metadata(root.join(&entry.file))
             .is_ok_and(|m| m.is_file() && !m.file_type().is_symlink() && m.len() == entry.bytes)
-}
-fn atomic_json(path: &Path, value: &impl Serialize) -> Result<()> {
-    crate::atomic_write_json(path, value)
 }
 /// Leave `item` as a completed download under `root` for `namespace`, as a
 /// crash after the completion rename does; `Cache::new` indexes it.
@@ -455,7 +470,7 @@ pub(crate) fn seed_completed(
     let id = key(namespace, item);
     fs::create_dir_all(root).unwrap();
     fs::write(root.join(format!("{id}.{extension}")), bytes).unwrap();
-    atomic_json(
+    crate::atomic_write_json(
         &root.join(format!("{id}.resume.json")),
         &Partial {
             quality_kbps: 0,
@@ -735,7 +750,7 @@ fn adopt(
 /// now, or the newest quarantined index (unknown age counts as recent).
 fn preserve_deadline(root: &Path, corrupt_now: bool) -> Option<u64> {
     let window = CORRUPT_PRESERVE_WINDOW.as_secs();
-    let now = now();
+    let now = crate::unix_seconds();
     fs::read_dir(root)
         .into_iter()
         .flatten()
@@ -911,7 +926,8 @@ impl Cache {
         // Retain unindexed media evidence across reopen while a recent
         // quarantine exists. Bounded in time: a permanent flag would disable
         // orphan reclamation forever and leave the quota stuck at "full".
-        let preserve_until = preserve_deadline(&root, corrupt).filter(|until| *until > now());
+        let preserve_until =
+            preserve_deadline(&root, corrupt).filter(|until| *until > crate::unix_seconds());
         // A crash between temp write and rename can leave orphan `*.tmp` files
         // (old `index.<uuid>.tmp` naming included) plus unindexed hash files.
         // Be resilient to transient entries disappearing mid-scan instead of
@@ -1100,6 +1116,7 @@ impl Cache {
             if let Some((namespace, key)) = keep {
                 state.pinned.insert((namespace.to_owned(), key.to_owned()));
             }
+            state.cooldown.clear();
             std::mem::replace(&mut state.config, config)
         };
         let result = room(&self.root, &self.state, 0, "");
@@ -1107,6 +1124,14 @@ impl Cache {
             crate::mutex_lock(&self.state).config = previous;
         }
         result
+    }
+    /// Let the next batch request refused downloads again (an explicit user
+    /// download request): failures of batches scheduled up to now are no
+    /// longer cooled down, including those still in flight.
+    pub fn forget_failures(&self) {
+        let mut state = crate::mutex_lock(&self.state);
+        state.cooldown.clear();
+        state.forgotten = self.epoch.load(Ordering::SeqCst);
     }
     /// Drain the keys whose downloads looked like a missing server item.
     pub(crate) fn take_suspects(&self) -> Vec<String> {
@@ -1129,6 +1154,7 @@ impl Cache {
         // Commit the empty catalogue (journaling its files) before deleting.
         let removed = {
             let mut s = crate::mutex_lock(&self.state);
+            s.cooldown.clear();
             let removed = std::mem::take(&mut s.manifest.entries);
             for entry in removed.values() {
                 if safe_file(&entry.file) && !s.manifest.evicting.contains(&entry.file) {
@@ -1258,7 +1284,7 @@ impl Cache {
         let mut state = crate::mutex_lock(&self.state);
         let entry = state.manifest.entries.get_mut(&found)?;
         if touch && !self.read_only {
-            entry.used = now();
+            entry.used = crate::unix_seconds();
         }
         let result = (self.root.join(&entry.file), entry.item.clone());
         // Persist LRU with manifest mutations, orderly shutdown and at most
@@ -1454,6 +1480,19 @@ async fn worker(
                 if terminal.contains(&item.rating_key) {
                     continue;
                 }
+                let id = download_id(&batch.namespace, item, batch.quality_kbps);
+                {
+                    let mut s = crate::mutex_lock(state);
+                    s.cooldown
+                        .retain(|_, (since, _)| since.elapsed() < COOLDOWN);
+                    if let Some((_, error)) = s.cooldown.get(&id) {
+                        let error = error.clone();
+                        s.errors.insert(item.rating_key.clone(), error);
+                        drop(s);
+                        terminal.insert(item.rating_key.clone());
+                        continue;
+                    }
+                }
                 {
                     let mut s = crate::mutex_lock(state);
                     s.pending = batch.items.len() - position;
@@ -1519,6 +1558,7 @@ async fn worker(
                 if let Err(error) = result {
                     if epoch.load(Ordering::SeqCst) == batch.epoch {
                         let retryable = error.retryable();
+                        let lasting = error.lasting();
                         let suspect = match &error {
                             Failure::Other(Error::Http(404)) => true,
                             Failure::Other(Error::Http(400)) => transcoded > 0,
@@ -1537,6 +1577,10 @@ async fn worker(
                         let mut s = crate::mutex_lock(state);
                         s.error = error.to_string();
                         s.errors.insert(item.rating_key.clone(), error.to_string());
+                        if lasting && batch.epoch > s.forgotten {
+                            s.cooldown
+                                .insert(id.clone(), (Instant::now(), error.to_string()));
+                        }
                     }
                 } else {
                     crate::mutex_lock(state).errors.remove(&item.rating_key);
@@ -1921,7 +1965,7 @@ async fn download(
         .and_then(|h| h.to_str().ok())
         .is_some_and(|h| !h.eq_ignore_ascii_case("identity"))
     {
-        return Err(Error::Input("Cache requires an unencoded audio response").into());
+        return Err(Error::Input(UNENCODED_REQUIRED).into());
     }
     let mime = headers
         .get("Content-Type")
@@ -1933,7 +1977,7 @@ async fn download(
         .trim()
         .to_ascii_lowercase();
     if !crate::plex::audio_mime(&mime) {
-        return Err(Error::Input("Server returned non-audio content for this track").into());
+        return Err(Error::Input(NON_AUDIO).into());
     }
     let validator = response_validator(headers);
     let total = if status == 206 {
@@ -2002,7 +2046,7 @@ async fn download(
                     &id,
                 )?;
             }
-            atomic_json(
+            crate::atomic_write_json(
                 &meta_path,
                 &Partial {
                     quality_kbps,
@@ -2129,7 +2173,7 @@ async fn download(
                     item,
                     file: filename,
                     bytes: received,
-                    used: now(),
+                    used: crate::unix_seconds(),
                 },
             );
             s.touch_catalogue();
@@ -2235,7 +2279,7 @@ mod tests {
         .unwrap();
         let mut state = crate::mutex_lock(&cache.state);
         for (id, used) in [("1", 1), ("2", 2)] {
-            let filename = format!("{}.wav", hash(id));
+            let filename = format!("{}.wav", crate::sha256_hex(id));
             let file = OpenOptions::new()
                 .create_new(true)
                 .write(true)
@@ -2243,7 +2287,7 @@ mod tests {
                 .unwrap();
             file.set_len(40 * 1024 * 1024).unwrap();
             state.manifest.entries.insert(
-                hash(id),
+                crate::sha256_hex(id),
                 Entry {
                     quality_kbps: 0,
                     namespace: "scope".into(),
@@ -2263,14 +2307,14 @@ mod tests {
         drop(state);
         room(dir.path(), &cache.state, 1024 * 1024, "new").unwrap();
         let state = crate::mutex_lock(&cache.state);
-        assert!(!state.manifest.entries.contains_key(&hash("1")));
-        assert!(state.manifest.entries.contains_key(&hash("2")));
+        assert!(!state.manifest.entries.contains_key(&crate::sha256_hex("1")));
+        assert!(state.manifest.entries.contains_key(&crate::sha256_hex("2")));
         assert!(disk_bytes(dir.path()) + 1024 * 1024 <= 64 * 1024 * 1024);
         drop(state);
         cache.cancel();
         assert!(room(dir.path(), &cache.state, 40 * 1024 * 1024, "new").is_err());
         let state = crate::mutex_lock(&cache.state);
-        assert!(state.manifest.entries.contains_key(&hash("2")));
+        assert!(state.manifest.entries.contains_key(&crate::sha256_hex("2")));
     }
 }
 
@@ -2279,7 +2323,7 @@ mod review_tests {
     use super::*;
 
     fn entry(dir: &Path, state: &mut State, id: &str, used: u64) {
-        let filename = format!("{}.wav", hash(id));
+        let filename = format!("{}.wav", crate::sha256_hex(id));
         let file = OpenOptions::new()
             .create_new(true)
             .write(true)
@@ -2287,7 +2331,7 @@ mod review_tests {
             .unwrap();
         file.set_len(40 * 1024 * 1024).unwrap();
         state.manifest.entries.insert(
-            hash(id),
+            crate::sha256_hex(id),
             Entry {
                 quality_kbps: 0,
                 namespace: "scope".into(),
@@ -2353,7 +2397,7 @@ mod review_tests {
             crate::mutex_lock(&cache.state)
                 .manifest
                 .entries
-                .contains_key(&hash("1")),
+                .contains_key(&crate::sha256_hex("1")),
             "failed configure() still evicted an unprotected track"
         );
     }
@@ -2379,7 +2423,7 @@ mod maintenance_tests {
     }
     fn seed_partial(dir: &Path, id: &str, quality_kbps: u32, item: &Item, bytes: usize) {
         fs::write(dir.join(format!("{id}.part")), vec![0; bytes]).unwrap();
-        atomic_json(
+        crate::atomic_write_json(
             &dir.join(format!("{id}.resume.json")),
             &Partial {
                 quality_kbps,
@@ -2433,16 +2477,16 @@ mod maintenance_tests {
     fn pending_items_are_deduplicated_and_skip_completed_or_dead_partials() {
         let dir = tempfile::tempdir().unwrap();
         let song = track("1");
-        seed_partial(dir.path(), &hash("p0"), 0, &song, 4);
-        seed_partial(dir.path(), &hash("p320"), 320, &song, 4);
+        seed_partial(dir.path(), &crate::sha256_hex("p0"), 0, &song, 4);
+        seed_partial(dir.path(), &crate::sha256_hex("p320"), 320, &song, 4);
         // Track 2 is already cached at quality 0: its partial is stale.
         let done = track("2");
-        seed_partial(dir.path(), &hash("p2"), 0, &done, 4);
-        let file = format!("{}.wav", hash("e2"));
+        seed_partial(dir.path(), &crate::sha256_hex("p2"), 0, &done, 4);
+        let file = format!("{}.wav", crate::sha256_hex("e2"));
         fs::write(dir.path().join(&file), b"cached").unwrap();
         let mut manifest = Manifest::default();
         manifest.entries.insert(
-            hash("e2"),
+            crate::sha256_hex("e2"),
             Entry {
                 quality_kbps: 0,
                 namespace: "scope".into(),
@@ -2452,24 +2496,33 @@ mod maintenance_tests {
                 used: 1,
             },
         );
-        atomic_json(&dir.path().join("index.json"), &manifest).unwrap();
+        crate::atomic_write_json(&dir.path().join("index.json"), &manifest).unwrap();
         let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
         let pending = cache.pending_items("scope");
         assert_eq!(pending.len(), 1);
         assert_eq!(pending[0].rating_key, "1");
         // Superseded partial removed entirely; non-resumable transcode bytes
         // released while its record keeps the track pending.
-        assert!(!dir.path().join(format!("{}.part", hash("p2"))).exists());
         assert!(!dir
             .path()
-            .join(format!("{}.resume.json", hash("p2")))
+            .join(format!("{}.part", crate::sha256_hex("p2")))
             .exists());
-        assert!(!dir.path().join(format!("{}.part", hash("p320"))).exists());
+        assert!(!dir
+            .path()
+            .join(format!("{}.resume.json", crate::sha256_hex("p2")))
+            .exists());
+        assert!(!dir
+            .path()
+            .join(format!("{}.part", crate::sha256_hex("p320")))
+            .exists());
         assert!(dir
             .path()
-            .join(format!("{}.resume.json", hash("p320")))
+            .join(format!("{}.resume.json", crate::sha256_hex("p320")))
             .exists());
-        assert!(dir.path().join(format!("{}.part", hash("p0"))).exists());
+        assert!(dir
+            .path()
+            .join(format!("{}.part", crate::sha256_hex("p0")))
+            .exists());
     }
 
     #[test]
@@ -2487,12 +2540,12 @@ mod maintenance_tests {
         let dir = tempfile::tempdir().unwrap();
         let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
         let song = track("1");
-        let file = format!("{}.wav", hash("e1"));
+        let file = format!("{}.wav", crate::sha256_hex("e1"));
         fs::write(dir.path().join(&file), b"cached").unwrap();
         {
             let mut state = crate::mutex_lock(&cache.state);
             state.manifest.entries.insert(
-                hash("e1"),
+                crate::sha256_hex("e1"),
                 Entry {
                     quality_kbps: 0,
                     namespace: "scope".into(),
@@ -2511,7 +2564,7 @@ mod maintenance_tests {
         // Read the index without dropping the cache (Drop would also save).
         let saved: Manifest =
             serde_json::from_slice(&fs::read(dir.path().join("index.json")).unwrap()).unwrap();
-        assert!(saved.entries[&hash("e1")].used > 1);
+        assert!(saved.entries[&crate::sha256_hex("e1")].used > 1);
     }
 }
 
@@ -2877,7 +2930,7 @@ mod recovery_tests {
         let song = track("7");
         let id = key("scope", &song);
         fs::write(dir.path().join(format!("{id}.wav")), b"complete").unwrap();
-        atomic_json(
+        crate::atomic_write_json(
             &dir.path().join(format!("{id}.resume.json")),
             &Partial {
                 quality_kbps: 0,
@@ -2905,7 +2958,10 @@ mod recovery_tests {
         let dir = tempfile::tempdir().unwrap();
         let (song, mp3) = (track("1"), track("2"));
         let original = format!("{}.flac", key("scope", &song));
-        let transcode = format!("{}.mp3", hash(&format!("{}\0mp3:320", key("scope", &mp3))));
+        let transcode = format!(
+            "{}.mp3",
+            crate::sha256_hex(&format!("{}\0mp3:320", key("scope", &mp3)))
+        );
         let stray = format!("{}.wav", "c".repeat(64));
         for name in [&original, &transcode, &stray] {
             fs::write(dir.path().join(name), b"audio").unwrap();
@@ -2915,7 +2971,7 @@ mod recovery_tests {
         let status = cache.status("scope");
         assert_eq!(status["orphans"]["count"], 3);
         assert_eq!(status["orphans"]["bytes"], 15);
-        assert!(status["orphans"]["preserveUntil"].as_u64().unwrap() > now());
+        assert!(status["orphans"]["preserveUntil"].as_u64().unwrap() > crate::unix_seconds());
         assert!(cache.lookup("scope", &song, true).is_some());
         assert!(cache.lookup("scope", &mp3, false).is_some());
         assert!(cache.lookup("other", &track("3"), false).is_none());
@@ -2927,7 +2983,7 @@ mod recovery_tests {
         let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
         assert!(cache.lookup("scope", &song, false).is_some());
         let entry = crate::mutex_lock(&cache.state).manifest.entries
-            [&hash(&format!("{}\0mp3:320", key("scope", &mp3)))]
+            [&crate::sha256_hex(&format!("{}\0mp3:320", key("scope", &mp3)))]
             .quality_kbps;
         assert_eq!(entry, 320);
         assert!(dir.path().join(&stray).exists(), "window still preserves");

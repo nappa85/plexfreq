@@ -340,7 +340,7 @@ impl Core {
             }
         }
         if allowed && self.refresh.pending.is_none() {
-            let now = crate::history::now();
+            let now = crate::unix_seconds();
             let due = self
                 .settings
                 .download_plans
@@ -715,7 +715,7 @@ impl Core {
                 kind,
                 key: key.into(),
                 minutes,
-                refreshed_at: crate::history::now(),
+                refreshed_at: crate::unix_seconds(),
             },
         );
         self.manual_cache = plan.into_values().collect();
@@ -983,11 +983,11 @@ impl Core {
         let mut queue = crate::queue::Queue::default();
         queue.replace(page.items.into_iter().skip(start).take(11).collect(), 0)?;
         let old = std::mem::replace(&mut self.queue, queue);
-        let old_radio = self.radio.replace(radio::Radio {
-            kind: radio::RadioKind::Artist,
-            title: title.chars().take(512).collect(),
-            source: radio::Source::Station { queue_id: id },
-        });
+        let old_radio = self.radio.replace(radio::Radio::new(
+            radio::RadioKind::Artist,
+            title.chars().take(512).collect(),
+            radio::Source::Station { queue_id: id },
+        ));
         let result = self.playback();
         if result.is_err() {
             self.queue = old;

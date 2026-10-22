@@ -884,8 +884,16 @@
       <translation>ডাউনলোড · অপেক্ষা · Wi-Fi · অডিও · চালান · অনলাইন</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ডাউনলোড · অপেক্ষা · অডিও · লোড হচ্ছে</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · অডিও · ক্যাশ · ব্যবহৃত</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>অফলাইন · লাইব্রেরি · তথ্য · সংরক্ষণ করুন · ব্যর্থ · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>ডাউনলোড · অপেক্ষা · Wi-Fi · অডিও · চালান · অনলাইন</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ডাউনলোড · অপেক্ষা · অডিও · লোড হচ্ছে</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · অডিও · ক্যাশ · ব্যবহৃত</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>অফলাইন · লাইব্রেরি · তথ্য · সংরক্ষণ করুন · ব্যর্থ · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>অফলাইন · সংরক্ষিত · লাইব্রেরি · মেটাডেটা</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ডাউনলোড · অপেক্ষা · অডিও · লোড হচ্ছে</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>ক্যাশ · অডিও</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>ডাউনলোড হয়েছে</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>গান · সার্ভার · অনুপলব্ধ</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>আবার চেষ্টা করুন · লোড হচ্ছে</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>অফলাইন · সংরক্ষিত · লাইব্রেরি · মেটাডেটা</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>ডাউনলোড · অপেক্ষা · অডিও · লোড হচ্ছে</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>খুলুন · অ্যালবাম</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>গান · সার্ভার · অনুপলব্ধ</translation>
     </message>
     <message>
       <source>Downloaded</source>

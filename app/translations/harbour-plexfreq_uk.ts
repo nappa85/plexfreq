@@ -884,8 +884,16 @@
       <translation>Завантаження · Очікування · Wi-Fi · Звук · Відтворити · У мережі</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Завантаження · Очікування · Звук · Завантаження</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Звук · Кеш · Використано</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Без мережі · Медіатека · Дані · Зберегти · Помилка · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Завантаження · Очікування · Wi-Fi · Звук · Відтворити · У мережі</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Завантаження · Очікування · Звук · Завантаження</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Звук · Кеш · Використано</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Без мережі · Медіатека · Дані · Зберегти · Помилка · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Без мережі · Збережено · Медіатека · Метадані</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Завантаження · Очікування · Звук · Завантаження</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Кеш · Звук</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Завантажено</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Трек · Сервер · Недоступно</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Спробувати знову · Завантаження</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Без мережі · Збережено · Медіатека · Метадані</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Завантаження · Очікування · Звук · Завантаження</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Відкрити · Альбом</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Трек · Сервер · Недоступно</translation>
     </message>
     <message>
       <source>Downloaded</source>

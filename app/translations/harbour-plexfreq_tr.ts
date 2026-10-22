@@ -884,8 +884,16 @@
       <translation>İndirmeler · Bekleniyor · Wi-Fi · Ses · Çal · Çevrimiçi</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>İndirmeler · Bekleniyor · Ses · Yükleniyor</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ses · Önbellek · Kullanıldı</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Çevrimdışı · Kitaplık · Veri · Kaydet · Başarısız · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>İndirmeler · Bekleniyor · Wi-Fi · Ses · Çal · Çevrimiçi</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>İndirmeler · Bekleniyor · Ses · Yükleniyor</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ses · Önbellek · Kullanıldı</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Çevrimdışı · Kitaplık · Veri · Kaydet · Başarısız · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Çevrimdışı · Kaydedildi · Kitaplık · Üstveri</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>İndirmeler · Bekleniyor · Ses · Yükleniyor</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Önbellek · Ses</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>İndirildi</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Parça · Sunucu · Kullanılamıyor</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Yeniden dene · Yükleniyor</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Çevrimdışı · Kaydedildi · Kitaplık · Üstveri</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>İndirmeler · Bekleniyor · Ses · Yükleniyor</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Aç · Albüm</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Parça · Sunucu · Kullanılamıyor</translation>
     </message>
     <message>
       <source>Downloaded</source>

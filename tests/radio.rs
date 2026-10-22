@@ -420,11 +420,11 @@ fn disconnected_radio_skips_missing_audio_and_cycles_completed_cache_after_resta
     };
     settings.cache.enabled = false;
     settings.playback.queue = queue;
-    settings.playback.radio = Some(Radio {
-        kind: RadioKind::Artist,
-        title: "Fixture".into(),
-        source: Source::Station { queue_id: 50 },
-    });
+    settings.playback.radio = Some(Radio::new(
+        RadioKind::Artist,
+        "Fixture".into(),
+        Source::Station { queue_id: 50 },
+    ));
     store::save(dir.path(), &settings).unwrap();
 
     for mode in 0..3 {

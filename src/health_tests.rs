@@ -259,3 +259,17 @@ fn the_gone_message_matches_its_translatable_literal() {
     let error = crate::Error::Input("This track is no longer on the server");
     assert_eq!(error.to_string(), GONE_TRACK);
 }
+
+/// The UI marks gone tracks from the cache status, which every cache-status
+/// push carries.
+#[test]
+fn cache_status_lists_gone_tracks() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = core(dir.path(), 4, 0);
+    let status = core.execute(Command::CacheStatus).unwrap();
+    assert_eq!(status["cache"]["goneKeys"], serde_json::json!([]));
+    core.record_probe("3", Probe::Gone);
+    core.record_probe("2", Probe::Gone);
+    let status = core.execute(Command::CacheStatus).unwrap();
+    assert_eq!(status["cache"]["goneKeys"], serde_json::json!(["2", "3"]));
+}

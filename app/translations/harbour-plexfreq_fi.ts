@@ -884,8 +884,16 @@
       <translation>Lataukset · Odotetaan · Wi-Fi · Ääni · Toista · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ääni · Välimuisti · Käytetty</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Kirjasto · Tiedot · Tallenna · Epäonnistui · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Lataukset · Odotetaan · Wi-Fi · Ääni · Toista · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ääni · Välimuisti · Käytetty</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Kirjasto · Tiedot · Tallenna · Epäonnistui · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Tallennettu · Kirjasto · Metatiedot</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Välimuisti · Ääni</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Ladattu</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Kappale · Palvelin · Ei saatavilla</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Yritä uudelleen · Ladataan</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Tallennettu · Kirjasto · Metatiedot</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Avaa · Albumi</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Kappale · Palvelin · Ei saatavilla</translation>
     </message>
     <message>
       <source>Downloaded</source>

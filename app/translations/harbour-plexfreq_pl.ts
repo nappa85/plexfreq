@@ -884,8 +884,16 @@
       <translation>Pobieranie · Oczekiwanie · Wi-Fi · Dźwięk · Odtwarzaj · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Pobieranie · Oczekiwanie · Dźwięk · Ładowanie</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Dźwięk · Pamięć podręczna · Użyte</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Biblioteka · Dane · Zapisz · Niepowodzenie · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Pobieranie · Oczekiwanie · Wi-Fi · Dźwięk · Odtwarzaj · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Pobieranie · Oczekiwanie · Dźwięk · Ładowanie</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Dźwięk · Pamięć podręczna · Użyte</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Biblioteka · Dane · Zapisz · Niepowodzenie · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Zapisane · Biblioteka · Metadane</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Pobieranie · Oczekiwanie · Dźwięk · Ładowanie</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Pamięć podręczna · Dźwięk</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Pobrane</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Utwór · Serwer · Niedostępne</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Ponów · Ładowanie</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Zapisane · Biblioteka · Metadane</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Pobieranie · Oczekiwanie · Dźwięk · Ładowanie</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Otwórz · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Utwór · Serwer · Niedostępne</translation>
     </message>
     <message>
       <source>Downloaded</source>

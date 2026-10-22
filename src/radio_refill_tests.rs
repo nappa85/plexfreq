@@ -1,0 +1,209 @@
+//! A move onto a cached successor leaves the radio refill to the background:
+//! the refill is owed, fetched off the worker and applied only to the state
+//! it was fetched for.
+use crate::{
+    plex::Probe,
+    radio::{Radio, RadioKind, Source},
+    radio_health_tests::{server, station, station_json},
+    Command, Core,
+};
+
+fn pending(core: &Core) -> u8 {
+    core.radio.as_ref().unwrap().refill.pending
+}
+
+fn keys(queue: &serde_json::Value) -> Vec<String> {
+    queue["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["ratingKey"].as_str().unwrap().to_owned())
+        .collect()
+}
+
+#[test]
+fn a_cached_successor_is_played_without_waiting_for_the_refill() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2]);
+    let plan = core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(plan["track"]["ratingKey"], "2", "{plan}");
+    assert!(server.requests("/playQueues/50").is_empty());
+    assert_eq!(pending(&core), 1);
+    // The owed refill, fetched as the runtime does, from the new position.
+    let job = core.refill_job().expect("an owed refill");
+    let update = core.refill_landed(job.fetch(), None).expect("applied");
+    assert!(server.requests("/playQueues/50")[0].contains("center=102"));
+    assert_eq!(keys(&update["queue"]), ["1", "2", "3", "4"]);
+    assert_eq!(pending(&core), 0);
+    assert!(core.refill_job().is_none());
+    let saved = Core::inspect(dir.path().into())
+        .unwrap()
+        .execute(Command::Status)
+        .unwrap();
+    assert_eq!(keys(&saved["queue"]), ["1", "2", "3", "4"]);
+}
+
+#[test]
+fn an_uncached_successor_or_the_end_still_refills_in_the_move() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(server.requests("/playQueues/50").len(), 1);
+    assert_eq!(pending(&core), 0);
+    // At the end, even with everything cached.
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 2, &[1, 2, 3]);
+    let plan = core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(plan["track"]["ratingKey"], "4", "{plan}");
+    assert_eq!(server.requests("/playQueues/50").len(), 2);
+    assert_eq!(pending(&core), 0);
+}
+
+#[test]
+fn a_synchronous_refill_pays_an_owed_one() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(pending(&core), 1);
+    // Item 3 is not cached: this move refills itself and pays the debt.
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(pending(&core), 0);
+}
+
+#[test]
+fn a_refill_for_an_older_state_is_dropped_and_fetched_again() {
+    let server = server(|_| ("200 OK", station_json(&[5])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 4, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let stale = core.refill_job().unwrap().fetch();
+    // Another move while it was in flight: the result is for an old window.
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(pending(&core), 2);
+    assert!(core.refill_landed(stale, None).is_none());
+    assert_eq!(pending(&core), 2, "kept for a new fetch");
+    assert_eq!(core.queue.items().len(), 4);
+    let fetched = core.refill_job().unwrap().fetch();
+    let update = core.refill_landed(fetched, None).unwrap();
+    assert_eq!(keys(&update["queue"]), ["1", "2", "3", "4", "5"]);
+    assert_eq!(pending(&core), 1);
+}
+
+#[test]
+fn a_restarted_radio_with_the_same_station_drops_the_old_refill() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let fetched = core.refill_job().unwrap().fetch();
+    core.radio = Some(Radio::new(
+        RadioKind::Artist,
+        "Fixture".into(),
+        Source::Station { queue_id: 50 },
+    ));
+    assert!(core.refill_landed(fetched, None).is_none());
+    assert_eq!(core.queue.items().len(), 3);
+}
+
+#[test]
+fn a_failed_refill_is_dropped_and_keeps_the_history() {
+    let server = server(|_| ("500 Internal Server Error", String::new()));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let fetched = core.refill_job().unwrap().fetch();
+    assert!(core.refill_landed(fetched, None).is_none());
+    assert_eq!(pending(&core), 0);
+    assert!(core.refill_job().is_none());
+    assert_eq!(core.queue.items().len(), 3);
+}
+
+#[test]
+fn the_prepared_successor_keeps_a_refill_that_landed_before_its_transition() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let mut prepared = core.prepare_next().unwrap().expect("a successor");
+    assert_eq!(prepared.key(), Some("3"));
+    assert_eq!(prepared.radio.as_ref().unwrap().refill.pending, 2);
+    let job = core.refill_job().unwrap();
+    core.refill_landed(job.fetch(), Some(&mut prepared))
+        .expect("applied");
+    assert_eq!(keys(&prepared.plan["queue"]), ["1", "2", "3", "4"]);
+    let plan = core.commit_prepared(prepared).unwrap();
+    assert_eq!(plan["track"]["ratingKey"], "3");
+    assert_eq!(keys(&plan["queue"]), ["1", "2", "3", "4"]);
+    // The speculative move's own refill is still owed.
+    assert_eq!(pending(&core), 1);
+}
+
+#[test]
+fn a_gone_successor_is_not_waited_past() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[3]);
+    // Item 2 is gone and not cached: the move steps over it and refills.
+    core.record_probe("2", Probe::Gone);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(server.requests("/playQueues/50").len(), 1);
+}
+
+#[test]
+fn a_prepared_successor_of_another_radio_state_is_left_to_its_commit() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let mut prepared = core.prepare_next().unwrap().unwrap();
+    // As if the speculation had refilled itself.
+    prepared.radio.as_mut().unwrap().refill.version += 1;
+    let fetched = core.refill_job().unwrap().fetch();
+    core.refill_landed(fetched, Some(&mut prepared)).unwrap();
+    assert_eq!(keys(&prepared.plan["queue"]), ["1", "2", "3"]);
+    assert_eq!(prepared.radio.as_ref().unwrap().refill.pending, 2);
+}
+
+#[test]
+fn a_failed_refill_also_clears_the_prepared_debt() {
+    let server = server(|_| ("500 Internal Server Error", String::new()));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let mut prepared = core.prepare_next().unwrap().unwrap();
+    let fetched = core.refill_job().unwrap().fetch();
+    assert!(core.refill_landed(fetched, Some(&mut prepared)).is_none());
+    assert_eq!(prepared.radio.as_ref().unwrap().refill.pending, 0);
+    core.commit_prepared(prepared).unwrap();
+    assert!(core.refill_job().is_none());
+}
+
+#[test]
+fn a_radio_saved_without_refill_state_gets_its_own_instance() {
+    let saved =
+        serde_json::json!({"kind":"artist","title":"Fixture","source":{"Station":{"queue_id":50}}});
+    let first: Radio = serde_json::from_value(saved.clone()).unwrap();
+    let second: Radio = serde_json::from_value(saved).unwrap();
+    assert_eq!(first.refill.pending, 0);
+    assert_ne!(first.refill.instance, second.refill.instance);
+    let mut refill = first.refill;
+    for _ in 0..20 {
+        refill.owe();
+    }
+    assert_eq!(refill.pending, crate::radio::Refill::MAX_PENDING);
+}
+
+#[test]
+fn an_abandoned_refill_stays_abandoned_after_the_prepared_commit() {
+    let server = server(|_| ("200 OK", station_json(&[4])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let mut prepared = core.prepare_next().unwrap().unwrap();
+    core.refill_abandon(Some(&mut prepared));
+    core.commit_prepared(prepared).unwrap();
+    assert!(core.refill_job().is_none());
+}

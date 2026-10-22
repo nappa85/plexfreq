@@ -271,10 +271,10 @@ fn cover_album_artwork_prefers_album_thumb_and_confines_its_origin() {
             next: false,
         })
         .unwrap();
-    assert!(queue["queue"]["items"][0]["albumArtwork"]
-        .as_str()
-        .unwrap()
-        .contains("/album/thumb?"));
+    assert_eq!(
+        image_path(queue["queue"]["items"][0]["albumArtwork"].as_str().unwrap()),
+        "/album/thumb"
+    );
     let unsafe_item = plexfreq_core::model::Item {
         rating_key: "4".into(),
         parent_thumb: "//outside.invalid/thumb".into(),
@@ -286,10 +286,11 @@ fn cover_album_artwork_prefers_album_thumb_and_confines_its_origin() {
             next: false,
         })
         .unwrap();
-    assert!(queue["queue"]["items"][1]["albumArtwork"]
-        .as_str()
-        .unwrap()
-        .contains("/track/thumb?"));
+    // A foreign album thumb falls back to the track's own artwork.
+    assert_eq!(
+        image_path(queue["queue"]["items"][1]["albumArtwork"].as_str().unwrap()),
+        "/track/thumb"
+    );
 }
 
 fn song(key: &str) -> plexfreq_core::model::Item {
@@ -779,6 +780,7 @@ fn saved_artist_album_pages_and_private_artwork_are_available_without_server() {
         let status = core
             .execute(Command::OfflineBrowse {
                 kind: plexfreq_core::model::ItemKind::Artist,
+                start: 0,
             })
             .unwrap();
         if status["items"][0]["artwork"]
@@ -857,4 +859,18 @@ fn pinned_album_plan_survives_restart_and_unpin_releases_it() {
         core.execute(Command::CacheStatus).unwrap()["cache"]["pinnedKeys"],
         json!([])
     );
+}
+
+/// The server path inside an `image://plexfreq/<namespace>/<hex path>` id.
+fn image_path(id: &str) -> String {
+    let hex = id
+        .strip_prefix("image://plexfreq/")
+        .and_then(|rest| rest.split_once('/'))
+        .map(|(_, hex)| hex)
+        .unwrap_or_else(|| panic!("not an artwork id: {id}"));
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    String::from_utf8(bytes).unwrap()
 }

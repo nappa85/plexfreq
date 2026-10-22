@@ -50,9 +50,52 @@ pub struct Radio {
     pub kind: RadioKind,
     pub title: String,
     pub source: Source,
+    /// Radios saved without it get a fresh instance.
+    #[serde(default = "Refill::new")]
+    pub refill: Refill,
+}
+
+/// Replenishment owed to a radio by moves that did not wait for it.
+#[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, Debug)]
+pub struct Refill {
+    /// Refills owed (at most [`Refill::MAX_PENDING`]).
+    pub pending: u8,
+    /// Random per radio instance: a restarted radio with the same seed or
+    /// station id is a different instance.
+    pub instance: u64,
+    /// Advanced by every append, so a result fetched for an older state of
+    /// the source is recognised as stale.
+    pub version: u64,
+}
+
+impl Refill {
+    pub const MAX_PENDING: u8 = 12;
+    pub fn new() -> Self {
+        Self {
+            pending: 0,
+            instance: rand::random(),
+            version: 0,
+        }
+    }
+    pub(crate) fn owe(&mut self) {
+        self.pending = (self.pending + 1).min(Self::MAX_PENDING);
+    }
+    /// An append happened: it pays one owed refill.
+    pub(crate) fn paid(&mut self) {
+        self.pending = self.pending.saturating_sub(1);
+        self.version = self.version.wrapping_add(1);
+    }
 }
 
 impl Radio {
+    pub fn new(kind: RadioKind, title: String, source: Source) -> Self {
+        Self {
+            kind,
+            title,
+            source,
+            refill: Refill::new(),
+        }
+    }
     pub fn summary(&self) -> Value {
         serde_json::json!({"kind":self.kind,"title":self.title,"source":match self.source { Source::Station{..} => "station", Source::Sonic{..} => "sonic" }})
     }

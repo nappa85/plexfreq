@@ -884,8 +884,16 @@
       <translation>Λήψεις · Αναμονή · Wi-Fi · Ήχος · Αναπαραγωγή · Σε σύνδεση</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Λήψεις · Αναμονή · Ήχος · Φόρτωση</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ήχος · Προσωρινή μνήμη · Χρησιμοποιήθηκε</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Εκτός σύνδεσης · Βιβλιοθήκη · Δεδομένα · Αποθήκευση · Αποτυχία · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Λήψεις · Αναμονή · Wi-Fi · Ήχος · Αναπαραγωγή · Σε σύνδεση</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Λήψεις · Αναμονή · Ήχος · Φόρτωση</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Ήχος · Προσωρινή μνήμη · Χρησιμοποιήθηκε</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Εκτός σύνδεσης · Βιβλιοθήκη · Δεδομένα · Αποθήκευση · Αποτυχία · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Εκτός σύνδεσης · Αποθηκευμένο · Βιβλιοθήκη · Μεταδεδομένα</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Λήψεις · Αναμονή · Ήχος · Φόρτωση</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Προσωρινή μνήμη · Ήχος</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Λήφθηκε</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Κομμάτι · Διακομιστής · Μη διαθέσιμο</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Νέα προσπάθεια · Φόρτωση</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Εκτός σύνδεσης · Αποθηκευμένο · Βιβλιοθήκη · Μεταδεδομένα</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Λήψεις · Αναμονή · Ήχος · Φόρτωση</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Άνοιγμα · Άλμπουμ</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Κομμάτι · Διακομιστής · Μη διαθέσιμο</translation>
     </message>
     <message>
       <source>Downloaded</source>

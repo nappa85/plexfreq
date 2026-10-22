@@ -1450,6 +1450,21 @@ mod review_tests {
     }
 }
 
+/// Under `tools/isolated-test.sh` no test can reach the host audio server or
+/// system bus: the platform observers would otherwise react to host state.
+#[cfg(test)]
+#[test]
+fn test_environment_is_isolated_from_host_audio() {
+    if std::env::var_os("PLEXFREQ_TEST_ISOLATED").is_none() {
+        return;
+    }
+    assert!(super::pulse::snapshot(&AtomicBool::new(false)).is_err());
+    assert_eq!(
+        std::env::var_os("DBUS_SYSTEM_BUS_ADDRESS"),
+        std::env::var_os("DBUS_SESSION_BUS_ADDRESS")
+    );
+}
+
 #[cfg(test)]
 mod delta_tests {
     use super::*;

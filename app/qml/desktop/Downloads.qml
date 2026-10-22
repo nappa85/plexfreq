@@ -18,7 +18,8 @@ Dialog {
             currentIndex:count>0 ? indexOfValue(music.downloadMinutes) : -1;displayText:qsTr("Radio download length")+": "+qsTr("%1 minutes").arg(music.downloadMinutes);onActivated:music.downloadMinutes=currentValue}
         Switch {text:qsTr("Download only on Wi-Fi");checked:!!backend.cache.wifiOnly;onClicked:backend.command("download_policy",{wifi_only:checked,paused:!!backend.cache.paused})}
         Button {text:backend.cache.paused ? qsTr("Resume downloads") : qsTr("Pause downloads");onClicked:backend.command("download_policy",{wifi_only:!!backend.cache.wifiOnly,paused:!backend.cache.paused})}
-        Label {Layout.fillWidth:true;text:backend.cache.waitingForWifi ? qsTr("Waiting for confirmed Wi-Fi; streaming remains available.") : qsTr("%1 MiB audio cache used").arg(Math.round(backend.cache.bytes/1048576));wrapMode:Text.Wrap}
+        Label {objectName:"downloadStatus";Layout.fillWidth:true;text:backend.cache.waitingForWifi ? qsTr("Waiting for confirmed Wi-Fi; streaming remains available.") : music.downloadsHeld ? qsTr("Downloads wait while the stream catches up") : qsTr("%1 MiB audio cache used").arg(Math.round(backend.cache.bytes/1048576));wrapMode:Text.Wrap}
+        Label {objectName:"offlineStoreError";Layout.fillWidth:true;text:backend.cache.offlineStore && !backend.cache.offlineStore.ok ? qsTr("Offline library data could not be saved: %1").arg(backend.cache.offlineStore.error || "") : "";visible:text.length>0;wrapMode:Text.Wrap;color:"#ff998b"}
         ListView {Layout.fillWidth:true;Layout.preferredHeight:300;clip:true;model:backend.cache.jobs || [];ScrollBar.vertical:ScrollBar {}
             delegate:ColumnLayout {width:ListView.view.width;spacing:6
                 Label {Layout.fillWidth:true;text:modelData.title;elide:Text.ElideRight}

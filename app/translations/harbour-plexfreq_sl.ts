@@ -884,8 +884,16 @@
       <translation>Prenosi · Čakanje · Wi-Fi · Zvok · Predvajaj · Povezano</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Prenosi · Čakanje · Zvok · Nalaganje</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Zvok · Predpomnilnik · Uporabljeno</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Brez povezave · Knjižnica · Podatki · Shrani · Neuspešno · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Prenosi · Čakanje · Wi-Fi · Zvok · Predvajaj · Povezano</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Prenosi · Čakanje · Zvok · Nalaganje</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Zvok · Predpomnilnik · Uporabljeno</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Brez povezave · Knjižnica · Podatki · Shrani · Neuspešno · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Brez povezave · Shranjeno · Knjižnica · Metapodatki</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Prenosi · Čakanje · Zvok · Nalaganje</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Predpomnilnik · Zvok</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Preneseno</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Skladba · Strežnik · Ni na voljo</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Poskusi znova · Nalaganje</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Brez povezave · Shranjeno · Knjižnica · Metapodatki</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Prenosi · Čakanje · Zvok · Nalaganje</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Odpri · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Skladba · Strežnik · Ni na voljo</translation>
     </message>
     <message>
       <source>Downloaded</source>

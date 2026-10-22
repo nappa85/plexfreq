@@ -606,3 +606,55 @@ fn a_cancel_ends_a_held_wait() {
         "a cancelled download was requested"
     );
 }
+
+/// A refused download is not re-requested by every later schedule (track
+/// change, queue edit) until its cooldown passes or the user asks again; a
+/// different quality is a different download and is still tried.
+#[test]
+fn refused_downloads_cool_down_until_the_user_asks_again() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = origin(&listener);
+    let requests = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    let served = requests.clone();
+    thread::spawn(move || {
+        for socket in listener.incoming() {
+            let mut socket = socket.unwrap();
+            request(&mut socket);
+            served.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            let _ = socket.write_all(
+                b"HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+            );
+        }
+    });
+    let count = || requests.load(std::sync::atomic::Ordering::SeqCst);
+    let dir = tempfile::tempdir().unwrap();
+    let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
+    let song = item("1");
+    let ns = namespace(&url, "token");
+    let refused = |cache: &Cache| {
+        cache.status(&ns)["errors"]["1"]
+            .as_str()
+            .is_some_and(|error| !error.is_empty())
+    };
+    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    wait(|| refused(&cache) && count() == 1);
+    for _ in 0..2 {
+        cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+        wait(|| refused(&cache));
+    }
+    thread::sleep(Duration::from_millis(300));
+    assert_eq!(count(), 1, "a cooled-down download was requested again");
+    cache.forget_failures();
+    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    wait(|| count() == 2 && refused(&cache));
+    // Refused again and cooled down at the original quality: still skipped.
+    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    wait(|| refused(&cache));
+    thread::sleep(Duration::from_millis(300));
+    assert_eq!(count(), 2);
+    cache
+        .schedule_with_quality(&url, "token", vec![song.clone()], 320)
+        .unwrap();
+    // A transcode request plus its session stop.
+    wait(|| count() >= 3);
+}

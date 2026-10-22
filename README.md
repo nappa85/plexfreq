@@ -1,293 +1,240 @@
 # PlexFreq
 
-## Continuous integration
+PlexFreq is a music player for your own Plex Media Server. It brings artist-first
+browsing, radio, sonic discovery, lyrics and offline listening to **SailfishOS**
+phones and to the **Linux desktop**.
 
-GitHub Actions runs on every branch push and pull request (also manually):
-Rust formatting/Clippy/tests, Qt6 release build and isolated integration/QML smoke,
-Qt5 syntax checks for all desktop/Silica QML, translation freshness for 39 locales,
-and an aarch64 Rust build against the actual Sailfish SDK sysroot.
+On SailfishOS it uses the native Silica interface, the app cover and the system
+media controls. On the desktop it is a regular Qt 6 window. Both versions share
+the same playback engine, so they look and behave alike.
 
-`v*` tag pushes run those gates before building the Sailfish aarch64 RPM, Linux
-amd64 desktop tar.gz and device-test fixture; app RPM/archive assets are attached to the tag release.
-Manual release builds upload artifacts without publishing. Tags must match the
-committed core/application/package versions. See `.github/workflows` and
-`docs/build.md`; phone/live-account tests remain separate opt-in checks.
+PlexFreq is free software, licensed under GPL-3.0-or-later.
 
-## Rust runtime, audio and languages
+## Install
 
-Playback runs in Rust-owned workers rather than C++ QThread/QMediaPlayer. Rust owns
-Plex/media HTTP, queue policy, PCM timing, transport/heard time, ten-band EQ,
-optional Plex loudness gain, prepared-track gapless joins and equal-power crossfade.
-Built-in pure-Rust decoders (Symphonia: MP3, FLAC, AAC/ALAC in MP4, Ogg Vorbis, WAV)
-and resampling feed a PulseAudio stream; other formats are transcoded by Plex.
-C++ is a Qt model/properties/translation bridge; Rust also owns MPRIS/network facts.
+Download the latest release from
+[github.com/nappa85/plexfreq/releases](https://github.com/nappa85/plexfreq/releases).
 
-Open **Audio settings** from Connection/settings for crossfade (off by default),
-normalization, headroom, EQ and streaming/download quality. Track, album and
-automatic gain modes are available; automatic mode uses album gain for a single
-album queue or album radio. Same-album tracks keep gapless transitions without crossfade.
-Output PCM is fixed 48 kHz stereo; sample-rate matching and wider codec/routing/
-long-session tests remain follow-ups.
+### SailfishOS
 
-39 locale catalogues match ElectricEel/sailfish-proton, with full locale → base
-language → English fallback, packaged/embedded for Sailfish and desktop builds.
-`PLEXFREQ_LANGUAGE=it_IT` overrides the system locale for inspection.
-`./tools/build-qm.sh` compiles the authored dictionary; `--check` verifies catalogue
-coverage/placeholders and deterministic TS/QM/resources. New technical translations
-use compact localized clauses; the Italian UI has expanded prose.
-See `docs/audio-engine-plan.md` and `docs/validation.md` for boundaries/checks.
+The release includes a `harbour-plexfreq-…aarch64.rpm` package for
+64-bit ARM phones running SailfishOS 5.
 
-A native Plex music player for **SailfishOS** and **Linux desktop**, with QML
-interfaces and a Rust application backend. This is the initial usable-player
-implementation of a Plexamp-inspired client.
+1. In **Settings → Untrusted software**, allow installing software from outside
+   the Jolla Store (if you have not already done so).
+2. Open the downloaded RPM from your browser's downloads or the file manager and
+   confirm the installation.
+3. Start **PlexFreq** from the app grid.
 
-## Features
+PlexFreq is installed like any other app and runs inside the standard Sailjail
+sandbox, with only the Internet, Audio and Bluetooth permissions. It needs no root
+access or extra system services.
 
-- Plex browser sign-in, server discovery and direct URL/token connection.
-- Artist-first browsing: artist photos/biography/albums, then album cover,
-  description and tracks, plus selectable similar artists.
-- Global artist/album/track search, favorites and recently added/played views.
-- Artist/album/track browsing, sorting and album-type grouping; regular playlist
-  creation/editing and add-to-playlist actions.
-- Paged browsing, audio playlists and editable queues with play-next/add/move/remove.
-- Direct-stream playback, pause/resume, seek, previous/next, shuffle, repeat.
-- Original or 64–320 kbps audio, independent Wi-Fi/mobile/download policies,
-  progressive Plex transcoding and one-shot decoder fallback.
-- Artist radio through Plex stations; sonic album/track radio when server analysis
-  is available, with automatic queue continuation.
-- Native Silica UI and playback cover on Sailfish; Controls2 desktop UI.
-- Persistent queue/radio/resume state, now-playing artwork and plain/timed lyrics.
-- Standard MPRIS session-bus media controls for desktop/Sailfish integration.
-- Private per-user session storage; no root or background system service.
-- Bounded audio cache: queue prefetch, resumable downloads, downloaded-track
-  catalogue, persistent track/album/playlist pins and local-file playback.
-- Offline browsing/search of saved library metadata, artwork and retrieved lyrics.
-- Download manager with per-group progress, retry/cancel/remove and Wi-Fi-only
-  policy; general streaming timelines and durable offline listening-history sync.
-- Optional autoplay and balanced multi-artist/album mixes.
-- Server-provided discovery hubs/stations, sonic-neighbor browsing and Sonic Adventure.
-- Duration-bounded radio/station/playlist downloads with persistent refreshable plans.
-- Opt-in scheduled/reconnect refresh and a normalized offline-search index.
-- Music filters and basic server-owned smart-playlist creation/rule editing.
-- Scoped discovery ordering/visibility, hub paging, local listening insights and
-  multi-waypoint Sonic Adventure.
-- Bluetooth audio disconnect auto-pause; reconnect does not resume playback.
+### Linux desktop
 
-## Desktop
-
-Releases provide `plexfreq-<version>-linux-amd64.tar.gz`. Extract it into any
-user-owned directory and run the included executable without installing the app:
+The release includes `plexfreq-<version>-linux-amd64.tar.gz` for 64-bit PCs.
+You don't need to install it. Extract it anywhere and run it:
 
 ```sh
 tar -xzf plexfreq-<version>-linux-amd64.tar.gz
 ./plexfreq-<version>-linux-amd64/bin/plexfreq
 ```
 
-The CI binary is built on Ubuntu 24.04 (Qt 6.4.2, glibc 2.39) and uses compatible
-host Qt6/QML libraries/plugins and libpulse (decoders are built in). Audio uses
-PulseAudio or PipeWire's PulseAudio service. This is a plain development archive,
-not a bundled runtime; it can run on Gentoo with these dependencies available.
-See the included `share/doc/plexfreq/README.md` for runtime requirements.
+The archive uses libraries already on your system, so you need:
 
-### Building from source
+- glibc 2.39 or newer, libstdc++ and libpulse;
+- Qt 6 (Core, Gui, Qml, Quick) with the QtQuick Controls 2, Layouts, Window,
+  Templates and WorkerScript QML modules, plus an X11 or Wayland platform plugin;
+- PulseAudio, or PipeWire with its PulseAudio service, for sound output.
 
-Requires Rust stable, CMake, a C++ compiler and Qt **6.2+** Core, Gui, Qml, Quick,
-QuickControls2 and DBus development/runtime modules and libpulse development files
-(a running PulseAudio or PipeWire-pulse server for playback). This host has Qt 6.11.
-Codec fixtures are generated with FFmpeg (FLAC/ALAC/AAC/Vorbis/Opus/PCM) and LAME
-(MP3). The Bluetooth
-signal test runs an isolated dbus-daemon, not the host Bluetooth service.
-Local checks also use Qt Test, Network and `dbus-run-session` for an isolated bus.
-Distribution package names vary. The same source builds on Linux distributions
-providing these dependencies; it is not a single universally portable binary.
+PlexFreq decodes MP3, FLAC, AAC/ALAC, Ogg Vorbis and WAV itself. The Plex server
+converts other formats on the fly. Package names differ between distributions;
+the standard Qt 6 and PulseAudio packages are usually enough. Your settings and
+cached music are stored in your user data folder, wherever you extract the archive.
 
-```sh
-cmake -S . -B build/desktop -DCMAKE_BUILD_TYPE=Release
-cmake --build build/desktop --parallel
-./build/desktop/plexfreq
-```
+## Getting started
 
-Click **Connect**, sign in in the browser, return and select your server. Or enter
-the server origin (`http://192.168.1.10:32400`) and X-Plex-Token directly. Select a
-library and browse artists. Open an artist to see its photos, biography and
-albums; open an album for its cover, description and tracks. Click a track to
-play the loaded track list. Album **Play** loads all its track pages. The token field is
-never prefilled. Artwork/descriptions depend on metadata available from Plex.
+1. Open PlexFreq and choose **Sign in with Plex**. A browser page opens. Sign in
+   there, then go back to the app.
+2. Choose your server from the list, then pick a music library.
+3. Browse artists, albums or tracks, or search. Select a track to start playing.
 
-Search finds artists, albums and tracks across the selected server after a short
-debounce (up to 100 results per search hub). The side alphabet uses
-the server's first-character index to jump directly to a letter's page. Letters
-are hidden while a search is active. Lists load the next page automatically when
-roughly 75% of the loaded content has been reached; a Retry action appears only
-if that background fetch fails. Existing rows are appended rather than reset.
-The main artist list has no radio buttons; start artist radio from its detail page.
+If you can't sign in through the browser, choose **Connect directly** and enter
+the server address (for example `http://192.168.1.10:32400`) with a Plex token.
 
-Long-press an entry on Sailfish or use its **⋮** menu on desktop for queue actions,
-favorites and offline pins. Queue entries offer **Move up**, **Move down** and
-**Remove**. Explicit reordering exits shuffle; editing radio makes it an ordinary
-queue. The saved queue and position are restored after restart; press Play to
-resume. Position is checkpointed every five seconds and on pause/seek/normal exit.
+**Sign out** removes your saved login, together with the cached music.
 
-Open **Now playing** for artwork, transport/seek, favorite status and lyrics.
-Timed LRC lines highlight during playback; availability depends on Plex metadata.
-Sailfish's pull-down menu and desktop's **Discover** menu open five-star favorite
-tracks, recently added albums and server-reported recently played tracks.
+## Features
 
-**Discovery home** groups the server's music hubs (including mixes and stations
-when the server exposes them). Station rows start the advertised station directly.
-Entry menus offer **Sonically similar**. For **Sonic Adventure**, select a track
-as the start, then choose **Sonic Adventure to this track** on the destination;
-the returned path can be browsed and played with Play all. Availability depends
-on the server's Sonic Analysis, not a locally invented recommendation graph.
+**Browsing**
+- Artist pages with photos, biography, albums grouped by type and similar artists.
+- Album pages with cover art, description and track list.
+- Search across artists, albums and tracks, an alphabet bar for quick jumps, and
+  sorting.
+- Favorites (five-star tracks), recently added and recently played music.
+- Library filters by genre, mood, style, year, rating and unplayed content.
 
-Use **Add sonic waypoint** on 2–8 tracks, then **Sonic journey** to join server
-paths through them (up to 250 entries). **Show all in this group** opens a hub's
-advertised endpoint with pagination. **Customize discovery** changes group visibility
-and order privately for the selected server/library.
+**Playback**
+- Play, pause, seek, previous/next, shuffle, and repeat one or all.
+- An editable queue: play next, add to queue, move and remove entries.
+- The queue and position are restored when you reopen the app.
+- Lyrics, including synced lyrics that scroll with the song, when Plex has them.
+- Gapless playback, crossfade, loudness normalization and a 10-band equalizer.
 
-**Library filters** supports genre, mood, style, title, year range, rating and
-unplayed content. Choices/canonical scopes come from Plex; unavailable choices
-are disabled. **Create smart playlist** saves a server-owned track query. Basic
-existing rules can be edited; unsupported Boolean rules are shown read-only.
+**Radio and discovery**
+- Artist radio, plus album and track radio based on Plex sonic analysis.
+- A discovery home with the mixes and stations your server offers. You can
+  reorder or hide its sections.
+- **Sonically similar** music for any track, album or artist.
+- **Sonic Adventure**: a musical path from one track to another, or a journey
+  through several waypoints.
+- Mixes built from up to ten artists or albums you choose.
+- Optional autoplay of related music when the queue ends.
 
-**Listening insights** shows qualified counts and measured time with top artists,
-albums and tracks over 7/30/90 days or retained history. Tracking starts with this
-version, keeps the latest 10000 qualified occurrences and is credential-scoped;
-it is not the complete Plex account-history/Aural Fixations archive. Seeks and
-repeated checkpoints do not add plays. Bluetooth controls remain system/MPRIS-owned;
-tracked audio-accessory disconnect now pauses locally even during metadata work.
+**Playlists**
+- Create, rename and delete playlists. Add, move and remove tracks.
+- Create a playlist from an album, the current tracks or the queue.
+- Create smart playlists from library filters and edit their basic rules.
 
-### Audio quality
+**Offline listening**
+- Upcoming queue tracks download automatically, so playback continues through
+  short connection drops.
+- Keep albums, playlists or individual tracks on the device for offline listening.
+- Download a set length of radio, a station or a playlist (30 minutes to 8 hours),
+  and refresh it later for new music.
+- Browse and search your saved library without a connection.
+- Plays made offline are sent to Plex when you reconnect.
 
-**Audio settings → Streaming quality** selects original audio or 64, 96, 128,
-160, 192, 256 or 320 kbps independently for Wi-Fi, mobile and downloads. Defaults
-retain original quality. Network classification changes the next streaming plan.
-The mobile cap applies whenever Wi-Fi is not confirmed (including other non-Wi-Fi routes).
-This is network-type policy, not a throughput-measuring adaptive HLS player.
-Completed local audio always takes precedence. Quality changes apply to subsequent
-tracks/jobs; previously downloaded representations remain usable.
+**Phone and desktop integration**
+- System media controls (MPRIS) on the lock screen, in the desktop panel and on
+  Bluetooth devices, which show the correct track and position.
+- Play/pause and next on the SailfishOS app cover.
+- Playback pauses when Bluetooth headphones disconnect. It does not resume on its
+  own when they reconnect.
+- Playback pauses while another app records from the microphone, for example
+  during a call, and resumes afterwards if it was playing.
+- **Listening insights**: your top artists, albums and tracks over 7, 30 or 90 days,
+  based on what you listen to in PlexFreq.
+- Available in 39 languages, following your system language.
 
-Plex converts limited-quality streams to progressive MP3. Transcode seeks restart
-from a server time offset with a fresh session; shutdown/cancellation requests
-session cleanup. Known unsupported codecs, or a failed original decoder with no
-completed cache fallback, can try one transcoded stream when codec fallback is
-enabled. Automatic original-file prefetch is suppressed when it would bypass a
-streaming bitrate cap; explicitly pinned downloads still follow download policy.
+Sonic radio, Sonic Adventure and sonically similar music need a server with Sonic
+Analysis enabled. That requires Plex Pass on the server owner's account. Lyrics,
+artwork and biographies depend on the metadata your server provides.
 
-Use the browser type/sort controls for albums/tracks, and **Group albums by type**
-on an artist. Entry menus provide **Add to playlist**, **Create playlist from this**,
-playlist rename/delete and occurrence-level moves/removal. Smart playlist contents
-are controlled by Plex filters. **New playlist** can use the current loaded tracks
-or queue. Add artists/albums as **mix seeds**, then choose **Play mix**; up to ten
-seeds and 1000 unique tracks are supported, with at most 200 tracks sampled per artist.
-Autoplay is enabled in settings and uses actual sonic neighbors or artist stations.
+## Settings that matter
 
-Use the **antenna-and-waves icon** beside an artist, album or track, or in the
-artist/album detail header. Desktop hover text identifies the radio type;
-accessible names are provided on both platforms. Artist radio uses a station
-advertised by Plex. Album radio
-plays a complete album, followed by sonically similar albums; track radio follows
-sonically similar tracks. Album/track radio requires analyzed music and Plex Pass
-on the server owner's account; owning Plex Pass does not itself enable library
-analysis. Availability is checked by requesting recommendations, not by assuming
-that an omitted analysis-version field means unlicensed. An unavailable mode reports a clear message and
-keeps the previous queue. Stop radio from the Sailfish pull-down menu or the
-desktop radio banner. Normal track playback also exits radio mode.
+### Streaming and download quality
 
-### Mobile cache
+**Audio settings → Streaming quality** has three separate choices: Wi‑Fi,
+mobile data and downloads. Each one can be **Original** (the untouched file) or a
+limit from 64 to 320 kbps.
 
-Caching is enabled by default with a **512 MiB** limit. The current track and the
-next **five** known queue entries are downloaded in a Rust background worker.
-Completed files are played locally; a newly selected uncached track starts
-streaming while caching catches up. Interrupted transfers retry and resume with
-HTTP range validation where the server supplies a validator.
+- Wi‑Fi and downloads default to Original.
+- New installations limit mobile data to 320 kbps. The mobile limit applies only
+  when PlexFreq knows the phone is on a cellular connection.
+- Changes apply from the next track or download. Music already on the device always
+  plays from local storage first.
 
-Use **Download tracks** on an album page, or **Download displayed tracks** in the
-Sailfish pull-down menu, to persistently pin the loaded tracks before travelling.
-Use **Pin for offline listening** in an album/playlist entry's menu to fetch its
-complete bounded plan, rather than only the displayed page. Up to 1000 distinct
-tracks can be pinned. **Downloaded music** opens the
-persistent catalogue and works without library/server requests. The app falls
-back to it at startup if library loading fails and downloads are available.
+When a limit is set, Plex converts the music to MP3 while it plays. If the server
+stops a converted stream early, PlexFreq continues it from where it stopped.
 
-Cache controls and storage usage are in **Connection → Offline audio cache**.
-Pinned tracks are protected from eviction; unpinning makes them reclaimable.
-If pins fill the budget, increase it or unpin downloads. Old unprotected audio is
-evicted when space is needed. Automatic caching can be
-disabled; existing completed files remain playable. Clearing the cache stops
-playback/downloads; signing out clears cached audio too.
+### Downloads and offline
 
-Only **completed** downloads are usable offline. Radio can play downloaded known
-queue entries, but needs the server for new recommendations beyond that window.
-**Browse saved library offline** / **Offline library** switches to saved metadata
-without contacting Plex. Library pages are saved as you browse; this is not an
-automatic full-library download. Saved albums and completed tracks remain
-available, with previously cached images and lyrics. Artwork has a separate
-128 MiB budget and metadata/lyrics 64 MiB. **Go online** resumes server access.
-New radio recommendations and offline play-history synchronization require
-connectivity. A saved server station can also expire between sessions.
+- **Offline audio cache** (in the connection settings) sets the storage limit
+  (512 MiB by default) and whether upcoming queue tracks download automatically.
+  Music you choose to keep offline is never removed to make space.
+- **Download only on Wi‑Fi** holds downloads until Wi‑Fi is confirmed. Streaming
+  still works on any connection.
+- The **Download manager** shows progress for each album, playlist or radio download.
+  You can pause, resume, retry, cancel or remove downloads there.
+- **Automatically refresh download plans** updates downloaded playlists and radio
+  in the background at an interval you choose.
+- **Browse saved library offline** switches to the music already on your device.
+  **Go online** reconnects to the server.
 
-The **Download manager** shows group counts, byte usage/current progress and errors,
-with pause/resume/retry/cancel/remove controls. Wi-Fi-only background downloads wait
-for a confirmed Wi-Fi connection; playback streaming is still allowed. Network
-facts come from read-only ConnMan/NetworkManager observation and never alter system
-settings. A separate Rust gate cancels transfers even while metadata work is busy.
+### Audio
 
-Select **Radio download length** (30–480 minutes) in the manager, then use
-**Download radio** on an artist/album/track or a discovery station. Playlists also
-offer **Download N minutes**. Plans contain whole unique tracks, up to the duration
-target, 1000 tracks and 20 radio windows; the server may supply fewer tracks, and
-the manager displays the actual planned duration. Unknown track duration is
-rejected for timed plans. Planning does not change playback or report listening.
+- **Crossfade**: off, or 1 to 12 seconds. Tracks from the same album always play
+  gaplessly, without crossfade.
+- **Normalize loudness**: evens out volume using Plex loudness data, by track, by
+  album or automatically. **Headroom** lowers the overall level to avoid clipping.
+- **Equalizer**: ten bands from −12 to +12 dB, with a reset button.
 
-**Refresh download plan** re-fetches playlist membership (including Plex smart
-playlists) or replenishes a radio/station plan. A failed refresh preserves the
-previous plan. Plans survive restart; **Play downloaded tracks** follows their
-saved order using only completed files. Offline search/browsing merges saved
-pages, download plans and completed media, including inferred album/artist parents.
-This still does not crawl the complete server library automatically.
+### Language
 
-Enable **Automatically refresh download plans** to refresh dynamic playlist/radio/
-station recipes after reconnect and at a 1/6/12/24-hour interval. Refresh honors
-pause/offline/Wi-Fi policy and runs on a separate Rust worker; stale source/recipe/
-credential results are discarded. Failed attempts back off 15 minutes and retain
-the old plan. Static album plans are not auto-refreshed. Search normalization/order
-is reused until snapshots, audio catalogue or plan metadata changes.
-
-Listening history uses measured heard time (half a track or four minutes), rather
-than seeking or preparing a queue. Normal remote playback reports timelines;
-offline/cached listens persist and synchronize after reconnection. The manager also
-offers **Sync history**. Replay cannot promise original server timestamps or exactly
-once delivery if a remote acknowledgement is lost.
-
-For a user-local install:
-`cmake --install build/desktop --prefix "$HOME/.local"`.
-
-## SailfishOS
+PlexFreq follows your system language. On the desktop you can choose another one
+when starting the app:
 
 ```sh
-rustup target add aarch64-unknown-linux-gnu
-./tools/build-sailfish.sh
+PLEXFREQ_LANGUAGE=it_IT ./bin/plexfreq
 ```
 
-Uses the available `coderus/sailfishos-platform-sdk-aarch64:latest` image and
-`SailfishOS-5.2.0.15-aarch64` target. Rust C dependencies are compiled against the
-SDK sysroot. Output RPMs: `build/sailfish/RPMS/`. See [build notes](docs/build.md)
-for normal installation and sandboxed device validation.
+## PlexFreq and Plexamp
 
-## Checks and development notes
+PlexFreq is inspired by Plexamp, Plex's own music player, which is not available
+for SailfishOS. The table compares their main features.
 
-```sh
-./tools/check.sh
-```
+| Feature | PlexFreq | Plexamp |
+|---|:---:|:---:|
+| SailfishOS app | ✓ | ✗ |
+| Linux desktop app | ✓ | ✓ |
+| Android / iOS apps | ✗ | ✓ |
+| Browse, search, favorites, library filters | ✓ | ✓ |
+| Gapless playback, crossfade, loudness leveling, EQ | ✓ | ✓ |
+| Synced lyrics | ✓ | ✓ |
+| Artist, album and track radio | ✓ | ✓ |
+| Sonically similar music, Sonic Adventure | ✓ | ✓ |
+| Server mixes and stations | partial (those the server lists) | ✓ |
+| Playlist creation and editing | ✓ | ✓ |
+| Smart playlist rule editing | partial (basic rules) | ✓ |
+| Offline downloads of albums, playlists and radio | ✓ | ✓ |
+| Offline play history sent to Plex later | ✓ | ✓ |
+| Streaming quality per network type | ✓ | ✓ |
+| Guest DJ | ✗ | ✓ |
+| Sonic Sage (AI-generated playlists) | ✗ | ✓ |
+| Plex Home managed users and PIN switching | ✗ | ✓ |
+| Casting to other players and speakers | ✗ | ✓ |
+| Android Auto / CarPlay | ✗ | ✓ |
 
-Local protocol tests use a mock HTTP server and temporary state; they do not
-contact Plex or require a phone/account. Desktop smoke test loads actual QML
-offscreen. See [research](docs/research.md), [architecture](docs/architecture.md),
-[validation](docs/validation.md) and [roadmap](docs/roadmap.md).
+## Troubleshooting
 
-Direct streaming depends on native codec support. This version does not yet
-implement gapless/DSP, transcoding, Plex Home switching,
-or general play-history reporting. Native station playback reports timelines to
-keep its server queue progressing. Sessions are stored as a private file,
-not an encrypted keychain. License: GPL-3.0-or-later (SPDX).
+**No sound.** Check that the system volume is up and the right output is selected.
+On the desktop, make sure PulseAudio or PipeWire's PulseAudio service is running.
+If playback paused by itself, Bluetooth headphones may have disconnected, or
+another app may have been recording. Press Play to continue.
+
+**Downloads don't start.** Open the Download manager and check whether:
+- downloads are paused (choose **Resume downloads**);
+- **Download only on Wi‑Fi** is on and the device is not on Wi‑Fi;
+- it shows *Downloads wait while the stream catches up*. Downloads step aside while
+  a slow connection struggles to keep the current song playing, and continue
+  afterwards;
+- an item failed. Failed downloads and offline saves are listed with the reason,
+  and you can retry them.
+
+**A track is dimmed with "No longer on the server".** It was removed from your Plex
+library. Any copy already on your device stays playable.
+
+**Sonic radio or Sonic Adventure is unavailable.** The server needs Sonic Analysis
+and Plex Pass, and the music must have been analyzed.
+
+**Logs.** On SailfishOS, PlexFreq keeps a daily log for the last seven days in
+`~/Documents/PlexFreq`. If that folder cannot be created, it uses
+`~/.local/share/org.plexfreq/harbour-plexfreq/logs` instead. On the desktop it
+writes its log to the terminal it was started from. PlexFreq tries to remove Plex
+tokens from the logs, but this is best effort, and logs may also contain server
+addresses, media URLs and track names. Check them before sharing.
+
+**Reporting problems.** Open an issue at
+[github.com/nappa85/plexfreq/issues](https://github.com/nappa85/plexfreq/issues).
+Describe what you did, what you expected and what happened. Include your PlexFreq
+version, your platform (phone model and SailfishOS version, or Linux distribution)
+and the relevant part of the log.
+
+## For developers
+
+PlexFreq has a Rust core for Plex access, playback, audio processing and offline
+storage, with thin Qt/QML interfaces: Silica on SailfishOS and Qt Quick Controls 2
+on the desktop. See [docs/development.md](docs/development.md) to build, test and
+package it, and [docs/architecture.md](docs/architecture.md) to learn how it is
+put together.

@@ -345,6 +345,37 @@ struct Script {
     metadata: Option<&'static str>,
     /// Request lines received, for counting fetches.
     log: Option<Arc<Mutex<Vec<String>>>>,
+    /// Metadata replies wait until this opens (counting the waiting ones).
+    gate: Option<Arc<Gate>>,
+    /// Station 50 continuations answer after this delay with `station_next`.
+    station: Option<(Duration, usize)>,
+}
+
+/// A barrier the test opens: requests block on it, counted as they arrive.
+#[derive(Default)]
+struct Gate {
+    state: Mutex<(bool, usize)>,
+    changed: std::sync::Condvar,
+}
+impl Gate {
+    fn pass(&self) {
+        let mut state = crate::mutex_lock(&self.state);
+        state.1 += 1;
+        self.changed.notify_all();
+        while !state.0 {
+            state = self
+                .changed
+                .wait(state)
+                .unwrap_or_else(|poison| poison.into_inner());
+        }
+    }
+    fn waiting(&self) -> usize {
+        crate::mutex_lock(&self.state).1
+    }
+    fn open(&self) {
+        crate::mutex_lock(&self.state).0 = true;
+        self.changed.notify_all();
+    }
 }
 
 fn scripted_server(script: Script) -> String {
@@ -400,7 +431,20 @@ fn scripted_server(script: Script) -> String {
                     } else {
                         ("200 OK", "audio/wav", audio.to_vec())
                     }
+                } else if let (true, Some((delay, key))) =
+                    (line.contains("/playQueues/50"), script.station)
+                {
+                    thread::sleep(delay);
+                    let item = Item {
+                        play_queue_item_id: Some(100 + key as u64),
+                        ..track(key, script.milliseconds.into())
+                    };
+                    let body = json!({"MediaContainer":{"playQueueID":50,"Metadata":[item]}});
+                    ("200 OK", "application/json", body.to_string().into_bytes())
                 } else if line.contains("/library/metadata/") {
+                    if let Some(gate) = &script.gate {
+                        gate.pass();
+                    }
                     thread::sleep(script.hold);
                     if let Some(status) = script.metadata {
                         (status, "text/html", Vec::new())
@@ -837,11 +881,11 @@ fn stale_station(
         ..Default::default()
     };
     settings.playback.queue.replace(items, current).unwrap();
-    settings.playback.radio = Some(crate::radio::Radio {
-        kind: crate::radio::RadioKind::Artist,
-        title: "Fixture".into(),
-        source: crate::radio::Source::Station { queue_id: 50 },
-    });
+    settings.playback.radio = Some(crate::radio::Radio::new(
+        crate::radio::RadioKind::Artist,
+        "Fixture".into(),
+        crate::radio::Source::Station { queue_id: 50 },
+    ));
     crate::store::save(dir.path(), &settings).unwrap();
     let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
     (dir, runtime)
@@ -1065,4 +1109,594 @@ fn transcode_restarts_need_new_audio_and_are_bounded() {
         (1..=4).map(restart_backoff).collect::<Vec<_>>(),
         [0, 2, 4, 8].map(Duration::from_secs)
     );
+}
+
+/// Stop sends a reset checkpoint, then asks the engine to stop
+/// asynchronously. Until the engine applies it, its snapshot still carries
+/// the old position: neither the maintenance record nor the shutdown record
+/// may overwrite the reset with it.
+#[test]
+fn a_stop_is_not_undone_by_the_engines_stale_position() {
+    let origin = fixture_server(20_000);
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            cache: crate::cache::Config {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    let mut seen = Vec::new();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(vec![track(1, 20_000)]).unwrap(),"index":0}))
+        .unwrap();
+    assert_eq!(reply(&runtime, "play", &mut seen)["response"]["ok"], true);
+    let end = Instant::now() + Duration::from_secs(10);
+    while runtime.shared.playback().position < 1500 {
+        assert!(Instant::now() < end, "fixture did not play");
+        thread::sleep(Duration::from_millis(20));
+    }
+    // The reset checkpoint of a Stop whose engine command has not run yet:
+    // the engine keeps playing and reporting its position.
+    runtime.shared.checkpoint(runtime.shared.playback(), true);
+    thread::sleep(Duration::from_millis(300));
+    assert!(runtime.shared.playback().position >= 1500);
+    drop(runtime);
+    let saved = crate::store::load(dir.path()).unwrap();
+    assert_eq!(
+        saved.playback.position, 0,
+        "the stop was undone at shutdown"
+    );
+}
+
+/// A Plex transcode that always ends cleanly after `milliseconds` of audio
+/// from its start, and after 100 ms when asked to start at an offset (the
+/// media's real end lies before the duration in the metadata).
+fn short_transcode_server(milliseconds: u32) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let line = String::from_utf8_lossy(&request)
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .to_owned();
+                if line.contains("/transcode/universal/start") {
+                    let resumed = line.contains("offset=") && !line.contains("offset=0.000");
+                    let audio = wav(if resumed { 100 } else { milliseconds });
+                    let _ = stream.write_all(
+                        b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nConnection: close\r\n\r\n",
+                    );
+                    let _ = stream.write_all(&audio);
+                } else {
+                    let body = json!({"MediaContainer":{"size":0}}).to_string();
+                    let _ = write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                        body.len()
+                    );
+                }
+            });
+        }
+    });
+    origin
+}
+
+/// Metadata longer than the transcoded media: the first clean early end is
+/// restarted, and a restart ending again where the media ends is the track's
+/// end, so the queue continues instead of failing or looping.
+#[test]
+fn a_transcode_ending_early_again_after_restart_ends_the_track() {
+    let origin = short_transcode_server(1000);
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            quality: crate::quality::Config {
+                wifi_kbps: 320,
+                ..Default::default()
+            },
+            cache: crate::cache::Config {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    let items = serde_json::to_value(vec![track(1, 20_000), track(2, 20_000)]).unwrap();
+    runtime
+        .submit(json!({"op":"play","items":items,"index":0}))
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(20);
+    let mut errors = Vec::new();
+    loop {
+        assert!(
+            Instant::now() < end,
+            "the queue did not advance; errors {errors:?}"
+        );
+        for event in runtime.poll()["events"].as_array().unwrap() {
+            if event["request"]["op"] == "_audio_error" || event["response"]["ok"] == false {
+                errors.push(event.clone());
+            }
+        }
+        let model = crate::mutex_lock(&runtime.shared.model);
+        let state = runtime.shared.playback();
+        if model["track"]["ratingKey"] == "2" && state.loaded && !state.failed && state.position > 0
+        {
+            break;
+        }
+        drop(model);
+        thread::sleep(Duration::from_millis(20));
+    }
+    assert!(errors.is_empty(), "{errors:?}");
+}
+
+fn idle_runtime() -> (tempfile::TempDir, Runtime) {
+    let dir = tempfile::tempdir().unwrap();
+    let mut settings = crate::store::Settings {
+        client_identifier: "fixture-client".into(),
+        ..Default::default()
+    };
+    settings
+        .playback
+        .queue
+        .replace(vec![track(1, 1000)], 0)
+        .unwrap();
+    crate::store::save(dir.path(), &settings).unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    (dir, runtime)
+}
+
+/// A panic outside any request (event handling, a tick) costs one iteration:
+/// Core is rebuilt from persisted state and the worker keeps serving.
+#[test]
+fn a_panicking_iteration_rebuilds_core_and_keeps_serving() {
+    let (dir, runtime) = idle_runtime();
+    let mut seen = Vec::new();
+    crate::test_hooks::panic_after(dir.path(), "iteration");
+    // Rebuilding Core shares the I/O runtime with every other fixture.
+    let end = Instant::now() + Duration::from_secs(20);
+    while !seen.iter().any(|event: &Value| {
+        event["request"]["op"] == "_update" && event["response"]["data"]["queue"].is_object()
+    }) {
+        assert!(Instant::now() < end, "no rebuilt state published: {seen:?}");
+        if let Some(events) = runtime.poll()["events"].as_array() {
+            seen.extend(events.iter().cloned());
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    runtime.submit(json!({"op":"status"})).unwrap();
+    let status = reply(&runtime, "status", &mut seen);
+    assert_eq!(status["response"]["ok"], true, "{status}");
+    assert_eq!(
+        status["response"]["data"]["queue"]["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+}
+
+/// A panic after a request was admitted but outside `Core::execute` still
+/// answers it and releases its busy state.
+#[test]
+fn a_panic_after_admission_answers_the_request_and_clears_busy() {
+    let (dir, runtime) = idle_runtime();
+    let mut seen = Vec::new();
+    crate::test_hooks::panic_after(dir.path(), "admitted");
+    runtime.submit(json!({"op":"status"})).unwrap();
+    let failed = reply(&runtime, "status", &mut seen);
+    assert_eq!(failed["response"]["ok"], false, "{failed}");
+    assert_eq!(failed["response"]["error"], "Backend panic");
+    let end = Instant::now() + Duration::from_secs(5);
+    while runtime.shared.busy() {
+        assert!(Instant::now() < end, "busy stayed raised");
+        thread::sleep(Duration::from_millis(10));
+    }
+    runtime.submit(json!({"op":"status"})).unwrap();
+    assert_eq!(reply(&runtime, "status", &mut seen)["response"]["ok"], true);
+}
+
+/// A worker that keeps panicking stops instead of rebuilding Core forever,
+/// and still answers the requests queued for it.
+#[test]
+fn a_worker_that_keeps_panicking_stops_and_answers_queued_requests() {
+    let (dir, runtime) = idle_runtime();
+    let mut seen = Vec::new();
+    for _ in 0..PANIC_LIMIT {
+        crate::test_hooks::panic_after(dir.path(), "iteration");
+    }
+    // Queued while the worker panics: each must still be answered.
+    let mut queued = 0;
+    for _ in 0..3 {
+        if runtime.submit(json!({"op":"status"})).is_ok() {
+            queued += 1;
+        }
+    }
+    assert!(
+        queued > 0,
+        "no request was queued before the worker stopped"
+    );
+    let end = Instant::now() + Duration::from_secs(5);
+    while !runtime.shared.stop.load(Ordering::SeqCst) {
+        assert!(Instant::now() < end, "the worker kept running");
+        thread::sleep(Duration::from_millis(10));
+    }
+    let end = Instant::now() + Duration::from_secs(10);
+    let mut answered = 0;
+    while answered < queued {
+        assert!(
+            Instant::now() < end,
+            "{answered} of {queued} queued requests answered"
+        );
+        for event in runtime.poll()["events"].as_array().unwrap() {
+            if event["request"]["op"] == "status" {
+                answered += 1;
+            }
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    // Later requests fail at admission or are answered: never left pending.
+    match runtime.submit(json!({"op":"status"})) {
+        Err(_) => {}
+        Ok(_) => {
+            let answer = reply(&runtime, "status", &mut seen);
+            assert_eq!(answer["response"]["ok"], false, "{answer}");
+        }
+    }
+    assert!(!runtime.shared.busy());
+}
+
+/// A panic while a held failure is being handled must not leave the engine
+/// holding it (silent, until its own expiry): the rebuild releases it.
+#[test]
+fn a_panic_while_handling_a_held_failure_releases_it() {
+    let origin = short_transcode_server(1000);
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            quality: crate::quality::Config {
+                wifi_kbps: 320,
+                ..Default::default()
+            },
+            cache: crate::cache::Config {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    crate::test_hooks::panic_after(dir.path(), "held_failure");
+    let items = serde_json::to_value(vec![track(1, 20_000)]).unwrap();
+    runtime
+        .submit(json!({"op":"play","items":items,"index":0}))
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(20);
+    while crate::test_hooks::armed(dir.path(), "held_failure") {
+        assert!(Instant::now() < end, "no held failure was handled");
+        runtime.poll();
+        thread::sleep(Duration::from_millis(20));
+    }
+    let end = Instant::now() + Duration::from_secs(10);
+    while runtime.shared.playback().failed {
+        assert!(Instant::now() < end, "the held failure was never released");
+        runtime.poll();
+        thread::sleep(Duration::from_millis(20));
+    }
+}
+
+/// A run of deleted tracks ahead, with cache-ahead off: each is found before
+/// playback reaches it (the successor pre-load checks them one after another),
+/// so the run is stepped over without a failure.
+#[test]
+fn a_run_of_gone_tracks_ahead_is_found_before_it_is_reached() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2", "3", "4"], Duration::ZERO));
+    let items =
+        serde_json::to_value((1..=6).map(|key| track(key, 60_000)).collect::<Vec<_>>()).unwrap();
+    runtime
+        .submit(json!({"op":"play","items":items,"index":0}))
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(20);
+    let mut gone = Value::Null;
+    loop {
+        assert!(
+            Instant::now() < end,
+            "the gone run was not found ahead: {gone}"
+        );
+        for event in runtime.poll()["events"].as_array().unwrap() {
+            let keys = &event["response"]["data"]["cache"]["goneKeys"];
+            if keys.is_array() {
+                gone = keys.clone();
+            }
+        }
+        let state = runtime.shared.playback();
+        let model = crate::mutex_lock(&runtime.shared.model);
+        if state.loaded {
+            assert_eq!(model["track"]["ratingKey"], "1", "playback left track 1");
+        }
+        drop(model);
+        if gone == json!(["2", "3", "4"]) {
+            // Found while track 1 is still playing.
+            assert!(state.loaded && state.playing && !state.failed, "{state:?}");
+            break;
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
+}
+
+/// A Next the user queues while a gone check is pending is the one that
+/// counts: the verdict's automatic skip must not advance a second time.
+#[test]
+fn a_next_queued_during_the_gone_check_is_not_advanced_twice() {
+    let gate = Arc::new(Gate::default());
+    let origin = scripted_server(Script {
+        milliseconds: 60_000,
+        gone: &["2"],
+        gate: Some(gate.clone()),
+        ..Default::default()
+    });
+    let (_dir, runtime) = stale_runtime(origin);
+    let items: Vec<_> = (1..=4).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    // The stream failed and is held; its metadata check is in flight.
+    let end = Instant::now() + Duration::from_secs(10);
+    while gate.waiting() == 0 || !runtime.shared.playback().failed {
+        assert!(Instant::now() < end, "the check never started");
+        runtime.poll();
+        thread::sleep(Duration::from_millis(10));
+    }
+    runtime
+        .submit(json!({"op":"next","automatic":false}))
+        .unwrap();
+    let mut seen = Vec::new();
+    assert_eq!(reply(&runtime, "next", &mut seen)["response"]["ok"], true);
+    // Only now the verdict (gone) arrives.
+    gate.open();
+    let events = collect(&runtime, Duration::from_secs(10), |events| {
+        events.iter().any(|event| {
+            event["response"]["data"]["cache"]["goneKeys"]
+                .as_array()
+                .is_some_and(|keys| keys.iter().any(|key| key == "2"))
+        })
+    });
+    thread::sleep(Duration::from_millis(500));
+    let later: Vec<Value> = runtime.poll()["events"].as_array().unwrap().clone();
+    let all: Vec<Value> = seen.into_iter().chain(events).chain(later).collect();
+    assert!(never_shows(&all, "4"), "{all:?}");
+    assert_eq!(
+        crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
+        "3"
+    );
+}
+
+/// A burst of Next presses goes through the worker in order: each counts once.
+#[test]
+fn a_burst_of_next_presses_advances_once_per_press() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &[], Duration::ZERO));
+    let items: Vec<_> = (1..=30).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let mut seen = Vec::new();
+    assert_eq!(reply(&runtime, "play", &mut seen)["response"]["ok"], true);
+    for _ in 0..20 {
+        runtime
+            .submit(json!({"op":"next","automatic":false}))
+            .unwrap();
+    }
+    // Every press is answered and moves exactly one track on, in order.
+    let mut keys = Vec::new();
+    let end = Instant::now() + Duration::from_secs(20);
+    while keys.len() < 20 {
+        assert!(Instant::now() < end, "answered {keys:?}");
+        for event in runtime.poll()["events"].as_array().unwrap() {
+            if event["request"]["op"] == "next" {
+                assert_eq!(event["response"]["ok"], true, "{event}");
+                keys.push(event["response"]["data"]["track"]["ratingKey"].clone());
+            }
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    let expected: Vec<Value> = (2..=21).map(|key| json!(key.to_string())).collect();
+    assert_eq!(keys, expected);
+}
+
+/// The engine's control queue is full when the gone skip's resolution is
+/// sent: the worker keeps it and sends it again instead of losing it.
+#[test]
+fn a_resolution_refused_by_a_full_engine_queue_is_sent_again() {
+    let (_dir, runtime) = stale_runtime(stale_server(60_000, &["2"], Duration::ZERO));
+    let end = Instant::now() + Duration::from_secs(5);
+    let handle = loop {
+        if let Some(handle) = crate::mutex_lock(&runtime.shared.audio).clone() {
+            break handle;
+        }
+        assert!(Instant::now() < end, "the engine never started");
+        thread::sleep(Duration::from_millis(10));
+    };
+    handle.refuse_resolves(2);
+    let items: Vec<_> = (1..=3).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":1}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(15), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+    });
+    assert_eq!(handle.refused_resolves_left(), 0, "the hook never refused");
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    let end = Instant::now() + Duration::from_secs(5);
+    while !(runtime.shared.playback().loaded && !runtime.shared.playback().failed) {
+        assert!(Instant::now() < end, "the skip never loaded");
+        thread::sleep(Duration::from_millis(20));
+    }
+}
+
+/// A station radio of five fully cached tracks (`durations` in ms) whose
+/// continuation answers track 6 after 3 s.
+fn slow_station(durations: [u32; 5]) -> (tempfile::TempDir, Runtime) {
+    let origin = scripted_server(Script {
+        milliseconds: 60_000,
+        station: Some((Duration::from_secs(3), 6)),
+        ..Default::default()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let items: Vec<_> = (1..=5)
+        .map(|key| Item {
+            play_queue_item_id: Some(100 + key as u64),
+            ..track(key, durations[key - 1].into())
+        })
+        .collect();
+    let namespace = crate::cache::namespace(&origin, "fixture-token");
+    for item in &items {
+        crate::cache::seed_completed(
+            &dir.path().join("audio-cache"),
+            &namespace,
+            item,
+            "wav",
+            &wav(item.duration as u32),
+        );
+    }
+    let mut settings = crate::store::Settings {
+        client_identifier: "fixture-client".into(),
+        server_url: origin,
+        server_token: "fixture-token".into(),
+        autoplay: false,
+        cache: crate::cache::Config {
+            enabled: false,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    settings.playback.queue.replace(items, 0).unwrap();
+    settings.playback.radio = Some(crate::radio::Radio::new(
+        crate::radio::RadioKind::Artist,
+        "Fixture".into(),
+        crate::radio::Source::Station { queue_id: 50 },
+    ));
+    crate::store::save(dir.path(), &settings).unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    (dir, runtime)
+}
+
+fn has_track(queue: &Value, key: &str) -> bool {
+    queue["items"]
+        .as_array()
+        .is_some_and(|items| items.iter().any(|item| item["ratingKey"] == key))
+}
+
+/// Moves onto cached successors are answered at once, one after the other,
+/// while the station takes 3 s; the refill lands afterwards.
+#[test]
+fn next_on_a_radio_does_not_wait_for_a_slow_station() {
+    let (dir, runtime) = slow_station([60_000; 5]);
+    let mut seen = Vec::new();
+    runtime.submit(json!({"op":"resume"})).unwrap();
+    assert_eq!(reply(&runtime, "resume", &mut seen)["response"]["ok"], true);
+    for expected in ["2", "3"] {
+        let pressed = Instant::now();
+        runtime
+            .submit(json!({"op":"next","automatic":false}))
+            .unwrap();
+        let next = reply(&runtime, "next", &mut seen);
+        assert_eq!(next["response"]["data"]["track"]["ratingKey"], expected);
+        assert!(
+            pressed.elapsed() < Duration::from_secs(1),
+            "Next took {:?}",
+            pressed.elapsed()
+        );
+    }
+    collect(&runtime, Duration::from_secs(20), |events| {
+        events
+            .iter()
+            .any(|event| has_track(&event["response"]["data"]["queue"], "6"))
+    });
+    drop(runtime);
+    let saved = crate::Core::inspect(dir.path().into())
+        .unwrap()
+        .execute(Command::Status)
+        .unwrap();
+    assert!(has_track(&saved["queue"], "6"), "{saved}");
+}
+
+/// Track 2 ends while its refill is in flight: the gapless successor becomes
+/// audible and is committed, and the refill lands on the committed queue,
+/// presented with track 3 current.
+#[test]
+fn a_transition_during_a_slow_refill_keeps_both() {
+    let (dir, runtime) = slow_station([60_000, 1500, 60_000, 60_000, 60_000]);
+    let mut seen = Vec::new();
+    runtime.submit(json!({"op":"resume"})).unwrap();
+    assert_eq!(reply(&runtime, "resume", &mut seen)["response"]["ok"], true);
+    runtime
+        .submit(json!({"op":"next","automatic":false}))
+        .unwrap();
+    assert_eq!(
+        reply(&runtime, "next", &mut seen)["response"]["data"]["track"]["ratingKey"],
+        "2"
+    );
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        events
+            .iter()
+            .any(|event| has_track(&event["response"]["data"]["queue"], "6"))
+    });
+    assert_eq!(
+        shown(&events).last().map(String::as_str),
+        Some("3"),
+        "{events:?}"
+    );
+    // Every queue presented after track 3 became audible selects it.
+    let after = events
+        .iter()
+        .position(|event| event["response"]["data"]["track"]["ratingKey"] == "3")
+        .expect("track 3 shown");
+    for event in &events[after..] {
+        let queue = &event["response"]["data"]["queue"];
+        if let Some(current) = queue["current"].as_u64() {
+            assert_eq!(
+                queue["items"][current as usize]["ratingKey"], "3",
+                "{event}"
+            );
+        }
+    }
+    drop(runtime);
+    let saved = crate::Core::inspect(dir.path().into())
+        .unwrap()
+        .execute(Command::Status)
+        .unwrap();
+    assert!(has_track(&saved["queue"], "6"), "{saved}");
+    assert_eq!(saved["track"]["ratingKey"], "3", "{saved}");
 }

@@ -884,8 +884,16 @@
       <translation>Allalaadimised · Ootamine · Wi-Fi · Heli · Esita · Võrgus</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Allalaadimised · Ootamine · Heli · Laadimine</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Heli · Vahemälu · Kasutatud</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Võrguühenduseta · Kogu · Andmed · Salvesta · Ebaõnnestus · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Allalaadimised · Ootamine · Wi-Fi · Heli · Esita · Võrgus</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Allalaadimised · Ootamine · Heli · Laadimine</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Heli · Vahemälu · Kasutatud</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Võrguühenduseta · Kogu · Andmed · Salvesta · Ebaõnnestus · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Võrguühenduseta · Salvestatud · Kogu · Metaandmed</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Allalaadimised · Ootamine · Heli · Laadimine</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Vahemälu · Heli</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Alla laaditud</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Lugu · Server · Pole saadaval</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Proovi uuesti · Laadimine</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Võrguühenduseta · Salvestatud · Kogu · Metaandmed</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Allalaadimised · Ootamine · Heli · Laadimine</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Ava · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Lugu · Server · Pole saadaval</translation>
     </message>
     <message>
       <source>Downloaded</source>

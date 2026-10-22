@@ -27,15 +27,20 @@ const CHANNELS: usize = 2;
 const BLOCK: usize = 512;
 /// Maximum crossfade tail: 12s at 48kHz stereo.
 const MAX_TAIL_FRAMES: usize = RATE as usize * 12;
+/// Bytes of one interleaved PCM frame: stereo 32-bit float.
+pub(crate) const FRAME_BYTES: usize = CHANNELS * std::mem::size_of::<f32>();
 /// Queued (not yet audible) PCM above which the actor stops feeding the
 /// output: headroom for scheduler contention without long volume/EQ lag.
-const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * 8 / 2;
+const OUTPUT_BACKPRESSURE_BYTES: u64 = RATE as u64 * FRAME_BYTES as u64 / 2;
 const DECODE_AHEAD_FRAMES: usize = RATE as usize * 2;
 /// A held failure the runtime never resolves is abandoned after this long.
 const RECOVERY_LIMIT: Duration = Duration::from_secs(90);
 /// Slack over the queued audio's own length before a drain is forced.
 const DRAIN_MARGIN: Duration = Duration::from_secs(3);
 const STREAM_FAILED: &str = "Audio decoding or streaming failed";
+/// A transcode ending at least this much (plus the crossfade) before its
+/// duration was cut off by the server; within it, the end is natural.
+const EARLY_END_MS: u64 = 5000;
 /// Decoded audio a fresh remote load or seek waits for before it starts
 /// (above PulseAudio's 300 ms prebuffer).
 const START_BUFFER_FRAMES: usize = RATE as usize / 2;
@@ -173,6 +178,9 @@ pub enum Event {
         duration: u64,
         /// Listened time since this decoder started (its own new audio).
         progress: u64,
+        /// A transcode stream that ended cleanly well before its duration
+        /// (see `Decoder::ended_early`), not a transfer or decode error.
+        early_end: bool,
     },
     /// The answer to `Handle::resolve` (or the engine's own expiry).
     Resolved {
@@ -235,8 +243,20 @@ pub struct Handle {
     capture: Arc<Mutex<Vec<f32>>>,
     volume: Arc<Mutex<Option<f64>>>,
     changes: Arc<watch::Sender<Change>>,
+    /// Test hook: refuse this many resolutions as if the queue were full.
+    #[cfg(test)]
+    refuse_resolves: Arc<std::sync::atomic::AtomicUsize>,
 }
 impl Handle {
+    /// Refuse the next `count` resolutions as a full control queue would.
+    #[cfg(test)]
+    pub(crate) fn refuse_resolves(&self, count: usize) {
+        self.refuse_resolves.store(count, Ordering::SeqCst);
+    }
+    #[cfg(test)]
+    pub(crate) fn refused_resolves_left(&self) -> usize {
+        self.refuse_resolves.load(Ordering::SeqCst)
+    }
     fn send(&self, control: Control) -> Result<()> {
         self.tx
             .try_send(control)
@@ -273,6 +293,21 @@ impl Handle {
         resolution: Resolution,
         expiry: Instant,
     ) -> std::result::Result<(), Box<Resolution>> {
+        #[cfg(test)]
+        {
+            let mut left = self.refuse_resolves.load(Ordering::SeqCst);
+            while left > 0 {
+                match self.refuse_resolves.compare_exchange(
+                    left,
+                    left - 1,
+                    Ordering::SeqCst,
+                    Ordering::SeqCst,
+                ) {
+                    Ok(_) => return Err(Box::new(resolution)),
+                    Err(now) => left = now,
+                }
+            }
+        }
         self.tx
             .try_send(Control::Resolve {
                 failed,
@@ -359,6 +394,8 @@ impl Engine {
             capture: capture.clone(),
             volume: volume.clone(),
             changes: changes.clone(),
+            #[cfg(test)]
+            refuse_resolves: Arc::default(),
         };
         let closer = http::SessionCloser::new()?;
         let worker = thread::Builder::new()
@@ -415,6 +452,9 @@ struct Actor {
     /// The successor could not cover this boundary's crossfade: play the
     /// old tail unfaded instead of waiting with audible audio held back.
     fade_dropped: bool,
+    /// The current decoder's transcode ended early (`Decoder::ended_early`):
+    /// reported with the failure it starts.
+    early_end: Option<u64>,
     output: Option<Output>,
     segments: VecDeque<Segment>,
     desired: bool,
@@ -577,6 +617,7 @@ impl Actor {
             stalled: None,
             trigger: false,
             fade_dropped: false,
+            early_end: None,
             output: None,
             segments: VecDeque::new(),
             desired: false,
@@ -612,6 +653,7 @@ impl Actor {
     fn load(&mut self, source: Source, paused: bool) -> Result<()> {
         self.failing = None;
         self.failed = None;
+        self.early_end = None;
         self.intent = source.id;
         self.current = None;
         self.next = None;
@@ -680,6 +722,7 @@ impl Actor {
                     listened: 0,
                     duration: 0,
                     progress: 0,
+                    early_end: false,
                 });
             }
         }
@@ -826,6 +869,7 @@ impl Actor {
                 ));
                 self.failing = None;
                 self.failed = None;
+                self.early_end = None;
                 self.desired = false;
                 self.current = None;
                 self.next = None;
@@ -839,6 +883,7 @@ impl Actor {
                     "audio control seek occurrence={} position_ms={position}",
                     self.intent
                 ));
+                self.early_end = None;
                 // A seek within the failing track itself ends its drain; one
                 // in an earlier, still audible track is an ordinary seek
                 // there (the failing successor is prepared afresh).
@@ -932,6 +977,7 @@ impl Actor {
             listened: 0,
             duration: 0,
             progress: 0,
+            early_end: false,
         });
         let mut state = lock_state(&self.state);
         state.playing = false;
@@ -1023,8 +1069,9 @@ impl Actor {
         let listened = source.listened + heard;
         let paused = !self.desired;
         let id = source.id;
+        let early_end = self.early_end.take() == Some(id);
         crate::diagnostics::event(format_args!(
-            "audio failure held occurrence={id} position_ms={media} heard_ms={heard} paused={paused}"
+            "audio failure held occurrence={id} position_ms={media} heard_ms={heard} paused={paused} early_end={early_end}"
         ));
         self.desired = false;
         self.current = None;
@@ -1052,6 +1099,7 @@ impl Actor {
             listened,
             duration,
             progress: heard,
+            early_end,
         });
     }
     fn resolve(&mut self, failed: u64, seq: u64, resolution: Resolution, expiry: Instant) {
@@ -1162,8 +1210,12 @@ impl Actor {
         let tail = (self.config.crossfade_ms as usize * RATE as usize / 1000).min(MAX_TAIL_FRAMES);
         // Fill first: the successor's start and the resume gate read the
         // freshly decoded state.
+        let margin = EARLY_END_MS + u64::from(self.config.crossfade_ms);
+        let recover = self.recover;
         if let Some(next) = &mut self.next {
-            if next.fill(tail.max(DECODE_AHEAD_FRAMES)).is_err() {
+            if next.fill(tail.max(DECODE_AHEAD_FRAMES)).is_err()
+                || recover && next.ended_early(margin)
+            {
                 let id = next.source.id;
                 let _ = self.events.send(Event::Error {
                     id,
@@ -1175,6 +1227,7 @@ impl Actor {
                     listened: 0,
                     duration: 0,
                     progress: 0,
+                    early_end: false,
                 });
                 self.next = None;
             }
@@ -1188,6 +1241,17 @@ impl Actor {
             return Ok(());
         };
         current.fill(budget)?;
+        // Checked before any fade or promotion can hand over to a successor.
+        if recover && current.ended_early(margin) {
+            crate::diagnostics::event(format_args!(
+                "transcode ended early occurrence={} reached_ms={} duration_ms={}",
+                current.source.id,
+                current.reached_ms(),
+                current.source.duration
+            ));
+            self.early_end = Some(current.source.id);
+            return Err(Error::Input(STREAM_FAILED));
+        }
         if let Some(segment) = self.segments.back_mut() {
             segment.source.duration = current.source.duration;
         }
@@ -1702,6 +1766,7 @@ mod tests {
             capture: Arc::new(Mutex::new(Vec::new())),
             volume: Arc::new(Mutex::new(None)),
             changes: Arc::new(watch::channel(Change::default()).0),
+            refuse_resolves: Arc::default(),
         };
         for n in 0..10000 {
             handle.volume(n as f64 / 10000.).unwrap();
@@ -2037,6 +2102,112 @@ mod recovery_tests {
             fixture.actor.control(Control::Pause).unwrap();
         }
         fixture.actor.start_drain();
+    }
+
+    /// Serves `milliseconds` of WAV as a progressive transcode: no length, the
+    /// body ends cleanly when the connection closes. Other requests (session
+    /// stop) get an empty answer.
+    fn transcode_server(milliseconds: u32) -> String {
+        use std::io::{Read, Write};
+        let dir = tempfile::tempdir().unwrap();
+        let path = url::Url::parse(&wav(dir.path(), "t.wav", milliseconds))
+            .unwrap()
+            .to_file_path()
+            .unwrap();
+        let body = std::fs::read(path).unwrap();
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        thread::spawn(move || {
+            for mut stream in listener.incoming().flatten() {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        break;
+                    }
+                    request.push(byte[0]);
+                }
+                if String::from_utf8_lossy(&request).contains("start.m3u8") {
+                    let _ = stream.write_all(
+                        b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nConnection: close\r\n\r\n",
+                    );
+                    let _ = stream.write_all(&body);
+                } else {
+                    let _ = stream.write_all(
+                        b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                    );
+                }
+            }
+        });
+        format!("http://{address}/music/:/transcode/universal/start.m3u8?musicBitrate=320")
+    }
+    /// One tick as the actor's run loop does it: a stream failure of the
+    /// current decoder starts its drain.
+    fn step(fixture: &mut Fixture) {
+        if let Err(Error::Input(STREAM_FAILED)) = fixture.actor.pump() {
+            fixture.actor.start_drain();
+        }
+        fixture.actor.publish();
+        fixture.actor.drain_tick();
+        thread::sleep(Duration::from_millis(5));
+    }
+    fn early_ends(events: &[Event]) -> Vec<(bool, bool)> {
+        events
+            .iter()
+            .filter_map(|event| match event {
+                Event::Error {
+                    recoverable,
+                    early_end,
+                    ..
+                } => Some((*recoverable, *early_end)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// A transcode the server ends cleanly long before the track's duration
+    /// is a held stream failure (restartable), not the track's end; also
+    /// when it started at a resume position.
+    #[test]
+    fn a_transcode_ending_cleanly_early_is_a_held_failure() {
+        for resume in [0, 5_000] {
+            let mut fixture = fixture();
+            let url = transcode_server(1000);
+            let mut source = source(1, &url, 0);
+            source.duration = 20_000;
+            source.resume = resume;
+            fixture.actor.control(Control::Load(source, false)).unwrap();
+            let end = Instant::now() + Duration::from_secs(5);
+            while fixture.actor.failed.is_none() {
+                assert!(Instant::now() < end, "the early end was not held");
+                step(&mut fixture);
+            }
+            let events: Vec<_> = fixture.events.try_iter().collect();
+            assert_eq!(early_ends(&events), vec![(true, true)], "{events:?}");
+            assert!(!events.iter().any(|e| matches!(e, Event::End { .. })));
+        }
+    }
+
+    /// A transcode that reaches its duration (within the margin) ends
+    /// naturally, with or without crossfade.
+    #[test]
+    fn a_complete_transcode_ends_naturally() {
+        for crossfade_ms in [0, 6_000] {
+            let mut fixture = fixture();
+            fixture.actor.config.crossfade_ms = crossfade_ms;
+            let url = transcode_server(1000);
+            let mut source = source(1, &url, 0);
+            source.duration = 1_200;
+            fixture.actor.control(Control::Load(source, false)).unwrap();
+            let end = Instant::now() + Duration::from_secs(5);
+            let mut events = Vec::new();
+            while !events.iter().any(|e| matches!(e, Event::End { .. })) {
+                assert!(Instant::now() < end, "no natural end: {events:?}");
+                step(&mut fixture);
+                events.extend(fixture.events.try_iter());
+            }
+            assert!(early_ends(&events).is_empty(), "{events:?}");
+        }
     }
 
     #[test]

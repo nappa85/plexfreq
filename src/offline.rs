@@ -4,8 +4,6 @@ use crate::{
     plex::{advertised_path, server_url},
     Error, Result,
 };
-use serde::Serialize;
-use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs::{self},
@@ -17,16 +15,12 @@ use std::{
     },
 };
 
-fn hash(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
-}
-pub fn write_json(path: &Path, value: &impl Serialize) -> Result<()> {
-    crate::atomic_write_json(path, value)
-}
-fn write_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    crate::atomic_write_bytes(path, bytes)
-}
-fn prune_excluding(root: &Path, extra: u64, limit: u64, exclude: Option<&Path>) -> Result<()> {
+pub(crate) fn prune_excluding(
+    root: &Path,
+    extra: u64,
+    limit: u64,
+    exclude: Option<&Path>,
+) -> Result<()> {
     if extra > limit {
         return Err(Error::Input("Artwork exceeds size limit"));
     }
@@ -93,7 +87,7 @@ impl Library {
                 return Err(Error::Input("Offline data exceeds its storage limit"));
             }
             prune_excluding(&self.root, bytes.len() as u64, LIBRARY_LIMIT, Some(target))?;
-            write_bytes(target, &bytes)
+            crate::atomic_write_bytes(target, &bytes)
         });
         let mut health = crate::mutex_lock(&self.health);
         match result {
@@ -103,23 +97,21 @@ impl Library {
                 health.failing = true;
                 health.last_error = error.to_string();
                 health.last_kind = kind;
-                health.last_at = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
+                health.last_at = crate::unix_seconds();
                 drop(health);
                 crate::diagnostics::event(format_args!("offline {kind} not saved: {error}"));
             }
         }
     }
-    /// `{ok, failures, lastError, lastKind, lastAt}` of offline lyric and
+    /// `{ok, failures, error, lastKind, lastAt}` of offline lyric and
     /// metadata snapshot saves since this library was opened.
     pub fn store_status(&self) -> serde_json::Value {
         let health = crate::mutex_lock(&self.health);
         serde_json::json!({
             "ok": !health.failing,
             "failures": health.failures,
-            "lastError": health.last_error,
+            // Named `error`: the UI translates Core messages in such fields.
+            "error": health.last_error,
             "lastKind": health.last_kind,
             "lastAt": health.last_at,
         })
@@ -177,7 +169,7 @@ impl Library {
         let encoded = serde_json::to_string(params).unwrap_or_else(|_| format!("{params:?}"));
         self.root.join(format!(
             "{namespace}-{}.json",
-            hash(&format!("{path}\0{encoded}"))
+            crate::sha256_hex(&format!("{path}\0{encoded}"))
         ))
     }
     pub fn save(
@@ -282,7 +274,7 @@ impl Library {
                 // Rewriting untouched snapshots resets their prune age and
                 // wears flash for nothing.
                 if changed {
-                    let _ = write_json(&path, &c);
+                    let _ = crate::atomic_write_json(&path, &c);
                 }
             }
         }
@@ -306,8 +298,10 @@ impl Library {
         if safe {
             self.root.join(format!("{namespace}-lyrics-{key}.json"))
         } else {
-            self.root
-                .join(format!("{namespace}-lyrics-hash-{}.json", hash(key)))
+            self.root.join(format!(
+                "{namespace}-lyrics-hash-{}.json",
+                crate::sha256_hex(key)
+            ))
         }
     }
     pub fn save_lyrics(&self, namespace: &str, key: &str, lines: &[crate::lyrics::Line]) {
@@ -319,215 +313,144 @@ impl Library {
     }
 }
 
-/// Download one image: image content type only, at most 4 MiB.
-async fn fetch(client: &reqwest::Client, job: &Job) -> Result<Vec<u8>> {
-    let url = advertised_path(&server_url(&job.server)?, &job.path)?;
-    let mut response = client
-        .get(url)
-        .header("X-Plex-Token", &job.token)
-        .timeout(std::time::Duration::from_secs(5))
-        .send()
-        .await
-        .map_err(|_| Error::Network)?;
-    if !response.status().is_success()
-        || !response
-            .headers()
-            .get("content-type")
-            .and_then(|h| h.to_str().ok())
-            .map(|s| {
-                s.split(';')
-                    .next()
-                    .unwrap_or("")
-                    .trim()
-                    .to_ascii_lowercase()
-            })
-            .is_some_and(|s| s.starts_with("image/"))
-    {
-        return Err(Error::ProtocolAt("artwork"));
-    }
-    let bytes = crate::plex::bounded_body(&mut response, 4 * 1024 * 1024)
-        .await
-        .map_err(|error| error.unwrap_or(Error::Input("Artwork exceeds size limit")))?;
-    if bytes.is_empty() {
-        return Err(Error::Input("Artwork exceeds size limit"));
-    }
-    Ok(bytes)
-}
-/// Persist a downloaded image unless its generation was cancelled meanwhile.
-fn store(
-    file: &Path,
-    epoch: u64,
-    bytes: &[u8],
-    active: &Mutex<BTreeMap<PathBuf, u64>>,
-    generation: &AtomicU64,
-) -> Result<()> {
-    // file is always root.join(hash); parent is root. Skip defensively.
-    let Some(root) = file.parent() else {
-        return Ok(());
-    };
-    // Reuse the bounded library prune: oldest-first until the incoming image
-    // fits in the 128 MiB artwork budget.
-    prune_excluding(root, bytes.len() as u64, 128 * 1024 * 1024, Some(file))?;
-    let _guard = crate::mutex_lock(active);
-    if epoch != generation.load(Ordering::SeqCst) {
-        return Ok(());
-    }
-    write_bytes(file, bytes)
-}
-
 struct Job {
     epoch: u64,
     server: String,
     token: String,
+    namespace: String,
     path: String,
-    file: PathBuf,
 }
+/// The offline prefetch queue over the artwork store: one job at a time,
+/// gated like audio downloads and cancelled by a new generation.
 pub struct Artwork {
     gate: Option<Arc<crate::cache::Gate>>,
-    root: PathBuf,
+    store: Arc<crate::artwork::Store>,
     jobs: Option<tokio::sync::mpsc::Sender<Job>>,
-    pending: Arc<Mutex<BTreeMap<PathBuf, u64>>>,
+    /// Queued images (cache file key -> generation), deduplicated.
+    pending: Arc<Mutex<BTreeMap<String, u64>>>,
     worker: Option<crate::rt::Task>,
     stopping: Arc<AtomicBool>,
-    generation: Arc<AtomicU64>,
 }
 impl Artwork {
     pub fn new(root: PathBuf, writable: bool) -> Result<Self> {
-        if writable {
-            fs::create_dir_all(&root)?;
-            fs::set_permissions(&root, fs::Permissions::from_mode(0o700))?;
-        }
-        let pending = Arc::new(Mutex::new(BTreeMap::new()));
+        let store = Arc::new(crate::artwork::Store::new(root, writable)?);
+        let pending: Arc<Mutex<BTreeMap<String, u64>>> = Arc::default();
         let stopping = Arc::new(AtomicBool::new(false));
-        let generation = Arc::new(AtomicU64::new(0));
-        let gen = generation.clone();
-        let stop = stopping.clone();
         let (tx, mut rx) = tokio::sync::mpsc::channel::<Job>(128);
-        let active = pending.clone();
-        // One task on the shared runtime with the pooled Plex client; the
-        // prune/write step runs on the blocking pool.
+        let (active, stop, queue) = (pending.clone(), stopping.clone(), store.clone());
         let worker = writable.then(|| {
             crate::rt::spawn(async move {
-                let client = crate::plex::client().clone();
+                let generation = queue.generation().clone();
                 while let Some(job) = rx.recv().await {
                     if stop.load(Ordering::SeqCst) {
                         break;
                     }
-                    if job.epoch != gen.load(Ordering::SeqCst) {
-                        // Old generation: drop without clobbering a newer
-                        // reschedule for the same file (pending maps file->epoch).
-                        let mut active = crate::mutex_lock(&active);
-                        if active.get(&job.file).is_some_and(|e| *e == job.epoch) {
-                            active.remove(&job.file);
-                        }
-                        continue;
+                    let key = format!("{}\0{}", job.namespace, job.path);
+                    if job.epoch == generation.load(Ordering::SeqCst) {
+                        queue
+                            .load(
+                                &job.server,
+                                &job.token,
+                                &job.namespace,
+                                &job.path,
+                                crate::artwork::Party::Prefetch(job.epoch),
+                            )
+                            .await;
                     }
-                    if let Ok(bytes) = fetch(&client, &job).await {
-                        let (active, gen, file, epoch) =
-                            (active.clone(), gen.clone(), job.file.clone(), job.epoch);
-                        // The result is ignored by design.
-                        let _ =
-                            crate::rt::unblock(move || store(&file, epoch, &bytes, &active, &gen))
-                                .await;
-                    }
+                    // Old generations only drop their own entry, never a
+                    // newer reschedule of the same image.
                     let mut active = crate::mutex_lock(&active);
-                    if active.get(&job.file).is_some_and(|e| *e == job.epoch) {
-                        active.remove(&job.file);
+                    if active.get(&key).is_some_and(|e| *e == job.epoch) {
+                        active.remove(&key);
                     }
                 }
             })
         });
         Ok(Self {
             gate: None,
-            root,
+            store,
             jobs: if writable { Some(tx) } else { None },
             pending,
             worker,
             stopping,
-            generation,
         })
     }
+    /// The `file://` URL of a cached image.
     pub fn local(&self, namespace: &str, path: &str) -> Option<String> {
-        let file = self.root.join(hash(&format!("{namespace}\0{path}")));
-        fs::symlink_metadata(&file)
-            .ok()
-            .filter(|m| m.is_file() && !m.file_type().is_symlink() && m.len() > 0)?;
+        let file = self.store.local(namespace, path)?;
         url::Url::from_file_path(file).ok().map(String::from)
+    }
+    pub(crate) fn store(&self) -> &Arc<crate::artwork::Store> {
+        &self.store
     }
     pub fn schedule(&self, server: &str, token: &str, path: &str) {
         if self.gate.as_ref().is_some_and(|gate| !gate.allowed()) {
             return;
         }
         if server_url(server)
-            .and_then(|base| crate::plex::advertised_path(&base, path))
+            .and_then(|base| advertised_path(&base, path))
             .is_err()
         {
             return;
         }
-        let ns = crate::cache::namespace(server, token);
-        if self.local(&ns, path).is_some() {
+        let namespace = crate::cache::namespace(server, token);
+        // A browsed copy is still queued: the job moves it into the offline
+        // budget without downloading it again.
+        if self.store.offline(&namespace, path) {
             return;
         }
-        let file = self.root.join(hash(&format!("{ns}\0{path}")));
-        if let Some(tx) = &self.jobs {
-            let epoch = self.generation.load(Ordering::SeqCst);
-            {
-                let mut pending = crate::mutex_lock(&self.pending);
-                if pending.contains_key(&file) {
-                    return;
-                }
-                pending.insert(file.clone(), epoch);
+        let Some(tx) = &self.jobs else {
+            return;
+        };
+        let key = format!("{namespace}\0{path}");
+        let epoch = self.store.generation().load(Ordering::SeqCst);
+        {
+            let mut pending = crate::mutex_lock(&self.pending);
+            if pending.contains_key(&key) {
+                return;
             }
-            if tx
-                .try_send(Job {
-                    epoch,
-                    server: server.into(),
-                    token: token.into(),
-                    path: path.into(),
-                    file: file.clone(),
-                })
-                .is_err()
-            {
-                let mut pending = crate::mutex_lock(&self.pending);
-                if pending.get(&file).is_some_and(|e| *e == epoch) {
-                    pending.remove(&file);
-                }
+            pending.insert(key.clone(), epoch);
+        }
+        let job = Job {
+            epoch,
+            server: server.into(),
+            token: token.into(),
+            namespace,
+            path: path.into(),
+        };
+        if tx.try_send(job).is_err() {
+            let mut pending = crate::mutex_lock(&self.pending);
+            if pending.get(&key).is_some_and(|e| *e == epoch) {
+                pending.remove(&key);
             }
         }
     }
     pub fn cancel(&self) {
-        self.generation.fetch_add(1, Ordering::SeqCst);
+        self.store.generation().fetch_add(1, Ordering::SeqCst);
         // Clear dedup set so an immediate reschedule of the same path can
         // queue a new-epoch job. Stale worker jobs are epoch-guarded and only
         // remove their own epoch entry, never the rescheduled one.
         crate::mutex_lock(&self.pending).clear();
     }
     pub fn generation(&self) -> Arc<AtomicU64> {
-        self.generation.clone()
+        self.store.generation().clone()
     }
     pub fn set_gate(&mut self, gate: Arc<crate::cache::Gate>) {
         self.gate = Some(gate);
     }
     pub fn clear(&self) -> Result<()> {
-        self.cancel();
-        // Pending already cleared by cancel(); don't hold its lock during
-        // filesystem deletion so concurrent schedule() isn't blocked.
-        for entry in fs::read_dir(&self.root)? {
-            let entry = entry?;
-            if entry.file_type()?.is_file() {
-                fs::remove_file(entry.path())?;
-            }
-        }
-        Ok(())
+        crate::mutex_lock(&self.pending).clear();
+        self.store.clear()
     }
 }
 impl Drop for Artwork {
     fn drop(&mut self) {
         self.stopping.store(true, Ordering::SeqCst);
+        // Requests still holding the store save nothing more.
+        self.store.close();
         self.jobs.take();
         if let Some(worker) = self.worker.take() {
-            // Shutdown does not wait out an artwork download; a store step
-            // already handed to the blocking pool completes atomically.
+            // Shutdown does not wait out an artwork download.
             worker.abort();
             worker.join(Some(std::time::Duration::from_secs(1)));
         }
@@ -546,7 +469,7 @@ mod artwork_pending_tests {
         // old worker job is then discarded for epoch mismatch: artwork lost.
         let dir = tempfile::tempdir().unwrap();
         let artwork = Artwork::new(dir.path().into(), true).unwrap();
-        let file = dir.path().join("pending-fixture");
+        let file = "pending-fixture".to_owned();
         artwork
             .pending
             .lock()
@@ -588,7 +511,7 @@ mod store_health_tests {
         assert_eq!(status["ok"], false);
         assert_eq!(status["failures"], 1);
         assert_eq!(status["lastKind"], "lyrics");
-        assert!(!status["lastError"].as_str().unwrap().is_empty());
+        assert!(!status["error"].as_str().unwrap().is_empty());
         library.save("ns", "/library/metadata/1", &[], &Container::default());
         let status = library.store_status();
         assert_eq!(status["failures"], 2);

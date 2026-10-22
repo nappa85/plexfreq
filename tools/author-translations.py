@@ -59,6 +59,9 @@ PHRASES = {
     "★ Favorite":"=★ favorites", "☆ Add to favorites":"=☆ add favorites",
     "No description provided by Plex.":"description unavailable =Plex",
     "This track is no longer on the server":"track server unavailable",
+    "No longer on the server":"track server unavailable",
+    "Downloads wait while the stream catches up":"downloads waiting audio loading",
+    "Offline library data could not be saved: %1":"offline library data save failed %1",
     "No lyrics provided by Plex.":"lyrics unavailable =Plex", "No similar artists returned by Plex.":"similar artists unavailable =Plex",
     "Waiting for a confirmed Wi-Fi connection. Streaming remains available.":"downloads waiting =Wi-Fi audio play online",
     "Waiting for confirmed Wi-Fi; streaming remains available.":"downloads waiting =Wi-Fi audio play online",
@@ -108,6 +111,9 @@ ALIASES = {
 
 ITALIAN = {
     "This track is no longer on the server":"Questo brano non è più sul server",
+    "No longer on the server":"Non più sul server",
+    "Downloads wait while the stream catches up":"I download attendono che lo streaming si stabilizzi",
+    "Offline library data could not be saved: %1":"Impossibile salvare i dati della libreria offline: %1",
     "Automatically refresh download plans":"Aggiorna automaticamente i piani di download", "Refresh interval":"Intervallo di aggiornamento", "%1 hours":"%1 ore", "Refreshing download plans…":"Aggiornamento dei piani di download…",
     "Library filters":"Filtri della libreria", "Smart playlist":"Playlist intelligente", "Filtered music":"Musica filtrata", "Create smart playlist":"Crea una playlist intelligente", "Edit smart filters":"Modifica i filtri intelligenti", "Any":"Qualsiasi",
     "Title contains":"Il titolo contiene", "Year from":"Dall’anno", "Year to":"Fino all’anno", "Minimum rating":"Valutazione minima", "Maximum tracks":"Numero massimo di brani", "Unplayed only":"Solo brani mai ascoltati", "Most played":"Più ascoltati",

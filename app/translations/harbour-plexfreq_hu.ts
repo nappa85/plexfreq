@@ -884,8 +884,16 @@
       <translation>Letöltések · Várakozás · Wi-Fi · Hang · Lejátszás · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Hang · Gyorsítótár · Használva</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Könyvtár · Adatok · Mentés · Sikertelen · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Letöltések · Várakozás · Wi-Fi · Hang · Lejátszás · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Hang · Gyorsítótár · Használva</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Könyvtár · Adatok · Mentés · Sikertelen · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Mentve · Könyvtár · Metaadatok</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Gyorsítótár · Hang</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Letöltve</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Szám · Kiszolgáló · Nem érhető el</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Újrapróbálás · Betöltés</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Mentve · Könyvtár · Metaadatok</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Megnyitás · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Szám · Kiszolgáló · Nem érhető el</translation>
     </message>
     <message>
       <source>Downloaded</source>

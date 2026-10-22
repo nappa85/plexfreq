@@ -9,12 +9,6 @@ pub struct Play {
     pub played_at: u64,
     pub delivered: bool,
 }
-pub fn now() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
-}
 pub fn qualifies(listened: u64, duration: u64) -> bool {
     duration > 0 && listened >= duration.div_ceil(2).min(240000)
 }

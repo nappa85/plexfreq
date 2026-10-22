@@ -884,8 +884,16 @@
       <translation>Йөкләүләр · Көтү · Wi-Fi · Тавыш · Уйнату · Челтәрдә</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Тавыш · Кэш · Кулланылган</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Челтәрсез · Китапханә · Мәгълүмат · Саклау · Уңышсыз · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Йөкләүләр · Көтү · Wi-Fi · Тавыш · Уйнату · Челтәрдә</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Тавыш · Кэш · Кулланылган</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Челтәрсез · Китапханә · Мәгълүмат · Саклау · Уңышсыз · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Кэш · Тавыш</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Йөкләнгән</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Язма · Сервер · Мөмкин түгел</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Кабат тырышу · Йөкләнә</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Ачу · Альбом</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Язма · Сервер · Мөмкин түгел</translation>
     </message>
     <message>
       <source>Downloaded</source>

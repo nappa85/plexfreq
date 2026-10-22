@@ -884,8 +884,16 @@
       <translation>Descărcări · Așteptare · Wi-Fi · Audio · Redă · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Descărcări · Așteptare · Audio · Încărcare</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Utilizat</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Bibliotecă · Date · Salvează · Eșec · %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
@@ -975,8 +983,16 @@
       <translation>Descărcări · Așteptare · Wi-Fi · Audio · Redă · Online</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Descărcări · Așteptare · Audio · Încărcare</translation>
+    </message>
+    <message>
       <source>%1 MiB audio cache used</source>
       <translation>%1 · MiB · Audio · Cache · Utilizat</translation>
+    </message>
+    <message>
+      <source>Offline library data could not be saved: %1</source>
+      <translation>Offline · Bibliotecă · Date · Salvează · Eșec · %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
@@ -1377,6 +1393,10 @@
       <translation>Offline · Salvat · Bibliotecă · Metadate</translation>
     </message>
     <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Descărcări · Așteptare · Audio · Încărcare</translation>
+    </message>
+    <message>
       <source>Caching audio…</source>
       <translation>Cache · Audio</translation>
     </message>
@@ -1445,6 +1465,10 @@
       <translation>Descărcat</translation>
     </message>
     <message>
+      <source>No longer on the server</source>
+      <translation>Piesă · Server · Indisponibil</translation>
+    </message>
+    <message>
       <source>Retry loading</source>
       <translation>Reîncearcă · Încărcare</translation>
     </message>
@@ -1478,6 +1502,10 @@
     <message>
       <source>Offline · showing saved library metadata</source>
       <translation>Offline · Salvat · Bibliotecă · Metadate</translation>
+    </message>
+    <message>
+      <source>Downloads wait while the stream catches up</source>
+      <translation>Descărcări · Așteptare · Audio · Încărcare</translation>
     </message>
     <message>
       <source>Caching audio…</source>
@@ -1534,6 +1562,10 @@
     <message>
       <source>Open album</source>
       <translation>Deschide · Album</translation>
+    </message>
+    <message>
+      <source>No longer on the server</source>
+      <translation>Piesă · Server · Indisponibil</translation>
     </message>
     <message>
       <source>Downloaded</source>

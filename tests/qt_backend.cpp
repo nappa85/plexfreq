@@ -1,3 +1,4 @@
+#include "artwork.h"
 #include "backend.h"
 #include "i18n.h"
 #include <QTranslator>
@@ -5,6 +6,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTemporaryDir>
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -13,6 +15,9 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QProcess>
+#include <QBuffer>
+#include <QImage>
+#include <QTimer>
 #include "plexfreq_core.h"
 #include <memory>
 #include <QQmlEngine>
@@ -54,7 +59,7 @@ public:
     QVariantMap arguments;
     QVariantMap data{{"detail", QVariantMap()}, {"items", QVariantList()}, {"servers", QVariantList()}, {"queue", QVariantMap{{"items", QVariantList()}}}};
     bool busyValue=false;
-    QVariantMap cacheData{{"enabled",true},{"tracks",0},{"readyKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false},{"error",""}};
+    QVariantMap cacheData{{"enabled",true},{"tracks",0},{"readyKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false},{"held",false},{"goneKeys",QVariantList()},{"error",""}};
     EntryModel itemModel;
     EntryModel queuedModel;
     bool busy() const { return busyValue; }
@@ -162,6 +167,15 @@ Item {
         backend.bufferingValue=true;emit backend.playbackChanged();QVERIFY(loading->property("running").toBool());
         backend.bufferingValue=false;emit backend.playbackChanged();QVERIFY(!loading->property("running").toBool());
         backend.busyValue=false;emit backend.busyChanged();QVERIFY(QMetaObject::invokeMethod(queue,"triggered"));QVERIFY(music->property("showQueue").toBool());QVERIFY(window->property("showBack").toBool());
+        // A track the server no longer has: dimmed text and a subtitle note,
+        // updated when the mark expires.
+        backend.cacheData.insert("goneKeys",QVariantList{"7"});emit backend.cacheChanged();
+        const QVariantList tracks{QVariantMap{{"type","track"},{"ratingKey","7"},{"title","Gone track"},{"duration",1000}}};
+        backend.queuedModel.replace(tracks);backend.data.insert("queue",QVariantMap{{"items",tracks}});emit backend.stateChanged();
+        QQuickItem *subtitle=nullptr;QTRY_VERIFY((subtitle=visualItem(quickWindow->contentItem(),"rowSubtitle"))!=nullptr);
+        QTRY_VERIFY(subtitle->property("text").toString().endsWith("No longer on the server"));QCOMPARE(subtitle->parentItem()->opacity(),0.5);
+        backend.cacheData.insert("goneKeys",QVariantList());emit backend.cacheChanged();
+        QTRY_VERIFY(!subtitle->property("text").toString().contains("No longer on the server"));QCOMPARE(subtitle->parentItem()->opacity(),1.0);
         QVERIFY(QMetaObject::invokeMethod(playlists,"clicked"));QCOMPARE(backend.operation,QString("playlists"));QVERIFY(!window->property("showBack").toBool());
 #endif
     }
@@ -337,6 +351,34 @@ ApplicationWindow {
 #endif
             QTest::qWait(100);
         }
+    }
+    void cacheStatesAreShown() {
+        NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent controller(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(controller.isReady());std::unique_ptr<QObject> session(controller.create());QVERIFY(session.get());
+        // Downloads only "wait for the stream" while they have work to do.
+        backend.cacheData.insert("held",true);emit backend.cacheChanged();QVERIFY(!session->property("downloadsHeld").toBool());
+        backend.cacheData.insert("pending",2);emit backend.cacheChanged();QVERIFY(session->property("downloadsHeld").toBool());
+        backend.cacheData.insert("enabled",false);emit backend.cacheChanged();QVERIFY(!session->property("downloadsHeld").toBool());
+        backend.cacheData.insert("enabled",true);emit backend.cacheChanged();QVERIFY(session->property("downloadsHeld").toBool());
+        backend.cacheData.insert("paused",true);emit backend.cacheChanged();QVERIFY(!session->property("downloadsHeld").toBool());
+        backend.cacheData.insert("paused",false);emit backend.cacheChanged();QVERIFY(session->property("downloadsHeld").toBool());
+        // Tracks the server no longer has, by key; other item types never.
+        const auto gone=[&](const QVariantMap &item){QVariant result;QMetaObject::invokeMethod(session.get(),"goneTrack",Q_RETURN_ARG(QVariant,result),Q_ARG(QVariant,QVariant(item)));return result.toBool();};
+        const QVariantMap track{{"type","track"},{"ratingKey","7"}},album{{"type","album"},{"ratingKey","7"}};
+        QVERIFY(!gone(track));
+        backend.cacheData.insert("goneKeys",QVariantList{"7"});emit backend.cacheChanged();
+        QVERIFY(gone(track));QVERIFY(!gone(album));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QQmlComponent component(&engine,QUrl("qrc:/qml/desktop/Downloads.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> page(component.beginCreate(engine.rootContext()));QVERIFY(page.get());page->setProperty("music",QVariant::fromValue(session.get()));component.completeCreate();
+        auto *status=page->findChild<QObject *>("downloadStatus");auto *offline=page->findChild<QObject *>("offlineStoreError");QVERIFY(status && offline);
+        QCOMPARE(status->property("text").toString(),QString("Downloads wait while the stream catches up"));
+        QVERIFY(offline->property("text").toString().isEmpty());
+        backend.cacheData.insert("offlineStore",QVariantMap{{"ok",false},{"error","Cannot read or write application state"}});emit backend.cacheChanged();
+        QCOMPARE(offline->property("text").toString(),QString("Offline library data could not be saved: Cannot read or write application state"));
+        backend.cacheData.insert("held",false);emit backend.cacheChanged();
+        QVERIFY(status->property("text").toString().contains("MiB"));
+#endif
     }
     void readOnlyNetworkFacts() {
         QTemporaryDir directory;Backend backend(directory.path());QSignalSpy completed(&backend,&Backend::completed);
@@ -885,7 +927,8 @@ ApplicationWindow {
         QVERIFY(state.isValid());
         QTcpServer server;
         QVERIFY(server.listen(QHostAddress::LocalHost));
-        bool tokenSeen = false;
+        bool tokenSeen = false, thumbHeaderToken = false, thumbUrlToken = false;
+        int slowRequests = 0;
         QByteArray wave;
         QDataStream wav(&wave, QIODevice::WriteOnly);
         wav.setByteOrder(QDataStream::LittleEndian);
@@ -913,7 +956,20 @@ ApplicationWindow {
                         tokenSeen = request.toLower().contains("x-plex-token: test-token");
                         body = R"({"MediaContainer":{"Directory":[{"key":"1","title":"Local fixture","type":"artist"}]}})";
                     } else if (path == "/library/sections/1/all") {
-                        body = R"({"MediaContainer":{"size":2,"totalSize":2,"Metadata":[{"ratingKey":"1","key":"/library/metadata/1","title":"First","type":"track","duration":10000,"Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/1/silence.wav"}]}]},{"ratingKey":"2","key":"/library/metadata/2","title":"Second","type":"track","duration":10000,"Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/2/silence.wav"}]}]}]}})";
+                        body = R"({"MediaContainer":{"size":2,"totalSize":2,"Metadata":[{"ratingKey":"1","key":"/library/metadata/1","title":"First","type":"track","duration":10000,"thumb":"/library/metadata/1/thumb/1","Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/1/silence.wav"}]}]},{"ratingKey":"2","key":"/library/metadata/2","title":"Second","type":"track","duration":10000,"thumb":"/library/metadata/2/thumb/1","Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/library/parts/2/silence.wav"}]}]}]}})";
+                    } else if (path.contains("/thumb/")) {
+                        // Artwork: the credential must come as a header only.
+                        thumbHeaderToken = thumbHeaderToken || request.toLower().contains("x-plex-token: test-token");
+                        thumbUrlToken = thumbUrlToken || target.contains("test-token");
+                        // Track 3's artwork describes a bitmap too large to decode.
+                        QImage image(path.startsWith("/library/metadata/3/") ? 9000 : 40,path.startsWith("/library/metadata/3/") ? 2 : 20,QImage::Format_RGB32);image.fill(Qt::red);
+                        QBuffer buffer(&body);buffer.open(QIODevice::WriteOnly);image.save(&buffer,"PNG");
+                        const QByteArray reply="HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: "+QByteArray::number(body.size())+"\r\nConnection: close\r\n\r\n"+body;
+                        // The second track's artwork stalls: it must not hold up the first.
+                        const int delay=path.startsWith("/library/metadata/2/") ? 3000 : 0;
+                        if(delay)++slowRequests;
+                        QTimer::singleShot(delay,socket,[socket,reply]{socket->write(reply);socket->disconnectFromHost();});
+                        return;
                     } else if (path.startsWith("/library/parts/")) {
                         body = wave; contentType = "audio/wav";
                         extraHeaders = "Accept-Ranges: bytes\r\n";
@@ -948,6 +1004,52 @@ ApplicationWindow {
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         const auto items = backend.state().value("items").toList();
         QCOMPARE(items.size(), 2);
+        {
+            // Artwork reaches QML as image://plexfreq ids without the token, and
+            // loads through the provider; a stalled image does not block another.
+            const auto shown=QString::fromUtf8(QJsonDocument::fromVariant(backend.state()).toJson());
+            QVERIFY(!shown.contains("test-token"));
+            const auto fast=items[0].toMap().value("artwork").toString(),slow=items[1].toMap().value("artwork").toString();
+            QVERIFY2(fast.startsWith("image://plexfreq/"),qPrintable(fast));QVERIFY(slow.startsWith("image://plexfreq/"));
+            QQmlEngine engine;engine.addImageProvider(QStringLiteral("plexfreq"),new ArtworkProvider(backend.artworkSource()));
+            QQmlComponent component(&engine);
+            component.setData("import QtQuick 2.6\nItem { property alias fast: a; property alias slow: b\nImage { id: a; asynchronous: true; cache: false }\nImage { id: b; asynchronous: true; cache: false } }",QUrl());
+            std::unique_ptr<QObject> root(component.create());QVERIFY2(root,qPrintable(component.errorString()));
+            auto *fastImage=root->property("fast").value<QObject*>(),*slowImage=root->property("slow").value<QObject*>();
+            // The stalled download is in flight before the fast one is asked for:
+            // background artwork caching may have started it, and this request
+            // then shares it instead of downloading again.
+            slowImage->setProperty("source",slow);QTRY_VERIFY_WITH_TIMEOUT(slowRequests==1,2000);
+            fastImage->setProperty("source",fast);
+            QTRY_COMPARE_WITH_TIMEOUT(fastImage->property("status").toInt(),1,2500);
+            QCOMPARE(slowImage->property("status").toInt(),2);
+            QCOMPARE(fastImage->property("sourceSize").toSize(),QSize(40,20));
+            QTRY_COMPARE_WITH_TIMEOUT(slowImage->property("status").toInt(),1,6000);
+            QVERIFY(thumbHeaderToken);QVERIFY(!thumbUrlToken);
+            // An oversized source is refused before decoding (Image.Error).
+            const auto prefix=fast.left(fast.lastIndexOf('/')+1);
+            const auto huge=prefix+QString::fromLatin1(QByteArray("/library/metadata/3/thumb/1").toHex());
+            fastImage->setProperty("source",huge);
+            QTRY_COMPARE_WITH_TIMEOUT(fastImage->property("status").toInt(),3,5000);
+            // An Image destroyed while its download stalls: the download
+            // finishes later, without touching the deleted response, and is
+            // saved for browsing.
+            const QDir browsed(state.path()+"/artwork-cache/browse");
+            const int saved=browsed.entryList(QDir::Files).size();
+            const auto late=prefix+QString::fromLatin1(QByteArray("/library/metadata/2/thumb/2").toHex());
+            const int pending=slowRequests;
+            slowImage->setProperty("source",late);
+            QTRY_VERIFY_WITH_TIMEOUT(slowRequests>pending,3000);
+            root.reset();
+            QTRY_VERIFY_WITH_TIMEOUT(browsed.entryList(QDir::Files).size()>saved,6000);
+            // Shown again: from the cache, without another download.
+            const int requested=slowRequests;
+            std::unique_ptr<QObject> again(component.create());QVERIFY(again.get());
+            auto *cached=again->property("slow").value<QObject*>();
+            cached->setProperty("source",late);
+            QTRY_COMPARE_WITH_TIMEOUT(cached->property("status").toInt(),1,2000);
+            QCOMPARE(slowRequests,requested);
+        }
         backend.command("play", {{"items", items}, {"index", 0}});
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         QTRY_VERIFY_WITH_TIMEOUT(backend.duration() == 10000, 10000);
