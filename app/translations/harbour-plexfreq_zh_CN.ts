@@ -180,6 +180,10 @@
   <context>
     <name>Core</name>
     <message>
+      <source>Radio could not refresh. Downloaded tracks may repeat.</source>
+      <translation>无法刷新电台。已下载的曲目可能会重复播放。</translation>
+    </message>
+    <message>
       <source>Plex returned HTTP %1</source>
       <translation>Plex · HTTP · %1 · 失败</translation>
     </message>

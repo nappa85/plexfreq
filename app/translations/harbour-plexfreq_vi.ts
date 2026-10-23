@@ -180,6 +180,10 @@
   <context>
     <name>Core</name>
     <message>
+      <source>Radio could not refresh. Downloaded tracks may repeat.</source>
+      <translation>Không thể làm mới radio. Các bài hát đã tải xuống có thể lặp lại.</translation>
+    </message>
+    <message>
       <source>Plex returned HTTP %1</source>
       <translation>Plex · HTTP · %1 · Thất bại</translation>
     </message>

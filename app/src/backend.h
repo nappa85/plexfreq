@@ -23,6 +23,7 @@ private: QVariantList m_entries;
 
 class Backend : public QObject {
     Q_OBJECT
+    friend class BackendTest;
     Q_PROPERTY(QVariantMap state READ state NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap cache READ cache NOTIFY cacheChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
@@ -67,6 +68,7 @@ signals:
     void completed(const QString &op,bool ok,const QVariantMap &data);
 private:
     void poll();void handle(const QVariantMap &event);void status(const QVariantMap &value);
+    void reportError(const QString &text,bool radio=false);
     Runtime *m_runtime=nullptr;
 public:
     // A new artwork source handle for the image provider (caller owns it).

@@ -92,10 +92,60 @@ static QQuickItem *visualItem(QQuickItem *parent,const QString &name) {
     return nullptr;
 }
 
+class NotificationFixture : public QObject {
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.Notifications")
+public:
+    QVariantList calls;
+public slots:
+    QStringList GetCapabilities(){return {"body","body-markup","persistence"};}
+    uint Notify(const QString &app,uint replaces,const QString &icon,const QString &summary,const QString &body,const QStringList &actions,const QVariantMap &hints,int timeout){
+        calls.append(QVariantMap{{"app",app},{"replaces",replaces},{"icon",icon},{"summary",summary},{"body",body},{"actions",actions},{"hints",hints},{"timeout",timeout}});
+        return replaces ? replaces : uint(calls.size());
+    }
+};
+
 class BackendTest : public QObject {
     Q_OBJECT
 private slots:
     void initTestCase() {qmlRegisterType<EntryModel>("PlexFreq",1,0,"EntryModel");}
+    void retainedErrorsAreTranslatedAndWarningsAreNotReplies() {
+        QVERIFY(qgetenv("PLEXFREQ_TEST_ISOLATED")=="1");
+        auto bus=QDBusConnection::sessionBus();
+        NotificationFixture service;
+        QVERIFY(bus.registerService("org.freedesktop.Notifications"));
+        QVERIFY(bus.registerObject("/org/freedesktop/Notifications",&service,QDBusConnection::ExportAllSlots));
+        QTranslator italian;QVERIFY(italian.load(":/translations/harbour-plexfreq_it.qm"));
+        QCoreApplication::installTranslator(&italian);
+        {
+            QTemporaryDir dir;Backend backend(dir.path());
+            QSignalSpy completed(&backend,SIGNAL(completed(QString,bool,QVariantMap)));
+            QTRY_VERIFY(!completed.isEmpty());completed.clear();
+            backend.command("_invalid");
+            QTRY_COMPARE(service.calls.size(),1);
+            QCOMPARE(service.calls[0].toMap().value("body").toString(),translatedMessage("Invalid request data"));
+            QCOMPARE(service.calls[0].toMap().value("timeout").toInt(),0);
+            const auto specific=backend.error();
+            const auto before=backend.state();
+            backend.handle({{"kind","radio_warning"}});
+            QTRY_COMPARE(service.calls.size(),2);
+            QCOMPARE(service.calls[1].toMap().value("body").toString(),QString::fromUtf8("Impossibile aggiornare la radio. I brani scaricati potrebbero ripetersi."));
+            QCOMPARE(backend.error(),specific);
+            QCOMPARE(backend.state(),before);QCOMPARE(completed.size(),0);
+            backend.handle({{"kind","radio_warning"}});
+            backend.handle({{"request",QVariantMap{{"op","lyrics"}}},{"response",QVariantMap{{"ok",false},{"error","Audio streaming failed"}}}});
+            backend.handle({{"request",QVariantMap{{"op","similar_artists"}}},{"response",QVariantMap{{"ok",false},{"error","Audio playback failed"}}}});
+            backend.handle({{"response",QVariantMap{{"ok",false},{"error","Backend panic"},{"data",QVariantMap{{"_discarded",true}}}}}});
+            QTest::qWait(200);QCOMPARE(service.calls.size(),2);
+            backend.handle({{"request",QVariantMap{{"op","audio"}}},{"response",QVariantMap{{"ok",false},{"error","Audio playback failed"}}}});
+            QTRY_COMPARE(service.calls.size(),3);
+            QCOMPARE(service.calls[2].toMap().value("replaces").toUInt(),1u);
+            QCOMPARE(backend.error(),translatedMessage("Audio playback failed"));
+        }
+        QCoreApplication::removeTranslator(&italian);
+        bus.unregisterObject("/org/freedesktop/Notifications");
+        bus.unregisterService("org.freedesktop.Notifications");
+    }
     void sharedNavigationOwnsCapabilitiesAndDispatch() {
         NavigationBackend backend;backend.data.insert("serverUrl","http://fixture.invalid");
         QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);

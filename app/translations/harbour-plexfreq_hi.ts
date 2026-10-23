@@ -180,6 +180,10 @@
   <context>
     <name>Core</name>
     <message>
+      <source>Radio could not refresh. Downloaded tracks may repeat.</source>
+      <translation>रेडियो अपडेट नहीं हो सका। डाउनलोड किए गए गाने दोबारा बज सकते हैं।</translation>
+    </message>
+    <message>
       <source>Plex returned HTTP %1</source>
       <translation>Plex · HTTP · %1 · विफल</translation>
     </message>

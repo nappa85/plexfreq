@@ -115,6 +115,76 @@ fn reply(runtime: &Runtime, op: &str, seen: &mut Vec<Value>) -> Value {
     panic!("no reply for {op}");
 }
 
+#[test]
+fn a_radio_refresh_warning_reaches_poll_without_becoming_a_playback_plan() {
+    let server =
+        crate::radio_health_tests::server(|_| ("500 Internal Server Error", String::new()));
+    let dir = tempfile::tempdir().unwrap();
+    drop(crate::radio_health_tests::station(
+        dir.path(),
+        &server,
+        3,
+        2,
+        &[1, 2, 3],
+    ));
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    runtime
+        .submit(json!({"op":"next","automatic":false}))
+        .unwrap();
+    let mut seen = Vec::new();
+    reply(&runtime, "next", &mut seen);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        seen.extend(runtime.poll()["events"].as_array().unwrap().iter().cloned());
+        if let Some(warning) = seen.iter().find(|event| event["kind"] == "radio_warning") {
+            assert!(warning.get("request").is_none());
+            assert!(warning.get("response").is_none());
+            break;
+        }
+        assert!(Instant::now() < deadline, "radio warning was not drained");
+        thread::sleep(Duration::from_millis(5));
+    }
+    assert!(crate::mutex_lock(&runtime.shared.model)
+        .get("radio_warning")
+        .is_none());
+}
+
+#[test]
+fn failed_refill_waits_for_presentation_and_preserves_published_successor_debt() {
+    let server = crate::radio_health_tests::server(|_| {
+        ("200 OK", crate::radio_health_tests::station_json(&[4]))
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = crate::radio_health_tests::station(dir.path(), &server, 3, 0, &[2, 3]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let identity = core.refill_identity().unwrap();
+    let mut prepared = Some((42, core.prepare_next().unwrap().unwrap()));
+    let (requests, _) = mpsc::sync_channel(1);
+    let shared = Shared::new(requests, json!({}));
+    // Model poll holding the presentation lock before the failure handler can
+    // inspect it; the handler must wait and see publication before mutating.
+    let mut presented = crate::mutex_lock(&shared.presented);
+    let (started, ready) = mpsc::channel();
+    thread::scope(|scope| {
+        let shared = &shared;
+        let core = &mut core;
+        let prepared = &mut prepared;
+        let identity = &identity;
+        let failed = scope.spawn(move || {
+            started.send(()).unwrap();
+            failed_refill(core, shared, identity, prepared);
+        });
+        ready.recv().unwrap();
+        presented.shown = 42;
+        drop(presented);
+        failed.join().unwrap();
+    });
+    assert!(!core.take_radio_warning());
+    assert_eq!(core.radio.as_ref().unwrap().refill.pending, 1);
+    core.commit_prepared(prepared.take().unwrap().1).unwrap();
+    assert_eq!(core.radio.as_ref().unwrap().refill.pending, 2);
+}
+
 /// Session facts that must match what a fresh startup loads from disk.
 fn persisted_view(mut status: Value) -> Value {
     if let Some(object) = status.as_object_mut() {

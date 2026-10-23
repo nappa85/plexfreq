@@ -218,6 +218,19 @@ library. Any copy already on your device stays playable.
 **Sonic radio or Sonic Adventure is unavailable.** The server needs Sonic Analysis
 and Plex Pass, and the music must have been analyzed.
 
+**Radio repeats the same songs.** If the connection drops or the server cannot
+refresh the radio, PlexFreq keeps playing downloaded tracks and may cycle through
+them. This can happen with repeat switched off. Check the connection and try
+starting the radio again when the server is reachable.
+
+**Errors while the app is in the background.** PlexFreq also sends errors and
+radio-refresh warnings to system notifications, requesting that they stay until
+dismissed so you can read them later. The latest application error and radio
+warning are kept separately; newer messages replace the previous message in
+their category. Identical messages are throttled for five minutes. Notifications
+are silent, and their display and retention depend on the system. Errors also
+remain visible in the app when the notification service is unavailable.
+
 **Logs.** On SailfishOS, PlexFreq keeps a daily log for the last seven days in
 `~/Documents/PlexFreq`. If that folder cannot be created, it uses
 `~/.local/share/org.plexfreq/harbour-plexfreq/logs` instead. On the desktop it

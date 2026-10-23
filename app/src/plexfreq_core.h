@@ -1,6 +1,7 @@
 #ifndef PLEXFREQ_CORE_H
 #define PLEXFREQ_CORE_H
 #include <stddef.h>
+#include <stdbool.h>
 // Stable opaque C ABI; each handle is exclusively owned by one worker thread.
 #ifdef __cplusplus
 extern "C" {
@@ -15,6 +16,7 @@ void pf_log_free(DiagnosticLog *log);
 Runtime *pf_runtime_new(const char *state_dir);
 char *pf_runtime_submit(Runtime *runtime,const char *request);
 char *pf_runtime_poll(Runtime *runtime);
+void pf_runtime_notify(Runtime *runtime,bool radio,const char *text);
 void pf_runtime_free(Runtime *runtime);
 // Artwork for image://plexfreq ids. The source stays valid after
 // pf_runtime_free (requests then answer null); free it once with

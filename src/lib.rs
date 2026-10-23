@@ -249,6 +249,9 @@ pub struct Core {
     network_online: bool,
     network_known: bool,
     health: health::Health,
+    radio_warning: std::cell::Cell<bool>,
+    cached_failures: std::cell::Cell<u64>,
+    refill_epoch: uuid::Uuid,
 }
 
 /// Outcome of a planned automatic skip away from a failed current item.
@@ -279,8 +282,9 @@ pub(crate) struct RefillRequest {
     params: Vec<(&'static str, String)>,
     identity: RefillIdentity,
 }
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 struct RefillIdentity {
+    epoch: uuid::Uuid,
     server: String,
     instance: u64,
     version: u64,
@@ -315,6 +319,16 @@ impl Prepared {
 }
 
 impl Core {
+    /// A real refresh attempt failed, even if it was made while preparing audio.
+    /// This fact is independent of whether that speculative plan becomes audible.
+    pub(crate) fn warn_radio(&self) {
+        if !self.offline_mode {
+            self.radio_warning.set(true);
+        }
+    }
+    pub(crate) fn take_radio_warning(&self) -> bool {
+        self.radio_warning.replace(false) && !self.offline_mode
+    }
     pub(crate) fn prepare_next(&mut self) -> Result<Option<Prepared>> {
         if self.queue.track().is_none()
             || self.queue.at_end()
@@ -513,6 +527,9 @@ impl Core {
             network_online: false,
             network_known: false,
             health: health::Health::default(),
+            radio_warning: std::cell::Cell::new(false),
+            cached_failures: std::cell::Cell::new(0),
+            refill_epoch: uuid::Uuid::new_v4(),
             playback_generation: settings.playback.generation,
             library: offline::Library::new(dir.join("library-cache"), downloads)?,
             artwork,
@@ -624,6 +641,10 @@ impl Core {
         params: &[(&str, String)],
         fetched: Result<model::Container>,
     ) -> Result<(model::Container, bool)> {
+        if fetched.is_err() {
+            self.cached_failures
+                .set(self.cached_failures.get().wrapping_add(1));
+        }
         let ns = self.cache_namespace();
         match fetched {
             Ok(c) => {
@@ -1243,7 +1264,7 @@ impl Core {
     }
 
     fn extend_radio(&mut self) -> Result<()> {
-        let request = self.refill_request()?;
+        let request = self.refill_request().inspect_err(|_| self.warn_radio())?;
         let fetched = self.plex.container(
             &request.base,
             &request.token,
@@ -1290,6 +1311,7 @@ impl Core {
     fn refill_identity(&self) -> Option<RefillIdentity> {
         let radio = self.radio.as_ref()?;
         Some(RefillIdentity {
+            epoch: self.refill_epoch,
             server: self.settings.server_url.clone(),
             instance: radio.refill.instance,
             version: radio.refill.version,
@@ -1299,6 +1321,24 @@ impl Core {
     /// Append what a refill request returned and advance the radio source.
     /// Returns the appended items.
     fn refill_apply(
+        &mut self,
+        request: &RefillRequest,
+        fetched: Result<model::Container>,
+    ) -> Result<Vec<Item>> {
+        let failed = fetched.is_err();
+        let cached_failures = self.cached_failures.get();
+        let result = self.refill_apply_inner(request, fetched);
+        // Includes nested album-children cached fallback, but never ordinary
+        // browsing: only failures observed during this refill are relevant.
+        if failed
+            || self.cached_failures.get() != cached_failures
+            || result.as_ref().map_or(true, |items| items.is_empty())
+        {
+            self.warn_radio();
+        }
+        result
+    }
+    fn refill_apply_inner(
         &mut self,
         request: &RefillRequest,
         fetched: Result<model::Container>,
@@ -1396,7 +1436,9 @@ impl Core {
         let request = if album || !self.refill_wanted() {
             None
         } else {
-            self.refill_request().ok()
+            self.refill_request()
+                .inspect_err(|_| self.warn_radio())
+                .ok()
         };
         let Some(request) = request else {
             if let Some(radio) = &mut self.radio {
@@ -1408,11 +1450,23 @@ impl Core {
             &self.settings.client_identifier,
             self.plex.account_url.clone(),
         )
+        .inspect_err(|_| self.warn_radio())
         .ok()?;
         Some(RefillJob { request, plex })
     }
     /// Give up an owed refill that could not be fetched, also in a prepared
     /// successor of the same radio, whose commit would otherwise restore it.
+    pub(crate) fn refill_worker_failed(
+        &mut self,
+        identity: &RefillIdentity,
+        prepared: Option<&mut Prepared>,
+        successor_shown: bool,
+    ) {
+        if !successor_shown && self.refill_identity().as_ref() == Some(identity) {
+            self.warn_radio();
+            self.refill_abandon(prepared);
+        }
+    }
     pub(crate) fn refill_abandon(&mut self, prepared: Option<&mut Prepared>) {
         let instance = self.radio.as_ref().map(|radio| radio.refill.instance);
         let prepared = prepared.and_then(|prepared| prepared.radio.as_mut());
@@ -1598,6 +1652,7 @@ impl Core {
             }
             let disconnected = self.offline_mode || (self.network_known && !self.network_online);
             if disconnected {
+                self.warn_radio();
                 self.advance_cached_radio()?;
                 return self.playback_with_cache(schedule);
             }

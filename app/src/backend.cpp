@@ -39,16 +39,20 @@ Backend::Backend(const QString &directory,QObject *parent):QObject(parent),m_ite
     else{m_error=QStringLiteral("Backend unavailable");emit errorChanged();}
 }
 Backend::~Backend(){pf_runtime_free(m_runtime);}
+void Backend::reportError(const QString &text,bool radio) {
+    if(!radio || m_error.isEmpty()){m_error=text;emit errorChanged();}
+    const auto bytes=text.toUtf8();pf_runtime_notify(m_runtime,radio,bytes.constData());
+}
 void Backend::status(const QVariantMap &value){const bool busy=value.value("busy").toBool(),more=value.value("loadingMore").toBool();if(busy!=m_busy){m_busy=busy;emit busyChanged();}if(more!=m_more){m_more=more;emit loadingMoreChanged();}}
 void Backend::command(const QString &op,const QVariantMap &args) {
     if(!m_runtime){m_error=QStringLiteral("Backend unavailable");emit errorChanged();return;}
     // Never let QML drive internal worker coordination.
-    if(op.startsWith(QStringLiteral("_"))){m_error=translatedError({{"error",QStringLiteral("Invalid request data")}});emit errorChanged();return;}
+    if(op.startsWith(QStringLiteral("_"))){reportError(translatedError({{"error",QStringLiteral("Invalid request data")}}));return;}
     auto input=args;input.insert("op",op);const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);const auto accepted=decoded(pf_runtime_submit(m_runtime,bytes.constData()));
     if(accepted.value("accepted").toBool())status(accepted);
     if(accepted.value("clearError").toBool() && !m_error.isEmpty()){m_error.clear();emit errorChanged();}
     if(accepted.value("resetItems").toBool()){m_items.replace(QVariantList());m_state.insert("items",QVariantList());emit stateChanged();}
-    if(!accepted.value("accepted").toBool()){m_error=translatedError(accepted);emit errorChanged();}
+    if(!accepted.value("accepted").toBool()){reportError(translatedError(accepted));}
 }
 void Backend::poll() {
     if(!m_runtime)return;
@@ -59,10 +63,11 @@ void Backend::poll() {
     for(const auto &event:value.value("events").toList())handle(event.toMap());
 }
 void Backend::handle(const QVariantMap &event) {
+    if(event.value("kind")=="radio_warning"){reportError(QCoreApplication::translate("Core","Radio could not refresh. Downloaded tracks may repeat."),true);return;}
     if(event.value("kind")=="raise"){emit raiseRequested();return;}if(event.value("kind")=="seeked"){emit seeked(event.value("position").toLongLong());return;}
     const auto input=event.value("request").toMap(),response=event.value("response").toMap();const auto op=input.value("op").toString();const bool ok=response.value("ok").toBool();auto data=response.value("data").toMap();
     if(data.value("_discarded").toBool()){emit completed(op,ok,data);return;}
-    if(!ok){if(op!="lyrics" && op!="similar_artists"){m_error=translatedError(response);emit errorChanged();}emit completed(op,false,data);return;}
+    if(!ok){if(op!="lyrics" && op!="similar_artists"){reportError(translatedError(response));}emit completed(op,false,data);return;}
     translateErrorFields(data);
     bool changed=false;
     if(data.contains("cache")){const auto cache=data.take("cache").toMap();if(cache!=m_cache){m_cache=cache;emit cacheChanged();}}

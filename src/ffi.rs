@@ -95,6 +95,24 @@ pub unsafe extern "C" fn pf_runtime_poll(runtime: *mut crate::runtime::Runtime) 
     )
 }
 /// # Safety
+/// `runtime` is null or live and owned by its bridge. `text` is null or valid
+/// NUL-terminated UTF-8 presentation text, used only for this nonblocking call.
+#[no_mangle]
+pub unsafe extern "C" fn pf_runtime_notify(
+    runtime: *mut crate::runtime::Runtime,
+    radio: bool,
+    text: *const c_char,
+) {
+    if runtime.is_null() || text.is_null() {
+        return;
+    }
+    let _ = catch_unwind(AssertUnwindSafe(|| {
+        if let Ok(text) = unsafe { CStr::from_ptr(text) }.to_str() {
+            unsafe { &*runtime }.notify(radio, text);
+        }
+    }));
+}
+/// # Safety
 /// Free one live GUI runtime with no concurrent GUI calls. Rust joins its workers.
 #[no_mangle]
 pub unsafe extern "C" fn pf_runtime_free(runtime: *mut crate::runtime::Runtime) {

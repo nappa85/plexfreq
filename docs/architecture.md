@@ -344,6 +344,17 @@ station completion report of an automatic move is still sent before the move.
 Otherwise it uses the last held non-gone item, because PMS answers nothing after
 a centre it no longer holds.
 
+**Refresh warnings.** Failed refresh requests, cached metadata fallbacks during
+refill, station responses with no unseen occurrences, and known disconnection
+raise a transient warning for the UI and system notifications (§8.6). It reports
+a failed refresh attempt, not proof that a cached loop became audible: a real
+request made while preparing a successor can warn even if that successor is
+discarded. Explicit offline mode suppresses it. Stale results and worker failures
+are rejected using the Core instance, radio, source, server and queue identity;
+a successor already presented waits for its commit. The warning is drained once
+by the worker, independently of navigation and playback-plan publication. Queue
+continuation policy is unaffected.
+
 ### 4.5 Health and gone items
 
 Checks start only after a failure: a cache-ahead download answered 404 (or 400
@@ -824,6 +835,47 @@ this uses libpulse. `examples/pulse-diagnostics.rs` probes the same code.
   Quick/Gui/Qml/Core, libstdc++, libm, libgcc_s, libc and ld-linux.
 
 Build, toolchain and packaging details are in [development.md](development.md).
+
+### 8.6 Error notifications
+
+The Qt adapter translates global command/playback errors and radio-refresh
+warnings, then passes only their presentation text through `pf_runtime_notify`.
+Lyrics and similar-artist errors remain local to those views. A radio warning
+does not overwrite a more specific in-app error. Rust owns delivery, lifetime,
+coalescing and throttling in `src/runtime/notifications.rs`; it sends no request
+echo, media URL or track metadata to the notification service.
+
+Two slots retain the latest application error and radio warning separately.
+New text replaces the slot's notification; identical text is ignored for five
+minutes from admission, using a monotonic clock. Ingress is coalesced per slot.
+Dismissal clears the replacement ID without resetting the throttle. Recovery
+and application exit do not close notifications. IDs are not persisted across
+application launches, so a later launch may create another notification.
+
+Delivery uses the session-bus `org.freedesktop.Notifications` service with
+expiration 0, `transient=false`, `suppress-sound=true`, normal urgency and no
+actions. These request silent retention; the system notification service
+controls actual presentation and persistence. Setup and each Notify call have
+two-second deadlines, including activation of an installed on-demand desktop
+service, and runtime teardown cancels the owned task. Replacement
+IDs belong to the resolved unique service owner and are cleared on owner change.
+There are no automatic delivery retries. If creation has an unknown outcome,
+further creation in that slot is suppressed for that owner rather than risking
+duplicate retained rows. A lost bus connection ends delivery for that runtime;
+in-app errors remain available. Diagnostics for delivery failure are static and
+rate-limited. Oversized or credential-shaped text is refused; notification body
+markup is escaped when supported, otherwise stripped.
+
+Sources: the [freedesktop notification protocol](https://specifications.freedesktop.org/notification/latest/protocol.html)
+defines Notify, replacement IDs, expiration and close signals;
+[`Notifications.permission`](https://github.com/sailfishos/sailjail-permissions/blob/master/permissions/Notifications.permission)
+grants service access under Sailjail and is included automatically by
+[`Base.permission`](https://github.com/sailfishos/sailjail-permissions/blob/master/permissions/Base.permission).
+Notifications is therefore not an explicit desktop-file permission (Harbour
+rejects that declaration). Nemo's
+[`notification.cpp`](https://github.com/sailfishos/nemo-qml-plugin-notifications/blob/master/src/notification.cpp)
+uses `x-nemo-owner` for application ownership and does not close a notification
+when its wrapper is destroyed. PlexFreq uses `harbour-plexfreq` for that hint.
 
 ## 9. UI adapter
 

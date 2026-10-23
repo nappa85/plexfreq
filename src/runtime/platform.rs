@@ -1455,6 +1455,7 @@ mod review_tests {
 #[cfg(test)]
 #[test]
 fn test_environment_is_isolated_from_host_audio() {
+    let _serial = crate::mutex_lock(&BUS_ENV);
     if std::env::var_os("PLEXFREQ_TEST_ISOLATED").is_none() {
         return;
     }

@@ -1,5 +1,6 @@
 {
   "bg": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Радиото не можа да се обнови. Изтеглените песни може да се повтарят.",
     "%1 MiB audio cache used": "%1 · MiB · Звук · Кеш · Използвано",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -374,6 +375,7 @@
     "☆ Add to favorites": "☆ · Добавяне · Любими"
   },
   "bn": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "রেডিও আপডেট করা যায়নি। ডাউনলোড করা গানগুলি আবার বাজতে পারে।",
     "%1 MiB audio cache used": "%1 · MiB · অডিও · ক্যাশ · ব্যবহৃত",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -748,6 +750,7 @@
     "☆ Add to favorites": "☆ · যোগ করুন · পছন্দের"
   },
   "cs": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Rádio se nepodařilo obnovit. Stažené skladby se mohou opakovat.",
     "%1 MiB audio cache used": "%1 · MiB · Zvuk · Mezipaměť · Použito",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -1122,6 +1125,7 @@
     "☆ Add to favorites": "☆ · Přidat · Oblíbené"
   },
   "da": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radioen kunne ikke opdateres. Downloadede numre kan blive gentaget.",
     "%1 MiB audio cache used": "%1 · MiB · Lyd · Cache · Brugt",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -1496,6 +1500,7 @@
     "☆ Add to favorites": "☆ · Tilføj · Favoritter"
   },
   "de": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Das Radio konnte nicht aktualisiert werden. Heruntergeladene Titel können sich wiederholen.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Cache · Verwendet",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -1870,6 +1875,7 @@
     "☆ Add to favorites": "☆ · Hinzufügen · Favoriten"
   },
   "el": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Δεν ήταν δυνατή η ανανέωση του ραδιοφώνου. Τα ληφθέντα κομμάτια ενδέχεται να επαναληφθούν.",
     "%1 MiB audio cache used": "%1 · MiB · Ήχος · Προσωρινή μνήμη · Χρησιμοποιήθηκε",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -2244,6 +2250,7 @@
     "☆ Add to favorites": "☆ · Προσθήκη · Αγαπημένα"
   },
   "es": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "No se pudo actualizar la radio. Las canciones descargadas pueden repetirse.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Caché · Usado",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -2618,6 +2625,7 @@
     "☆ Add to favorites": "☆ · Añadir · Favoritos"
   },
   "et": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Raadiot ei saanud värskendada. Allalaaditud lood võivad korduda.",
     "%1 MiB audio cache used": "%1 · MiB · Heli · Vahemälu · Kasutatud",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -2992,6 +3000,7 @@
     "☆ Add to favorites": "☆ · Lisa · Lemmikud"
   },
   "fi": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radion päivittäminen epäonnistui. Ladatut kappaleet saattavat toistua.",
     "%1 MiB audio cache used": "%1 · MiB · Ääni · Välimuisti · Käytetty",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -3366,6 +3375,7 @@
     "☆ Add to favorites": "☆ · Lisää · Suosikit"
   },
   "fr": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "La radio n’a pas pu être actualisée. Les morceaux téléchargés peuvent se répéter.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Cache · Utilisé",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -3740,6 +3750,7 @@
     "☆ Add to favorites": "☆ · Ajouter · Favoris"
   },
   "gu": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "રેડિયો અપડેટ થઈ શક્યો નહીં. ડાઉનલોડ કરેલાં ગીતો ફરી વાગી શકે છે.",
     "%1 MiB audio cache used": "%1 · MiB · ઑડિયો · કૅશ · વપરાયેલું",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -4114,6 +4125,7 @@
     "☆ Add to favorites": "☆ · ઉમેરો · મનપસંદ"
   },
   "hi": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "रेडियो अपडेट नहीं हो सका। डाउनलोड किए गए गाने दोबारा बज सकते हैं।",
     "%1 MiB audio cache used": "%1 · MiB · ऑडियो · कैश · प्रयुक्त",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -4488,6 +4500,7 @@
     "☆ Add to favorites": "☆ · जोड़ें · पसंदीदा"
   },
   "hu": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "A rádió nem frissíthető. A letöltött számok ismétlődhetnek.",
     "%1 MiB audio cache used": "%1 · MiB · Hang · Gyorsítótár · Használva",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -4862,6 +4875,7 @@
     "☆ Add to favorites": "☆ · Hozzáadás · Kedvencek"
   },
   "it": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Impossibile aggiornare la radio. I brani scaricati potrebbero ripetersi.",
     "%1 MiB audio cache used": "%1 MiB di cache audio utilizzati",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 giorni",
@@ -5236,6 +5250,7 @@
     "☆ Add to favorites": "☆ Aggiungi ai preferiti"
   },
   "kn": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "ರೇಡಿಯೊ ನವೀಕರಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಹಾಡುಗಳು ಪುನರಾವರ್ತಿಸಬಹುದು.",
     "%1 MiB audio cache used": "%1 · MiB · ಆಡಿಯೋ · ಸಂಗ್ರಹ · ಬಳಸಲಾಗಿದೆ",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -5610,6 +5625,7 @@
     "☆ Add to favorites": "☆ · ಸೇರಿಸು · ಮೆಚ್ಚಿನವು"
   },
   "lt": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Nepavyko atnaujinti radijo. Atsisiųsti kūriniai gali kartotis.",
     "%1 MiB audio cache used": "%1 · MiB · Garsas · Podėlis · Panaudota",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -5984,6 +6000,7 @@
     "☆ Add to favorites": "☆ · Pridėti · Mėgstami"
   },
   "lv": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Neizdevās atjaunināt radio. Lejupielādētie ieraksti var atkārtoties.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Kešatmiņa · Izmantots",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -6358,6 +6375,7 @@
     "☆ Add to favorites": "☆ · Pievienot · Izlase"
   },
   "ml": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "റേഡിയോ പുതുക്കാനായില്ല. ഡൗൺലോഡ് ചെയ്ത ഗാനങ്ങൾ ആവർത്തിച്ചേക്കാം.",
     "%1 MiB audio cache used": "%1 · MiB · ഓഡിയോ · കാഷെ · ഉപയോഗിച്ചത്",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -6732,6 +6750,7 @@
     "☆ Add to favorites": "☆ · ചേർക്കുക · പ്രിയപ്പെട്ടവ"
   },
   "mr": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "रेडिओ अपडेट करता आला नाही. डाउनलोड केलेली गाणी पुन्हा वाजू शकतात.",
     "%1 MiB audio cache used": "%1 · MiB · ऑडिओ · कॅश · वापरलेले",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -7106,6 +7125,7 @@
     "☆ Add to favorites": "☆ · जोडा · आवडते"
   },
   "nb": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radioen kunne ikke oppdateres. Nedlastede spor kan bli gjentatt.",
     "%1 MiB audio cache used": "%1 · MiB · Lyd · Cache · Brukt",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -7480,6 +7500,7 @@
     "☆ Add to favorites": "☆ · Legg til · Favoritter"
   },
   "nl": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "De radio kon niet worden vernieuwd. Gedownloade nummers kunnen worden herhaald.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Cache · Gebruikt",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -7854,6 +7875,7 @@
     "☆ Add to favorites": "☆ · Toevoegen · Favorieten"
   },
   "pa": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "ਰੇਡੀਓ ਅੱਪਡੇਟ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਡਾਊਨਲੋਡ ਕੀਤੇ ਗੀਤ ਦੁਬਾਰਾ ਵੱਜ ਸਕਦੇ ਹਨ।",
     "%1 MiB audio cache used": "%1 · MiB · ਆਡੀਓ · ਕੈਸ਼ · ਵਰਤਿਆ",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -8228,6 +8250,7 @@
     "☆ Add to favorites": "☆ · ਸ਼ਾਮਲ ਕਰੋ · ਪਸੰਦੀਦਾ"
   },
   "pl": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Nie udało się odświeżyć radia. Pobrane utwory mogą się powtarzać.",
     "%1 MiB audio cache used": "%1 · MiB · Dźwięk · Pamięć podręczna · Użyte",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -8602,6 +8625,7 @@
     "☆ Add to favorites": "☆ · Dodaj · Ulubione"
   },
   "pt": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Não foi possível atualizar a rádio. As faixas transferidas podem repetir-se.",
     "%1 MiB audio cache used": "%1 · MiB · Áudio · Cache · Utilizado",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -8976,6 +9000,7 @@
     "☆ Add to favorites": "☆ · Adicionar · Favoritos"
   },
   "pt_BR": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Não foi possível atualizar a rádio. As faixas baixadas podem se repetir.",
     "%1 MiB audio cache used": "%1 · MiB · Áudio · Cache · Usado",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -9350,6 +9375,7 @@
     "☆ Add to favorites": "☆ · Adicionar · Favoritos"
   },
   "ro": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radioul nu a putut fi actualizat. Piesele descărcate se pot repeta.",
     "%1 MiB audio cache used": "%1 · MiB · Audio · Cache · Utilizat",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -9724,6 +9750,7 @@
     "☆ Add to favorites": "☆ · Adaugă · Favorite"
   },
   "ru": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Не удалось обновить радио. Скачанные композиции могут повторяться.",
     "%1 MiB audio cache used": "%1 · MiB · Звук · Кэш · Использовано",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -10098,6 +10125,7 @@
     "☆ Add to favorites": "☆ · Добавить · Избранное"
   },
   "sk": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Rádio sa nepodarilo obnoviť. Stiahnuté skladby sa môžu opakovať.",
     "%1 MiB audio cache used": "%1 · MiB · Zvuk · Vyrovnávacia pamäť · Použité",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -10472,6 +10500,7 @@
     "☆ Add to favorites": "☆ · Pridať · Obľúbené"
   },
   "sl": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radia ni bilo mogoče osvežiti. Prenesene skladbe se lahko ponavljajo.",
     "%1 MiB audio cache used": "%1 · MiB · Zvok · Predpomnilnik · Uporabljeno",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -10846,6 +10875,7 @@
     "☆ Add to favorites": "☆ · Dodaj · Priljubljeno"
   },
   "sv": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radion kunde inte uppdateras. Nedladdade låtar kan upprepas.",
     "%1 MiB audio cache used": "%1 · MiB · Ljud · Cache · Använt",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -11220,6 +11250,7 @@
     "☆ Add to favorites": "☆ · Lägg till · Favoriter"
   },
   "ta": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "வானொலியைப் புதுப்பிக்க முடியவில்லை. பதிவிறக்கிய பாடல்கள் மீண்டும் ஒலிக்கலாம்.",
     "%1 MiB audio cache used": "%1 · MiB · ஒலி · தற்காலிகச் சேமிப்பு · பயன்படுத்தப்பட்டது",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -11594,6 +11625,7 @@
     "☆ Add to favorites": "☆ · சேர் · விருப்பமானவை"
   },
   "te": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "రేడియోను నవీకరించలేకపోయింది. డౌన్‌లోడ్ చేసిన పాటలు మళ్లీ వినిపించవచ్చు.",
     "%1 MiB audio cache used": "%1 · MiB · ఆడియో · కాష్ · వాడినది",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -11968,6 +12000,7 @@
     "☆ Add to favorites": "☆ · చేర్చు · ఇష్టమైనవి"
   },
   "tr": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Radyo yenilenemedi. İndirilen parçalar tekrarlanabilir.",
     "%1 MiB audio cache used": "%1 · MiB · Ses · Önbellek · Kullanıldı",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -12342,6 +12375,7 @@
     "☆ Add to favorites": "☆ · Ekle · Favoriler"
   },
   "tt": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Радионы яңартып булмады. Йөкләп алынган җырлар кабатланырга мөмкин.",
     "%1 MiB audio cache used": "%1 · MiB · Тавыш · Кэш · Кулланылган",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -12716,6 +12750,7 @@
     "☆ Add to favorites": "☆ · Өстәү · Яратканнар"
   },
   "uk": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Не вдалося оновити радіо. Завантажені композиції можуть повторюватися.",
     "%1 MiB audio cache used": "%1 · MiB · Звук · Кеш · Використано",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -13090,6 +13125,7 @@
     "☆ Add to favorites": "☆ · Додати · Улюблене"
   },
   "vi": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "Không thể làm mới radio. Các bài hát đã tải xuống có thể lặp lại.",
     "%1 MiB audio cache used": "%1 · MiB · Âm thanh · Bộ nhớ đệm · Đã dùng",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -13464,6 +13500,7 @@
     "☆ Add to favorites": "☆ · Thêm · Yêu thích"
   },
   "zh_CN": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "无法刷新电台。已下载的曲目可能会重复播放。",
     "%1 MiB audio cache used": "%1 · MiB · 音频 · 缓存 · 已使用",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -13838,6 +13875,7 @@
     "☆ Add to favorites": "☆ · 添加 · 收藏"
   },
   "zh_HK": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "無法更新電台。已下載的歌曲可能會重複播放。",
     "%1 MiB audio cache used": "%1 · MiB · 音訊 · 快取 · 已使用",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",
@@ -14212,6 +14250,7 @@
     "☆ Add to favorites": "☆ · 加入 · 收藏"
   },
   "zh_TW": {
+    "Radio could not refresh. Downloaded tracks may repeat.": "無法更新電台。已下載的曲目可能會重複播放。",
     "%1 MiB audio cache used": "%1 · MiB · 音訊 · 快取 · 已使用",
     "%1 dB": "%1 · dB",
     "%1 days": "%1 · d",

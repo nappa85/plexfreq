@@ -1,4 +1,5 @@
 //! Rust owns worker lifetime, audio transport and maintenance; Qt only polls events.
+mod notifications;
 mod platform;
 mod pulse;
 use crate::{
@@ -459,10 +460,33 @@ impl Shared {
         }
     }
 }
+/// Keep the presentation exclusion atomic with both Core and prepared debt
+/// mutation. Used for spawn failure and channel death alike.
+fn failed_refill(
+    core: &mut Core,
+    shared: &Shared,
+    identity: &crate::RefillIdentity,
+    prepared: &mut Option<(u64, Prepared)>,
+) {
+    let presented = crate::mutex_lock(&shared.presented);
+    let shown = prepared
+        .as_ref()
+        .is_some_and(|(id, _)| presented.shown == *id);
+    // Pin the check/mutation exclusion in fixtures: an early unlock would let
+    // poll publish the successor using debt that we are about to abandon.
+    #[cfg(test)]
+    assert!(matches!(
+        shared.presented.try_lock(),
+        Err(std::sync::TryLockError::WouldBlock)
+    ));
+    core.refill_worker_failed(identity, prepared.as_mut().map(|(_, next)| next), shown);
+}
+
 pub struct Runtime {
     shared: Shared,
     events: mpsc::Receiver<Outgoing>,
     worker: Option<thread::JoinHandle<()>>,
+    notifications: notifications::Notifications,
 }
 impl Runtime {
     pub fn new(directory: PathBuf) -> Result<Self> {
@@ -491,10 +515,15 @@ impl Runtime {
             shared,
             events: output,
             worker: Some(worker),
+            notifications: notifications::Notifications::new(),
         })
     }
     pub fn submit(&self, request: Value) -> Result<Value> {
         self.shared.send(request)
+    }
+    /// Localized presentation text from the Qt translation adapter only.
+    pub(crate) fn notify(&self, radio: bool, text: &str) {
+        self.notifications.send(radio, text);
     }
     /// The artwork source shared with the image provider.
     pub(crate) fn artwork(&self) -> Arc<crate::artwork::Source> {
@@ -757,7 +786,7 @@ fn worker(
     let mut prepared: Option<(u64, Prepared)> = None;
     let mut retry_prepare = false;
     // The radio refill in flight off the worker, if any.
-    let mut refill: Option<mpsc::Receiver<crate::RefillFetched>> = None;
+    let mut refill: Option<(crate::RefillIdentity, mpsc::Receiver<crate::RefillFetched>)> = None;
     let mut maintenance = Instant::now();
     let mut cache_tick = Instant::now();
     let mut history_tick = Instant::now();
@@ -805,6 +834,9 @@ fn worker(
         // bookkeeping) costs that iteration only: Core is rebuilt from its
         // persisted state, as for a panicking request.
         let flow = catch_unwind(AssertUnwindSafe(|| -> Flow {
+            if core.take_radio_warning() {
+                let _ = events.send(json!({"kind":"radio_warning"}).into());
+            }
             #[cfg(test)]
             crate::test_hooks::check(&directory, "iteration");
             // Background health: apply finished probes, start new ones for fresh
@@ -948,7 +980,7 @@ fn worker(
             // A radio refill owed by a move that did not wait for it is fetched
             // off the worker and applied here, between messages. It only
             // appends, so queued commands keep their indices.
-            if let Some(receiver) = &refill {
+            if let Some((identity, receiver)) = &refill {
                 match receiver.try_recv() {
                     Ok(fetched) => {
                         refill = None;
@@ -985,13 +1017,14 @@ fn worker(
                     Err(mpsc::TryRecvError::Empty) => {}
                     // The fetch thread died: drop the debt, the next move refills.
                     Err(mpsc::TryRecvError::Disconnected) => {
+                        failed_refill(&mut core, &shared, identity, &mut prepared);
                         refill = None;
-                        core.refill_abandon(prepared.as_mut().map(|(_, next)| next));
                     }
                 }
             }
             if refill.is_none() {
                 if let Some(job) = core.refill_job() {
+                    let identity = job.request.identity.clone();
                     let (sender, receiver) = mpsc::channel();
                     let spawned = std::thread::Builder::new()
                         .name("plexfreq-radio".into())
@@ -999,12 +1032,12 @@ fn worker(
                             let _ = sender.send(job.fetch());
                         });
                     match spawned {
-                        Ok(_) => refill = Some(receiver),
+                        Ok(_) => refill = Some((identity, receiver)),
                         Err(error) => {
                             crate::diagnostics::event(format_args!(
                                 "radio refill thread failed: {error}"
                             ));
-                            core.refill_abandon(prepared.as_mut().map(|(_, next)| next));
+                            failed_refill(&mut core, &shared, &identity, &mut prepared);
                         }
                     }
                 }
@@ -2676,6 +2709,7 @@ mod tests {
             shared: Shared::new(requests, json!({})),
             events: output,
             worker: None,
+            notifications: notifications::Notifications::new(),
         };
         runtime.shared.view.store(1, Ordering::SeqCst);
         events

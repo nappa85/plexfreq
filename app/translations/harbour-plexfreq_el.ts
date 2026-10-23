@@ -180,6 +180,10 @@
   <context>
     <name>Core</name>
     <message>
+      <source>Radio could not refresh. Downloaded tracks may repeat.</source>
+      <translation>Δεν ήταν δυνατή η ανανέωση του ραδιοφώνου. Τα ληφθέντα κομμάτια ενδέχεται να επαναληφθούν.</translation>
+    </message>
+    <message>
       <source>Plex returned HTTP %1</source>
       <translation>Plex · HTTP · %1 · Αποτυχία</translation>
     </message>

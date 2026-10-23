@@ -207,3 +207,182 @@ fn an_abandoned_refill_stays_abandoned_after_the_prepared_commit() {
     core.commit_prepared(prepared).unwrap();
     assert!(core.refill_job().is_none());
 }
+
+#[test]
+fn refresh_warning_is_observational_and_survives_discarded_preparation() {
+    let server = server(|_| ("500 Internal Server Error", String::new()));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 2, &[1, 2, 3]);
+    let prepared = core.prepare_next().unwrap().unwrap();
+    assert_eq!(core.current_key(), Some("3"));
+    assert_eq!(prepared.key(), Some("1"));
+    assert!(core.take_radio_warning(), "the real refresh request failed");
+    assert!(!core.take_radio_warning());
+    drop(prepared);
+    let plan = core.execute(Command::Next { automatic: false }).unwrap();
+    assert_eq!(plan["track"]["ratingKey"], "1");
+    assert_eq!(core.queue.items().len(), 3);
+    assert!(core.take_radio_warning());
+    assert!(plan.get("radio_warning").is_none());
+}
+
+#[test]
+fn accepted_failed_refill_warns_but_stale_and_explicit_offline_do_not() {
+    let server = server(|_| ("500 Internal Server Error", String::new()));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 4, 0, &[1, 2, 3, 4]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let stale = core.refill_job().unwrap().fetch();
+    core.execute(Command::Next { automatic: false }).unwrap();
+    core.refill_landed(stale, None);
+    assert!(!core.take_radio_warning());
+    let failed = core.refill_job().unwrap().fetch();
+    core.refill_landed(failed, None);
+    assert!(core.take_radio_warning());
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let failed = core.refill_job().unwrap().fetch();
+    core.offline_mode = true;
+    core.refill_landed(failed, None);
+    assert!(!core.take_radio_warning());
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert!(!core.take_radio_warning());
+    core.offline_mode = false;
+    core.warn_radio();
+    core.offline_mode = true;
+    assert!(
+        !core.take_radio_warning(),
+        "offline discards pending warnings too"
+    );
+}
+
+#[test]
+fn empty_and_duplicate_station_results_warn_without_changing_success() {
+    for additions in [vec![], vec![1, 2, 3], vec![4]] {
+        let fresh = additions == [4];
+        let server = server(move |_| ("200 OK", station_json(&additions)));
+        let dir = tempfile::tempdir().unwrap();
+        let mut core = station(dir.path(), &server, 3, 0, &[]);
+        let plan = core.execute(Command::Next { automatic: false }).unwrap();
+        assert_eq!(plan["track"]["ratingKey"], "2");
+        assert_eq!(core.queue.items().len(), if fresh { 4 } else { 3 });
+        assert_eq!(pending(&core), 0);
+        assert_eq!(core.take_radio_warning(), !fresh);
+    }
+}
+
+#[test]
+fn lost_refill_worker_cannot_warn_or_abandon_a_new_state() {
+    let server = server(|_| ("200 OK", station_json(&[5])));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 4, 0, &[2, 3, 4]);
+    core.execute(Command::Next { automatic: false }).unwrap();
+    let old = core.refill_job().unwrap().request.identity;
+    core.execute(Command::Next { automatic: false }).unwrap();
+    core.refill_worker_failed(&old, None, false);
+    assert_eq!(pending(&core), 2);
+    assert!(!core.take_radio_warning());
+    let current = core.refill_identity().unwrap();
+    core.refill_worker_failed(&current, None, true);
+    assert_eq!(pending(&core), 2);
+    assert!(
+        !core.take_radio_warning(),
+        "poll already published the successor"
+    );
+    let mut rebuilt = Core::inspect(dir.path().into()).unwrap();
+    rebuilt.refill_worker_failed(&current, None, false);
+    assert_eq!(pending(&rebuilt), 2);
+    assert!(
+        !rebuilt.take_radio_warning(),
+        "Core rebuild invalidates workers"
+    );
+    core.refill_worker_failed(&current, None, false);
+    assert_eq!(pending(&core), 0);
+    assert!(core.take_radio_warning());
+}
+
+#[test]
+fn known_disconnection_warns_but_deliberate_offline_does_not() {
+    let server = server(|_| panic!("disconnected radio must not request the server"));
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = station(dir.path(), &server, 3, 2, &[1, 2, 3]);
+    core.network_known = true;
+    core.network_online = false;
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert!(core.take_radio_warning());
+    core.offline_mode = true;
+    core.execute(Command::Next { automatic: false }).unwrap();
+    assert!(!core.take_radio_warning());
+}
+
+#[test]
+fn sonic_cached_response_and_nested_album_fallback_warn_only_during_refill() {
+    use crate::{
+        model::{Container, ItemKind},
+        radio_health_tests::item,
+        Error,
+    };
+    for album in [false, true] {
+        let server = server(|_| ("500 Internal Server Error", String::new()));
+        let dir = tempfile::tempdir().unwrap();
+        let mut core = station(dir.path(), &server, 3, 0, &[]);
+        let mut seed = item(1);
+        let mut next = item(4);
+        if album {
+            seed.kind = ItemKind::Album;
+            next.kind = ItemKind::Album;
+        }
+        core.radio = Some(Radio::new(
+            if album {
+                RadioKind::Album
+            } else {
+                RadioKind::Track
+            },
+            "Fixture".into(),
+            Source::Sonic {
+                seed: Box::new(seed),
+                recent: vec![],
+            },
+        ));
+        let request = core.refill_request().unwrap();
+        let neighbors = Container {
+            items: vec![next],
+            ..Default::default()
+        };
+        core.library.save(
+            &core.cache_namespace(),
+            &request.path,
+            &request.params,
+            &neighbors,
+        );
+        if album {
+            // The nearest request succeeds, but expansion fails and uses cache.
+            let children = Container {
+                items: vec![item(4)],
+                ..Default::default()
+            };
+            core.library.save(
+                &core.cache_namespace(),
+                "/library/metadata/4/children",
+                &[
+                    ("X-Plex-Container-Start", "0".into()),
+                    ("X-Plex-Container-Size", "100".into()),
+                ],
+                &children,
+            );
+        }
+        core.cached_response(&request.path, &request.params, Err(Error::Network))
+            .unwrap();
+        assert!(
+            !core.take_radio_warning(),
+            "ordinary browsing fallback is not radio failure"
+        );
+        let fetched = if album {
+            Ok(neighbors)
+        } else {
+            Err(Error::Network)
+        };
+        let added = core.refill_apply(&request, fetched).unwrap();
+        assert!(!added.is_empty());
+        assert!(core.take_radio_warning());
+    }
+}
