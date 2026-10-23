@@ -1,5 +1,5 @@
 Name: plexfreq-backend-test
-Version: 0.1.8
+Version: 0.1.9
 Release: 1
 Summary: Local PlexFreq native audio integration fixture
 License: GPLv3+
@@ -33,6 +33,8 @@ strip --strip-unneeded plexfreq-backend-test
 %{_bindir}/%{name}
 
 %changelog
+* Fri Oct 23 2026 PlexFreq contributors - 0.1.9-1
+- Translated error and radio warning notification regression coverage
 * Thu Oct 22 2026 PlexFreq contributors - 0.1.8-1
 - Artwork provider and download status regression coverage
 * Mon Oct 19 2026 PlexFreq contributors - 0.1.7-1

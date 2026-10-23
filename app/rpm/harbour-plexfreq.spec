@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.8
+Version: 0.1.9
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,8 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Fri Oct 23 2026 PlexFreq contributors - 0.1.9-1
+- Retain application errors and radio refresh warnings in silent system notifications
 * Thu Oct 22 2026 PlexFreq contributors - 0.1.8-1
 - Next during a radio no longer waits for the server when the next track is downloaded
 - Send less metadata over Bluetooth, keeping the car's position in sync
