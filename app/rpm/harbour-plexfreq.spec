@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.9
+Version: 0.1.10
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,12 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Sat Nov 07 2026 PlexFreq contributors - 0.1.10-1
+- Recently added and other home sections open again
+- A saved library no longer leaves the app stuck offline; search uses downloaded music while the server is unreachable
+- Titles and names with Latin-1 characters display correctly
+- Playback pauses with a notification when the audio output stops accepting sound
+- Proper translations in all 39 languages
 * Fri Oct 23 2026 PlexFreq contributors - 0.1.9-1
 - Retain application errors and radio refresh warnings in silent system notifications
 * Thu Oct 22 2026 PlexFreq contributors - 0.1.8-1
