@@ -188,7 +188,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
+      <source>Unexpected Plex response (%1)</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -241,6 +241,10 @@
     </message>
     <message>
       <source>Audio output is unavailable</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -544,6 +548,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
       <translation type="unfinished" />
     </message>
@@ -700,6 +708,14 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>browser sign-in creation</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>cache track metadata</source>
       <translation type="unfinished" />
     </message>
@@ -724,7 +740,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>lyrics text</source>
+      <source>playlist creation</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -744,6 +760,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>radio queue creation</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>radio queue identity</source>
       <translation type="unfinished" />
     </message>
@@ -757,6 +777,10 @@
     </message>
     <message>
       <source>server discovery</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>server library request</source>
       <translation type="unfinished" />
     </message>
     <message>

@@ -11,75 +11,75 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Ajustes de audio</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Calidad de streaming</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Audio</translation>
+      <translation>Audio con Wi-Fi</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Red · Audio</translation>
+      <translation>Audio con datos móviles</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Descargas · Audio</translation>
+      <translation>Audio de descargas</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Decodificador · Reintentar</translation>
+      <translation>Transcodificación de Plex de respaldo</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Audio · Ajustes · Siguiente · Pistas · Descargas · Listo · Audio</translation>
+      <translation>Los cambios se aplican a las siguientes canciones y descargas. Se prefiere el audio local ya descargado.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Audio · Sin pausas · PCM · Salida</translation>
+      <translation>Motor de audio Rust · salida PCM sin pausas</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Segundos</translation>
+      <translation>%1 segundos</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Desactivado</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Fundido cruzado</translation>
+      <translation>Fundido</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalización</translation>
+      <translation>Normalizar el volumen</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Pista · Normalización</translation>
+      <translation>Ganancia por canción</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Álbumes · Normalización</translation>
+      <translation>Ganancia por álbum</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Reproducción automática · Normalización</translation>
+      <translation>Ganancia automática</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Audio · Volumen · Intervalo</translation>
+      <translation>Margen dinámico</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metadatos · Normalización · Álbumes · Sin pausas · Fundido cruzado · off</translation>
+      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,86 +87,86 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Restablecer · Ecualizador</translation>
+      <translation>Restablecer ecualizador</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Ajustes de audio</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Calidad de streaming</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Audio</translation>
+      <translation>Audio con Wi-Fi</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Red · Audio</translation>
+      <translation>Audio con datos móviles</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Descargas · Audio</translation>
+      <translation>Audio de descargas</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Decodificador · Reintentar</translation>
+      <translation>Transcodificación de Plex de respaldo</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Audio · Ajustes · Siguiente · Pistas · Descargas · Listo · Audio</translation>
+      <translation>Los cambios se aplican a las siguientes canciones y descargas. Se prefiere el audio local ya descargado.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Audio · Sin pausas · PCM · Salida</translation>
+      <translation>Motor de audio Rust · salida PCM sin pausas</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Fundido cruzado</translation>
+      <translation>Fundido</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Segundos</translation>
+      <translation>%1 segundos</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Desactivado</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalización</translation>
+      <translation>Normalizar el volumen</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>Normalización · Ajustes</translation>
+      <translation>Modo de normalización</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Álbumes · Normalización</translation>
+      <translation>Ganancia por álbum</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Reproducción automática · Normalización</translation>
+      <translation>Ganancia automática</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Pista · Normalización</translation>
+      <translation>Ganancia por canción</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Audio · Volumen · Intervalo</translation>
+      <translation>Margen dinámico</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metadatos · Normalización · Álbumes · Sin pausas · Fundido cruzado · off</translation>
+      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,601 +174,625 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Restablecer · Ecualizador</translation>
+      <translation>Restablecer ecualizador</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>No se pudo actualizar la radio. Las canciones descargadas pueden repetirse.</translation>
+      <translation>No se ha podido actualizar la radio. Las canciones descargadas pueden repetirse.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · Error</translation>
+      <translation>Plex ha devuelto HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · Datos · No válido · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>Respuesta de Plex inesperada (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>Añadir · Pistas · Álbumes · Lista de reproducción</translation>
+      <translation>Añade canciones o álbumes a una playlist</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>Añadir · Subir · 1000 · Pistas</translation>
+      <translation>Añade hasta 1000 canciones a la vez</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>Artista · Álbum · Metadatos · No disponible</translation>
+      <translation>Los detalles del artista o del álbum no están disponibles</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>Fotos · Límite · Tamaño</translation>
+      <translation>La portada supera el tamaño máximo</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>Audio · Caché · Actual · Usado · PlexFreq</translation>
+      <translation>Otra instancia de PlexFreq ya está usando la caché de audio</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>Audio · Servidor · Recibido · Intervalo</translation>
+      <translation>El audio ha cambiado o el servidor ha devuelto un rango de bytes incorrecto; reintentando desde el principio</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Audio · Cola · No disponible</translation>
+      <translation>La cola de comandos de audio no está disponible</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>Audio · Decodificador · Error</translation>
+      <translation>Error al decodificar o transmitir el audio</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>Audio · Descargas · Incompleto · Esperando · Reanudar</translation>
+      <translation>Descarga de audio incompleta; esperando para reanudar</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>Audio · Iniciar</translation>
+      <translation>Iniciando el motor de audio</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>Audio · Límite · Caché</translation>
+      <translation>El archivo de audio supera el límite de la caché</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>Audio · Salida · Error</translation>
+      <translation>Error en la salida de audio</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>Audio · Salida · No disponible</translation>
+      <translation>La salida de audio no está disponible</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>La salida de audio ha dejado de responder; vuelve a conectar el dispositivo de audio y pulsa Reproducir</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>Audio · Reproducir · Error</translation>
+      <translation>Error en la reproducción de audio</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>Audio · Datos · Límite · Tamaño</translation>
+      <translation>La respuesta de audio supera el tamaño declarado</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Audio · Volumen · Error</translation>
+      <translation>Error al saltar a otra posición del audio</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>Audio · Ajustes · Intervalo</translation>
+      <translation>Los ajustes de audio superan el rango admitido</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>Audio · Error</translation>
+      <translation>Error en el streaming de audio</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Audio · Cola · No disponible</translation>
+      <translation>La cola de comandos del motor no está disponible</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>Audio · Error</translation>
+      <translation>Error interno del motor</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>Audio · No disponible</translation>
+      <translation>Motor no disponible</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Caché · Límite · Vaciar · Audio</translation>
+      <translation>La caché está llena; aumenta su límite o vacía el audio en caché</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>Caché · Límite · 64–8192 · MiB · Siguiente · 0–20 · Pistas</translation>
+      <translation>El límite de caché debe ser de 64–8192 MiB y la anticipación de 0–20 canciones</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Caché · Solicitud · Cancelado</translation>
+      <translation>Solicitud de caché cancelada</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>Caché · Subir · 1000 · Válido · Pistas</translation>
+      <translation>Una solicitud de caché admite como máximo 1000 canciones válidas</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>Caché · No válido · Audio · Datos</translation>
+      <translation>La caché requiere una respuesta de audio sin codificar</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Caché · Proceso · No disponible</translation>
+      <translation>Proceso de caché no disponible</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>Error · Ajustes · Estado</translation>
+      <translation>No se puede leer ni guardar el estado de la aplicación</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Elegir · 1–10 · Artistas · Álbumes · Mezcla</translation>
+      <translation>Elige 1–10 artistas o álbumes para un mix</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>Elegir · 2–8 · Pistas · Similar</translation>
+      <translation>Elige 2–8 canciones para un viaje sónico</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>Elegir · 30–480 · Radio · Descargas</translation>
+      <translation>Elige 30–480 minutos para una descarga de radio</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>Elegir · 7 · 30 · 90 · Historial</translation>
+      <translation>Elige 7, 30, 90 días o todo el historial de escucha</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>Elegir</translation>
+      <translation>Elige un elemento musical</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>Elegir · Lista de reproducción · Pista</translation>
+      <translation>Elige una entrada de la playlist</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>Elegir · Lista de reproducción · Álbum · Radio · Descargas</translation>
+      <translation>Elige una playlist, un álbum o una radio para descargar</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>Elegir · Actualizar · 1 · 6 · 12 · 24</translation>
+      <translation>Elige un intervalo de actualización de 1, 6, 12 o 24 horas</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>Elegir · Pista · Álbum · Lista de reproducción · Mantener sin conexión</translation>
+      <translation>Elige una canción, un álbum o una playlist para mantener sin conexión</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>Elegir · Audio · 64–320</translation>
+      <translation>Elige el audio original o 64–320 kbps</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Elegir · Pistas · Cola · Límite · 10000</translation>
+      <translation>Elige canciones para la cola (máximo 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>Elegir · Pistas · Álbum · Lista de reproducción</translation>
+      <translation>Elige canciones o un álbum para la playlist</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>Elegir · Subir · 1000 · Válido · Pistas · Descargas</translation>
+      <translation>Elige hasta 1000 canciones válidas para descargar</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>Conectar · Plex · Servidor · Iniciar</translation>
+      <translation>Conéctate primero a un servidor Plex</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>Origen diferente · Plex</translation>
+      <translation>Ruta de Plex de otro origen rechazada</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>Descargas · Tipos · Ninguno</translation>
+      <translation>El grupo de descarga ya no existe</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>Descargas · Interrumpido · Reintentar · Conexión</translation>
+      <translation>Descarga interrumpida; se reintentará cuando mejore la conexión</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>Descargas · Límite · 1000 · Pistas</translation>
+      <translation>El plan de descarga supera las 1000 canciones</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>Descargas · Límite · 1000 · Pistas · Dejar de mantener · Iniciar</translation>
+      <translation>El plan de descarga supera las 1000 canciones; deja de mantener sin conexión algunas descargas</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Activar · Audio · Caché · Descargas</translation>
+      <translation>Activa la caché de audio antes de mantener descargas sin conexión</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Activar · Audio · Caché · Conexión · Ajustes · Iniciar</translation>
+      <translation>Activa primero la caché de audio en los ajustes de conexión</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>Lista de reproducción · Subir · 512 · Tamaño</translation>
+      <translation>Introduce un nombre para la playlist (máximo 512 bytes)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>Válido · Identificador · Plex</translation>
+      <translation>Se esperaba un identificador numérico de Plex</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>Válido · Plex</translation>
+      <translation>Se esperaba una ruta de Plex relativa al servidor</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>En línea</translation>
+      <translation>Conectarse</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>En línea · Plex · Listas de reproducción</translation>
+      <translation>Conéctate para editar las playlists de Plex</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>En línea · Actualizar · Descargas</translation>
+      <translation>Conéctate para actualizar las descargas</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>Tipos · Límite · 1000 · Álbumes · Artista</translation>
+      <translation>La agrupación está limitada a 1000 álbumes por artista</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>No válido · URL</translation>
+      <translation>URL no válida</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>No válido · UTF · 8 · Solicitud</translation>
+      <translation>Solicitud UTF-8 no válida</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>No válido · Audio</translation>
+      <translation>Representación de audio no válida</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>No válido · Audio · Origen</translation>
+      <translation>Fuente de audio no válida</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>No válido · Audio · Volumen</translation>
+      <translation>Volumen de audio no válido</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>No válido · Caché · Audio</translation>
+      <translation>Ruta del audio en caché no válida</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>No válido · Identificador</translation>
+      <translation>Identificador de cliente no válido</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>No válido · Buscar</translation>
+      <translation>Diseño de Descubrir no válido</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>No válido · Filtro</translation>
+      <translation>Valores de filtros de música no válidos</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>No válido · Cola · Índice</translation>
+      <translation>Índice de la cola no válido</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>No válido · Cola · Orden</translation>
+      <translation>Orden de la cola no válido</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>No válido · Solicitud · Datos</translation>
+      <translation>Datos de la solicitud no válidos</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>No válido · Descargas · Intervalo</translation>
+      <translation>Rango de la descarga reanudada no válido</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>No válido · Volumen</translation>
+      <translation>Posición de salto no válida</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>No válido · Servidor · Índice</translation>
+      <translation>Índice del servidor no válido</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>Historial · Sincronizar · Leer más</translation>
+      <translation>Hay que sincronizar el historial de escucha antes de registrar más escuchas</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>Iniciar sesión · Caducado · Iniciar</translation>
+      <translation>El inicio de sesión ha caducado; vuelve a empezar</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>Letras · Tamaño · Límite</translation>
+      <translation>La letra supera el tamaño máximo</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>Letras · No disponible · Guardado · Sin conexión</translation>
+      <translation>La letra no se ha guardado sin conexión</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Mezcla · Artistas · Álbumes</translation>
+      <translation>Las bases del mix deben ser artistas o álbumes</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>Red · Solicitud · Error · Comprobar · Conexión · Servidor</translation>
+      <translation>Error en la solicitud de red (comprueba la conexión y la dirección del servidor)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>Siguiente · Pista · Decodificador · Error</translation>
+      <translation>Error al decodificar la siguiente canción</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>Ninguno · Actual · Radio</translation>
+      <translation>No hay ninguna radio activa</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>Ninguno · Artistas · Índice</translation>
+      <translation>No hay artistas con esa letra</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Ninguno · Cola</translation>
+      <translation>La cola está vacía</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
-      <translation>Los datos sin conexión superan su límite de almacenamiento</translation>
+      <translation>Los datos sin conexión superan el límite de almacenamiento</translation>
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>Solo lectura · Audio · Listas de reproducción · Descargado</translation>
+      <translation>Solo se pueden descargar playlists de audio</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>Mantener sin conexión · Subir · 1000 · Reproducir · Pistas</translation>
+      <translation>Mantén sin conexión hasta 1000 canciones reproducibles</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>Lista de reproducción · Elegir · Límite · 1000 · Listas de reproducción</translation>
+      <translation>El selector está limitado a 1000 playlists</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>Lista de reproducción · Solo lectura</translation>
+      <translation>La edición de playlists está desactivada en la inspección de solo lectura</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · Iniciar sesión · Error · Comprobar · Servidor · Token</translation>
+      <translation>Error de autorización de Plex; vuelve a iniciar sesión o comprueba el token del servidor</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · No disponible · Artista · Radio</translation>
+      <translation>Plex no ofrece una emisora de radio para este artista</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex no ha devuelto recomendaciones sónicas para este álbum. Comprueba el ajuste y el progreso del análisis sónico de la biblioteca de música, o usa la radio del artista.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · Recibido · Ninguno · Similar · Pista · Comprobar · Biblioteca · Usado · Artista · Radio</translation>
+      <translation>Plex no ha devuelto recomendaciones sónicas para esta canción. Comprueba el ajuste y el progreso del análisis sónico de la biblioteca de música, o usa la radio del artista.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Cola · Pistas · Válido · Iniciar · Índice</translation>
+      <translation>La cola requiere canciones y un índice de inicio válido</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>Radio · Reproducción automática · Detener · Repetir</translation>
+      <translation>La radio continúa automáticamente; detén la radio para repetir</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>Radio · Ninguno · Leer más · Similar · Mezcla</translation>
+      <translation>La radio no tiene más recomendaciones sónicas; prueba otra base</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>Radio · Orden · Detener · Aleatorio</translation>
+      <translation>La radio mantiene su orden recomendado; detén la radio para reproducir en orden aleatorio</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>Radio · Reproducir · Conexión</translation>
+      <translation>La reproducción de la radio requiere conexión</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Radio · Recibido · Ninguno · Reproducir · Pistas</translation>
+      <translation>La radio no ha devuelto canciones reproducibles</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>Radio · Mezcla · No disponible</translation>
+      <translation>La base de la radio no coincide con el tipo de música seleccionado</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>Audio · Duración · Incoherente</translation>
+      <translation>La duración del audio reanudado no es coherente</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>Descargas · Ninguno · Content-Range</translation>
+      <translation>La descarga reanudada no tiene Content-Range</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Guardado · Cola · No válido</translation>
+      <translation>La cola guardada no es válida</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>Servidor · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>La URL del servidor debe ser un origen HTTP(S), p. ej. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>Servidor · Recibido · Pista</translation>
+      <translation>El servidor ha devuelto contenido que no es audio para esta canción</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>Iniciar sesión · Iniciar</translation>
+      <translation>Inicia sesión primero</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>Inteligente · Lista de reproducción · Filtro · Plex</translation>
+      <translation>El contenido de las playlists inteligentes lo determinan sus filtros de Plex</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>Similar · Límite · 250 · Pistas</translation>
+      <translation>El viaje sónico supera las 250 canciones</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>Iniciar · Iniciar sesión</translation>
+      <translation>Inicia primero el inicio de sesión</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>Álbum · Ninguno · Reproducir · Pistas</translation>
+      <translation>Este álbum no contiene canciones reproducibles</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Artista · Álbum · No disponible · Guardado · Sin conexión</translation>
+      <translation>Este artista o álbum no se ha guardado sin conexión</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>Biblioteca · No disponible · Guardado · Sin conexión</translation>
+      <translation>Esta página de la biblioteca aún no se ha guardado sin conexión</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>Pista · Ninguno · Reproducir · Datos</translation>
+      <translation>Esta canción no tiene ninguna parte multimedia reproducible</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>Pista · No disponible · Descargado</translation>
+      <translation>Esta canción no se ha descargado</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>Pista · Servidor · No disponible</translation>
+      <translation>Esta canción ya no está en el servidor</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Pista · No disponible · Caché · Descargado · Pistas</translation>
+      <translation>Esta canción aún no está completamente en caché; las canciones descargadas siguen disponibles</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>Pista · Duración · Descargas</translation>
+      <translation>Se necesita la duración de las canciones para una descarga por tiempo</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>Pista · Ninguno · Descargas · Datos</translation>
+      <translation>La canción no tiene ninguna parte multimedia descargable</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>No válido · Plex · Datos</translation>
+      <translation>Respuesta de Plex inesperada</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>No válido · Audio</translation>
+      <translation>Comando de audio desconocido</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>No válido · Buscar</translation>
+      <translation>Vista de Descubrir desconocida</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>No válido · Descargas</translation>
+      <translation>Acción de descarga desconocida</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>No válido · Biblioteca · Ordenar</translation>
+      <translation>Orden de la biblioteca desconocido</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>No válido</translation>
+      <translation>Tipo de música desconocido</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>No válido · Sin conexión</translation>
+      <translation>Tipo de música sin conexión desconocido</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>No válido · Reproducir · Estado</translation>
+      <translation>Estado de reproducción desconocido</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>No válido · Lista de reproducción</translation>
+      <translation>Acción de playlist desconocida</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>No válido · Repetir</translation>
+      <translation>Modo de repetición desconocido</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>Álbum · Radio · Pistas</translation>
+      <translation>canciones de la radio del álbum</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>Artista · Artistas · Índice</translation>
+      <translation>índice alfabético de artistas</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>Fotos</translation>
+      <translation>carga de la portada</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>creación del inicio de sesión en el navegador</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>comprobación del inicio de sesión en el navegador</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>Caché · Pista · Metadatos</translation>
+      <translation>metadatos de canciones para la caché</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>Crear · Lista de reproducción</translation>
+      <translation>obtención de la playlist creada</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>Letras</translation>
+      <translation>líneas de la letra</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>Letras</translation>
+      <translation>texto de un fragmento de la letra</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>Letras</translation>
+      <translation>fragmentos de la letra</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>Letras</translation>
+      <translation>JSON de la letra</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>Letras</translation>
+      <source>playlist creation</source>
+      <translation>creación de la playlist</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>Lista de reproducción · Metadatos</translation>
+      <translation>metadatos de la playlist</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>Radio · Descargas · Pistas</translation>
+      <translation>canciones de la radio para descargar</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>Radio · Cola</translation>
+      <translation>posición en la cola de la radio</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>Radio · Cola</translation>
+      <translation>continuación de la cola de la radio</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>creación de la cola de la radio</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>Radio · Cola · Identificador</translation>
+      <translation>identificador de la cola de la radio</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>Radio · Cola · Pistas</translation>
+      <translation>canciones de la cola de la radio</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>Radio · Servidor · Identificador</translation>
+      <translation>identidad del servidor de la radio</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>Servidor · Buscar</translation>
+      <translation>búsqueda de servidores</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>solicitud de bibliotecas del servidor</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>Similar</translation>
+      <translation>creación de la aventura sónica</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Mover · Leer más · Fotos</translation>
+      <translation>Desliza para ver más fotos</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,15 +800,15 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>Reproducir · Pistas</translation>
+      <translation>Reproducir canciones</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>Descargas · Pistas</translation>
+      <translation>Descargar canciones</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Descripción · No disponible · Plex</translation>
+      <translation>Plex no proporciona ninguna descripción.</translation>
     </message>
     <message>
       <source>Read less</source>
@@ -796,19 +820,19 @@
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>Similar · Artistas</translation>
+      <translation>Artistas similares</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>Cargando · Similar · Artistas</translation>
+      <translation>Cargando artistas similares…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>Similar · Artistas · No disponible</translation>
+      <translation>Los artistas similares no están disponibles en este momento.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Similar · Artistas · No disponible · Plex</translation>
+      <translation>Plex no ha devuelto artistas similares.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -816,100 +840,100 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Buscar · Ajustes</translation>
+      <translation>Personalizar Descubrir</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Buscar · Ajustes</translation>
+      <translation>Personalizar Descubrir</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Mover · Subir</translation>
+      <translation>Subir</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Mover · Bajar</translation>
+      <translation>Bajar</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>Descargas · Gestión</translation>
+      <translation>Gestor de descargas</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Reproducción automática · Actualizar · Descargas</translation>
+      <translation>Actualizar automáticamente los planes de descarga</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 horas</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Actualizar · Duración</translation>
+      <translation>Intervalo de actualización</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Actualizar · Descargas · Cargando</translation>
+      <translation>Actualizando planes de descarga…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minutos</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Descargas · Duración</translation>
+      <translation>Duración de las descargas de radio</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Descargas · Solo lectura · Wi-Fi</translation>
+      <translation>Descargar solo con Wi-Fi</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Reanudar · Descargas</translation>
+      <translation>Reanudar descargas</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Pausa · Descargas</translation>
+      <translation>Pausar descargas</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>Descargas · Esperando · Wi-Fi · Audio · Reproducir · En línea</translation>
+      <translation>Esperando Wi-Fi confirmado; el streaming sigue disponible.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Descargas · Esperando · Audio · Cargando</translation>
+      <translation>Las descargas esperan a que el streaming se estabilice</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Audio · Caché · Usado</translation>
+      <translation>%1 MiB de caché de audio en uso</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Sin conexión · Biblioteca · Datos · Guardar · Error · %1</translation>
+      <translation>No se han podido guardar los datos de la biblioteca sin conexión: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Audio · Duración · %1</translation>
+      <translation>Audio previsto: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Pistas · %3 · MiB</translation>
+      <translation>%1/%2 canciones · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Actual · Pista · %1 · MiB · Recibido</translation>
+      <translation>Canción actual: %1 MiB recibidos</translation>
     </message>
     <message>
       <source>Play</source>
@@ -925,141 +949,141 @@
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>Cancelado</translation>
+      <translation>Cancelar plan</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>Quitar</translation>
+      <translation>Eliminar archivos</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Pendiente · Historial · %1</translation>
+      <translation>Historial de escucha pendiente: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>Sincronizar · Historial</translation>
+      <translation>Sincronizar historial</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>Descargas · Gestión</translation>
+      <translation>Gestor de descargas</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Reproducción automática · Actualizar · Descargas</translation>
+      <translation>Actualizar automáticamente los planes de descarga</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Actualizar · Duración</translation>
+      <translation>Intervalo de actualización</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 horas</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Actualizar · Descargas · Cargando</translation>
+      <translation>Actualizando planes de descarga…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Descargas · Duración</translation>
+      <translation>Duración de las descargas de radio</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minutos</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Descargas · Solo lectura · Wi-Fi</translation>
+      <translation>Descargar solo con Wi-Fi</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Reanudar · Descargas</translation>
+      <translation>Reanudar descargas</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Pausa · Descargas</translation>
+      <translation>Pausar descargas</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>Descargas · Esperando · Wi-Fi · Audio · Reproducir · En línea</translation>
+      <translation>Esperando una conexión Wi-Fi confirmada. El streaming sigue disponible.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Descargas · Esperando · Audio · Cargando</translation>
+      <translation>Las descargas esperan a que el streaming se estabilice</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Audio · Caché · Usado</translation>
+      <translation>%1 MiB de caché de audio en uso</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Sin conexión · Biblioteca · Datos · Guardar · Error · %1</translation>
+      <translation>No se han podido guardar los datos de la biblioteca sin conexión: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Pendiente · Historial · %1</translation>
+      <translation>Historial de escucha pendiente: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>Sincronizar · Historial</translation>
+      <translation>Sincronizar historial de escucha</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Audio · Duración · %1</translation>
+      <translation>Audio previsto: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Pistas · %3 · MiB</translation>
+      <translation>%1/%2 canciones · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>Descargando</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Actual · Pista · %1 · MiB · Recibido</translation>
+      <translation>Canción actual: %1 MiB recibidos</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>Reproducir · Descargado · Pistas</translation>
+      <translation>Reproducir canciones descargadas</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>Actualizar · Descargas</translation>
+      <translation>Actualizar plan de descarga</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>Reintentar · Reanudar</translation>
+      <translation>Reintentar/reanudar</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>Cancelado</translation>
+      <translation>Cancelar plan y conservar archivos</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>Quitar · Descargas</translation>
+      <translation>Eliminar descarga</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>Biblioteca · Filtro</translation>
+      <translation>Filtros de la biblioteca</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Inteligente · Listas de reproducción</translation>
+      <translation>Playlist inteligente</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Inteligente · Listas de reproducción · Filtro · Solo lectura</translation>
+      <translation>Este editor no puede representar las reglas de esta playlist inteligente.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lista de reproducción</translation>
+      <translation>Nombre de la playlist</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1071,7 +1095,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>Genre</source>
@@ -1087,27 +1111,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Cualquiera</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Título · Filtro</translation>
+      <translation>El título contiene</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Año · Iniciar</translation>
+      <translation>Desde el año</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Año · Límite</translation>
+      <translation>Hasta el año</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Favoritos · Límite</translation>
+      <translation>Valoración mínima</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Reproducir · Ninguno</translation>
+      <translation>Solo sin escuchar</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1115,30 +1139,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Límite · Pistas</translation>
+      <translation>Máximo de canciones</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>Biblioteca · Filtro</translation>
+      <translation>Filtros de la biblioteca</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Inteligente · Listas de reproducción</translation>
+      <translation>Playlist inteligente</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Inteligente · Listas de reproducción · Filtro · Solo lectura</translation>
+      <translation>Este editor no puede representar las reglas de esta playlist inteligente.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lista de reproducción</translation>
+      <translation>Nombre de la playlist</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Biblioteca</translation>
+      <translation>Explorar</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1150,7 +1174,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>Genre</source>
@@ -1166,27 +1190,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Cualquiera</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Título · Filtro</translation>
+      <translation>El título contiene</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Año · Iniciar</translation>
+      <translation>Desde el año</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Año · Límite</translation>
+      <translation>Hasta el año</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Favoritos · Límite</translation>
+      <translation>Valoración mínima</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Reproducir · Ninguno</translation>
+      <translation>Solo sin escuchar</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1194,30 +1218,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Límite · Pistas</translation>
+      <translation>Máximo de canciones</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historial · Ajustes</translation>
+      <translation>Estadísticas de escucha</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Reproducir · %2 · Historial</translation>
+      <translation>%1 escuchas computadas · %2 de escucha</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historial · local · Reproducir · Metadatos</translation>
+      <translation>Basado en las escuchas computadas localmente desde que empezó el registro de estadísticas.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 días</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historial</translation>
+      <translation>Todo el historial</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1229,42 +1253,42 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Reproducir · %2 · Historial</translation>
+      <translation>%1 escuchas · %2 de escucha</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historial · Ajustes</translation>
+      <translation>Estadísticas de escucha</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Reproducir · %2 · Historial</translation>
+      <translation>%1 escuchas computadas · %2 de escucha</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historial · local · Reproducir · Metadatos</translation>
+      <translation>Basado en las escuchas computadas localmente desde que empezó el registro de estadísticas.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>Duración</translation>
+      <translation>Período</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 días</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historial</translation>
+      <translation>Todo el historial</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Biblioteca</translation>
+      <translation>Explorar</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1276,117 +1300,117 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Reproducir · %2 · Historial</translation>
+      <translation>%1 escuchas · %2 de escucha</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Añadir · Sonic · Origen</translation>
+      <translation>Añadir etapa sónica</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>Inteligente · Filtro · Ajustes</translation>
+      <translation>Editar filtros inteligentes</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Audio · Similar</translation>
+      <translation>Similitud sónica</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>Iniciar · Sonic · Adventure</translation>
+      <translation>Empezar una aventura sónica aquí</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Pista</translation>
+      <translation>Aventura sónica hasta esta canción</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>Descargas · Radio · %1 · min</translation>
+      <translation>Descargar radio · %1 minutos</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>Descargas · %1 · min</translation>
+      <translation>Descargar %1 minutos</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>Reproducir · Siguiente</translation>
+      <translation>Reproducir a continuación</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Añadir · Cola</translation>
+      <translation>Añadir a la cola</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>Añadir · Lista de reproducción</translation>
+      <translation>Añadir a una playlist</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>Crear · Lista de reproducción</translation>
+      <translation>Crear una playlist a partir de esto</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Añadir · Mezcla</translation>
+      <translation>Añadir como base del mix</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Renombrar · Lista de reproducción</translation>
+      <translation>Cambiar nombre de playlist</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>Eliminar · Lista de reproducción</translation>
+      <translation>Eliminar playlist</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>Mover · Lista de reproducción · Subir</translation>
+      <translation>Subir la entrada de la playlist</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>Mover · Lista de reproducción · Bajar</translation>
+      <translation>Bajar la entrada de la playlist</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>Quitar · Lista de reproducción</translation>
+      <translation>Quitar de la playlist</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>Quitar</translation>
+      <translation>Quitar de favoritos</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>Añadir · Favoritos</translation>
+      <translation>Añadir a favoritos</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>Dejar de mantener · Descargas</translation>
+      <translation>Dejar de mantener sin conexión</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>Mantener sin conexión · Sin conexión · Historial</translation>
+      <translation>Mantener para escuchar sin conexión</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Mover · Subir</translation>
+      <translation>Subir</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Mover · Bajar</translation>
+      <translation>Bajar</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Quitar · Cola</translation>
+      <translation>Quitar de la cola</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>Subir · Siguiente</translation>
+      <translation>A continuación</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Sin conexión · Guardado · Biblioteca · Metadatos</translation>
+      <translation>Sin conexión · metadatos guardados de la biblioteca</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Descargas · Esperando · Audio · Cargando</translation>
+      <translation>Las descargas esperan a que el streaming se estabilice</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Caché · Audio</translation>
+      <translation>Guardando audio en caché…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Pistas · Listo · Sin conexión</translation>
+      <translation>%1 canciones disponibles sin conexión</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1426,7 +1450,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1442,11 +1466,11 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Buscar · Artistas · Álbumes · Pistas</translation>
+      <translation>Buscar artistas, álbumes y canciones</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Biblioteca</translation>
+      <translation>Explorar</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1454,15 +1478,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Abrir · Artista</translation>
+      <translation>Abrir artista</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Abrir · Álbum</translation>
+      <translation>Abrir álbum</translation>
     </message>
     <message>
       <source>Track</source>
-      <translation>Pista</translation>
+      <translation>Canción</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Pista · Servidor · No disponible</translation>
+      <translation>Ya no está en el servidor</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Reintentar · Cargando</translation>
+      <translation>Reintentar la carga</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>Ninguno</translation>
+      <translation>No se ha encontrado música</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Conectar · Plex</translation>
+      <translation>Conectar con Plex</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · Conexión · Ajustes</translation>
+      <translation>Usa el menú inferior para los ajustes de conexión</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ninguno · Reproducir</translation>
+      <translation>No se reproduce nada</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Reproducir</translation>
+      <translation>Reproduciendo</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Frecuencia · Buscar</translation>
+      <translation>Encuentra tu frecuencia.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Sin conexión · Guardado · Biblioteca · Metadatos</translation>
+      <translation>Sin conexión · metadatos guardados de la biblioteca</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Descargas · Esperando · Audio · Cargando</translation>
+      <translation>Las descargas esperan a que el streaming se estabilice</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Caché · Audio</translation>
+      <translation>Guardando audio en caché…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Pistas · Listo · Sin conexión</translation>
+      <translation>%1 canciones disponibles sin conexión</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,7 +1549,7 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Buscar · Artistas · Álbumes · Pistas</translation>
+      <translation>Buscar artistas, álbumes y canciones</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1533,7 +1557,7 @@
     </message>
     <message>
       <source>Up next</source>
-      <translation>Subir · Siguiente</translation>
+      <translation>A continuación</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1545,7 +1569,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Abrir · Artista</translation>
+      <translation>Abrir artista</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Abrir · Álbum</translation>
+      <translation>Abrir álbum</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Pista · Servidor · No disponible</translation>
+      <translation>Ya no está en el servidor</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,23 +1601,23 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Reintentar · Cargando</translation>
+      <translation>Reintentar la carga</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>Ninguno</translation>
+      <translation>No se ha encontrado música.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>Conectar · Plex · Servidor · Iniciar · Historial</translation>
+      <translation>Conéctate a tu servidor de música Plex para empezar a escuchar.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Reproducir</translation>
+      <translation>Reproduciendo</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ninguno · Reproducir</translation>
+      <translation>No se reproduce nada</translation>
     </message>
     <message>
       <source>Shuffle</source>
@@ -1601,59 +1625,59 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Repetir: una</translation>
+      <translation>Repetir una canción</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>Repetir: todo</translation>
+      <translation>Repetir todo</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Repetir: no</translation>
+      <translation>Repetición desactivada</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Conectar · Plex</translation>
+      <translation>Conectar con Plex</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>Iniciar sesión · Plex · Navegador</translation>
+      <translation>Iniciar sesión con Plex en el navegador</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>Esperando · Navegador · Iniciar sesión</translation>
+      <translation>Esperando la autorización en el navegador…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>Abrir · Iniciar sesión</translation>
+      <translation>Volver a abrir el inicio de sesión</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Elegir · Plex · Servidor</translation>
+      <translation>Elige un servidor Plex</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>Servidor · Abrir · Biblioteca</translation>
+      <translation>Selecciona un servidor para abrir sus bibliotecas de música.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Actualizar · Plex</translation>
+      <translation>Actualiza la lista para encontrar tus servidores Plex.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Actualizar</translation>
+      <translation>Actualizar servidores</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Conectar · Biblioteca</translation>
+      <translation>Conectar con las bibliotecas de música</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Conexión</translation>
+      <translation>Conexión directa</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>Conectar · Servidor · URL · Plex · Token</translation>
+      <translation>O conéctate directamente con la URL del servidor y un token de Plex:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,54 +1685,54 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>Conectar · Conexión</translation>
+      <translation>Conectar directamente</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>Iniciar sesión · Vaciar · Guardado</translation>
+      <translation>Cerrar sesión y borrar los tokens guardados</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Sin conexión · Audio · Caché</translation>
+      <translation>Caché de audio sin conexión</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Ajustes de audio</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Reproducción automática · Similar · Cola</translation>
+      <translation>Reproducir música similar al final de la cola</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Caché · Cola · Audio · Reproducción automática</translation>
+      <translation>Guardar automáticamente en caché el audio de la cola</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Caché · Límite</translation>
+      <translation>Límite de caché</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Pistas · Descargado · %2 · MiB · Usado</translation>
+      <translation>%1 canciones descargadas · %2 MiB en uso</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Vaciar · Caché · Detener · Reproducir</translation>
+      <translation>Vaciar la caché y detener la reproducción</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>Sin conexión · Biblioteca</translation>
+      <translation>Biblioteca sin conexión</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>Ajustes</translation>
+      <translation>Acciones de la página</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Biblioteca</translation>
+      <translation>Más destinos</translation>
     </message>
     <message>
       <source>Show all</source>
@@ -1716,7 +1740,7 @@
     </message>
     <message>
       <source>Discover</source>
-      <translation>Buscar</translation>
+      <translation>Descubrir</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1724,43 +1748,43 @@
     </message>
     <message>
       <source>Playlists</source>
-      <translation>Listas de reproducción</translation>
+      <translation>Playlists</translation>
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>Buscar · Ajustes</translation>
+      <translation>Personalizar Descubrir</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>Biblioteca · Filtro</translation>
+      <translation>Filtros de la biblioteca</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>Tipos · Álbumes</translation>
+      <translation>Agrupar álbumes por tipo</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>Crear · Inteligente · Listas de reproducción</translation>
+      <translation>Crear playlist inteligente</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Crear · Lista de reproducción · Pistas · Cola</translation>
+      <translation>Crear playlist con las canciones o la cola</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>Descargas · Pistas</translation>
+      <translation>Descargar las canciones mostradas</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Vaciar · Mezcla</translation>
+      <translation>Borrar las bases del mix</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Vaciar · Sonic · Origen</translation>
+      <translation>Borrar las etapas sónicas</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>Detener · Radio</translation>
+      <translation>Detener radio</translation>
     </message>
     <message>
       <source>Queue</source>
@@ -1768,19 +1792,19 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Descargado</translation>
+      <translation>Música descargada</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>Guardado · Álbumes</translation>
+      <translation>Álbumes guardados</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>Historial · Ajustes</translation>
+      <translation>Estadísticas de escucha</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Favoritos · ★ · 5</translation>
+      <translation>Favoritos · 5 estrellas</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1788,11 +1812,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Reproducidos recientemente</translation>
+      <translation>Escuchados recientemente</translation>
     </message>
     <message>
       <source>Download manager</source>
-      <translation>Descargas · Gestión</translation>
+      <translation>Gestor de descargas</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,116 +1824,116 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>Subir</translation>
+      <translation>Atrás</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>En línea</translation>
+      <translation>Conectarse</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>Biblioteca · Guardado · Sin conexión</translation>
+      <translation>Explorar la biblioteca sin conexión</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Reproducir · Mezcla · %1 · Origen</translation>
+      <translation>Reproducir mix (%1 bases)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · Mezcla · %1 · Pistas</translation>
+      <translation>Viaje sónico (%1 canciones)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>Reproducir</translation>
+      <translation>Reproduciendo</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ninguno · Reproducir</translation>
+      <translation>No se reproduce nada</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Favoritos</translation>
+      <translation>★ Favorito</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Añadir · Favoritos</translation>
+      <translation>☆ Añadir a favoritos</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Letras</translation>
+      <translation>Letra</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Cargando · Letras</translation>
+      <translation>Cargando la letra…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Letras · No disponible · Sin conexión · Servidor</translation>
+      <translation>Letra no disponible sin conexión o en este servidor.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Letras · No disponible · Plex</translation>
+      <translation>Plex no proporciona ninguna letra.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>Letras</translation>
+      <translation>Recargar letra</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>Letras</translation>
+      <translation>Recargar letra</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Reproducir</translation>
+      <translation>Reproduciendo</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ninguno · Reproducir</translation>
+      <translation>No se reproduce nada</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Favoritos</translation>
+      <translation>★ Favorito</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Añadir · Favoritos</translation>
+      <translation>☆ Añadir a favoritos</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Letras</translation>
+      <translation>Letra</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Cargando · Letras</translation>
+      <translation>Cargando la letra…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Letras · No disponible · Sin conexión · Servidor</translation>
+      <translation>Letra no disponible sin conexión o en este servidor.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Letras · No disponible · Plex</translation>
+      <translation>Plex no proporciona ninguna letra.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Añadir · Lista de reproducción</translation>
+      <translation>Añadir a una playlist</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Renombrar · Lista de reproducción</translation>
+      <translation>Cambiar nombre de playlist</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Crear · Lista de reproducción</translation>
+      <translation>Crear playlist</translation>
     </message>
     <message>
       <source>Save</source>
@@ -1917,38 +1941,38 @@
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lista de reproducción</translation>
+      <translation>Nombre de la playlist</translation>
     </message>
     <message>
       <source>Playlist</source>
-      <translation>Lista de reproducción</translation>
+      <translation>Playlist</translation>
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Inteligente · Listas de reproducción · Plex · Filtro · Nuevo · Listas de reproducción · Pistas · Álbumes · Cola</translation>
+      <translation>El contenido de las playlists inteligentes lo gestionan los filtros de Plex. Las nuevas playlists usan las canciones o el álbum seleccionados, o la cola.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Añadir · Lista de reproducción</translation>
+      <translation>Añadir a una playlist</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Renombrar · Lista de reproducción</translation>
+      <translation>Cambiar nombre de playlist</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Crear · Lista de reproducción</translation>
+      <translation>Crear playlist</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lista de reproducción</translation>
+      <translation>Nombre de la playlist</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Inteligente · Listas de reproducción · Plex · Filtro · Nuevo · Listas de reproducción · Pistas · Álbumes · Cola</translation>
+      <translation>Las playlists inteligentes usan filtros de Plex. Las nuevas playlists usan las canciones o el álbum seleccionados, o la cola.</translation>
     </message>
   </context>
   <context>
@@ -1978,11 +2002,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Reproducidos recientemente</translation>
+      <translation>Escuchados recientemente</translation>
     </message>
     <message>
       <source>Most played</source>
-      <translation>Historial · Reproducir</translation>
+      <translation>Más escuchados</translation>
     </message>
     <message>
       <source>Shuffle</source>
@@ -1990,31 +2014,31 @@
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>Filtro · Audio</translation>
+      <translation>Música filtrada</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>Aventura sónica</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Buscar</translation>
+      <translation>Descubrir</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>Origen · Audio</translation>
+      <translation>Audio original</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Audio · Similar</translation>
+      <translation>Similitud sónica</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Favoritos · ★ · 5</translation>
+      <translation>Favoritos · 5 estrellas</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2022,102 +2046,102 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Pistas</translation>
+      <translation>Canciones</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Descargado</translation>
+      <translation>Música descargada</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>Pista · Cantidad · No disponible</translation>
+      <translation>Número de canciones no disponible</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · Pista</translation>
+      <translation>1 canción</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · Pistas</translation>
+      <translation>%1 canciones</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>Duración · No disponible</translation>
+      <translation>Duración no disponible</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>Artista · Radio</translation>
+      <translation>Radio del artista</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>Álbum · Radio</translation>
+      <translation>Radio del álbum</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>Pista · Radio</translation>
+      <translation>Radio de la canción</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>Sin conexión · Biblioteca</translation>
+      <translation>Biblioteca sin conexión</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>Buscar</translation>
+      <translation>Resultados de búsqueda</translation>
     </message>
     <message>
       <source>Playlists</source>
-      <translation>Listas de reproducción</translation>
+      <translation>Playlists</translation>
     </message>
   </context>
   <context>
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>Conectar · Plex</translation>
+      <translation>Conectar con Plex</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>Iniciar sesión · Plex</translation>
+      <translation>Iniciar sesión con Plex</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>Iniciar sesión · Navegador · Recibido</translation>
+      <translation>Completa el inicio de sesión en el navegador y vuelve aquí.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>Abrir · Navegador</translation>
+      <translation>Volver a abrir el navegador</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Elegir · Plex · Servidor</translation>
+      <translation>Elige un servidor Plex</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>Elegir · Servidor · Abrir · Biblioteca</translation>
+      <translation>Toca un servidor para abrir sus bibliotecas de música.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Actualizar · Plex</translation>
+      <translation>Actualiza la lista para encontrar tus servidores Plex.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Actualizar</translation>
+      <translation>Actualizar servidores</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Conectar · Biblioteca</translation>
+      <translation>Conectar con las bibliotecas de música</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Conexión</translation>
+      <translation>Conexión directa</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>Servidor · URL</translation>
+      <translation>URL del servidor</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · Token</translation>
+      <translation>Token de Plex</translation>
     </message>
     <message>
       <source>Connect</source>
@@ -2125,58 +2149,58 @@
     </message>
     <message>
       <source>Sign out</source>
-      <translation>Iniciar sesión</translation>
+      <translation>Cerrar sesión</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Sin conexión · Audio · Caché</translation>
+      <translation>Caché de audio sin conexión</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Audio · Ajustes</translation>
+      <translation>Ajustes de audio</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Reproducción automática · Similar · Cola</translation>
+      <translation>Reproducir música similar cuando acabe la cola</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Descargas · Solo lectura · Wi-Fi</translation>
+      <translation>Descargar solo con Wi-Fi</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>Abrir · Descargas · Gestión</translation>
+      <translation>Abrir el gestor de descargas</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Caché · Cola · Audio · Reproducción automática</translation>
+      <translation>Guardar automáticamente en caché el audio de la cola</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Caché · Límite</translation>
+      <translation>Límite de caché</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Pistas · Descargado · %2 · MiB · Usado</translation>
+      <translation>%1 canciones descargadas · %2 MiB en uso</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Caché · Actual · Pista · Siguiente · %1 · Pistas · Descargas · Álbumes · Listo · Sin conexión</translation>
+      <translation>Se guardan en caché la canción actual y las %1 siguientes de la cola. Descarga un álbum antes de viajar; solo las descargas completadas funcionan sin conexión.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Vaciar · Caché · Detener · Reproducir</translation>
+      <translation>Vaciar la caché y detener la reproducción</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · Reproductor de música con transmisión directa</translation>
+      <translation>PlexFreq %1 · Reproductor de música en streaming directo</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>Ninguno · Reproducir</translation>
+      <translation>No se reproduce nada</translation>
     </message>
   </context>
   <context>
@@ -2199,7 +2223,7 @@
     </message>
     <message>
       <source>Compilations</source>
-      <translation>Recopilaciones</translation>
+      <translation>Recopilatorios</translation>
     </message>
   </context>
 </TS>

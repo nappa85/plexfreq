@@ -62,6 +62,10 @@ venv/
 # Private Plex session state, media/artwork/library caches and atomic-write temps.
 session.json
 session.json.*
+queue.json*
+resume.json*
+listens.jsonl*
+history.jsonl*
 .session-*.tmp
 audio-cache/
 artwork-cache/

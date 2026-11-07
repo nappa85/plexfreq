@@ -694,6 +694,82 @@ fn discovery_layout_is_scoped_persistent_and_hub_drilldown_is_paged() {
 }
 
 #[test]
+fn hub_drilldown_forwards_the_hub_query_and_rejects_plex_parameters() {
+    let server = Server::new(|r| {
+        let line = r.lines().next().unwrap_or_default();
+        if line.starts_with("GET /library/sections/1/all?") {
+            assert!(line.contains("type=9&sort=addedAt%3Adesc&viewCount%3E=1"));
+            assert!(line.contains("X-Plex-Container-Size=100"));
+            return json!({"MediaContainer":{"size":1,"totalSize":1,"Metadata":[track("3")]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    let key = "/library/sections/1/all?type=9&sort=addedAt:desc&viewCount>=1";
+    let page = call(&mut core, json!({"op":"hub_items","key":key,"start":0})).unwrap();
+    assert_eq!(page["items"][0]["ratingKey"], "3");
+    for bad in [
+        "/library/sections/1/all?type=9#x",
+        "/library/sections/1/all?type=9&X-Plex-Container-Size=5",
+        "/library/../all?type=9",
+        "/other/all?type=9",
+    ] {
+        assert!(call(&mut core, json!({"op":"hub_items","key":bad,"start":0})).is_err());
+    }
+}
+
+#[test]
+fn unreachable_server_at_startup_serves_saved_libraries_without_entering_offline_mode() {
+    let server = Server::new(|r| {
+        if r.starts_with("GET /library/sections?") || r.starts_with("GET /library/sections ") {
+            return json!({"MediaContainer":{"Directory":[{"key":"1","type":"artist","title":"Music"}]}});
+        }
+        empty()
+    });
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    drop(server);
+    let reply = call(&mut core, json!({"op":"libraries"})).unwrap();
+    assert_eq!(reply["offline"], true);
+    assert_eq!(reply["offlineMode"], false);
+    assert_eq!(reply["libraries"][0]["title"], "Music");
+    // An unsaved search falls back to the saved library instead of failing.
+    let search = call(&mut core, json!({"op":"search","query":"never searched"})).unwrap();
+    assert_eq!(search["offline"], true);
+    assert_eq!(search["hasMore"], false);
+    // The explicit choice is still honoured.
+    call(&mut core, json!({"op":"offline_mode","enabled":true})).unwrap();
+    assert_eq!(
+        call(&mut core, json!({"op":"libraries"})).unwrap()["offlineMode"],
+        true
+    );
+}
+
+#[test]
+fn a_startup_fallback_does_not_stop_later_requests_reaching_the_server() {
+    let server = Server::new(|_| empty());
+    let dir = tempfile::tempdir().unwrap();
+    let mut core = Core::new(dir.path().into()).unwrap();
+    connect(&mut core, &server);
+    drop(server);
+    assert_eq!(
+        call(&mut core, json!({"op":"libraries"})).unwrap()["offline"],
+        true
+    );
+    // Explicit offline mode would answer "not saved offline" without trying;
+    // a transport error shows the server was contacted again.
+    let error = call(
+        &mut core,
+        json!({"op":"hub_items","key":"/library/sections/1/all?type=9","start":0}),
+    )
+    .unwrap_err();
+    assert!(matches!(error, plexfreq_core::Error::Network), "{error:?}");
+}
+
+#[test]
 fn automatic_refresh_is_nonblocking_obeys_network_gate_and_replaces_membership() {
     let changed = Arc::new(AtomicBool::new(false));
     let flag = changed.clone();

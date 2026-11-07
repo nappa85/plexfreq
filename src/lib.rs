@@ -57,7 +57,7 @@ pub enum Error {
     Unauthorized,
     #[error("Unexpected Plex response")]
     Protocol,
-    #[error("Unexpected Plex response during {0}")]
+    #[error("Unexpected Plex response ({0})")]
     ProtocolAt(&'static str),
     #[error("Plex returned HTTP {0}")]
     Http(u16),
@@ -2517,10 +2517,20 @@ impl Core {
                 if self.offline_mode {
                     return self.offline_search(&query, &ItemKind::default(), 0);
                 }
-                let (c, _) = self.container_cached(
+                let (c, _) = match self.container_cached(
                     "/hubs/search",
-                    &[("query", query), ("limit", "100".into())],
-                )?;
+                    &[("query", query.clone()), ("limit", "100".into())],
+                ) {
+                    // An unreachable server searches the saved library instead.
+                    Err(Error::Network | Error::Http(500..=599)) => {
+                        // Online search has no further pages, so neither does this.
+                        let mut value = self.offline_search(&query, &ItemKind::default(), 0)?;
+                        value["hasMore"] = json!(false);
+                        value["next"] = json!(0);
+                        return Ok(value);
+                    }
+                    result => result?,
+                };
                 let mut seen = std::collections::BTreeSet::new();
                 let items: Vec<_> = c
                     .hubs
@@ -2846,10 +2856,9 @@ impl Core {
                 Err(last)
             }
             Command::Libraries => {
+                // A saved copy only flags this reply: explicit offline mode stays the
+                // user's choice, so the next request contacts the server again.
                 let (c, offline) = self.container_cached("/library/sections", &[])?;
-                if offline {
-                    self.offline_mode = true;
-                }
                 Ok(
                     json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(),"offline":offline,"offlineMode":self.offline_mode}),
                 )

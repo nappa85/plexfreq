@@ -287,7 +287,7 @@ fn discovery_validates_only_servers_and_reports_safe_context_for_invalid_servers
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].client_identifier, "one");
     let error = plex.resources("account-secret").err().unwrap().to_string();
-    assert_eq!(error, "Unexpected Plex response during server discovery");
+    assert_eq!(error, "Unexpected Plex response (server discovery)");
     assert!(!error.contains("secret"));
     task.join().unwrap();
 }

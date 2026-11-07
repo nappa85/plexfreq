@@ -43,8 +43,8 @@ QString translatedMessage(const QString &source) {
     if(source.isEmpty())return source;
     const auto http=QRegularExpression("^Plex returned HTTP ([0-9]+)$").match(source);
     if(http.hasMatch())return QCoreApplication::translate("Core","Plex returned HTTP %1").arg(http.captured(1));
-    const QString prefix="Unexpected Plex response during ";
-    if(source.startsWith(prefix))return QCoreApplication::translate("Core","Unexpected Plex response during %1").arg(QCoreApplication::translate("Core",source.mid(prefix.size()).toUtf8().constData()));
+    const auto context=QRegularExpression("^Unexpected Plex response \\((.+)\\)$").match(source);
+    if(context.hasMatch())return QCoreApplication::translate("Core","Unexpected Plex response (%1)").arg(QCoreApplication::translate("Core",context.captured(1).toUtf8().constData()));
     return QCoreApplication::translate("Core",source.toUtf8().constData());
 }
 QString translatedError(const QVariantMap &response) {

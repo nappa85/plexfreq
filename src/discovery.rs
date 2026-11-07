@@ -58,14 +58,20 @@ impl Core {
         Ok(json!({"discoveryLayout":layout}))
     }
     pub(crate) fn hub_items(&self, key: &str, start: usize) -> Result<Value> {
-        let url = crate::plex::server_path(&self.base()?, key)?;
+        // Hub keys carry their filter as a query, e.g.
+        // /library/sections/3/all?type=9&sort=addedAt:desc.
+        let url = crate::plex::advertised_path(&self.base()?, key)?;
         if !["/hubs/", "/library/", "/playlists/"]
             .iter()
             .any(|prefix| key.starts_with(prefix) && url.path().starts_with(prefix))
         {
             return Err(Error::Input("Expected a server-relative Plex path"));
         }
-        self.page(key, Vec::new(), start)
+        let params: Vec<_> = url
+            .query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect();
+        self.page(url.path(), crate::filters::param_refs(&params), start)
     }
     pub(crate) fn listening_insights(&self, days: u32) -> Result<Value> {
         if ![0, 7, 30, 90].contains(&days) {

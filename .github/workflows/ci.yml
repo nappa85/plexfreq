@@ -149,9 +149,9 @@ jobs:
           path: ~/.cache/qt-tools
           key: ${{ runner.os }}-linguist-6.11.2
       - run: bash tools/build-qm.sh --check
-      - name: Review tooling tests (snapshot sanitization, fallback order)
+      - name: Translation extractor and gates, review snapshot exclusions
         working-directory: tools
-        run: python3 -m unittest test_external_review
+        run: python3 -m unittest test_translations test_review_snapshot
 
   harbour:
     name: Sailfish RPM build and Harbour validation (aarch64)

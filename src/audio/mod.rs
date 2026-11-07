@@ -14,7 +14,7 @@ use std::{
     collections::VecDeque,
     rc::Rc,
     sync::{
-        atomic::{AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         mpsc, Arc, Mutex,
     },
     thread,
@@ -38,12 +38,20 @@ const RECOVERY_LIMIT: Duration = Duration::from_secs(90);
 /// Slack over the queued audio's own length before a drain is forced.
 const DRAIN_MARGIN: Duration = Duration::from_secs(3);
 const STREAM_FAILED: &str = "Audio decoding or streaming failed";
+/// Shown when the output stops taking audio (see `Actor::watch_output`).
+pub(crate) const OUTPUT_STUCK: &str =
+    "Audio output stopped responding; reconnect the audio device, then press Play";
+/// An uncorked stream on a suspended sink that advances less than
+/// `OUTPUT_STUCK_PROGRESS` in this long is stuck. Uncorking normally plays
+/// within 1.5 s, including a Bluetooth sink resuming from suspend.
+const OUTPUT_STUCK_AFTER: Duration = Duration::from_secs(10);
+const OUTPUT_STUCK_PROGRESS: u64 = RATE as u64 / 10;
 /// A transcode ending at least this much (plus the crossfade) before its
 /// duration was cut off by the server; within it, the end is natural.
 const EARLY_END_MS: u64 = 5000;
 /// Decoded audio a fresh remote load or seek waits for before it starts
 /// (above PulseAudio's 300 ms prebuffer).
-const START_BUFFER_FRAMES: usize = RATE as usize / 2;
+pub(crate) const START_BUFFER_FRAMES: usize = RATE as usize / 2;
 /// Decoded audio a stalled remote stream waits for before it resumes, so a
 /// slow link gives a few long pauses instead of many short stutters.
 const RESUME_BUFFER_FRAMES: usize = RATE as usize * 5;
@@ -179,8 +187,9 @@ pub enum Event {
         /// Listened time since this decoder started (its own new audio).
         progress: u64,
         /// A transcode stream that ended cleanly well before its duration
-        /// (see `Decoder::ended_early`), not a transfer or decode error.
-        early_end: bool,
+        /// (see `Decoder::ended_early`), not a transfer or decode error: the
+        /// media position its decoded audio reached.
+        early_end: Option<u64>,
     },
     /// The answer to `Handle::resolve` (or the engine's own expiry).
     Resolved {
@@ -189,6 +198,11 @@ pub enum Event {
         outcome: Outcome,
     },
     Seeked(u64),
+    /// The output stopped taking audio (`Actor::watch_output`): playback is
+    /// paused with everything still loaded.
+    OutputStuck {
+        id: u64,
+    },
 }
 /// How the runtime resolves a held failure.
 pub enum Resolution {
@@ -242,6 +256,9 @@ pub struct Handle {
     state: Arc<Mutex<Snapshot>>,
     capture: Arc<Mutex<Vec<f32>>>,
     volume: Arc<Mutex<Option<f64>>>,
+    /// Shared with the actor (`Handle::route_idle`), so frequent updates
+    /// never take a transport command's queue slot.
+    route_idle: Arc<AtomicBool>,
     changes: Arc<watch::Sender<Change>>,
     /// Test hook: refuse this many resolutions as if the queue were full.
     #[cfg(test)]
@@ -276,6 +293,11 @@ impl Handle {
     }
     pub(crate) fn recording(&self, active: bool) -> Result<()> {
         self.send(Control::Recording(active))
+    }
+    /// Whether the audio route is a Bluetooth link whose transport is idle
+    /// (`watch_output` does not count its suspension as stuck).
+    pub(crate) fn route_idle(&self, idle: bool) {
+        self.route_idle.store(idle, Ordering::Relaxed);
     }
     pub fn stop(&self) -> Result<()> {
         self.send(Control::Stop)
@@ -387,12 +409,14 @@ impl Engine {
         }));
         let capture = Arc::new(Mutex::new(Vec::new()));
         let volume = Arc::new(Mutex::new(None));
+        let route_idle = Arc::new(AtomicBool::new(false));
         let changes = Arc::new(watch::channel(Change::from(&*lock_state(&state))).0);
         let handle = Handle {
             tx,
             state: state.clone(),
             capture: capture.clone(),
             volume: volume.clone(),
+            route_idle: route_idle.clone(),
             changes: changes.clone(),
             #[cfg(test)]
             refuse_resolves: Arc::default(),
@@ -405,6 +429,7 @@ impl Engine {
                 actor.changes = changes;
                 actor.acted = acted;
                 actor.recover = recover;
+                actor.route_idle = route_idle;
                 actor.run(rx, volume)
             })?;
         Ok(Self {
@@ -453,8 +478,9 @@ struct Actor {
     /// old tail unfaded instead of waiting with audible audio held back.
     fade_dropped: bool,
     /// The current decoder's transcode ended early (`Decoder::ended_early`):
-    /// reported with the failure it starts.
-    early_end: Option<u64>,
+    /// reported with the failure it starts: the decoder's id and the media
+    /// position its decoded audio reached.
+    early_end: Option<(u64, u64)>,
     output: Option<Output>,
     segments: VecDeque<Segment>,
     desired: bool,
@@ -478,6 +504,12 @@ struct Actor {
     failed: Option<Failed>,
     recovery_limit: Duration,
     gate_patience: Duration,
+    /// The position and time since the output was last seen advancing while
+    /// it should play on a suspended sink (`watch_output`).
+    stuck_watch: Option<(u64, Instant)>,
+    output_patience: Duration,
+    /// The Bluetooth route's transport is idle (`Handle::route_idle`).
+    route_idle: Arc<AtomicBool>,
     preload_lead_ms: u64,
     /// Why the last deferred successor started (tests).
     #[cfg(test)]
@@ -636,6 +668,9 @@ impl Actor {
             failed: None,
             recovery_limit: RECOVERY_LIMIT,
             gate_patience: GATE_PATIENCE,
+            stuck_watch: None,
+            output_patience: OUTPUT_STUCK_AFTER,
+            route_idle: Arc::default(),
             preload_lead_ms: PRELOAD_LEAD_MS,
             #[cfg(test)]
             preload_reason: None,
@@ -676,6 +711,9 @@ impl Actor {
         self.fade_dropped = false;
         self.current = Some(decoder);
         self.output = Some(output);
+        // A new stream (load or seek) gets its own stuck-output window; the
+        // old stream's lookup is cancelled with it.
+        self.stuck_watch = None;
         self.desired = !paused;
         self.ended = false;
         self.fade = None;
@@ -722,7 +760,7 @@ impl Actor {
                     listened: 0,
                     duration: 0,
                     progress: 0,
-                    early_end: false,
+                    early_end: None,
                 });
             }
         }
@@ -977,7 +1015,7 @@ impl Actor {
             listened: 0,
             duration: 0,
             progress: 0,
-            early_end: false,
+            early_end: None,
         });
         let mut state = lock_state(&self.state);
         state.playing = false;
@@ -1069,9 +1107,12 @@ impl Actor {
         let listened = source.listened + heard;
         let paused = !self.desired;
         let id = source.id;
-        let early_end = self.early_end.take() == Some(id);
+        let early_end = self
+            .early_end
+            .take()
+            .and_then(|(early, reached)| (early == id).then_some(reached));
         crate::diagnostics::event(format_args!(
-            "audio failure held occurrence={id} position_ms={media} heard_ms={heard} paused={paused} early_end={early_end}"
+            "audio failure held occurrence={id} position_ms={media} heard_ms={heard} paused={paused} early_end={early_end:?}"
         ));
         self.desired = false;
         self.current = None;
@@ -1227,7 +1268,7 @@ impl Actor {
                     listened: 0,
                     duration: 0,
                     progress: 0,
-                    early_end: false,
+                    early_end: None,
                 });
                 self.next = None;
             }
@@ -1249,7 +1290,11 @@ impl Actor {
                 current.reached_ms(),
                 current.source.duration
             ));
-            self.early_end = Some(current.source.id);
+            // Only decoded audio shows the transcode worked; an empty stream
+            // stays a plain failure.
+            if current.reached_ms() > current.source.resume {
+                self.early_end = Some((current.source.id, current.reached_ms()));
+            }
             return Err(Error::Input(STREAM_FAILED));
         }
         if let Some(segment) = self.segments.back_mut() {
@@ -1685,11 +1730,87 @@ impl Actor {
                 }
             }
         }
+        self.watch_output();
         self.publish();
         self.drain_tick();
         self.expire();
         self.announce();
         self.diagnose();
+    }
+    /// Pause when the output stops taking audio. The watch is
+    /// level-triggered: it disarms whenever playback is not wanted, a hold,
+    /// gate or held-failure drain owns the stream, the stream is corked or
+    /// its sink is not suspended, so only an uninterrupted window counts.
+    /// A sink corked by the session policy keeps running and is excluded;
+    /// a suspended one with an uncorked input is the PulseAudio/BlueZ
+    /// state seen when an A2DP sink failed to resume (docs §5.5).
+    fn watch_output(&mut self) {
+        let wanted = self.desired
+            && !self.recording
+            && !self.route_idle.load(Ordering::Relaxed)
+            && self.gate.is_none()
+            && self.failing.is_none()
+            && self.failed.is_none();
+        let Some(output) = self
+            .output
+            .as_mut()
+            .filter(|out| wanted && !out.corked() && out.sink_suspended())
+        else {
+            if self.stuck_watch.take().is_some() {
+                if let Some(output) = &mut self.output {
+                    output.forget_server_cork();
+                }
+            }
+            return;
+        };
+        let position = output.position();
+        match self.stuck_watch {
+            Some((start, since))
+                if position >= start && position - start < OUTPUT_STUCK_PROGRESS =>
+            {
+                if since.elapsed() < self.output_patience {
+                    return;
+                }
+            }
+            _ => {
+                // A lookup started for an earlier window answers for that one.
+                output.forget_server_cork();
+                self.stuck_watch = Some((position, Instant::now()));
+                return;
+            }
+        }
+        // A session policy can cork the input on the server without a
+        // request-cork; its sink may then idle-suspend (the competing stream
+        // plays elsewhere). That is the policy's pause, not a lost route.
+        match output.server_corked() {
+            None => return,
+            Some(true) => {
+                output.forget_server_cork();
+                self.stuck_watch = Some((position, Instant::now()));
+                return;
+            }
+            Some(false) => {}
+        }
+        let queued = output.queued_bytes();
+        // The audible item, as the snapshot reports it: past a gapless
+        // handoff `current` is already the successor.
+        let id = self
+            .segments
+            .front()
+            .map_or(self.intent, |segment| segment.source.id);
+        crate::diagnostics::event(format_args!(
+            "audio output stuck occurrence={id} position_frames={position} queued_bytes={queued} \
+             running={}",
+            output.playing()
+        ));
+        self.stuck_watch = None;
+        self.desired = false;
+        // A start owed below the prebuffer is moot once paused; Play uncorks.
+        self.trigger = false;
+        if output.set_playing(false).is_err() {
+            return self.error("Audio output is unavailable");
+        }
+        let _ = self.events.send(Event::OutputStuck { id });
     }
     fn diagnose(&mut self) {
         if !crate::diagnostics::enabled() {
@@ -1765,6 +1886,7 @@ mod tests {
             state: Arc::new(Mutex::new(Snapshot::default())),
             capture: Arc::new(Mutex::new(Vec::new())),
             volume: Arc::new(Mutex::new(None)),
+            route_idle: Arc::default(),
             changes: Arc::new(watch::channel(Change::default()).0),
             refuse_resolves: Arc::default(),
         };
@@ -1842,6 +1964,126 @@ mod tests {
     }
     fn output(sink: Sink, capture: Arc<Mutex<Vec<f32>>>) -> Output {
         Output::new(sink, capture, &mut None).unwrap()
+    }
+
+    const PATIENCE: Duration = Duration::from_millis(800);
+    /// An actor playing a full fake output, with its event receiver and a
+    /// short stuck-output patience.
+    fn stuck_actor() -> (Actor, mpsc::Receiver<Event>) {
+        let (events, receiver) = mpsc::channel();
+        let mut actor = Actor::new(
+            Sink::Fake,
+            Arc::new(Mutex::new(Snapshot::default())),
+            Arc::new(Mutex::new(Vec::new())),
+            events,
+            http::SessionCloser::new().unwrap(),
+        );
+        actor.output_patience = PATIENCE;
+        let mut out = output(Sink::Fake, Arc::new(Mutex::new(Vec::new())));
+        out.push(&vec![0.; RATE as usize * 10 * CHANNELS]).unwrap();
+        actor.output = Some(out);
+        actor.segments.push_back(Segment {
+            source: Source {
+                id: 7,
+                duration: 60_000,
+                ..Default::default()
+            },
+            start: 0,
+            end: None,
+            notified: false,
+        });
+        actor.control(Control::Play).unwrap();
+        (actor, receiver)
+    }
+    fn tick_for(actor: &mut Actor, duration: Duration) {
+        let end = Instant::now() + duration;
+        while Instant::now() < end {
+            actor.tick();
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+    fn stuck_events(receiver: &mpsc::Receiver<Event>) -> usize {
+        receiver
+            .try_iter()
+            .filter(|event| matches!(event, Event::OutputStuck { id: 7 }))
+            .count()
+    }
+
+    #[test]
+    fn a_suspended_sink_that_stops_taking_audio_pauses_with_everything_loaded() {
+        let (mut actor, receiver) = stuck_actor();
+        tick_for(&mut actor, PATIENCE / 4);
+        let out = actor.output.as_mut().unwrap();
+        out.suspended = true;
+        let frozen = out.position();
+        let submitted = out.frames;
+        tick_for(&mut actor, PATIENCE / 4);
+        assert_eq!(stuck_events(&receiver), 0, "within the patience");
+        tick_for(&mut actor, PATIENCE);
+        assert_eq!(stuck_events(&receiver), 1);
+        assert!(!actor.desired);
+        let out = actor.output.as_mut().unwrap();
+        assert!(out.corked());
+        // Paused, not unloaded: queued audio and position are kept.
+        assert_eq!((out.frames, out.position()), (submitted, frozen));
+        assert!(lock_state(&actor.state).paused);
+        // Play retries; a sink still suspended is reported again.
+        actor.control(Control::Play).unwrap();
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 1);
+        assert!(!actor.desired);
+        // Once the route is back, Play plays on.
+        actor.output.as_mut().unwrap().suspended = false;
+        actor.control(Control::Play).unwrap();
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 0);
+        assert!(actor.desired);
+        assert!(actor.output.as_mut().unwrap().position() > frozen);
+    }
+
+    #[test]
+    fn a_hold_gate_idle_route_or_server_cork_never_counts_as_stuck() {
+        // Playing normally on a running sink.
+        let (mut actor, receiver) = stuck_actor();
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 0);
+        // A recording hold longer than the patience on a suspended sink:
+        // the held time is not counted after release.
+        actor.output.as_mut().unwrap().suspended = true;
+        actor.control(Control::Recording(true)).unwrap();
+        tick_for(&mut actor, PATIENCE * 2);
+        actor.control(Control::Recording(false)).unwrap();
+        tick_for(&mut actor, PATIENCE / 4);
+        assert_eq!(stuck_events(&receiver), 0, "hold time was counted");
+        tick_for(&mut actor, PATIENCE);
+        assert_eq!(stuck_events(&receiver), 1, "a fresh window still detects");
+        // The remote end left its Bluetooth link idle: expected suspension.
+        actor.route_idle.store(true, Ordering::Relaxed);
+        actor.control(Control::Play).unwrap();
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 0);
+        assert!(actor.desired);
+        actor.route_idle.store(false, Ordering::Relaxed);
+        // The session policy corked the input on the server.
+        actor.output.as_mut().unwrap().server_corked = true;
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 0);
+        assert!(actor.desired);
+        actor.output.as_mut().unwrap().server_corked = false;
+        // A resume gate owns the stream: not stuck while it waits.
+        actor.gate = Some(Gate::new(GateKind::Stall));
+        let end = Instant::now() + PATIENCE * 2;
+        while Instant::now() < end {
+            actor.watch_output();
+            thread::sleep(Duration::from_millis(10));
+        }
+        assert_eq!(stuck_events(&receiver), 0);
+        assert!(actor.desired);
+        // Paused by the user: nothing to watch.
+        actor.gate = None;
+        actor.control(Control::Pause).unwrap();
+        tick_for(&mut actor, PATIENCE * 2);
+        assert_eq!(stuck_events(&receiver), 0);
     }
 
     #[test]
@@ -2159,7 +2401,7 @@ mod recovery_tests {
                     recoverable,
                     early_end,
                     ..
-                } => Some((*recoverable, *early_end)),
+                } => Some((*recoverable, early_end.is_some())),
                 _ => None,
             })
             .collect()

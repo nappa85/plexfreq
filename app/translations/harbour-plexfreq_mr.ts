@@ -11,43 +11,43 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>ऑडिओ सेटिंग्ज</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>स्ट्रीमिंग गुणवत्ता</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · ऑडिओ</translation>
+      <translation>वाय-फाय ऑडिओ</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>नेटवर्क · ऑडिओ</translation>
+      <translation>मोबाइल ऑडिओ</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>डाउनलोड · ऑडिओ</translation>
+      <translation>डाउनलोड ऑडिओ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · डिकोडर · पुन्हा प्रयत्न करा</translation>
+      <translation>Plex कोडेक फॉलबॅक</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>ऑडिओ · सेटिंग्ज · पुढील · गाणी · डाउनलोड · तयार · ऑडिओ</translation>
+      <translation>गुणवत्तेतील बदल पुढील ट्रॅक आणि डाउनलोडवर लागू होतात. पूर्ण झालेल्या स्थानिक ऑडिओला प्राधान्य दिले जाते.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · ऑडिओ · विरामाशिवाय · PCM · आउटपुट</translation>
+      <translation>Rust ऑडिओ इंजिन · गॅपलेस PCM आउटपुट</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · सेकंद</translation>
+      <translation>%1 सेकंद</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>बंद</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -55,31 +55,31 @@
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>सामान्यीकरण</translation>
+      <translation>लाउडनेस नॉर्मलाइझ करा</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>गाणे · सामान्यीकरण</translation>
+      <translation>ट्रॅक गेन</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>अल्बम · सामान्यीकरण</translation>
+      <translation>अल्बम गेन</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>आपोआप वाजवा · सामान्यीकरण</translation>
+      <translation>स्वयंचलित गेन</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>ऑडिओ · आवाज · श्रेणी</translation>
+      <translation>हेडरूम</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · मेटाडेटा · सामान्यीकरण · अल्बम · विरामाशिवाय · क्रॉसफेड · off</translation>
+      <translation>उपलब्ध असल्यास Plex गेन मेटाडेटा वापरते. एकाच अल्बममधील ट्रॅक क्रॉसफेडशिवाय गॅपलेस वाजतात.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,42 +87,42 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>रीसेट करा · इक्वलायझर</translation>
+      <translation>इक्वलायझर रीसेट करा</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>ऑडिओ सेटिंग्ज</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>स्ट्रीमिंग गुणवत्ता</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · ऑडिओ</translation>
+      <translation>वाय-फाय ऑडिओ</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>नेटवर्क · ऑडिओ</translation>
+      <translation>मोबाइल ऑडिओ</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>डाउनलोड · ऑडिओ</translation>
+      <translation>डाउनलोड ऑडिओ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · डिकोडर · पुन्हा प्रयत्न करा</translation>
+      <translation>Plex कोडेक फॉलबॅक</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>ऑडिओ · सेटिंग्ज · पुढील · गाणी · डाउनलोड · तयार · ऑडिओ</translation>
+      <translation>गुणवत्तेतील बदल पुढील ट्रॅक आणि डाउनलोडवर लागू होतात. पूर्ण झालेल्या स्थानिक ऑडिओला प्राधान्य दिले जाते.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · ऑडिओ · विरामाशिवाय · PCM · आउटपुट</translation>
+      <translation>Rust ऑडिओ इंजिन · गॅपलेस PCM आउटपुट</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -130,43 +130,43 @@
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · सेकंद</translation>
+      <translation>%1 सेकंद</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>बंद</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>सामान्यीकरण</translation>
+      <translation>लाउडनेस नॉर्मलाइझ करा</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>सामान्यीकरण · सेटिंग्ज</translation>
+      <translation>नॉर्मलायझेशन मोड</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>अल्बम · सामान्यीकरण</translation>
+      <translation>अल्बम गेन</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>आपोआप वाजवा · सामान्यीकरण</translation>
+      <translation>स्वयंचलित गेन</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>गाणे · सामान्यीकरण</translation>
+      <translation>ट्रॅक गेन</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>ऑडिओ · आवाज · श्रेणी</translation>
+      <translation>हेडरूम</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · मेटाडेटा · सामान्यीकरण · अल्बम · विरामाशिवाय · क्रॉसफेड · off</translation>
+      <translation>उपलब्ध असल्यास Plex गेन मेटाडेटा वापरते. एकाच अल्बममधील ट्रॅक क्रॉसफेडशिवाय गॅपलेस वाजतात.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,601 +174,625 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>रीसेट करा · इक्वलायझर</translation>
+      <translation>इक्वलायझर रीसेट करा</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>रेडिओ अपडेट करता आला नाही. डाउनलोड केलेली गाणी पुन्हा वाजू शकतात.</translation>
+      <translation>रेडिओ रिफ्रेश होऊ शकला नाही. डाउनलोड केलेले ट्रॅक पुन्हा वाजू शकतात.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · अयशस्वी</translation>
+      <translation>Plex ने HTTP %1 परत केले</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · माहिती · अवैध · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>अनपेक्षित Plex प्रतिसाद (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>जोडा · गाणी · अल्बम · प्लेलिस्ट</translation>
+      <translation>ट्रॅक किंवा अल्बम प्लेलिस्टमध्ये जोडा</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>जोडा · वर · 1000 · गाणी</translation>
+      <translation>एका वेळी जास्तीत जास्त 1000 ट्रॅक जोडा</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>कलाकार · अल्बम · मेटाडेटा · उपलब्ध नाही</translation>
+      <translation>कलाकार किंवा अल्बमचे तपशील उपलब्ध नाहीत</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>फोटो · मर्यादा · आकार</translation>
+      <translation>आर्टवर्क आकार मर्यादेपेक्षा मोठे आहे</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>ऑडिओ · कॅश · सध्याचे · वापरलेले · PlexFreq</translation>
+      <translation>ऑडिओ कॅशे आधीच दुसऱ्या PlexFreq इन्स्टन्सकडून वापरात आहे</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>ऑडिओ · सर्व्हर · मिळालेले · श्रेणी</translation>
+      <translation>ऑडिओ बदलला किंवा सर्व्हरने चुकीची बाइट रेंज दिली; सुरुवातीपासून पुन्हा प्रयत्न करत आहे</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>ऑडिओ · रांग · उपलब्ध नाही</translation>
+      <translation>ऑडिओ कमांड रांग उपलब्ध नाही</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>ऑडिओ · डिकोडर · अयशस्वी</translation>
+      <translation>ऑडिओ डिकोडिंग किंवा स्ट्रीमिंग अयशस्वी</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>ऑडिओ · डाउनलोड · अपूर्ण · वाट पाहत आहे · पुढे सुरू करा</translation>
+      <translation>ऑडिओ डाउनलोड अपूर्ण आहे; पुन्हा सुरू होण्याची प्रतीक्षा</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>ऑडिओ · सुरू करा</translation>
+      <translation>ऑडिओ इंजिन सुरू होत आहे</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>ऑडिओ · मर्यादा · कॅश</translation>
+      <translation>ऑडिओ फाइल कॅशे मर्यादेपेक्षा मोठी आहे</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>ऑडिओ · आउटपुट · अयशस्वी</translation>
+      <translation>ऑडिओ आउटपुट अयशस्वी</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>ऑडिओ · आउटपुट · उपलब्ध नाही</translation>
+      <translation>ऑडिओ आउटपुट उपलब्ध नाही</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>ऑडिओ आउटपुटने प्रतिसाद देणे थांबवले; ऑडिओ डिव्हाइस पुन्हा जोडा, मग वाजवा दाबा</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>ऑडिओ · वाजवा · अयशस्वी</translation>
+      <translation>ऑडिओ प्लेबॅक अयशस्वी</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>ऑडिओ · माहिती · मर्यादा · आकार</translation>
+      <translation>ऑडिओ प्रतिसाद घोषित आकारापेक्षा मोठा आहे</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>ऑडिओ · आवाज · अयशस्वी</translation>
+      <translation>ऑडिओमध्ये पुढे-मागे जाणे अयशस्वी</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>ऑडिओ · सेटिंग्ज · श्रेणी</translation>
+      <translation>ऑडिओ सेटिंग्ज समर्थित मर्यादेबाहेर आहेत</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>ऑडिओ · अयशस्वी</translation>
+      <translation>ऑडिओ स्ट्रीमिंग अयशस्वी</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>ऑडिओ · रांग · उपलब्ध नाही</translation>
+      <translation>बॅकएंड कमांड रांग उपलब्ध नाही</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>ऑडिओ · अयशस्वी</translation>
+      <translation>बॅकएंडमध्ये अंतर्गत त्रुटी</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>ऑडिओ · उपलब्ध नाही</translation>
+      <translation>बॅकएंड उपलब्ध नाही</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>कॅश · मर्यादा · साफ करा · ऑडिओ</translation>
+      <translation>कॅशे भरले आहे; त्याची मर्यादा वाढवा किंवा कॅशे केलेला ऑडिओ साफ करा</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>कॅश · मर्यादा · 64–8192 · MiB · पुढील · 0–20 · गाणी</translation>
+      <translation>कॅशे मर्यादा 64–8192 MiB आणि आगाऊ तयारी 0–20 ट्रॅक असावी</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>कॅश · विनंती · रद्द</translation>
+      <translation>कॅशे विनंती रद्द केली</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>कॅश · वर · 1000 · वैध · गाणी</translation>
+      <translation>कॅशे विनंतीत जास्तीत जास्त 1000 वैध संगीत ट्रॅक असू शकतात</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>कॅश · अवैध · ऑडिओ · माहिती</translation>
+      <translation>कॅशेसाठी एन्कोड न केलेला ऑडिओ प्रतिसाद आवश्यक आहे</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>कॅश · प्रक्रिया · उपलब्ध नाही</translation>
+      <translation>कॅशे वर्कर उपलब्ध नाही</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>अयशस्वी · सेटिंग्ज · स्थिती</translation>
+      <translation>ॲपची स्थिती वाचता किंवा जतन करता येत नाही</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>निवडा · 1–10 · कलाकार · अल्बम · मिश्रण</translation>
+      <translation>मिक्ससाठी 1–10 कलाकार किंवा अल्बम निवडा</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>निवडा · 2–8 · गाणी · समान</translation>
+      <translation>सोनिक प्रवासासाठी 2–8 ट्रॅक निवडा</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>निवडा · 30–480 · रेडिओ · डाउनलोड</translation>
+      <translation>रेडिओ डाउनलोडसाठी 30–480 मिनिटे निवडा</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>निवडा · 7 · 30 · 90 · इतिहास</translation>
+      <translation>7, 30, 90 दिवस किंवा संपूर्ण ऐकण्याचा इतिहास निवडा</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>निवडा</translation>
+      <translation>संगीत आयटम निवडा</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>निवडा · प्लेलिस्ट · गाणे</translation>
+      <translation>प्लेलिस्टमधील नोंद निवडा</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>निवडा · प्लेलिस्ट · अल्बम · रेडिओ · डाउनलोड</translation>
+      <translation>प्लेलिस्ट, अल्बम किंवा रेडिओ डाउनलोड निवडा</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>निवडा · ताजे करा · 1 · 6 · 12 · 24</translation>
+      <translation>1, 6, 12 किंवा 24 तासांचा रिफ्रेश अंतराल निवडा</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>निवडा · गाणे · अल्बम · प्लेलिस्ट · ऑफलाइन ठेवा</translation>
+      <translation>पिन करण्यासाठी ट्रॅक, अल्बम किंवा प्लेलिस्ट निवडा</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>निवडा · ऑडिओ · 64–320</translation>
+      <translation>मूळ ऑडिओ किंवा 64–320 kbps निवडा</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>निवडा · गाणी · रांग · मर्यादा · 10000</translation>
+      <translation>रांगेसाठी ट्रॅक निवडा (जास्तीत जास्त 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>निवडा · गाणी · अल्बम · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टसाठी ट्रॅक किंवा अल्बम निवडा</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>निवडा · वर · 1000 · वैध · गाणी · डाउनलोड</translation>
+      <translation>डाउनलोडसाठी जास्तीत जास्त 1000 वैध ट्रॅक निवडा</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>जोडा · Plex · सर्व्हर · सुरू करा</translation>
+      <translation>आधी Plex सर्व्हरशी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>वेगळा स्रोत · Plex</translation>
+      <translation>दुसऱ्या ओरिजिनचा Plex पाथ नाकारला</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>डाउनलोड · प्रकार · काहीही नाही</translation>
+      <translation>डाउनलोड गट आता अस्तित्वात नाही</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>डाउनलोड · व्यत्यय · पुन्हा प्रयत्न करा · जोडणी</translation>
+      <translation>डाउनलोड थांबले; कनेक्शन सुधारल्यावर पुन्हा प्रयत्न होईल</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>डाउनलोड · मर्यादा · 1000 · गाणी</translation>
+      <translation>डाउनलोड योजना 1000 ट्रॅकपेक्षा जास्त आहे</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>डाउनलोड · मर्यादा · 1000 · गाणी · ठेवणे थांबवा · सुरू करा</translation>
+      <translation>डाउनलोड योजना 1000 ट्रॅकपेक्षा जास्त आहे; आधी काही डाउनलोड अनपिन करा</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>सक्षम करा · ऑडिओ · कॅश · डाउनलोड</translation>
+      <translation>डाउनलोड पिन करण्यापूर्वी ऑडिओ कॅशे सुरू करा</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>सक्षम करा · ऑडिओ · कॅश · जोडणी · सेटिंग्ज · सुरू करा</translation>
+      <translation>आधी कनेक्शन सेटिंग्जमध्ये ऑडिओ कॅशे सुरू करा</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>प्लेलिस्ट · वर · 512 · आकार</translation>
+      <translation>प्लेलिस्टचे नाव टाका (जास्तीत जास्त 512 बाइट)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>वैध · ओळखकर्ता · Plex</translation>
+      <translation>संख्यात्मक Plex ओळखकर्ता अपेक्षित होता</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>वैध · Plex</translation>
+      <translation>सर्व्हर-सापेक्ष Plex पाथ अपेक्षित होता</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>ऑनलाइन</translation>
+      <translation>ऑनलाइन जा</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>ऑनलाइन · Plex · प्लेलिस्ट</translation>
+      <translation>Plex प्लेलिस्ट संपादित करण्यासाठी ऑनलाइन जा</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>ऑनलाइन · ताजे करा · डाउनलोड</translation>
+      <translation>डाउनलोड रिफ्रेश करण्यासाठी ऑनलाइन जा</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>प्रकार · मर्यादा · 1000 · अल्बम · कलाकार</translation>
+      <translation>गटबद्धता प्रति कलाकार 1000 अल्बमपर्यंत मर्यादित आहे</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>अवैध · URL</translation>
+      <translation>अवैध URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>अवैध · UTF · 8 · विनंती</translation>
+      <translation>अवैध UTF-8 विनंती</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>अवैध · ऑडिओ</translation>
+      <translation>अवैध ऑडिओ सादरीकरण</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>अवैध · ऑडिओ · स्रोत</translation>
+      <translation>अवैध ऑडिओ स्रोत</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>अवैध · ऑडिओ · आवाज</translation>
+      <translation>अवैध ऑडिओ आवाज</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>अवैध · कॅश · ऑडिओ</translation>
+      <translation>अवैध कॅशे ऑडिओ पाथ</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>अवैध · ओळखकर्ता</translation>
+      <translation>अवैध क्लायंट ओळखकर्ता</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>अवैध · शोध</translation>
+      <translation>अवैध डिस्कव्हर मांडणी</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>अवैध · फिल्टर</translation>
+      <translation>अवैध संगीत फिल्टर मूल्ये</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>अवैध · रांग · निर्देशांक</translation>
+      <translation>अवैध रांग निर्देशांक</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>अवैध · रांग · क्रम</translation>
+      <translation>अवैध रांग क्रम</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>अवैध · विनंती · माहिती</translation>
+      <translation>अवैध विनंती डेटा</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>अवैध · डाउनलोड · श्रेणी</translation>
+      <translation>पुन्हा सुरू केलेल्या डाउनलोडची अवैध रेंज</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>अवैध · आवाज</translation>
+      <translation>अवैध सीक स्थिती</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>अवैध · सर्व्हर · निर्देशांक</translation>
+      <translation>अवैध सर्व्हर निर्देशांक</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>इतिहास · सिंक करा · अधिक वाचा</translation>
+      <translation>आणखी प्ले नोंदवण्यापूर्वी ऐकण्याचा इतिहास सिंक करणे आवश्यक आहे</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>साइन इन · कालबाह्य · सुरू करा</translation>
+      <translation>लॉगिनची मुदत संपली; पुन्हा सुरू करा</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>गीताचे शब्द · आकार · मर्यादा</translation>
+      <translation>बोल आकार मर्यादेपेक्षा मोठे आहेत</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>गीताचे शब्द · उपलब्ध नाही · जतन केलेले · ऑफलाइन</translation>
+      <translation>बोल ऑफलाइन जतन केलेले नाहीत</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>मिश्रण · कलाकार · अल्बम</translation>
+      <translation>मिक्स आधार कलाकार किंवा अल्बम असावेत</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>नेटवर्क · विनंती · अयशस्वी · तपासा · जोडणी · सर्व्हर</translation>
+      <translation>नेटवर्क विनंती अयशस्वी (कनेक्शन आणि सर्व्हर पत्ता तपासा)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>पुढील · गाणे · डिकोडर · अयशस्वी</translation>
+      <translation>पुढील ट्रॅकचे डिकोडिंग अयशस्वी</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>काहीही नाही · सध्याचे · रेडिओ</translation>
+      <translation>कोणताही रेडिओ सक्रिय नाही</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>काहीही नाही · कलाकार · निर्देशांक</translation>
+      <translation>त्या अक्षराने कोणतेही कलाकार नाहीत</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>काहीही नाही · रांग</translation>
+      <translation>रांग रिकामी आहे</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
-      <translation>ऑफलाइन डेटा संचय मर्यादेपेक्षा जास्त आहे</translation>
+      <translation>ऑफलाइन डेटा साठवण मर्यादेपेक्षा जास्त आहे</translation>
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>फक्त वाचण्यासाठी · ऑडिओ · प्लेलिस्ट · डाउनलोड झाले</translation>
+      <translation>फक्त ऑडिओ प्लेलिस्ट डाउनलोड करता येतात</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>ऑफलाइन ठेवा · वर · 1000 · वाजवा · गाणी</translation>
+      <translation>जास्तीत जास्त 1000 वाजवता येणारे ट्रॅक पिन करा</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>प्लेलिस्ट · निवडा · मर्यादा · 1000</translation>
+      <translation>प्लेलिस्ट निवड 1000 प्लेलिस्टपर्यंत मर्यादित आहे</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>प्लेलिस्ट · फक्त वाचण्यासाठी</translation>
+      <translation>फक्त-वाचन तपासणीत प्लेलिस्ट संपादन बंद आहे</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · साइन इन · अयशस्वी · तपासा · सर्व्हर · टोकन</translation>
+      <translation>Plex प्राधिकरण अयशस्वी; पुन्हा साइन इन करा किंवा सर्व्हर टोकन तपासा</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · उपलब्ध नाही · कलाकार · रेडिओ</translation>
+      <translation>Plex या कलाकारासाठी कलाकार रेडिओ स्टेशन देत नाही</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex ने या अल्बमसाठी कोणत्याही सोनिक शिफारसी दिल्या नाहीत. संगीत लायब्ररीची सोनिक विश्लेषण सेटिंग आणि त्याची पूर्तता तपासा, किंवा कलाकार रेडिओ वापरा.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · मिळालेले · काहीही नाही · समान · गाणे · तपासा · लायब्ररी · वापरलेले · कलाकार · रेडिओ</translation>
+      <translation>Plex ने या ट्रॅकसाठी कोणत्याही सोनिक शिफारसी दिल्या नाहीत. संगीत लायब्ररीची सोनिक विश्लेषण सेटिंग आणि त्याची पूर्तता तपासा, किंवा कलाकार रेडिओ वापरा.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>रांग · गाणी · वैध · सुरू करा · निर्देशांक</translation>
+      <translation>रांगेसाठी ट्रॅक आणि वैध सुरुवातीचा निर्देशांक आवश्यक आहे</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>रेडिओ · आपोआप वाजवा · थांबवा · पुन्हा वाजवा</translation>
+      <translation>रेडिओ आपोआप सुरू राहतो; पुनरावृत्तीसाठी रेडिओ थांबवा</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>रेडिओ · काहीही नाही · अधिक वाचा · समान · मिश्रण</translation>
+      <translation>रेडिओकडे आणखी सोनिक शिफारसी नाहीत; दुसरा आधार वापरून पाहा</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>रेडिओ · क्रम · थांबवा · यादृच्छिक</translation>
+      <translation>रेडिओ त्याचा शिफारस केलेला क्रम ठेवतो; शफलसाठी रेडिओ थांबवा</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>रेडिओ · वाजवा · जोडणी</translation>
+      <translation>रेडिओ प्लेबॅकसाठी कनेक्शन आवश्यक आहे</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>रेडिओ · मिळालेले · काहीही नाही · वाजवा · गाणी</translation>
+      <translation>रेडिओने वाजवता येणारे ट्रॅक दिले नाहीत</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>रेडिओ · मिश्रण · उपलब्ध नाही</translation>
+      <translation>रेडिओ आधार निवडलेल्या संगीत प्रकाराशी जुळत नाही</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>ऑडिओ · कालावधी · विसंगत</translation>
+      <translation>पुन्हा सुरू केलेल्या ऑडिओची लांबी विसंगत आहे</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>डाउनलोड · काहीही नाही · Content-Range</translation>
+      <translation>पुन्हा सुरू केलेल्या डाउनलोडमध्ये Content-Range नाही</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>जतन केलेले · रांग · अवैध</translation>
+      <translation>जतन केलेली रांग अवैध आहे</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>सर्व्हर · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>सर्व्हर URL हा HTTP(S) ओरिजिन असावा, उदा. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>सर्व्हर · मिळालेले · गाणे</translation>
+      <translation>सर्व्हरने या ट्रॅकसाठी ऑडिओ नसलेली सामग्री दिली</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>साइन इन · सुरू करा</translation>
+      <translation>आधी साइन इन करा</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>स्मार्ट · प्लेलिस्ट · फिल्टर · Plex</translation>
+      <translation>स्मार्ट प्लेलिस्टची सामग्री तिचे Plex फिल्टर ठरवतात</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>समान · मर्यादा · 250 · गाणी</translation>
+      <translation>सोनिक प्रवास 250 ट्रॅकपेक्षा जास्त आहे</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>सुरू करा · साइन इन</translation>
+      <translation>आधी लॉगिन सुरू करा</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>अल्बम · काहीही नाही · वाजवा · गाणी</translation>
+      <translation>या अल्बममध्ये वाजवता येणारे ट्रॅक नाहीत</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>कलाकार · अल्बम · उपलब्ध नाही · जतन केलेले · ऑफलाइन</translation>
+      <translation>हा कलाकार किंवा अल्बम ऑफलाइन जतन केलेला नाही</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>लायब्ररी · उपलब्ध नाही · जतन केलेले · ऑफलाइन</translation>
+      <translation>हे लायब्ररी पेज अजून ऑफलाइन जतन केलेले नाही</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>गाणे · काहीही नाही · वाजवा · माहिती</translation>
+      <translation>या ट्रॅकमध्ये वाजवता येणारा मीडिया भाग नाही</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>गाणे · उपलब्ध नाही · डाउनलोड झाले</translation>
+      <translation>हा ट्रॅक डाउनलोड केलेला नाही</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>गाणे · सर्व्हर · उपलब्ध नाही</translation>
+      <translation>हा ट्रॅक आता सर्व्हरवर नाही</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>गाणे · उपलब्ध नाही · कॅश · डाउनलोड झाले · गाणी</translation>
+      <translation>हा ट्रॅक अजून पूर्ण कॅशे झालेला नाही; डाउनलोड केलेले ट्रॅक उपलब्ध राहतील</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>गाणे · कालावधी · डाउनलोड</translation>
+      <translation>वेळेनुसार डाउनलोडसाठी ट्रॅकचा कालावधी आवश्यक आहे</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>गाणे · काहीही नाही · डाउनलोड · माहिती</translation>
+      <translation>ट्रॅकमध्ये डाउनलोड करता येणारा मीडिया भाग नाही</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>अवैध · Plex · माहिती</translation>
+      <translation>अनपेक्षित Plex प्रतिसाद</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>अवैध · ऑडिओ</translation>
+      <translation>अज्ञात ऑडिओ कमांड</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>अवैध · शोध</translation>
+      <translation>अज्ञात डिस्कव्हर दृश्य</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>अवैध · डाउनलोड</translation>
+      <translation>अज्ञात डाउनलोड क्रिया</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>अवैध · लायब्ररी · क्रम लावा</translation>
+      <translation>अज्ञात लायब्ररी क्रमवारी</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>अवैध</translation>
+      <translation>अज्ञात संगीत प्रकार</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>अवैध · ऑफलाइन</translation>
+      <translation>अज्ञात ऑफलाइन संगीत प्रकार</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>अवैध · वाजवा · स्थिती</translation>
+      <translation>अज्ञात प्लेबॅक स्थिती</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>अवैध · प्लेलिस्ट</translation>
+      <translation>अज्ञात प्लेलिस्ट क्रिया</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>अवैध · पुन्हा वाजवा</translation>
+      <translation>अज्ञात पुनरावृत्ती मोड</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>अल्बम · रेडिओ · गाणी</translation>
+      <translation>अल्बम रेडिओ ट्रॅक</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>कलाकार · निर्देशांक</translation>
+      <translation>कलाकार वर्णमाला निर्देशांक</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>फोटो</translation>
+      <translation>आर्टवर्क</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>ब्राउझर साइन इन निर्मिती</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>ब्राउझर साइन इन तपासणी</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>कॅश · गाणे · मेटाडेटा</translation>
+      <translation>कॅशे ट्रॅक मेटाडेटा</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>तयार करा · प्लेलिस्ट</translation>
+      <translation>तयार केलेली प्लेलिस्ट</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोलांच्या ओळी</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल अंशाचा मजकूर</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल अंश</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल JSON</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>गीताचे शब्द</translation>
+      <source>playlist creation</source>
+      <translation>प्लेलिस्ट निर्मिती</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>प्लेलिस्ट · मेटाडेटा</translation>
+      <translation>प्लेलिस्ट मेटाडेटा</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>रेडिओ · डाउनलोड · गाणी</translation>
+      <translation>रेडिओ डाउनलोड ट्रॅक</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>रेडिओ · रांग</translation>
+      <translation>रेडिओ रांग केंद्र</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>रेडिओ · रांग</translation>
+      <translation>रेडिओ रांग पुढे चालवणे</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>रेडिओ रांग निर्मिती</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>रेडिओ · रांग · ओळखकर्ता</translation>
+      <translation>रेडिओ रांग ओळख</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>रेडिओ · रांग · गाणी</translation>
+      <translation>रेडिओ रांग ट्रॅक</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>रेडिओ · सर्व्हर · ओळखकर्ता</translation>
+      <translation>रेडिओ सर्व्हर ओळख</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>सर्व्हर · शोध</translation>
+      <translation>सर्व्हर शोध</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>सर्व्हर लायब्ररी विनंती</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>समान</translation>
+      <translation>सोनिक अ‍ॅडव्हेंचर</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>हलवा · अधिक वाचा · फोटो</translation>
+      <translation>आणखी फोटोंसाठी स्वाइप करा</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,15 +800,15 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>वाजवा · गाणी</translation>
+      <translation>ट्रॅक वाजवा</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>डाउनलोड · गाणी</translation>
+      <translation>ट्रॅक डाउनलोड करा</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>वर्णन · उपलब्ध नाही · Plex</translation>
+      <translation>Plex ने कोणतेही वर्णन दिले नाही.</translation>
     </message>
     <message>
       <source>Read less</source>
@@ -796,19 +820,19 @@
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>समान · कलाकार</translation>
+      <translation>समान कलाकार</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>लोड होत आहे · समान · कलाकार</translation>
+      <translation>समान कलाकार लोड होत आहेत…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>समान · कलाकार · उपलब्ध नाही</translation>
+      <translation>समान कलाकार सध्या उपलब्ध नाहीत.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>समान · कलाकार · उपलब्ध नाही · Plex</translation>
+      <translation>Plex ने समान कलाकार दिले नाहीत.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -816,100 +840,100 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>शोध · सेटिंग्ज</translation>
+      <translation>डिस्कव्हर सानुकूलित करा</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>शोध · सेटिंग्ज</translation>
+      <translation>डिस्कव्हर सानुकूलित करा</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>हलवा · वर</translation>
+      <translation>वर हलवा</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>हलवा · खाली</translation>
+      <translation>खाली हलवा</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>डाउनलोड · व्यवस्थापन</translation>
+      <translation>डाउनलोड व्यवस्थापक</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>आपोआप वाजवा · ताजे करा · डाउनलोड</translation>
+      <translation>डाउनलोड योजना आपोआप रिफ्रेश करा</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 तास</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>ताजे करा · कालावधी</translation>
+      <translation>रिफ्रेश अंतराल</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>ताजे करा · डाउनलोड · लोड होत आहे</translation>
+      <translation>डाउनलोड योजना रिफ्रेश होत आहेत…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 मिनिटे</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>रेडिओ · डाउनलोड · कालावधी</translation>
+      <translation>रेडिओ डाउनलोडचा कालावधी</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>डाउनलोड · फक्त वाचण्यासाठी · Wi-Fi</translation>
+      <translation>फक्त वाय-फायवर डाउनलोड करा</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>पुढे सुरू करा · डाउनलोड</translation>
+      <translation>डाउनलोड पुन्हा सुरू करा</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>विराम · डाउनलोड</translation>
+      <translation>डाउनलोड थांबवा</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>डाउनलोड · वाट पाहत आहे · Wi-Fi · ऑडिओ · वाजवा · ऑनलाइन</translation>
+      <translation>निश्चित वाय-फायची प्रतीक्षा; स्ट्रीमिंग उपलब्ध राहते.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>डाउनलोड · वाट पाहत आहे · ऑडिओ · लोड होत आहे</translation>
+      <translation>स्ट्रीम स्थिर होईपर्यंत डाउनलोड थांबतात</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · ऑडिओ · कॅश · वापरलेले</translation>
+      <translation>%1 MiB ऑडिओ कॅशे वापरात</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>ऑफलाइन · लायब्ररी · माहिती · जतन करा · अयशस्वी · %1</translation>
+      <translation>ऑफलाइन लायब्ररी डेटा जतन करता आला नाही: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>ऑडिओ · कालावधी · %1</translation>
+      <translation>योजनेतील ऑडिओ: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · गाणी · %3 · MiB</translation>
+      <translation>%1/%2 ट्रॅक · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>सध्याचे · गाणे · %1 · MiB · मिळालेले</translation>
+      <translation>सध्याचा ट्रॅक: %1 MiB मिळाले</translation>
     </message>
     <message>
       <source>Play</source>
@@ -917,7 +941,7 @@
     </message>
     <message>
       <source>Refresh</source>
-      <translation>रिफ्रेश</translation>
+      <translation>रिफ्रेश करा</translation>
     </message>
     <message>
       <source>Retry</source>
@@ -925,141 +949,141 @@
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>रद्द</translation>
+      <translation>योजना रद्द करा</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>काढा</translation>
+      <translation>फाइल्स काढा</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>प्रलंबित · इतिहास · %1</translation>
+      <translation>सिंक बाकी असलेला ऐकण्याचा इतिहास: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>सिंक करा · इतिहास</translation>
+      <translation>इतिहास सिंक करा</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>डाउनलोड · व्यवस्थापन</translation>
+      <translation>डाउनलोड व्यवस्थापक</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>आपोआप वाजवा · ताजे करा · डाउनलोड</translation>
+      <translation>डाउनलोड योजना आपोआप रिफ्रेश करा</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>ताजे करा · कालावधी</translation>
+      <translation>रिफ्रेश अंतराल</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 तास</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>ताजे करा · डाउनलोड · लोड होत आहे</translation>
+      <translation>डाउनलोड योजना रिफ्रेश होत आहेत…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>रेडिओ · डाउनलोड · कालावधी</translation>
+      <translation>रेडिओ डाउनलोडचा कालावधी</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 मिनिटे</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>डाउनलोड · फक्त वाचण्यासाठी · Wi-Fi</translation>
+      <translation>फक्त वाय-फायवर डाउनलोड करा</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>पुढे सुरू करा · डाउनलोड</translation>
+      <translation>डाउनलोड पुन्हा सुरू करा</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>विराम · डाउनलोड</translation>
+      <translation>डाउनलोड थांबवा</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>डाउनलोड · वाट पाहत आहे · Wi-Fi · ऑडिओ · वाजवा · ऑनलाइन</translation>
+      <translation>निश्चित वाय-फाय कनेक्शनची प्रतीक्षा. स्ट्रीमिंग उपलब्ध राहते.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>डाउनलोड · वाट पाहत आहे · ऑडिओ · लोड होत आहे</translation>
+      <translation>स्ट्रीम स्थिर होईपर्यंत डाउनलोड थांबतात</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · ऑडिओ · कॅश · वापरलेले</translation>
+      <translation>%1 MiB ऑडिओ कॅशे वापरात</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>ऑफलाइन · लायब्ररी · माहिती · जतन करा · अयशस्वी · %1</translation>
+      <translation>ऑफलाइन लायब्ररी डेटा जतन करता आला नाही: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>प्रलंबित · इतिहास · %1</translation>
+      <translation>सिंक बाकी असलेला ऐकण्याचा इतिहास: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>सिंक करा · इतिहास</translation>
+      <translation>ऐकण्याचा इतिहास सिंक करा</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>ऑडिओ · कालावधी · %1</translation>
+      <translation>योजनेतील ऑडिओ: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · गाणी · %3 · MiB</translation>
+      <translation>%1/%2 ट्रॅक · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>डाउनलोड होत आहे</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>सध्याचे · गाणे · %1 · MiB · मिळालेले</translation>
+      <translation>सध्याचा ट्रॅक: %1 MiB मिळाले</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>वाजवा · डाउनलोड झाले · गाणी</translation>
+      <translation>डाउनलोड केलेले ट्रॅक वाजवा</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>ताजे करा · डाउनलोड</translation>
+      <translation>डाउनलोड योजना रिफ्रेश करा</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>पुन्हा प्रयत्न करा · पुढे सुरू करा</translation>
+      <translation>पुन्हा प्रयत्न/सुरू करा</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>रद्द</translation>
+      <translation>योजना रद्द करा, फाइल्स ठेवा</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>काढा · डाउनलोड</translation>
+      <translation>डाउनलोड काढा</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>लायब्ररी · फिल्टर</translation>
+      <translation>लायब्ररी फिल्टर</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>स्मार्ट · प्लेलिस्ट</translation>
+      <translation>स्मार्ट प्लेलिस्ट</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>स्मार्ट · प्लेलिस्ट · फिल्टर · फक्त वाचण्यासाठी</translation>
+      <translation>हे स्मार्ट प्लेलिस्ट नियम हा एडिटर दाखवू शकत नाही.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1071,74 +1095,74 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Genre</source>
-      <translation>प्रकार</translation>
-    </message>
-    <message>
-      <source>Mood</source>
-      <translation>भावना</translation>
-    </message>
-    <message>
-      <source>Style</source>
       <translation>शैली</translation>
     </message>
     <message>
+      <source>Mood</source>
+      <translation>मूड</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>स्टाइल</translation>
+    </message>
+    <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>कोणतेही</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>शीर्षक · फिल्टर</translation>
+      <translation>शीर्षकात आहे</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>वर्ष · सुरू करा</translation>
+      <translation>वर्षापासून</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>वर्ष · मर्यादा</translation>
+      <translation>वर्षापर्यंत</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>आवडते · मर्यादा</translation>
+      <translation>किमान रेटिंग</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>वाजवा · काहीही नाही</translation>
+      <translation>फक्त न ऐकलेले</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>क्रम लावा</translation>
+      <translation>क्रमवारी लावा</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>मर्यादा · गाणी</translation>
+      <translation>कमाल ट्रॅक</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>लायब्ररी · फिल्टर</translation>
+      <translation>लायब्ररी फिल्टर</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>स्मार्ट · प्लेलिस्ट</translation>
+      <translation>स्मार्ट प्लेलिस्ट</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>स्मार्ट · प्लेलिस्ट · फिल्टर · फक्त वाचण्यासाठी</translation>
+      <translation>हे स्मार्ट प्लेलिस्ट नियम हा एडिटर दाखवू शकत नाही.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>लायब्ररी</translation>
+      <translation>ब्राउझ करा</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1150,74 +1174,74 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Genre</source>
-      <translation>प्रकार</translation>
-    </message>
-    <message>
-      <source>Mood</source>
-      <translation>भावना</translation>
-    </message>
-    <message>
-      <source>Style</source>
       <translation>शैली</translation>
     </message>
     <message>
+      <source>Mood</source>
+      <translation>मूड</translation>
+    </message>
+    <message>
+      <source>Style</source>
+      <translation>स्टाइल</translation>
+    </message>
+    <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>कोणतेही</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>शीर्षक · फिल्टर</translation>
+      <translation>शीर्षकात आहे</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>वर्ष · सुरू करा</translation>
+      <translation>वर्षापासून</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>वर्ष · मर्यादा</translation>
+      <translation>वर्षापर्यंत</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>आवडते · मर्यादा</translation>
+      <translation>किमान रेटिंग</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>वाजवा · काहीही नाही</translation>
+      <translation>फक्त न ऐकलेले</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>क्रम लावा</translation>
+      <translation>क्रमवारी लावा</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>मर्यादा · गाणी</translation>
+      <translation>कमाल ट्रॅक</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>इतिहास · सेटिंग्ज</translation>
+      <translation>ऐकण्याच्या इनसाइट्स</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · वाजवा · %2 · इतिहास</translation>
+      <translation>%1 पात्र प्ले · %2 ऐकले</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>इतिहास · local · वाजवा · मेटाडेटा</translation>
+      <translation>इनसाइट्स ट्रॅकिंग सुरू झाल्यापासून स्थानिकरित्या मोजलेल्या पात्र प्लेवर आधारित.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 दिवस</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · इतिहास</translation>
+      <translation>संपूर्ण इतिहास</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1229,26 +1253,26 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · वाजवा · %2 · इतिहास</translation>
+      <translation>%1 वेळा वाजवले · %2 ऐकले</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>इतिहास · सेटिंग्ज</translation>
+      <translation>ऐकण्याच्या इनसाइट्स</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · वाजवा · %2 · इतिहास</translation>
+      <translation>%1 पात्र प्ले · %2 ऐकले</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>इतिहास · local · वाजवा · मेटाडेटा</translation>
+      <translation>इनसाइट्स ट्रॅकिंग सुरू झाल्यापासून स्थानिकरित्या मोजलेल्या पात्र प्लेवर आधारित.</translation>
     </message>
     <message>
       <source>Period</source>
@@ -1256,15 +1280,15 @@
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 दिवस</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · इतिहास</translation>
+      <translation>संपूर्ण इतिहास</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>लायब्ररी</translation>
+      <translation>ब्राउझ करा</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1276,117 +1300,117 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · वाजवा · %2 · इतिहास</translation>
+      <translation>%1 वेळा वाजवले · %2 ऐकले</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>जोडा · Sonic · स्रोत</translation>
+      <translation>सोनिक टप्पा जोडा</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>स्मार्ट · फिल्टर · सेटिंग्ज</translation>
+      <translation>स्मार्ट फिल्टर संपादित करा</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>ऑडिओ · समान</translation>
+      <translation>सोनिकदृष्ट्या समान</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>सुरू करा · Sonic · Adventure</translation>
+      <translation>इथून सोनिक अ‍ॅडव्हेंचर सुरू करा</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · गाणे</translation>
+      <translation>या ट्रॅकपर्यंत सोनिक अ‍ॅडव्हेंचर</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>डाउनलोड · रेडिओ · %1 · min</translation>
+      <translation>रेडिओ डाउनलोड करा · %1 मिनिटे</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>डाउनलोड · %1 · min</translation>
+      <translation>%1 मिनिटे डाउनलोड करा</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>वाजवा · पुढील</translation>
+      <translation>पुढे वाजवा</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>जोडा · रांग</translation>
+      <translation>रांगेत जोडा</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>जोडा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टमध्ये जोडा</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>तयार करा · प्लेलिस्ट</translation>
+      <translation>यावरून प्लेलिस्ट तयार करा</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>जोडा · मिश्रण</translation>
+      <translation>मिक्स आधार म्हणून जोडा</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>नाव बदला · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव बदला</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>हटवा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्ट हटवा</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>हलवा · प्लेलिस्ट · वर</translation>
+      <translation>प्लेलिस्ट नोंद वर हलवा</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>हलवा · प्लेलिस्ट · खाली</translation>
+      <translation>प्लेलिस्ट नोंद खाली हलवा</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>काढा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टमधून काढा</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>काढा</translation>
+      <translation>आवडीतून काढा</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>जोडा · आवडते</translation>
+      <translation>आवडीत जोडा</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>ठेवणे थांबवा · डाउनलोड</translation>
+      <translation>डाउनलोड अनपिन करा</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>ऑफलाइन ठेवा · ऑफलाइन · इतिहास</translation>
+      <translation>ऑफलाइन ऐकण्यासाठी पिन करा</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>हलवा · वर</translation>
+      <translation>वर हलवा</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>हलवा · खाली</translation>
+      <translation>खाली हलवा</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>काढा · रांग</translation>
+      <translation>रांगेतून काढा</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>वर · पुढील</translation>
+      <translation>पुढे येणारे</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>ऑफलाइन · जतन केलेले · लायब्ररी · मेटाडेटा</translation>
+      <translation>ऑफलाइन · जतन केलेला लायब्ररी मेटाडेटा दाखवत आहे</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>डाउनलोड · वाट पाहत आहे · ऑडिओ · लोड होत आहे</translation>
+      <translation>स्ट्रीम स्थिर होईपर्यंत डाउनलोड थांबतात</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>कॅश · ऑडिओ</translation>
+      <translation>ऑडिओ कॅशे होत आहे…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · गाणी · तयार · ऑफलाइन</translation>
+      <translation>%1 ट्रॅक ऑफलाइन उपलब्ध</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1414,7 +1438,7 @@
     </message>
     <message>
       <source>Search</source>
-      <translation>शोध</translation>
+      <translation>शोधा</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1426,7 +1450,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1442,27 +1466,27 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>शोध · कलाकार · अल्बम · गाणी</translation>
+      <translation>कलाकार, अल्बम आणि ट्रॅक शोधा</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>लायब्ररी</translation>
+      <translation>ब्राउझ करा</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>क्रम लावा</translation>
+      <translation>क्रमवारी लावा</translation>
     </message>
     <message>
       <source>Open artist</source>
-      <translation>उघडा · कलाकार</translation>
+      <translation>कलाकार उघडा</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>उघडा · अल्बम</translation>
+      <translation>अल्बम उघडा</translation>
     </message>
     <message>
       <source>Track</source>
-      <translation>गाणे</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>गाणे · सर्व्हर · उपलब्ध नाही</translation>
+      <translation>आता सर्व्हरवर नाही</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>पुन्हा प्रयत्न करा · लोड होत आहे</translation>
+      <translation>पुन्हा लोड करा</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>काहीही नाही</translation>
+      <translation>संगीत सापडले नाही</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>जोडा · Plex</translation>
+      <translation>Plex शी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · जोडणी · सेटिंग्ज</translation>
+      <translation>कनेक्शन सेटिंग्जसाठी पुल-अप मेनू वापरा</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>काहीही नाही · वाजवा</translation>
+      <translation>काहीही वाजत नाही</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>वाजवा</translation>
+      <translation>आता वाजत आहे</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>वारंवारता · शोध</translation>
+      <translation>तुमची फ्रिक्वेन्सी शोधा.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>ऑफलाइन · जतन केलेले · लायब्ररी · मेटाडेटा</translation>
+      <translation>ऑफलाइन · जतन केलेला लायब्ररी मेटाडेटा दाखवत आहे</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>डाउनलोड · वाट पाहत आहे · ऑडिओ · लोड होत आहे</translation>
+      <translation>स्ट्रीम स्थिर होईपर्यंत डाउनलोड थांबतात</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>कॅश · ऑडिओ</translation>
+      <translation>ऑडिओ कॅशे होत आहे…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · गाणी · तयार · ऑफलाइन</translation>
+      <translation>%1 ट्रॅक ऑफलाइन उपलब्ध</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,15 +1549,15 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>शोध · कलाकार · अल्बम · गाणी</translation>
+      <translation>कलाकार, अल्बम आणि ट्रॅक शोधा</translation>
     </message>
     <message>
       <source>Search</source>
-      <translation>शोध</translation>
+      <translation>शोधा</translation>
     </message>
     <message>
       <source>Up next</source>
-      <translation>वर · पुढील</translation>
+      <translation>पुढे येणारे</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1545,7 +1569,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>उघडा · कलाकार</translation>
+      <translation>कलाकार उघडा</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>उघडा · अल्बम</translation>
+      <translation>अल्बम उघडा</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>गाणे · सर्व्हर · उपलब्ध नाही</translation>
+      <translation>आता सर्व्हरवर नाही</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,83 +1601,83 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>पुन्हा प्रयत्न करा · लोड होत आहे</translation>
+      <translation>पुन्हा लोड करा</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>काहीही नाही</translation>
+      <translation>संगीत सापडले नाही.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>जोडा · Plex · सर्व्हर · सुरू करा · इतिहास</translation>
+      <translation>ऐकायला सुरुवात करण्यासाठी तुमच्या Plex संगीत सर्व्हरशी कनेक्ट करा.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>वाजवा</translation>
+      <translation>आता वाजत आहे</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>काहीही नाही · वाजवा</translation>
+      <translation>काहीही वाजत नाही</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>यादृच्छिक</translation>
+      <translation>शफल</translation>
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>पुनरावृत्ती: एक</translation>
+      <translation>एक ट्रॅक पुन्हा वाजवा</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>पुनरावृत्ती: सर्व</translation>
+      <translation>सर्व पुन्हा वाजवा</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>पुनरावृत्ती: बंद</translation>
+      <translation>पुनरावृत्ती बंद</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>जोडा · Plex</translation>
+      <translation>Plex शी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>साइन इन · Plex · ब्राउझर</translation>
+      <translation>ब्राउझरमध्ये Plex ने साइन इन करा</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>वाट पाहत आहे · ब्राउझर · साइन इन</translation>
+      <translation>ब्राउझर प्राधिकरणाची प्रतीक्षा…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>उघडा · साइन इन</translation>
+      <translation>साइन इन पुन्हा उघडा</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>निवडा · Plex · सर्व्हर</translation>
+      <translation>Plex सर्व्हर निवडा</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>सर्व्हर · उघडा · लायब्ररी</translation>
+      <translation>सर्व्हरच्या संगीत लायब्ररी उघडण्यासाठी तो निवडा.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>ताजे करा · Plex</translation>
+      <translation>तुमचे Plex सर्व्हर शोधण्यासाठी यादी रिफ्रेश करा.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>ताजे करा</translation>
+      <translation>सर्व्हर रिफ्रेश करा</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>जोडा · लायब्ररी</translation>
+      <translation>संगीत लायब्ररींशी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>जोडणी</translation>
+      <translation>थेट कनेक्शन</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>जोडा · सर्व्हर · URL · Plex · टोकन</translation>
+      <translation>किंवा सर्व्हर URL आणि Plex टोकन वापरून थेट कनेक्ट करा:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,54 +1685,54 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>जोडा · जोडणी</translation>
+      <translation>थेट कनेक्ट करा</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>साइन इन · साफ करा · जतन केलेले</translation>
+      <translation>साइन आउट करा आणि जतन केलेले टोकन साफ करा</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>ऑफलाइन · ऑडिओ · कॅश</translation>
+      <translation>ऑफलाइन ऑडिओ कॅशे</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>ऑडिओ सेटिंग्ज</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>आपोआप वाजवा · समान · रांग</translation>
+      <translation>रांग संपल्यावर संबंधित संगीत वाजवा</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>कॅश · रांग · ऑडिओ · आपोआप वाजवा</translation>
+      <translation>रांगेतील ऑडिओ आपोआप कॅशे करा</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>कॅश · मर्यादा</translation>
+      <translation>कॅशे मर्यादा</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · गाणी · डाउनलोड झाले · %2 · MiB · वापरलेले</translation>
+      <translation>%1 ट्रॅक डाउनलोड झाले · %2 MiB वापरात</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>साफ करा · कॅश · थांबवा · वाजवा</translation>
+      <translation>कॅशे साफ करा आणि प्लेबॅक थांबवा</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>ऑफलाइन · लायब्ररी</translation>
+      <translation>ऑफलाइन लायब्ररी</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>सेटिंग्ज</translation>
+      <translation>पेज क्रिया</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>लायब्ररी</translation>
+      <translation>आणखी गंतव्ये</translation>
     </message>
     <message>
       <source>Show all</source>
@@ -1716,7 +1740,7 @@
     </message>
     <message>
       <source>Discover</source>
-      <translation>शोध</translation>
+      <translation>डिस्कव्हर</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1728,39 +1752,39 @@
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>शोध · सेटिंग्ज</translation>
+      <translation>डिस्कव्हर सानुकूलित करा</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>लायब्ररी · फिल्टर</translation>
+      <translation>लायब्ररी फिल्टर</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>प्रकार · अल्बम</translation>
+      <translation>अल्बम प्रकारानुसार गटबद्ध करा</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>तयार करा · स्मार्ट · प्लेलिस्ट</translation>
+      <translation>स्मार्ट प्लेलिस्ट तयार करा</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>तयार करा · प्लेलिस्ट · गाणी · रांग</translation>
+      <translation>ट्रॅक/रांगेतून प्लेलिस्ट तयार करा</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>डाउनलोड · गाणी</translation>
+      <translation>दाखवलेले ट्रॅक डाउनलोड करा</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>साफ करा · मिश्रण</translation>
+      <translation>मिक्स आधार साफ करा</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>साफ करा · Sonic · स्रोत</translation>
+      <translation>सोनिक टप्पे साफ करा</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>थांबवा · रेडिओ</translation>
+      <translation>रेडिओ थांबवा</translation>
     </message>
     <message>
       <source>Queue</source>
@@ -1768,19 +1792,19 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>डाउनलोड झाले</translation>
+      <translation>डाउनलोड केलेले संगीत</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>जतन केलेले · अल्बम</translation>
+      <translation>जतन केलेले अल्बम</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>इतिहास · सेटिंग्ज</translation>
+      <translation>ऐकण्याच्या इनसाइट्स</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>आवडते · ★ · 5</translation>
+      <translation>आवडते · 5 स्टार</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1792,132 +1816,132 @@
     </message>
     <message>
       <source>Download manager</source>
-      <translation>डाउनलोड · व्यवस्थापन</translation>
+      <translation>डाउनलोड व्यवस्थापक</translation>
     </message>
     <message>
       <source>Connection</source>
-      <translation>जोडणी</translation>
+      <translation>कनेक्शन</translation>
     </message>
     <message>
       <source>Back</source>
-      <translation>वर</translation>
+      <translation>मागे</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>ऑनलाइन</translation>
+      <translation>ऑनलाइन जा</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>लायब्ररी · जतन केलेले · ऑफलाइन</translation>
+      <translation>जतन केलेली लायब्ररी ऑफलाइन ब्राउझ करा</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>वाजवा · मिश्रण · %1 · स्रोत</translation>
+      <translation>मिक्स वाजवा (%1 आधार)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · मिश्रण · %1 · गाणी</translation>
+      <translation>सोनिक प्रवास (%1 ट्रॅक)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>वाजवा</translation>
+      <translation>आता वाजत आहे</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>काहीही नाही · वाजवा</translation>
+      <translation>काहीही वाजत नाही</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · आवडते</translation>
+      <translation>★ आवडते</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · जोडा · आवडते</translation>
+      <translation>☆ आवडीत जोडा</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>लोड होत आहे · गीताचे शब्द</translation>
+      <translation>बोल लोड होत आहेत…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>गीताचे शब्द · उपलब्ध नाही · ऑफलाइन · सर्व्हर</translation>
+      <translation>ऑफलाइन असताना किंवा या सर्व्हरवर बोल उपलब्ध नाहीत.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>गीताचे शब्द · उपलब्ध नाही · Plex</translation>
+      <translation>Plex ने बोल दिले नाहीत.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल पुन्हा लोड करा</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल पुन्हा लोड करा</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>वाजवा</translation>
+      <translation>आता वाजत आहे</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>काहीही नाही · वाजवा</translation>
+      <translation>काहीही वाजत नाही</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · आवडते</translation>
+      <translation>★ आवडते</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · जोडा · आवडते</translation>
+      <translation>☆ आवडीत जोडा</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>गीताचे शब्द</translation>
+      <translation>बोल</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>लोड होत आहे · गीताचे शब्द</translation>
+      <translation>बोल लोड होत आहेत…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>गीताचे शब्द · उपलब्ध नाही · ऑफलाइन · सर्व्हर</translation>
+      <translation>ऑफलाइन असताना किंवा या सर्व्हरवर बोल उपलब्ध नाहीत.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>गीताचे शब्द · उपलब्ध नाही · Plex</translation>
+      <translation>Plex ने बोल दिले नाहीत.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>जोडा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टमध्ये जोडा</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>नाव बदला · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव बदला</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>तयार करा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्ट तयार करा</translation>
     </message>
     <message>
       <source>Save</source>
-      <translation>सेव्ह करा</translation>
+      <translation>जतन करा</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव</translation>
     </message>
     <message>
       <source>Playlist</source>
@@ -1925,30 +1949,30 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>स्मार्ट · प्लेलिस्ट · Plex · फिल्टर · नवीन · प्लेलिस्ट · गाणी · अल्बम · रांग</translation>
+      <translation>स्मार्ट प्लेलिस्टची सामग्री Plex फिल्टरद्वारे व्यवस्थापित होते. नवीन प्लेलिस्ट निवडलेले ट्रॅक/अल्बम किंवा रांग वापरतात.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>जोडा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टमध्ये जोडा</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>नाव बदला · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव बदला</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>तयार करा · प्लेलिस्ट</translation>
+      <translation>प्लेलिस्ट तयार करा</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>प्लेलिस्ट</translation>
+      <translation>प्लेलिस्टचे नाव</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>स्मार्ट · प्लेलिस्ट · Plex · फिल्टर · नवीन · प्लेलिस्ट · गाणी · अल्बम · रांग</translation>
+      <translation>स्मार्ट प्लेलिस्ट Plex फिल्टर वापरतात. नवीन प्लेलिस्ट निवडलेले ट्रॅक/अल्बम किंवा रांग वापरतात.</translation>
     </message>
   </context>
   <context>
@@ -1982,39 +2006,39 @@
     </message>
     <message>
       <source>Most played</source>
-      <translation>इतिहास · वाजवा</translation>
+      <translation>सर्वाधिक वाजवलेले</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>यादृच्छिक</translation>
+      <translation>शफल</translation>
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>फिल्टर · ऑडिओ</translation>
+      <translation>फिल्टर केलेले संगीत</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>सोनिक अ‍ॅडव्हेंचर</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>शोध</translation>
+      <translation>डिस्कव्हर</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>स्रोत · ऑडिओ</translation>
+      <translation>मूळ ऑडिओ</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>ऑडिओ · समान</translation>
+      <translation>सोनिकदृष्ट्या समान</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>आवडते · ★ · 5</translation>
+      <translation>आवडते · 5 स्टार</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2022,47 +2046,47 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>गाणी</translation>
+      <translation>ट्रॅक</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>डाउनलोड झाले</translation>
+      <translation>डाउनलोड केलेले संगीत</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>गाणे · संख्या · उपलब्ध नाही</translation>
+      <translation>ट्रॅक संख्या उपलब्ध नाही</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · गाणे</translation>
+      <translation>1 ट्रॅक</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · गाणी</translation>
+      <translation>%1 ट्रॅक</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>कालावधी · उपलब्ध नाही</translation>
+      <translation>कालावधी उपलब्ध नाही</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>कलाकार · रेडिओ</translation>
+      <translation>कलाकार रेडिओ</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>अल्बम · रेडिओ</translation>
+      <translation>अल्बम रेडिओ</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>गाणे · रेडिओ</translation>
+      <translation>ट्रॅक रेडिओ</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>ऑफलाइन · लायब्ररी</translation>
+      <translation>ऑफलाइन लायब्ररी</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>शोध</translation>
+      <translation>शोध परिणाम</translation>
     </message>
     <message>
       <source>Playlists</source>
@@ -2073,110 +2097,110 @@
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>जोडा · Plex</translation>
+      <translation>Plex शी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>साइन इन · Plex</translation>
+      <translation>Plex ने साइन इन करा</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>साइन इन · ब्राउझर · मिळालेले</translation>
+      <translation>तुमच्या ब्राउझरमध्ये साइन इन पूर्ण करा, मग इथे परत या.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>उघडा · ब्राउझर</translation>
+      <translation>ब्राउझर पुन्हा उघडा</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>निवडा · Plex · सर्व्हर</translation>
+      <translation>Plex सर्व्हर निवडा</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>निवडा · सर्व्हर · उघडा · लायब्ररी</translation>
+      <translation>सर्व्हरच्या संगीत लायब्ररी उघडण्यासाठी त्यावर टॅप करा.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>ताजे करा · Plex</translation>
+      <translation>तुमचे Plex सर्व्हर शोधण्यासाठी यादी रिफ्रेश करा.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>ताजे करा</translation>
+      <translation>सर्व्हर रिफ्रेश करा</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>जोडा · लायब्ररी</translation>
+      <translation>संगीत लायब्ररींशी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>जोडणी</translation>
+      <translation>थेट कनेक्शन</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>सर्व्हर · URL</translation>
+      <translation>सर्व्हर URL</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · टोकन</translation>
+      <translation>Plex टोकन</translation>
     </message>
     <message>
       <source>Connect</source>
-      <translation>जोडा</translation>
+      <translation>कनेक्ट करा</translation>
     </message>
     <message>
       <source>Sign out</source>
-      <translation>साइन इन</translation>
+      <translation>साइन आउट करा</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>ऑफलाइन · ऑडिओ · कॅश</translation>
+      <translation>ऑफलाइन ऑडिओ कॅशे</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>ऑडिओ · सेटिंग्ज</translation>
+      <translation>ऑडिओ सेटिंग्ज</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>आपोआप वाजवा · समान · रांग</translation>
+      <translation>रांग संपल्यावर संबंधित संगीत वाजवा</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>डाउनलोड · फक्त वाचण्यासाठी · Wi-Fi</translation>
+      <translation>फक्त वाय-फायवर डाउनलोड करा</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>उघडा · डाउनलोड · व्यवस्थापन</translation>
+      <translation>डाउनलोड व्यवस्थापक उघडा</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>कॅश · रांग · ऑडिओ · आपोआप वाजवा</translation>
+      <translation>रांगेतील ऑडिओ आपोआप कॅशे करा</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>कॅश · मर्यादा</translation>
+      <translation>कॅशे मर्यादा</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · गाणी · डाउनलोड झाले · %2 · MiB · वापरलेले</translation>
+      <translation>%1 ट्रॅक डाउनलोड झाले · %2 MiB वापरात</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>कॅश · सध्याचे · गाणे · पुढील · %1 · गाणी · डाउनलोड · अल्बम · तयार · ऑफलाइन</translation>
+      <translation>सध्याचा ट्रॅक आणि रांगेतील पुढील %1 ट्रॅक कॅशे केले जातात. प्रवासापूर्वी अल्बम डाउनलोड करा; ऑफलाइन फक्त पूर्ण झालेले डाउनलोड चालतात.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>साफ करा · कॅश · थांबवा · वाजवा</translation>
+      <translation>कॅशे साफ करा आणि प्लेबॅक थांबवा</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · थेट स्ट्रीमिंग संगीत प्लेअर</translation>
+      <translation>PlexFreq %1 · थेट-स्ट्रीम संगीत प्लेअर</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>काहीही नाही · वाजवा</translation>
+      <translation>काहीही वाजत नाही</translation>
     </message>
   </context>
   <context>
@@ -2191,11 +2215,11 @@
     </message>
     <message>
       <source>Singles</source>
-      <translation>सिंगल</translation>
+      <translation>सिंगल्स</translation>
     </message>
     <message>
       <source>Live</source>
-      <translation>थेट</translation>
+      <translation>लाइव्ह</translation>
     </message>
     <message>
       <source>Compilations</source>

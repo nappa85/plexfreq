@@ -87,6 +87,12 @@ pub(super) struct Output {
     /// Test hook: policy requests injected into simulated sinks.
     #[cfg(test)]
     pub injected: pulse::Events,
+    /// Test hook: the simulated sink is suspended and consumes nothing.
+    #[cfg(test)]
+    pub suspended: bool,
+    /// Test hook: the simulated server holds the input corked.
+    #[cfg(test)]
+    pub server_corked: bool,
 }
 
 impl Output {
@@ -140,6 +146,10 @@ impl Output {
             backend,
             #[cfg(test)]
             injected: pulse::Events::default(),
+            #[cfg(test)]
+            suspended: false,
+            #[cfg(test)]
+            server_corked: false,
         })
     }
     /// Process sink notifications. A policy cork request (call, alarm,
@@ -271,10 +281,16 @@ impl Output {
     fn consumed(&mut self) -> u64 {
         let corked = self.corked;
         let frames = self.frames;
+        #[cfg(test)]
+        let suspended = self.suspended;
+        #[cfg(not(test))]
+        let suspended = false;
         match &mut self.backend {
             Backend::Pulse { .. } => frames,
             Backend::Fake { consumed, since } => {
-                if !corked {
+                if suspended {
+                    *since = Instant::now();
+                } else if !corked {
                     let now = Instant::now();
                     let elapsed = now.duration_since(*since);
                     let advance = (elapsed.as_nanos() * u128::from(RATE) / 1_000_000_000) as u64;
@@ -329,6 +345,37 @@ impl Output {
     }
     pub fn corked(&self) -> bool {
         self.corked
+    }
+    /// Whether the server holds this output's input corked (None while the
+    /// answer is pending; simulated sinks are never corked by a server).
+    pub fn server_corked(&mut self) -> Option<bool> {
+        #[cfg(test)]
+        if self.server_corked {
+            return Some(true);
+        }
+        match &mut self.backend {
+            Backend::Pulse { stream, .. } => stream.query_server_cork(),
+            _ => Some(false),
+        }
+    }
+    /// Drop a pending or answered `server_corked` lookup.
+    pub fn forget_server_cork(&mut self) {
+        if let Backend::Pulse { stream, .. } = &mut self.backend {
+            stream.forget_server_cork();
+        }
+    }
+    /// The sink this output plays to is suspended. An uncorked stream wakes
+    /// a sink that suspended while idle, so staying suspended while play is
+    /// wanted means the route stopped taking audio.
+    pub fn sink_suspended(&self) -> bool {
+        #[cfg(test)]
+        if self.suspended {
+            return true;
+        }
+        match &self.backend {
+            Backend::Pulse { stream, .. } => stream.suspended(),
+            _ => false,
+        }
     }
     /// Uncorked and run dry: PulseAudio reported an underflow and has not
     /// started again; the real-time fake has nothing queued. The capture

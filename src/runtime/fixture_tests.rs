@@ -1158,23 +1158,46 @@ fn a_dropped_transcode_restarts_where_it_stopped() {
     );
 }
 
+/// Only an end at the media position of the previous attempt's end (both
+/// directions) is the track's real end; a restart cut much sooner or later
+/// goes through the normal attempt limit. A deferred admit records it too.
+#[test]
+fn a_repeated_early_end_must_reach_where_the_first_one_did() {
+    let mut failures = Failures::default();
+    assert!(!failures.repeats_early_end("a", 3_000), "no episode yet");
+    assert_eq!(failures.admit_restart("a", 1, Some(3_000)), Some(1));
+    assert!(failures.repeats_early_end("a", 3_000));
+    assert!(failures.repeats_early_end("a", 3_000 + REPEATED_EARLY_END_MS));
+    assert!(failures.repeats_early_end("a", 3_000 - REPEATED_EARLY_END_MS));
+    assert!(!failures.repeats_early_end("a", 100), "barely worked");
+    assert!(!failures.repeats_early_end("a", 5_000), "went further");
+    assert!(!failures.repeats_early_end("b", 3_000), "other occurrence");
+    // Not an early end: nothing to repeat.
+    assert_eq!(failures.admit_restart("a", 0, None), Some(2));
+    assert!(!failures.repeats_early_end("a", 3_000));
+}
+
 #[test]
 fn transcode_restarts_need_new_audio_and_are_bounded() {
     let mut failures = Failures::default();
     // A transcode that never played: no restart (the gone check decides).
-    assert_eq!(failures.admit_restart("a", 0), None);
-    assert_eq!(failures.admit_restart("a", 500), Some(1));
+    assert_eq!(failures.admit_restart("a", 0, None), None);
+    assert_eq!(failures.admit_restart("a", 500, None), Some(1));
     // Within an episode, attempts without new audio count up to four.
-    assert_eq!(failures.admit_restart("a", 0), Some(2));
-    assert_eq!(failures.admit_restart("a", 3_000), Some(3));
-    assert_eq!(failures.admit_restart("a", 0), Some(4));
-    assert_eq!(failures.admit_restart("a", 0), None);
-    assert_eq!(failures.admit_restart("a", 9_000), None, "exhausted holds");
+    assert_eq!(failures.admit_restart("a", 0, None), Some(2));
+    assert_eq!(failures.admit_restart("a", 3_000, None), Some(3));
+    assert_eq!(failures.admit_restart("a", 0, None), Some(4));
+    assert_eq!(failures.admit_restart("a", 0, None), None);
+    assert_eq!(
+        failures.admit_restart("a", 9_000, None),
+        None,
+        "exhausted holds"
+    );
     // Ten seconds of new audio proves the stream works again.
-    assert_eq!(failures.admit_restart("a", 10_000), Some(1));
+    assert_eq!(failures.admit_restart("a", 10_000, None), Some(1));
     // Another occurrence starts its own episode.
-    assert_eq!(failures.admit_restart("b", 0), None);
-    assert_eq!(failures.admit_restart("b", 1), Some(1));
+    assert_eq!(failures.admit_restart("b", 0, None), None);
+    assert_eq!(failures.admit_restart("b", 1, None), Some(1));
     assert_eq!(
         (1..=4).map(restart_backoff).collect::<Vec<_>>(),
         [0, 2, 4, 8].map(Duration::from_secs)
@@ -1276,7 +1299,21 @@ fn short_transcode_server(milliseconds: u32) -> String {
 /// end, so the queue continues instead of failing or looping.
 #[test]
 fn a_transcode_ending_early_again_after_restart_ends_the_track() {
-    let origin = short_transcode_server(1000);
+    transcode_ending_early_again_ends_the_track(1000);
+}
+
+/// The same when the transcode ends before the start buffer released any
+/// audio: nothing was heard, yet the stream worked and is restarted.
+#[test]
+fn a_transcode_ending_early_before_any_audio_is_heard_ends_the_track() {
+    // 300 ms is below the start buffer (`START_BUFFER_FRAMES`, 0.5 s), so the
+    // stream ends before the gate released any audio.
+    const _: () = assert!(300 * 48 < crate::audio::START_BUFFER_FRAMES);
+    transcode_ending_early_again_ends_the_track(300);
+}
+
+fn transcode_ending_early_again_ends_the_track(milliseconds: u32) {
+    let origin = short_transcode_server(milliseconds);
     let dir = tempfile::tempdir().unwrap();
     crate::store::save(
         dir.path(),
@@ -1304,7 +1341,11 @@ fn a_transcode_ending_early_again_after_restart_ends_the_track() {
         .unwrap();
     let end = Instant::now() + Duration::from_secs(20);
     let mut errors = Vec::new();
-    loop {
+    // Track 2 is just as short and soon held in its own failure, so wait for
+    // the advance itself, then keep collecting events for a grace period: a
+    // give-up of track 1 reports its error alongside the advance.
+    let mut advanced: Option<Instant> = None;
+    while advanced.is_none_or(|at| at.elapsed() < Duration::from_millis(300)) {
         assert!(
             Instant::now() < end,
             "the queue did not advance; errors {errors:?}"
@@ -1314,16 +1355,63 @@ fn a_transcode_ending_early_again_after_restart_ends_the_track() {
                 errors.push(event.clone());
             }
         }
-        let model = crate::mutex_lock(&runtime.shared.model);
-        let state = runtime.shared.playback();
-        if model["track"]["ratingKey"] == "2" && state.loaded && !state.failed && state.position > 0
+        if advanced.is_none()
+            && crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"] == "2"
         {
-            break;
+            advanced = Some(Instant::now());
         }
-        drop(model);
         thread::sleep(Duration::from_millis(20));
     }
     assert!(errors.is_empty(), "{errors:?}");
+}
+
+/// A transcode that ends cleanly without any audio is a stream failure, not
+/// the track's end: the queue stays on the track and the error is reported.
+#[test]
+fn an_empty_transcode_is_a_stream_error_not_a_silent_advance() {
+    let origin = short_transcode_server(0);
+    let dir = tempfile::tempdir().unwrap();
+    crate::store::save(
+        dir.path(),
+        &crate::store::Settings {
+            client_identifier: "fixture-client".into(),
+            server_url: origin,
+            server_token: "fixture-token".into(),
+            autoplay: false,
+            quality: crate::quality::Config {
+                wifi_kbps: 320,
+                ..Default::default()
+            },
+            cache: crate::cache::Config {
+                enabled: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    let items = serde_json::to_value(vec![track(1, 20_000), track(2, 20_000)]).unwrap();
+    runtime
+        .submit(json!({"op":"play","items":items,"index":0}))
+        .unwrap();
+    let end = Instant::now() + Duration::from_secs(20);
+    loop {
+        assert!(Instant::now() < end, "no stream error was reported");
+        let mut failed = false;
+        for event in runtime.poll()["events"].as_array().unwrap() {
+            failed |= event["request"]["op"] == "_audio_error";
+        }
+        assert_ne!(
+            crate::mutex_lock(&runtime.shared.model)["track"]["ratingKey"],
+            "2",
+            "the empty transcode advanced the queue"
+        );
+        if failed {
+            break;
+        }
+        thread::sleep(Duration::from_millis(20));
+    }
 }
 
 fn idle_runtime() -> (tempfile::TempDir, Runtime) {

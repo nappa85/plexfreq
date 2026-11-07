@@ -944,7 +944,8 @@ fn worker(
                             && !core.known_offline()
                             && shared.queued_transport.load(Ordering::SeqCst) == 0
                     }) {
-                        let (id, progress, admitted) = (held.id, held.progress, held.admitted);
+                        let (id, progress, early_at, admitted) =
+                            (held.id, held.progress, held.early_at, held.admitted);
                         let occurrence = held.occurrence.clone();
                         if let Some(held) = &mut failures.held {
                             held.restart_due = None;
@@ -952,7 +953,7 @@ fn worker(
                         if !admitted {
                             // Deferred while paused or offline: admit now; the
                             // restart itself follows after its backoff.
-                            match failures.admit_restart(&occurrence, progress) {
+                            match failures.admit_restart(&occurrence, progress, early_at) {
                                 Some(attempt) => {
                                     if let Some(held) = &mut failures.held {
                                         held.admitted = true;
@@ -1154,6 +1155,14 @@ fn worker(
                         early_end,
                         ..
                     } => {
+                        // A clean early end proves the stream worked even if the
+                        // start buffer had released no audio to hear yet.
+                        let progress = if early_end.is_some() {
+                            progress.max(1)
+                        } else {
+                            progress
+                        };
+
                         if failures.pending.is_some() {
                             // Not expected (outcomes precede new failures on the
                             // event channel); the pending outcome decides.
@@ -1181,15 +1190,10 @@ fn worker(
                         crate::test_hooks::check(&directory, "held_failure");
                         let occurrence = core.occurrence().to_owned();
                         if early_end
-                            && failures.episode.as_ref().is_some_and(|episode| {
-                                episode.occurrence == occurrence
-                                    && episode
-                                        .early_at
-                                        .is_some_and(|at| position <= at + REPEATED_EARLY_END_MS)
-                            })
+                            .is_some_and(|reached| failures.repeats_early_end(&occurrence, reached))
                         {
                             crate::diagnostics::event(format_args!(
-                            "transcode ends early again at position_ms={position}; treating as the track end occurrence={id}"
+                            "transcode ends early again at reached_ms={early_end:?}; treating as the track end occurrence={id}"
                         ));
                             failures.episode = None;
                             playback!().end_held(id, listened, position);
@@ -1204,6 +1208,7 @@ fn worker(
                             deadline: Instant::now() + HELD_LIMIT,
                             restart_due: None,
                             progress,
+                            early_at: early_end,
                             admitted: false,
                             epoch: 0,
                         });
@@ -1213,10 +1218,11 @@ fn worker(
                             playback!().give_up(id, Some(stream_failure().to_owned()));
                             continue;
                         }
-                        playback!().recover_failure(id, progress, position, duration, listened);
+                        playback!()
+                            .recover_failure(id, progress, early_end, position, duration, listened);
                         if let Some(episode) = &mut failures.episode {
                             if episode.occurrence == occurrence {
-                                episode.early_at = early_end.then_some(position);
+                                episode.early_at = early_end;
                             }
                         }
                     }
@@ -1308,6 +1314,17 @@ fn worker(
                         crate::mutex_lock(&shared.seeks).push(position as i64 * 1000);
                         shared.touched();
                         let _ = events.send(json!({"kind":"seeked","position":position}).into());
+                    }
+                    // The engine already paused with everything loaded; Play
+                    // retries once the route is back.
+                    // The pause is the engine's, whichever item it names.
+                    Event::OutputStuck { id } => {
+                        if id != current {
+                            crate::diagnostics::event(format_args!(
+                                "output stuck for occurrence={id} while current={current}"
+                            ));
+                        }
+                        audio_error(&events, crate::audio::OUTPUT_STUCK);
                     }
                 }
             }
@@ -1968,6 +1985,8 @@ struct Held {
     /// New audio before the failure, for a restart admitted only when it
     /// can run (a paused or offline failure spends no attempt meanwhile).
     progress: u64,
+    /// Where the failed transcode ended cleanly early, if it did.
+    early_at: Option<u64>,
     admitted: bool,
     /// The health epoch at failure: a server or queue change ends it.
     epoch: u64,
@@ -2011,11 +2030,27 @@ impl Failures {
         self.held = None;
         self.pending = None;
     }
+    /// A transcode that ended early again where the previous attempt of this
+    /// occurrence did (`reached` and its `early_at` are media positions).
+    fn repeats_early_end(&self, occurrence: &str, reached: u64) -> bool {
+        self.episode.as_ref().is_some_and(|episode| {
+            episode.occurrence == occurrence
+                && episode
+                    .early_at
+                    .is_some_and(|at| reached.abs_diff(at) <= REPEATED_EARLY_END_MS)
+        })
+    }
     /// Admit a transcode restart for `occurrence` after `progress` ms of new
     /// audio; returns the attempt number (1 = immediate).
-    fn admit_restart(&mut self, occurrence: &str, progress: u64) -> Option<u32> {
+    fn admit_restart(
+        &mut self,
+        occurrence: &str,
+        progress: u64,
+        early_at: Option<u64>,
+    ) -> Option<u32> {
         match &mut self.episode {
             Some(episode) if episode.occurrence == occurrence => {
+                episode.early_at = early_at;
                 if progress >= RESTART_PROGRESS_MS {
                     episode.attempts = 1;
                 } else if episode.attempts >= RESTART_ATTEMPTS {
@@ -2031,7 +2066,7 @@ impl Failures {
                 self.episode = Some(Episode {
                     occurrence: occurrence.to_owned(),
                     attempts: 1,
-                    early_at: None,
+                    early_at,
                 });
                 Some(1)
             }
@@ -2233,6 +2268,7 @@ impl Playback<'_> {
         &mut self,
         id: u64,
         progress: u64,
+        early_at: Option<u64>,
         position: u64,
         duration: u64,
         listened: u64,
@@ -2257,7 +2293,9 @@ impl Playback<'_> {
                         }
                         return;
                     }
-                    if let Some(attempt) = self.failures.admit_restart(&occurrence, progress) {
+                    if let Some(attempt) =
+                        self.failures.admit_restart(&occurrence, progress, early_at)
+                    {
                         let due = Instant::now() + restart_backoff(attempt);
                         crate::diagnostics::event(format_args!(
                             "transcode restart attempt={attempt} occurrence={id}"

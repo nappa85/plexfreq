@@ -11,75 +11,75 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Аудио көйләүләре</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Агым сыйфаты</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Тавыш</translation>
+      <translation>Wi-Fi аша аудио</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Челтәр · Тавыш</translation>
+      <translation>Мобиль челтәрдә аудио</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Йөкләүләр · Тавыш</translation>
+      <translation>Йөкләү аудиосы</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Декодер · Кабат тырышу</translation>
+      <translation>Кодек туры килмәсә Plex аша үзгәртү</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Тавыш · Көйләүләр · Киләсе · Язмалар · Йөкләүләр · Әзер · Тавыш</translation>
+      <translation>Сыйфат үзгәрешләре киләсе трекларга һәм йөкләүләргә кагыла. Тулысынча йөкләнгән җирле аудио өстенлекле.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Тавыш · Тәнәфессез · PCM · Чыгыш</translation>
+      <translation>Rust аудио двигателе · өзлексез PCM чыгыш</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Секунд</translation>
+      <translation>%1 секунд</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Сүнек</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Әкрен күчеш</translation>
+      <translation>Кроссфейд</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Нормальләштерү</translation>
+      <translation>Тавыш көчен тигезләү</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Язма · Нормальләштерү</translation>
+      <translation>Трек көчәйтүе</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Альбомнар · Нормальләштерү</translation>
+      <translation>Альбом көчәйтүе</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Автоматик уйнату · Нормальләштерү</translation>
+      <translation>Автоматик көчәйтү</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Тавыш · Тавыш көче · Аралык</translation>
+      <translation>Тавыш запасы</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Метамәгълүмат · Нормальләштерү · Альбомнар · Тәнәфессез · Әкрен күчеш · off</translation>
+      <translation>Булганда Plex көчәйтү метамәгълүматларын куллана. Бер альбомдагы треклар кроссфейдсыз, өзлексез алмаша.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,86 +87,86 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Кайтару · Эквалайзер</translation>
+      <translation>Эквалайзерны баштагы хәлгә кайтару</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Аудио көйләүләре</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Агым сыйфаты</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Тавыш</translation>
+      <translation>Wi-Fi аша аудио</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Челтәр · Тавыш</translation>
+      <translation>Мобиль челтәрдә аудио</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Йөкләүләр · Тавыш</translation>
+      <translation>Йөкләү аудиосы</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Декодер · Кабат тырышу</translation>
+      <translation>Кодек туры килмәсә Plex аша үзгәртү</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Тавыш · Көйләүләр · Киләсе · Язмалар · Йөкләүләр · Әзер · Тавыш</translation>
+      <translation>Сыйфат үзгәрешләре киләсе трекларга һәм йөкләүләргә кагыла. Тулысынча йөкләнгән җирле аудио өстенлекле.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Тавыш · Тәнәфессез · PCM · Чыгыш</translation>
+      <translation>Rust аудио двигателе · өзлексез PCM чыгыш</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Әкрен күчеш</translation>
+      <translation>Кроссфейд</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Секунд</translation>
+      <translation>%1 секунд</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Сүнек</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Нормальләштерү</translation>
+      <translation>Тавыш көчен тигезләү</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>Нормальләштерү · Көйләүләр</translation>
+      <translation>Тигезләү режимы</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Альбомнар · Нормальләштерү</translation>
+      <translation>Альбом көчәйтүе</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Автоматик уйнату · Нормальләштерү</translation>
+      <translation>Автоматик көчәйтү</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Язма · Нормальләштерү</translation>
+      <translation>Трек көчәйтүе</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Тавыш · Тавыш көче · Аралык</translation>
+      <translation>Тавыш запасы</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Метамәгълүмат · Нормальләштерү · Альбомнар · Тәнәфессез · Әкрен күчеш · off</translation>
+      <translation>Булганда Plex көчәйтү метамәгълүматларын куллана. Бер альбомдагы треклар кроссфейдсыз, өзлексез алмаша.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,601 +174,625 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Кайтару · Эквалайзер</translation>
+      <translation>Эквалайзерны баштагы хәлгә кайтару</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>Радионы яңартып булмады. Йөкләп алынган җырлар кабатланырга мөмкин.</translation>
+      <translation>Радионы яңартып булмады. Йөкләнгән треклар кабатланырга мөмкин.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · Уңышсыз</translation>
+      <translation>Plex HTTP %1 кайтарды</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · Мәгълүмат · Дөрес түгел · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>Көтелмәгән Plex җавабы (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>Өстәү · Язмалар · Альбомнар · Уйнату исемлеге</translation>
+      <translation>Плейлистка треклар яки альбомнар өстәгез</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>Өстәү · Өскә · 1000 · Язмалар</translation>
+      <translation>Бер тапкырда 1000 трекка кадәр өстәгез</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>Башкаручы · Альбом · Метамәгълүмат · Мөмкин түгел</translation>
+      <translation>Башкаручы яки альбом турында мәгълүмат юк</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>Фотолар · Чик · Күләм</translation>
+      <translation>Тышлык рәсеме зурлык чигеннән артып китә</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>Тавыш · Кэш · Хәзерге · Кулланылган · PlexFreq</translation>
+      <translation>Аудио кэш инде башка PlexFreq нөсхәсе тарафыннан кулланыла</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>Тавыш · Сервер · Алынган · Аралык</translation>
+      <translation>Аудио үзгәргән яки сервер дөрес булмаган байт диапазонын кайтарган; яңадан баштан тырышып карала</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Тавыш · Чират · Мөмкин түгел</translation>
+      <translation>Аудио боерыклар чираты мөмкин түгел</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>Тавыш · Декодер · Уңышсыз</translation>
+      <translation>Аудионы декодлау яки агымлы тапшыру барып чыкмады</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>Тавыш · Йөкләүләр · Тулы түгел · Көтү · Дәвам итү</translation>
+      <translation>Аудио тулысынча йөкләнмәгән; дәвам итүне көтә</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>Тавыш · Башлау</translation>
+      <translation>Аудио двигатель җибәрелә</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>Тавыш · Чик · Кэш</translation>
+      <translation>Аудио файл кэш чигеннән артып китә</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>Тавыш · Чыгыш · Уңышсыз</translation>
+      <translation>Аудио чыгыш хатасы</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>Тавыш · Чыгыш · Мөмкин түгел</translation>
+      <translation>Аудио чыгыш мөмкин түгел</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>Аудио чыгыш җавап бирми; аудио җайланманы яңадан тоташтырыгыз, аннары «Уйнату»га басыгыз</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>Тавыш · Уйнату · Уңышсыз</translation>
+      <translation>Аудионы уйнату барып чыкмады</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>Тавыш · Мәгълүмат · Чик · Күләм</translation>
+      <translation>Аудио җавап игълан ителгән зурлыктан артып китә</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Тавыш · Тавыш көче · Уңышсыз</translation>
+      <translation>Аудиода күчү барып чыкмады</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>Тавыш · Көйләүләр · Аралык</translation>
+      <translation>Аудио көйләүләре рөхсәт ителгән чикләрдән чыга</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>Тавыш · Уңышсыз</translation>
+      <translation>Аудионы агымлы тапшыру барып чыкмады</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Тавыш · Чират · Мөмкин түгел</translation>
+      <translation>Двигатель боерыклары чираты мөмкин түгел</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>Тавыш · Уңышсыз</translation>
+      <translation>Двигательнең эчке хатасы</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>Тавыш · Мөмкин түгел</translation>
+      <translation>Двигатель мөмкин түгел</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Кэш · Чик · Чистарту · Тавыш</translation>
+      <translation>Кэш тулы; чикне арттырыгыз яки кэштагы аудионы чистартыгыз</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>Кэш · Чик · 64–8192 · MiB · Киләсе · 0–20 · Язмалар</translation>
+      <translation>Кэш чиге 64–8192 MiB, алдан йөкләү 0–20 трек булырга тиеш</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Кэш · Сорау · Гамәлдән чыгарылган</translation>
+      <translation>Кэшлау соравы туктатылды</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>Кэш · Өскә · 1000 · Дөрес · Язмалар</translation>
+      <translation>Кэшлау соравында 1000 гә кадәр дөрес музыкаль трек булырга тиеш</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>Кэш · Дөрес түгел · Тавыш · Мәгълүмат</translation>
+      <translation>Кэш өчен кодланмаган аудио җавап кирәк</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Кэш · Процесс · Мөмкин түгел</translation>
+      <translation>Кэш процессы мөмкин түгел</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>Уңышсыз · Көйләүләр · Хәл</translation>
+      <translation>Кушымта халәтен укып яки язып булмый</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Сайлау · 1–10 · Башкаручылар · Альбомнар · Катнашма</translation>
+      <translation>Микс өчен 1–10 башкаручы яки альбом сайлагыз</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>Сайлау · 2–8 · Язмалар · Охшаш</translation>
+      <translation>Тавыш сәяхәте өчен 2–8 трек сайлагыз</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>Сайлау · 30–480 · Радио · Йөкләүләр</translation>
+      <translation>Радио йөкләү өчен 30–480 минут сайлагыз</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>Сайлау · 7 · 30 · 90 · Тарих</translation>
+      <translation>7, 30, 90 көн яки бөтен тыңлау тарихын сайлагыз</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>Сайлау</translation>
+      <translation>Музыка элементын сайлагыз</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>Сайлау · Уйнату исемлеге · Язма</translation>
+      <translation>Плейлисттагы язманы сайлагыз</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>Сайлау · Уйнату исемлеге · Альбом · Радио · Йөкләүләр</translation>
+      <translation>Йөкләү өчен плейлист, альбом яки радио сайлагыз</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>Сайлау · Яңарту · 1 · 6 · 12 · 24</translation>
+      <translation>Яңарту аралыгын сайлагыз: 1, 6, 12 яки 24 сәгать</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>Сайлау · Язма · Альбом · Уйнату исемлеге · Челтәрсез саклау</translation>
+      <translation>Офлайн саклау өчен трек, альбом яки плейлист сайлагыз</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>Сайлау · Тавыш · 64–320</translation>
+      <translation>Оригиналь аудионы яки 64–320 kbps сайлагыз</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Сайлау · Язмалар · Чират · Чик · 10000</translation>
+      <translation>Чират өчен треклар сайлагыз (иң күбе 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>Сайлау · Язмалар · Альбом · Уйнату исемлеге</translation>
+      <translation>Плейлист өчен треклар яки альбом сайлагыз</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>Сайлау · Өскә · 1000 · Дөрес · Язмалар · Йөкләүләр</translation>
+      <translation>Йөкләү өчен 1000 гә кадәр дөрес трек сайлагыз</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>Тоташу · Plex · Сервер · Башлау</translation>
+      <translation>Башта Plex серверы белән тоташыгыз</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>Башка чыганак · Plex</translation>
+      <translation>Башка чыганактагы Plex юлы кире кагылды</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>Йөкләүләр · Төрләр · Юк</translation>
+      <translation>Йөкләү төркеме инде юк</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>Йөкләүләр · Өзелгән · Кабат тырышу · Тоташу</translation>
+      <translation>Йөкләү өзелде; тоташу яхшыргач яңадан тырышып карала</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>Йөкләүләр · Чик · 1000 · Язмалар</translation>
+      <translation>Йөкләү планы 1000 тректан артып китә</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>Йөкләүләр · Чик · 1000 · Язмалар · Саклауны туктату · Башлау</translation>
+      <translation>Йөкләү планы 1000 тректан артып китә; башта кайбер йөкләүләрне офлайн саклаудан алыгыз</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Кабызу · Тавыш · Кэш · Йөкләүләр</translation>
+      <translation>Йөкләүләрне офлайн саклаганчы аудио кэшлауны кабызыгыз</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Кабызу · Тавыш · Кэш · Тоташу · Көйләүләр · Башлау</translation>
+      <translation>Башта тоташу көйләүләрендә аудио кэшлауны кабызыгыз</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>Уйнату исемлеге · Өскә · 512 · Күләм</translation>
+      <translation>Плейлист исемен кертегез (512 байтка кадәр)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>Дөрес · Идентификатор · Plex</translation>
+      <translation>Санлы Plex идентификаторы көтелә</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>Дөрес · Plex</translation>
+      <translation>Серверга карата Plex юлы көтелә</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Челтәрдә</translation>
+      <translation>Онлайнга чыгу</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>Челтәрдә · Plex · Уйнату исемлекләре</translation>
+      <translation>Plex плейлистларын үзгәртү өчен онлайнга чыгыгыз</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>Челтәрдә · Яңарту · Йөкләүләр</translation>
+      <translation>Йөкләүләрне яңарту өчен онлайнга чыгыгыз</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>Төрләр · Чик · 1000 · Альбомнар · Башкаручы</translation>
+      <translation>Төркемләү бер башкаручыга 1000 альбом белән чикләнгән</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>Дөрес түгел · URL</translation>
+      <translation>Дөрес булмаган URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>Дөрес түгел · UTF · 8 · Сорау</translation>
+      <translation>Дөрес булмаган UTF-8 соравы</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>Дөрес түгел · Тавыш</translation>
+      <translation>Дөрес булмаган аудио күрсәтелеше</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>Дөрес түгел · Тавыш · Чыганак</translation>
+      <translation>Дөрес булмаган аудио чыганагы</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>Дөрес түгел · Тавыш · Тавыш көче</translation>
+      <translation>Дөрес булмаган тавыш көче</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>Дөрес түгел · Кэш · Тавыш</translation>
+      <translation>Кэштагы аудионың юлы дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>Дөрес түгел · Идентификатор</translation>
+      <translation>Клиент идентификаторы дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>Дөрес түгел · Эзләү</translation>
+      <translation>«Ачыш» төзелеше дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>Дөрес түгел · Сөзгеч</translation>
+      <translation>Музыка фильтры кыйммәтләре дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>Дөрес түгел · Чират · Индекс</translation>
+      <translation>Чират индексы дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>Дөрес түгел · Чират · Тәртип</translation>
+      <translation>Чират тәртибе дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>Дөрес түгел · Сорау · Мәгълүмат</translation>
+      <translation>Сорау мәгълүматлары дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>Дөрес түгел · Йөкләүләр · Аралык</translation>
+      <translation>Дәвам ителгән йөкләү диапазоны дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Дөрес түгел · Тавыш көче</translation>
+      <translation>Күчү урыны дөрес түгел</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>Дөрес түгел · Сервер · Индекс</translation>
+      <translation>Сервер индексы дөрес түгел</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>Тарих · Синхронлаштыру · Күбрәк уку</translation>
+      <translation>Тагын тыңлаулар язу өчен башта тыңлау тарихын синхронларга кирәк</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>Керү · Вакыты чыккан · Башлау</translation>
+      <translation>Керү вакыты чыкты; яңадан башлагыз</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>Җыр сүзләре · Күләм · Чик</translation>
+      <translation>Җыр сүзләре зурлык чигеннән артып китә</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>Җыр сүзләре · Мөмкин түгел · Сакланган · Челтәрсез</translation>
+      <translation>Җыр сүзләре офлайн сакланмаган</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Катнашма · Башкаручылар · Альбомнар</translation>
+      <translation>Микс нигезләре башкаручылар яки альбомнар булырга тиеш</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>Челтәр · Сорау · Уңышсыз · Тикшерү · Тоташу · Сервер</translation>
+      <translation>Челтәр соравы барып чыкмады (тоташуны һәм сервер адресын тикшерегез)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>Киләсе · Язма · Декодер · Уңышсыз</translation>
+      <translation>Киләсе трекны декодлау барып чыкмады</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>Юк · Хәзерге · Радио</translation>
+      <translation>Актив радио юк</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>Юк · Башкаручылар · Индекс</translation>
+      <translation>Бу хәрефкә башкаручылар юк</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Юк · Чират</translation>
+      <translation>Чират буш</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
-      <translation>Офлайн мәгълүматлар саклау чиген узалар</translation>
+      <translation>Офлайн мәгълүматлар саклау чигеннән артып китә</translation>
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>Уку гына · Тавыш · Уйнату исемлекләре · Йөкләнгән</translation>
+      <translation>Аудио плейлистларны гына йөкләп була</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>Челтәрсез саклау · Өскә · 1000 · Уйнату · Язмалар</translation>
+      <translation>1000 гә кадәр уйнатыла торган трекны офлайн саклагыз</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>Уйнату исемлеге · Сайлау · Чик · 1000 · Уйнату исемлекләре</translation>
+      <translation>Плейлист сайлау 1000 плейлист белән чикләнгән</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>Уйнату исемлеге · Уку гына</translation>
+      <translation>Укып кына карау режимында плейлистларны үзгәртеп булмый</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · Керү · Уңышсыз · Тикшерү · Сервер · Токен</translation>
+      <translation>Plex авторизациясе барып чыкмады; яңадан керегез яки сервер токенын тикшерегез</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · Мөмкин түгел · Башкаручы · Радио</translation>
+      <translation>Plex бу башкаручы өчен радиостанция тәкъдим итми</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex бу альбом өчен тавыш тәкъдимнәре кайтармады. Музыка медиатекасында тавыш анализы көйләнешен һәм аның тәмамлануын тикшерегез яки башкаручы радиосын кулланыгыз.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · Алынган · Юк · Охшаш · Язма · Тикшерү · Китапханә · Кулланылган · Башкаручы · Радио</translation>
+      <translation>Plex бу трек өчен тавыш тәкъдимнәре кайтармады. Музыка медиатекасында тавыш анализы көйләнешен һәм аның тәмамлануын тикшерегез яки башкаручы радиосын кулланыгыз.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Чират · Язмалар · Дөрес · Башлау · Индекс</translation>
+      <translation>Чират өчен треклар һәм дөрес башлангыч индекс кирәк</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>Радио · Автоматик уйнату · Туктату · Кабатлау</translation>
+      <translation>Радио үзеннән-үзе дәвам итә; кабатлау өчен радионы туктатыгыз</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>Радио · Юк · Күбрәк уку · Охшаш · Катнашма</translation>
+      <translation>Радиода башка тавыш тәкъдимнәре юк; башка нигез сайлап карагыз</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>Радио · Тәртип · Туктату · Бутау</translation>
+      <translation>Радио тәкъдим ителгән тәртипне саклый; очраклы тәртиптә уйнату өчен радионы туктатыгыз</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>Радио · Уйнату · Тоташу</translation>
+      <translation>Радио уйнату өчен тоташу кирәк</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Радио · Алынган · Юк · Уйнату · Язмалар</translation>
+      <translation>Радио уйнатыла торган треклар кайтармады</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>Радио · Катнашма · Мөмкин түгел</translation>
+      <translation>Радио нигезе сайланган музыка төренә туры килми</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>Тавыш · Озынлык · Туры килми</translation>
+      <translation>Дәвам ителгән аудионың озынлыгы туры килми</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>Йөкләүләр · Юк · Content-Range</translation>
+      <translation>Дәвам ителгән йөкләүдә Content-Range юк</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Сакланган · Чират · Дөрес түгел</translation>
+      <translation>Сакланган чират дөрес түгел</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>Сервер · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>Сервер URL HTTP(S) чыганагы булырга тиеш, мәсәлән, http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>Сервер · Алынган · Язма</translation>
+      <translation>Сервер бу трек өчен аудио булмаган эчтәлек кайтарды</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>Керү · Башлау</translation>
+      <translation>Башта керегез</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>Акыллы · Уйнату исемлеге · Сөзгеч · Plex</translation>
+      <translation>Акыллы плейлистларның эчтәлеген Plex фильтрлары билгели</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>Охшаш · Чик · 250 · Язмалар</translation>
+      <translation>Тавыш сәяхәте 250 тректан артып китә</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>Башлау · Керү</translation>
+      <translation>Башта керүне башлагыз</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>Альбом · Юк · Уйнату · Язмалар</translation>
+      <translation>Бу альбомда уйнатыла торган треклар юк</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Башкаручы · Альбом · Мөмкин түгел · Сакланган · Челтәрсез</translation>
+      <translation>Бу башкаручы яки альбом офлайн сакланмаган</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>Китапханә · Мөмкин түгел · Сакланган · Челтәрсез</translation>
+      <translation>Медиатеканың бу бите әле офлайн сакланмаган</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>Язма · Юк · Уйнату · Мәгълүмат</translation>
+      <translation>Бу трекның уйнатыла торган медиа өлеше юк</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>Язма · Мөмкин түгел · Йөкләнгән</translation>
+      <translation>Бу трек йөкләнмәгән</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>Язма · Сервер · Мөмкин түгел</translation>
+      <translation>Бу трек серверда инде юк</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Язма · Мөмкин түгел · Кэш · Йөкләнгән · Язмалар</translation>
+      <translation>Бу трек әле тулысынча кэшланмаган; йөкләнгән треклар мөмкин булып кала</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>Язма · Озынлык · Йөкләүләр</translation>
+      <translation>Вакытлы йөкләү өчен трекларның озынлыгы кирәк</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>Язма · Юк · Йөкләүләр · Мәгълүмат</translation>
+      <translation>Трекның йөкләнә торган медиа өлеше юк</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>Дөрес түгел · Plex · Мәгълүмат</translation>
+      <translation>Көтелмәгән Plex җавабы</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>Дөрес түгел · Тавыш</translation>
+      <translation>Билгесез аудио боерыгы</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>Дөрес түгел · Эзләү</translation>
+      <translation>Билгесез «Ачыш» күренеше</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>Дөрес түгел · Йөкләүләр</translation>
+      <translation>Билгесез йөкләү гамәле</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>Дөрес түгел · Китапханә · Тәртипләү</translation>
+      <translation>Медиатеканы билгесез тәртипләү</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>Дөрес түгел</translation>
+      <translation>Билгесез музыка төре</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>Дөрес түгел · Челтәрсез</translation>
+      <translation>Билгесез офлайн музыка төре</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>Дөрес түгел · Уйнату · Хәл</translation>
+      <translation>Билгесез уйнату халәте</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>Дөрес түгел · Уйнату исемлеге</translation>
+      <translation>Билгесез плейлист гамәле</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>Дөрес түгел · Кабатлау</translation>
+      <translation>Билгесез кабатлау режимы</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>Альбом · Радио · Язмалар</translation>
+      <translation>альбом радиосы треклары</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>Башкаручы · Башкаручылар · Индекс</translation>
+      <translation>башкаручыларның әлифба индексы</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>Фотолар</translation>
+      <translation>тышлык рәсеме</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>браузер аша керү булдыру</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>браузер аша керүне тикшерү</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>Кэш · Язма · Метамәгълүмат</translation>
+      <translation>кэшлана торган трекларның метамәгълүматлары</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>Булдыру · Уйнату исемлеге</translation>
+      <translation>ясалган плейлист</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>җыр сүзләре юллары</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>җыр сүзләре кисәгенең тексты</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>җыр сүзләре кисәкләре</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>җыр сүзләре JSON</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>Җыр сүзләре</translation>
+      <source>playlist creation</source>
+      <translation>плейлист ясау</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>Уйнату исемлеге · Метамәгълүмат</translation>
+      <translation>плейлист метамәгълүматлары</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>Радио · Йөкләүләр · Язмалар</translation>
+      <translation>йөкләнә торган радио треклары</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>Радио · Чират</translation>
+      <translation>радио чиратының үзәге</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>Радио · Чират</translation>
+      <translation>радио чиратын дәвам иттерү</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>радио чиратын ясау</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>Радио · Чират · Идентификатор</translation>
+      <translation>радио чиратының идентификаторы</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>Радио · Чират · Язмалар</translation>
+      <translation>радио чираты треклары</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>Радио · Сервер · Идентификатор</translation>
+      <translation>радио өчен сервер идентификаторы</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>Сервер · Эзләү</translation>
+      <translation>серверларны эзләү</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>сервер медиатекаларын сорау</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>Охшаш</translation>
+      <translation>тавыш сәяхәтен ясау</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Күчерү · Күбрәк уку · Фотолар</translation>
+      <translation>Башка фотолар өчен селтәгез</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,39 +800,39 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>Уйнату · Язмалар</translation>
+      <translation>Трекларны уйнату</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>Йөкләүләр · Язмалар</translation>
+      <translation>Трекларны йөкләү</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Тасвирлама · Мөмкин түгел · Plex</translation>
+      <translation>Plex тасвирлама бирмәде.</translation>
     </message>
     <message>
       <source>Read less</source>
-      <translation>Азрак уку</translation>
+      <translation>Кыскарту</translation>
     </message>
     <message>
       <source>Read more</source>
-      <translation>Күбрәк уку</translation>
+      <translation>Тулырак</translation>
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>Охшаш · Башкаручылар</translation>
+      <translation>Охшаш башкаручылар</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>Йөкләнә · Охшаш · Башкаручылар</translation>
+      <translation>Охшаш башкаручылар йөкләнә…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>Охшаш · Башкаручылар · Мөмкин түгел</translation>
+      <translation>Охшаш башкаручылар хәзерге вакытта юк.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Охшаш · Башкаручылар · Мөмкин түгел · Plex</translation>
+      <translation>Plex охшаш башкаручылар кайтармады.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -816,100 +840,100 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Эзләү · Көйләүләр</translation>
+      <translation>«Ачыш»ны көйләү</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Эзләү · Көйләүләр</translation>
+      <translation>«Ачыш»ны көйләү</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Күчерү · Өскә</translation>
+      <translation>Өскә күчерү</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Күчерү · Аска</translation>
+      <translation>Аска күчерү</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>Йөкләүләр · Идарә</translation>
+      <translation>Йөкләү менеджеры</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Автоматик уйнату · Яңарту · Йөкләүләр</translation>
+      <translation>Йөкләү планнарын автоматик яңарту</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 сәгать</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Яңарту · Озынлык</translation>
+      <translation>Яңарту аралыгы</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Яңарту · Йөкләүләр · Йөкләнә</translation>
+      <translation>Йөкләү планнары яңартыла…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 минут</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Радио · Йөкләүләр · Озынлык</translation>
+      <translation>Радио йөкләү озынлыгы</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Йөкләүләр · Уку гына · Wi-Fi</translation>
+      <translation>Wi-Fi аша гына йөкләү</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Дәвам итү · Йөкләүләр</translation>
+      <translation>Йөкләүләрне дәвам иттерү</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Тәнәфес · Йөкләүләр</translation>
+      <translation>Йөкләүләрне туктатып тору</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>Йөкләүләр · Көтү · Wi-Fi · Тавыш · Уйнату · Челтәрдә</translation>
+      <translation>Расланган Wi-Fi көтелә; агымлы тыңлау мөмкин.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+      <translation>Агым тотрыклангач йөкләүләр дәвам итәр</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Тавыш · Кэш · Кулланылган</translation>
+      <translation>Аудио кэштан %1 MiB файдаланылган</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Челтәрсез · Китапханә · Мәгълүмат · Саклау · Уңышсыз · %1</translation>
+      <translation>Офлайн медиатека мәгълүматларын саклап булмады: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Тавыш · Озынлык · %1</translation>
+      <translation>Планлаштырылган аудио: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Язмалар · %3 · MiB</translation>
+      <translation>%1/%2 трек · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Хәзерге · Язма · %1 · MiB · Алынган</translation>
+      <translation>Хәзерге трек: %1 MiB алынды</translation>
     </message>
     <message>
       <source>Play</source>
@@ -917,149 +941,149 @@
     </message>
     <message>
       <source>Refresh</source>
-      <translation>Яңартырга</translation>
+      <translation>Яңарту</translation>
     </message>
     <message>
       <source>Retry</source>
-      <translation>Кабат тырышу</translation>
+      <translation>Кабатлап карау</translation>
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>Гамәлдән чыгарылган</translation>
+      <translation>Планны туктату</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>Алып ташлау</translation>
+      <translation>Файлларны бетерү</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Көтелә · Тарих · %1</translation>
+      <translation>Синхронлауны көткән тыңлаулар: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>Синхронлаштыру · Тарих</translation>
+      <translation>Тарихны синхронлау</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>Йөкләүләр · Идарә</translation>
+      <translation>Йөкләү менеджеры</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Автоматик уйнату · Яңарту · Йөкләүләр</translation>
+      <translation>Йөкләү планнарын автоматик яңарту</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Яңарту · Озынлык</translation>
+      <translation>Яңарту аралыгы</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 сәгать</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Яңарту · Йөкләүләр · Йөкләнә</translation>
+      <translation>Йөкләү планнары яңартыла…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Радио · Йөкләүләр · Озынлык</translation>
+      <translation>Радио йөкләү озынлыгы</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 минут</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Йөкләүләр · Уку гына · Wi-Fi</translation>
+      <translation>Wi-Fi аша гына йөкләү</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Дәвам итү · Йөкләүләр</translation>
+      <translation>Йөкләүләрне дәвам иттерү</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Тәнәфес · Йөкләүләр</translation>
+      <translation>Йөкләүләрне туктатып тору</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>Йөкләүләр · Көтү · Wi-Fi · Тавыш · Уйнату · Челтәрдә</translation>
+      <translation>Расланган Wi-Fi тоташуы көтелә. Агымлы тыңлау мөмкин булып кала.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+      <translation>Агым тотрыклангач йөкләүләр дәвам итәр</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Тавыш · Кэш · Кулланылган</translation>
+      <translation>Аудио кэштан %1 MiB файдаланылган</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Челтәрсез · Китапханә · Мәгълүмат · Саклау · Уңышсыз · %1</translation>
+      <translation>Офлайн медиатека мәгълүматларын саклап булмады: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Көтелә · Тарих · %1</translation>
+      <translation>Синхронлауны көткән тыңлаулар: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>Синхронлаштыру · Тарих</translation>
+      <translation>Тыңлау тарихын синхронлау</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Тавыш · Озынлык · %1</translation>
+      <translation>Планлаштырылган аудио: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Язмалар · %3 · MiB</translation>
+      <translation>%1/%2 трек · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>Йөкләнә</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Хәзерге · Язма · %1 · MiB · Алынган</translation>
+      <translation>Хәзерге трек: %1 MiB алынды</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>Уйнату · Йөкләнгән · Язмалар</translation>
+      <translation>Йөкләнгән трекларны уйнату</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>Яңарту · Йөкләүләр</translation>
+      <translation>Йөкләү планын яңарту</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>Кабат тырышу · Дәвам итү</translation>
+      <translation>Кабатлау/дәвам итү</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>Гамәлдән чыгарылган</translation>
+      <translation>Планны туктату / файлларны калдыру</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>Алып ташлау · Йөкләүләр</translation>
+      <translation>Йөкләүне бетерү</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>Китапханә · Сөзгеч</translation>
+      <translation>Медиатека фильтрлары</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Акыллы · Уйнату исемлекләре</translation>
+      <translation>Акыллы плейлист</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Акыллы · Уйнату исемлекләре · Сөзгеч · Уку гына</translation>
+      <translation>Бу редактор әлеге акыллы плейлист кагыйдәләрен күрсәтә алмый.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Уйнату исемлеге</translation>
+      <translation>Плейлист исеме</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1071,7 +1095,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>Genre</source>
@@ -1087,27 +1111,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Теләсә нинди</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Исем · Сөзгеч</translation>
+      <translation>Исемдә бар</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Ел · Башлау</translation>
+      <translation>Елдан</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Ел · Чик</translation>
+      <translation>Елга кадәр</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Яратканнар · Чик</translation>
+      <translation>Иң түбән бәя</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Уйнату · Юк</translation>
+      <translation>Тыңланмаганнар гына</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1115,30 +1139,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Чик · Язмалар</translation>
+      <translation>Иң күп трек</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>Китапханә · Сөзгеч</translation>
+      <translation>Медиатека фильтрлары</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Акыллы · Уйнату исемлекләре</translation>
+      <translation>Акыллы плейлист</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Акыллы · Уйнату исемлекләре · Сөзгеч · Уку гына</translation>
+      <translation>Бу редактор әлеге акыллы плейлист кагыйдәләрен күрсәтә алмый.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Уйнату исемлеге</translation>
+      <translation>Плейлист исеме</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Китапханә</translation>
+      <translation>Карау</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1150,7 +1174,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>Genre</source>
@@ -1166,27 +1190,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Теләсә нинди</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Исем · Сөзгеч</translation>
+      <translation>Исемдә бар</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Ел · Башлау</translation>
+      <translation>Елдан</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Ел · Чик</translation>
+      <translation>Елга кадәр</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Яратканнар · Чик</translation>
+      <translation>Иң түбән бәя</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Уйнату · Юк</translation>
+      <translation>Тыңланмаганнар гына</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1194,30 +1218,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Чик · Язмалар</translation>
+      <translation>Иң күп трек</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>Тарих · Көйләүләр</translation>
+      <translation>Тыңлау статистикасы</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Уйнату · %2 · Тарих</translation>
+      <translation>%1 исәпкә алынган тыңлау · %2 тыңланган</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Тарих · local · Уйнату · Метамәгълүмат</translation>
+      <translation>Статистика җыя башлаганнан бирле җайланмада исәпкә алынган тыңлаулар нигезендә.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 көн</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Тарих</translation>
+      <translation>Бөтен тарих</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1229,42 +1253,42 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Уйнату · %2 · Тарих</translation>
+      <translation>%1 тыңлау · %2 тыңланган</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>Тарих · Көйләүләр</translation>
+      <translation>Тыңлау статистикасы</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Уйнату · %2 · Тарих</translation>
+      <translation>%1 исәпкә алынган тыңлау · %2 тыңланган</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Тарих · local · Уйнату · Метамәгълүмат</translation>
+      <translation>Статистика җыя башлаганнан бирле җайланмада исәпкә алынган тыңлаулар нигезендә.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>Озынлык</translation>
+      <translation>Вакыт аралыгы</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 көн</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Тарих</translation>
+      <translation>Бөтен тарих</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Китапханә</translation>
+      <translation>Карау</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1276,117 +1300,117 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Уйнату · %2 · Тарих</translation>
+      <translation>%1 тыңлау · %2 тыңланган</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Өстәү · Sonic · Чыганак</translation>
+      <translation>Тавыш сәяхәтенә нокта өстәү</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>Акыллы · Сөзгеч · Көйләүләр</translation>
+      <translation>Акыллы фильтрларны үзгәртү</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Тавыш · Охшаш</translation>
+      <translation>Тавышы охшаш</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>Башлау · Sonic · Adventure</translation>
+      <translation>Тавыш сәяхәтен моннан башлау</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Язма</translation>
+      <translation>Бу трекка тавыш сәяхәте</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>Йөкләүләр · Радио · %1 · min</translation>
+      <translation>Радионы йөкләү · %1 минут</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>Йөкләүләр · %1 · min</translation>
+      <translation>%1 минут йөкләү</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>Уйнату · Киләсе</translation>
+      <translation>Киләсе итеп уйнату</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Өстәү · Чират</translation>
+      <translation>Чиратка өстәү</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>Өстәү · Уйнату исемлеге</translation>
+      <translation>Плейлистка өстәү</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>Булдыру · Уйнату исемлеге</translation>
+      <translation>Моннан плейлист ясау</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Өстәү · Катнашма</translation>
+      <translation>Микс нигезе итеп өстәү</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Исемен үзгәртү · Уйнату исемлеге</translation>
+      <translation>Плейлист исемен үзгәртү</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>Бетерү · Уйнату исемлеге</translation>
+      <translation>Плейлистны бетерү</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>Күчерү · Уйнату исемлеге · Өскә</translation>
+      <translation>Плейлист язмасын өскә күчерү</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>Күчерү · Уйнату исемлеге · Аска</translation>
+      <translation>Плейлист язмасын аска күчерү</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>Алып ташлау · Уйнату исемлеге</translation>
+      <translation>Плейлисттан алу</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>Алып ташлау</translation>
+      <translation>Сайланмалардан алу</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>Өстәү · Яратканнар</translation>
+      <translation>Сайланмаларга өстәү</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>Саклауны туктату · Йөкләүләр</translation>
+      <translation>Офлайн саклаудан алу</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>Челтәрсез саклау · Челтәрсез · Тарих</translation>
+      <translation>Офлайн тыңлау өчен саклау</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Күчерү · Өскә</translation>
+      <translation>Өскә күчерү</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Күчерү · Аска</translation>
+      <translation>Аска күчерү</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Алып ташлау · Чират</translation>
+      <translation>Чираттан алу</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>Өскә · Киләсе</translation>
+      <translation>Киләсе</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,23 +1418,23 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
+      <translation>Офлайн · медиатеканың сакланган метамәгълүматлары</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+      <translation>Агым тотрыклангач йөкләүләр дәвам итәр</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Кэш · Тавыш</translation>
+      <translation>Аудио кэшлана…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Язмалар · Әзер · Челтәрсез</translation>
+      <translation>%1 трек офлайн тыңлауга әзер</translation>
     </message>
     <message>
       <source>Library</source>
-      <translation>Китапханә</translation>
+      <translation>Медиатека</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1426,7 +1450,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1442,11 +1466,11 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Эзләү · Башкаручылар · Альбомнар · Язмалар</translation>
+      <translation>Башкаручылар, альбомнар һәм треклар эзләү</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Китапханә</translation>
+      <translation>Карау</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1454,15 +1478,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Ачу · Башкаручы</translation>
+      <translation>Башкаручыны ачу</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Ачу · Альбом</translation>
+      <translation>Альбомны ачу</translation>
     </message>
     <message>
       <source>Track</source>
-      <translation>Язма</translation>
+      <translation>Трек</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Язма · Сервер · Мөмкин түгел</translation>
+      <translation>Серверда инде юк</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Кабат тырышу · Йөкләнә</translation>
+      <translation>Яңадан йөкләп карау</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>Юк</translation>
+      <translation>Музыка табылмады</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Тоташу · Plex</translation>
+      <translation>Plex белән тоташу</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · Тоташу · Көйләүләр</translation>
+      <translation>Тоташу көйләүләре өчен аскы менюны тартып чыгарыгыз</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Юк · Уйнату</translation>
+      <translation>Бернәрсә дә уйнамый</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Уйнату</translation>
+      <translation>Хәзер уйный</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Ешлык · Эзләү</translation>
+      <translation>Үз ешлыгыңны тап.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Челтәрсез · Сакланган · Китапханә · Метамәгълүмат</translation>
+      <translation>Офлайн · медиатеканың сакланган метамәгълүматлары</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Йөкләүләр · Көтү · Тавыш · Йөкләнә</translation>
+      <translation>Агым тотрыклангач йөкләүләр дәвам итәр</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Кэш · Тавыш</translation>
+      <translation>Аудио кэшлана…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Язмалар · Әзер · Челтәрсез</translation>
+      <translation>%1 трек офлайн тыңлауга әзер</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,7 +1549,7 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Эзләү · Башкаручылар · Альбомнар · Язмалар</translation>
+      <translation>Башкаручылар, альбомнар һәм треклар эзләү</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1533,7 +1557,7 @@
     </message>
     <message>
       <source>Up next</source>
-      <translation>Өскә · Киләсе</translation>
+      <translation>Киләсе</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1545,7 +1569,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Ачу · Башкаручы</translation>
+      <translation>Башкаручыны ачу</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Ачу · Альбом</translation>
+      <translation>Альбомны ачу</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Язма · Сервер · Мөмкин түгел</translation>
+      <translation>Серверда инде юк</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,83 +1601,83 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Кабат тырышу · Йөкләнә</translation>
+      <translation>Яңадан йөкләп карау</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>Юк</translation>
+      <translation>Музыка табылмады.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>Тоташу · Plex · Сервер · Башлау · Тарих</translation>
+      <translation>Тыңлый башлау өчен Plex музыка серверыгыз белән тоташыгыз.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Уйнату</translation>
+      <translation>Хәзер уйный</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Юк · Уйнату</translation>
+      <translation>Бернәрсә дә уйнамый</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Бутау</translation>
+      <translation>Очраклы тәртип</translation>
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Кабатлау: берсе</translation>
+      <translation>Берсен кабатлау</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>Кабатлау: барысы</translation>
+      <translation>Барысын кабатлау</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Кабатлау: сүнек</translation>
+      <translation>Кабатлау сүнек</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Тоташу · Plex</translation>
+      <translation>Plex белән тоташу</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>Керү · Plex · Браузер</translation>
+      <translation>Браузерда Plex аша керү</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>Көтү · Браузер · Керү</translation>
+      <translation>Браузерда авторизация көтелә…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>Ачу · Керү</translation>
+      <translation>Керүне яңадан ачу</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Сайлау · Plex · Сервер</translation>
+      <translation>Plex серверын сайлагыз</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>Сервер · Ачу · Китапханә</translation>
+      <translation>Музыка медиатекаларын ачу өчен серверны сайлагыз.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Яңарту · Plex</translation>
+      <translation>Plex серверларыгызны табу өчен исемлекне яңартыгыз.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Яңарту</translation>
+      <translation>Серверларны яңарту</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Тоташу · Китапханә</translation>
+      <translation>Музыка медиатекалары белән тоташу</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Тоташу</translation>
+      <translation>Турыдан-туры тоташу</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>Тоташу · Сервер · URL · Plex · Токен</translation>
+      <translation>Яки сервер URL һәм Plex токены ярдәмендә турыдан-туры тоташыгыз:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,106 +1685,106 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>Тоташу</translation>
+      <translation>Турыдан-туры тоташу</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>Керү · Чистарту · Сакланган</translation>
+      <translation>Чыгу һәм сакланган токеннарны бетерү</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Челтәрсез · Тавыш · Кэш</translation>
+      <translation>Офлайн аудио кэш</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Аудио көйләүләре</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Автоматик уйнату · Охшаш · Чират</translation>
+      <translation>Чират беткәч охшаш музыканы уйнату</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Кэш · Чират · Тавыш · Автоматик уйнату</translation>
+      <translation>Чираттагы аудионы автоматик кэшлау</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Кэш · Чик</translation>
+      <translation>Кэш чиге</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Язмалар · Йөкләнгән · %2 · MiB · Кулланылган</translation>
+      <translation>%1 трек йөкләнгән · %2 MiB файдаланылган</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Чистарту · Кэш · Туктату · Уйнату</translation>
+      <translation>Кэшны чистарту һәм уйнатуны туктату</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>Челтәрсез · Китапханә</translation>
+      <translation>Офлайн медиатека</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>Көйләүләр</translation>
+      <translation>Бит гамәлләре</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Китапханә</translation>
+      <translation>Башка бүлекләр</translation>
     </message>
     <message>
       <source>Show all</source>
-      <translation>Барысын күрсәт</translation>
+      <translation>Барысын күрсәтү</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Эзләү</translation>
+      <translation>Ачыш</translation>
     </message>
     <message>
       <source>Library</source>
-      <translation>Китапханә</translation>
+      <translation>Медиатека</translation>
     </message>
     <message>
       <source>Playlists</source>
-      <translation>Уйнату исемлекләре</translation>
+      <translation>Плейлистлар</translation>
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>Эзләү · Көйләүләр</translation>
+      <translation>«Ачыш»ны көйләү</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>Китапханә · Сөзгеч</translation>
+      <translation>Медиатека фильтрлары</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>Төрләр · Альбомнар</translation>
+      <translation>Альбомнарны төре буенча төркемләү</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>Булдыру · Акыллы · Уйнату исемлекләре</translation>
+      <translation>Акыллы плейлист ясау</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Булдыру · Уйнату исемлеге · Язмалар · Чират</translation>
+      <translation>Треклардан/чираттан плейлист ясау</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>Йөкләүләр · Язмалар</translation>
+      <translation>Күрсәтелгән трекларны йөкләү</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Чистарту · Катнашма</translation>
+      <translation>Микс нигезләрен чистарту</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Чистарту · Sonic · Чыганак</translation>
+      <translation>Тавыш сәяхәте нокталарын чистарту</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>Туктату · Радио</translation>
+      <translation>Радионы туктату</translation>
     </message>
     <message>
       <source>Queue</source>
@@ -1768,19 +1792,19 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Йөкләнгән</translation>
+      <translation>Йөкләнгән музыка</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>Сакланган · Альбомнар</translation>
+      <translation>Сакланган альбомнар</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>Тарих · Көйләүләр</translation>
+      <translation>Тыңлау статистикасы</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Яратканнар · ★ · 5</translation>
+      <translation>Сайланмалар · 5 йолдыз</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1788,11 +1812,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Күптән түгел уйнатылган</translation>
+      <translation>Күптән түгел тыңланган</translation>
     </message>
     <message>
       <source>Download manager</source>
-      <translation>Йөкләүләр · Идарә</translation>
+      <translation>Йөкләү менеджеры</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,42 +1824,42 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>Өскә</translation>
+      <translation>Артка</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Челтәрдә</translation>
+      <translation>Онлайнга чыгу</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>Китапханә · Сакланган · Челтәрсез</translation>
+      <translation>Сакланган медиатеканы офлайн карау</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Уйнату · Катнашма · %1 · Чыганак</translation>
+      <translation>Миксны уйнату (%1 нигез)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · Катнашма · %1 · Язмалар</translation>
+      <translation>Тавыш сәяхәте (%1 трек)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>Уйнату</translation>
+      <translation>Хәзер уйный</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Юк · Уйнату</translation>
+      <translation>Бернәрсә дә уйнамый</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Яратканнар</translation>
+      <translation>★ Сайланма</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Өстәү · Яратканнар</translation>
+      <translation>☆ Сайланмаларга өстәү</translation>
     </message>
     <message>
       <source>Lyrics</source>
@@ -1843,42 +1867,42 @@
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Йөкләнә · Җыр сүзләре</translation>
+      <translation>Җыр сүзләре йөкләнә…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Җыр сүзләре · Мөмкин түгел · Челтәрсез · Сервер</translation>
+      <translation>Офлайн режимда яки бу серверда җыр сүзләре юк.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Җыр сүзләре · Мөмкин түгел · Plex</translation>
+      <translation>Plex җыр сүзләрен бирмәде.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>Җыр сүзләрен яңадан йөкләү</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>Җыр сүзләре</translation>
+      <translation>Җыр сүзләрен яңадан йөкләү</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Уйнату</translation>
+      <translation>Хәзер уйный</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Юк · Уйнату</translation>
+      <translation>Бернәрсә дә уйнамый</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Яратканнар</translation>
+      <translation>★ Сайланма</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Өстәү · Яратканнар</translation>
+      <translation>☆ Сайланмаларга өстәү</translation>
     </message>
     <message>
       <source>Lyrics</source>
@@ -1886,69 +1910,69 @@
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Йөкләнә · Җыр сүзләре</translation>
+      <translation>Җыр сүзләре йөкләнә…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Җыр сүзләре · Мөмкин түгел · Челтәрсез · Сервер</translation>
+      <translation>Офлайн режимда яки бу серверда җыр сүзләре юк.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Җыр сүзләре · Мөмкин түгел · Plex</translation>
+      <translation>Plex җыр сүзләрен бирмәде.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Өстәү · Уйнату исемлеге</translation>
+      <translation>Плейлистка өстәү</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Исемен үзгәртү · Уйнату исемлеге</translation>
+      <translation>Плейлист исемен үзгәртү</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Булдыру · Уйнату исемлеге</translation>
+      <translation>Плейлист ясау</translation>
     </message>
     <message>
       <source>Save</source>
-      <translation>Сакларга</translation>
+      <translation>Саклау</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Уйнату исемлеге</translation>
+      <translation>Плейлист исеме</translation>
     </message>
     <message>
       <source>Playlist</source>
-      <translation>Уйнату исемлеге</translation>
+      <translation>Плейлист</translation>
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Акыллы · Уйнату исемлекләре · Plex · Сөзгеч · Яңа · Уйнату исемлекләре · Язмалар · Альбомнар · Чират</translation>
+      <translation>Акыллы плейлистларның эчтәлеге Plex фильтрлары белән идарә ителә. Яңа плейлистлар сайланган треклардан/альбомнан яки чираттан ясала.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Өстәү · Уйнату исемлеге</translation>
+      <translation>Плейлистка өстәү</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Исемен үзгәртү · Уйнату исемлеге</translation>
+      <translation>Плейлист исемен үзгәртү</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Булдыру · Уйнату исемлеге</translation>
+      <translation>Плейлист ясау</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Уйнату исемлеге</translation>
+      <translation>Плейлист исеме</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Акыллы · Уйнату исемлекләре · Plex · Сөзгеч · Яңа · Уйнату исемлекләре · Язмалар · Альбомнар · Чират</translation>
+      <translation>Акыллы плейлистлар Plex фильтрларын куллана. Яңа плейлистлар сайланган треклардан/альбомнан яки чираттан ясала.</translation>
     </message>
   </context>
   <context>
@@ -1978,43 +2002,43 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Күптән түгел уйнатылган</translation>
+      <translation>Күптән түгел тыңланган</translation>
     </message>
     <message>
       <source>Most played</source>
-      <translation>Тарих · Уйнату</translation>
+      <translation>Иң күп тыңланганнар</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Бутау</translation>
+      <translation>Очраклы тәртип</translation>
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>Сөзгеч · Тавыш</translation>
+      <translation>Фильтрланган музыка</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>Тавыш сәяхәте</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Эзләү</translation>
+      <translation>Ачыш</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>Чыганак · Тавыш</translation>
+      <translation>Оригиналь аудио</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Тавыш · Охшаш</translation>
+      <translation>Тавышы охшаш</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Яратканнар · ★ · 5</translation>
+      <translation>Сайланмалар · 5 йолдыз</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2022,102 +2046,102 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>Язмалар</translation>
+      <translation>Треклар</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Йөкләнгән</translation>
+      <translation>Йөкләнгән музыка</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>Язма · Сан · Мөмкин түгел</translation>
+      <translation>Треклар саны билгесез</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · Язма</translation>
+      <translation>1 трек</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · Язмалар</translation>
+      <translation>%1 трек</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>Озынлык · Мөмкин түгел</translation>
+      <translation>Озынлыгы билгесез</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>Башкаручы · Радио</translation>
+      <translation>Башкаручы радиосы</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>Альбом · Радио</translation>
+      <translation>Альбом радиосы</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>Язма · Радио</translation>
+      <translation>Трек радиосы</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>Челтәрсез · Китапханә</translation>
+      <translation>Офлайн медиатека</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>Эзләү</translation>
+      <translation>Эзләү нәтиҗәләре</translation>
     </message>
     <message>
       <source>Playlists</source>
-      <translation>Уйнату исемлекләре</translation>
+      <translation>Плейлистлар</translation>
     </message>
   </context>
   <context>
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>Тоташу · Plex</translation>
+      <translation>Plex белән тоташу</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>Керү · Plex</translation>
+      <translation>Plex аша керү</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>Керү · Браузер · Алынган</translation>
+      <translation>Браузерда керүне тәмамлагыз, аннары монда кайтыгыз.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>Ачу · Браузер</translation>
+      <translation>Браузерны яңадан ачу</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Сайлау · Plex · Сервер</translation>
+      <translation>Plex серверын сайлагыз</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>Сайлау · Сервер · Ачу · Китапханә</translation>
+      <translation>Музыка медиатекаларын ачу өчен серверга басыгыз.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Яңарту · Plex</translation>
+      <translation>Plex серверларыгызны табу өчен исемлекне яңартыгыз.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Яңарту</translation>
+      <translation>Серверларны яңарту</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Тоташу · Китапханә</translation>
+      <translation>Музыка медиатекалары белән тоташу</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Тоташу</translation>
+      <translation>Турыдан-туры тоташу</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>Сервер · URL</translation>
+      <translation>Сервер URL</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · Токен</translation>
+      <translation>Plex токены</translation>
     </message>
     <message>
       <source>Connect</source>
@@ -2125,58 +2149,58 @@
     </message>
     <message>
       <source>Sign out</source>
-      <translation>Керү</translation>
+      <translation>Чыгу</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Челтәрсез · Тавыш · Кэш</translation>
+      <translation>Офлайн аудио кэш</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Тавыш · Көйләүләр</translation>
+      <translation>Аудио көйләүләре</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Автоматик уйнату · Охшаш · Чират</translation>
+      <translation>Чират тәмамлангач охшаш музыканы уйнату</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Йөкләүләр · Уку гына · Wi-Fi</translation>
+      <translation>Wi-Fi аша гына йөкләү</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>Ачу · Йөкләүләр · Идарә</translation>
+      <translation>Йөкләү менеджерын ачу</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Кэш · Чират · Тавыш · Автоматик уйнату</translation>
+      <translation>Чираттагы аудионы автоматик кэшлау</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Кэш · Чик</translation>
+      <translation>Кэш чиге</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Язмалар · Йөкләнгән · %2 · MiB · Кулланылган</translation>
+      <translation>%1 трек йөкләнгән · %2 MiB файдаланылган</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Кэш · Хәзерге · Язма · Киләсе · %1 · Язмалар · Йөкләүләр · Альбомнар · Әзер · Челтәрсез</translation>
+      <translation>Хәзерге трек һәм чираттагы киләсе %1 трек кэшлана. Юлга чыкканчы альбомны йөкләгез; офлайн режимда тәмамланган йөкләүләр генә эшли.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Чистарту · Кэш · Туктату · Уйнату</translation>
+      <translation>Кэшны чистарту һәм уйнатуны туктату</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · Турыдан-туры агымлы музыка уйнаткычы</translation>
+      <translation>PlexFreq %1 · Турыдан-туры агымлы музыка плееры</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>Юк · Уйнату</translation>
+      <translation>Бернәрсә дә уйнамый</translation>
     </message>
   </context>
   <context>
@@ -2187,15 +2211,15 @@
     </message>
     <message>
       <source>EPs</source>
-      <translation>EP</translation>
+      <translation>EP-лар</translation>
     </message>
     <message>
       <source>Singles</source>
-      <translation>Сингллар</translation>
+      <translation>Синглар</translation>
     </message>
     <message>
       <source>Live</source>
-      <translation>Тере язма</translation>
+      <translation>Концерт</translation>
     </message>
     <message>
       <source>Compilations</source>

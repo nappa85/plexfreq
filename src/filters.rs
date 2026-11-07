@@ -81,7 +81,7 @@ pub(crate) fn sort_key(sort: &str, kind: &ItemKind) -> Result<&'static str> {
 }
 
 /// Borrowed view of owned query pairs for `Core::container_cached`.
-fn param_refs(params: &[(String, String)]) -> Vec<(&str, String)> {
+pub(crate) fn param_refs(params: &[(String, String)]) -> Vec<(&str, String)> {
     params
         .iter()
         .map(|(k, v)| (k.as_str(), v.clone()))
