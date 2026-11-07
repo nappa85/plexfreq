@@ -175,6 +175,15 @@ async fn bluetooth_observer(bluetooth: Shared, halt: Halt) {
             log_bluetooth(&facts, "change");
             previous_facts = facts.clone();
         }
+        // An idle link (the remote end paused or handed over, or the sink
+        // released it): a suspended sink is expected, not a stuck output.
+        // Stored on every observation so a replaced engine learns it too.
+        let idle = facts
+            .as_ref()
+            .is_some_and(|f| f.idle_transports > 0 && f.active_transports == 0);
+        if let Some(audio) = crate::mutex_lock(&bluetooth.audio).as_ref() {
+            audio.route_idle(idle);
+        }
         if policy.observe(facts, snapshot.loaded) {
             let result = bluetooth.send(json!({"op":"audio_pause"}));
             crate::diagnostics::event(format_args!(

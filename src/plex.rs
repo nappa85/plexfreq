@@ -97,6 +97,35 @@ pub(crate) fn classify_probe(status: u16, plex_header: bool) -> Probe {
     }
 }
 
+/// Plex Media Server passes tag bytes through unchanged, so a file tagged in
+/// Latin-1 or Windows-1252 yields invalid UTF-8 inside an otherwise valid body.
+/// Keep valid UTF-8 and read each invalid byte as Windows-1252 (the WHATWG
+/// "latin1" decoder) rather than rejecting the page.
+fn plex_text(bytes: &[u8]) -> std::borrow::Cow<'_, str> {
+    // WHATWG windows-1252 for 0x80..=0x9F; unassigned bytes keep their C1 code point.
+    const C1: [char; 32] = [
+        '€', '\u{81}', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '\u{8d}', 'Ž',
+        '\u{8f}', '\u{90}', '‘', '’', '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '\u{9d}',
+        'ž', 'Ÿ',
+    ];
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return text.into();
+    }
+    let mut text = String::with_capacity(bytes.len() + bytes.len() / 8);
+    for chunk in bytes.utf8_chunks() {
+        text.push_str(chunk.valid());
+        text.extend(chunk.invalid().iter().map(|&byte| match byte {
+            0x80..=0x9f => C1[usize::from(byte - 0x80)],
+            _ => char::from(byte),
+        }));
+    }
+    text.into()
+}
+
+fn plex_json<T: DeserializeOwned>(bytes: &[u8], context: &'static str) -> Result<T> {
+    serde_json::from_str(&plex_text(bytes)).map_err(|_| Error::ProtocolAt(context))
+}
+
 pub(crate) async fn bounded_json<T: DeserializeOwned>(
     mut response: reqwest::Response,
     context: &'static str,
@@ -104,7 +133,7 @@ pub(crate) async fn bounded_json<T: DeserializeOwned>(
     let bytes = bounded_body(&mut response, JSON_LIMIT)
         .await
         .map_err(|error| error.unwrap_or(Error::ProtocolAt(context)))?;
-    serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
+    plex_json(&bytes, context)
 }
 
 /// One pooled async client for every Plex API caller in the process (Core,
@@ -245,7 +274,7 @@ impl Plex {
                 .await
                 .map_err(|error| error.unwrap_or(Error::ProtocolAt(context)))
         })?;
-        serde_json::from_slice(&bytes).map_err(|_| Error::ProtocolAt(context))
+        plex_json(&bytes, context)
     }
 
     pub fn pin(&self) -> Result<Pin> {
@@ -373,7 +402,7 @@ impl Plex {
                 .await
                 .map_err(|error| error.unwrap_or(Error::Input("Lyrics exceed the size limit")))
         })?;
-        String::from_utf8(bytes).map_err(|_| Error::ProtocolAt("lyrics text"))
+        Ok(plex_text(&bytes).into_owned())
     }
     /// A status-only probe of `/library/metadata/{key}`, as an owned future
     /// for a background task: it never binds a view scope or blocks the
@@ -508,8 +537,10 @@ pub(crate) fn advertised_path(base: &Url, key: &str) -> Result<Url> {
         if query.contains('#') || query.chars().any(char::is_control) {
             return Err(Error::Input("Expected a server-relative Plex path"));
         }
-        for (name, _) in url::form_urlencoded::parse(query.as_bytes()) {
-            if name.to_ascii_lowercase().starts_with("x-plex-") {
+        for (name, value) in url::form_urlencoded::parse(query.as_bytes()) {
+            if name.to_ascii_lowercase().starts_with("x-plex-")
+                || name.chars().chain(value.chars()).any(char::is_control)
+            {
                 return Err(Error::Input("Expected a server-relative Plex path"));
             }
         }
@@ -526,6 +557,19 @@ mod tests {
         net::TcpListener,
         thread,
     };
+
+    #[test]
+    fn latin1_tag_bytes_decode_instead_of_rejecting_the_page() {
+        let body = b"{\"title\":\"Can\xe7\xe3o \xc3\xa9 \xfa\",\"n\":1}";
+        let value: serde_json::Value = plex_json(body, "test").unwrap();
+        assert_eq!(value["title"], "Can\u{e7}\u{e3}o \u{e9} \u{fa}");
+        assert!(plex_json::<serde_json::Value>(b"{\"title\":", "test").is_err());
+        assert!(matches!(plex_text(b"plain"), std::borrow::Cow::Borrowed(_)));
+        assert_eq!(
+            plex_text(b"\x93it\x92s\x94 \x96 \x81\"x"),
+            "\u{201c}it\u{2019}s\u{201d} \u{2013} \u{81}\"x"
+        );
+    }
 
     #[test]
     fn json_body_limit_checks_streamed_bytes_and_declared_length() {
@@ -627,6 +671,8 @@ mod tests {
             "X-Plex-Token=evil",
             "x%2dplex%2dtoken=evil",
             "url=test#fragment",
+            "url=a%00b",
+            "u%0Arl=test",
         ] {
             assert!(advertised_path(&base, &format!("/photo/:/transcode?{query}")).is_err());
         }

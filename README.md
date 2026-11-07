@@ -115,7 +115,8 @@ the server address (for example `http://192.168.1.10:32400`) with a Plex token.
   during a call, and resumes afterwards if it was playing.
 - **Listening insights**: your top artists, albums and tracks over 7, 30 or 90 days,
   based on what you listen to in PlexFreq.
-- Available in 39 languages, following your system language.
+- Available in 39 languages, following your system language. Translations other than
+  English are machine-written; corrections are welcome.
 
 Sonic radio, Sonic Adventure and sonically similar music need a server with Sonic
 Analysis enabled. That requires Plex Pass on the server owner's account. Lyrics,
@@ -202,6 +203,11 @@ for SailfishOS. The table compares their main features.
 On the desktop, make sure PulseAudio or PipeWire's PulseAudio service is running.
 If playback paused by itself, Bluetooth headphones may have disconnected, or
 another app may have been recording. Press Play to continue.
+
+**"Audio output stopped responding".** The headphones, speaker or car stayed
+connected but stopped accepting sound, so PlexFreq paused instead of waiting
+silently. Your place in the song is kept. Turn the device off and on again, or
+reconnect it in the Bluetooth settings, then press Play.
 
 **Downloads don't start.** Open the Download manager and check whether:
 - downloads are paused (choose **Resume downloads**);

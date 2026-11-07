@@ -207,6 +207,12 @@ pub(super) struct Events {
     /// starts again): the server waits for `prebuf` before resuming.
     pub underrun: bool,
     pub drained: bool,
+    /// The answer to `Stream::query_server_cork`: Some(corked) once the
+    /// server replied (a failed query answers uncorked).
+    pub server_corked: Option<bool>,
+    /// Test hook: sink-input records received by `query_server_cork`.
+    #[cfg(test)]
+    pub records: u32,
 }
 
 extern "C" fn state_callback(stream: *mut pa::pa_stream, userdata: *mut c_void) {
@@ -254,6 +260,26 @@ extern "C" fn underflow_callback(_: *mut pa::pa_stream, userdata: *mut c_void) {
     events.underrun = true;
     events.underflows += 1;
 }
+extern "C" fn sink_input_callback(
+    _: *mut pa::pa_context,
+    info: *const pa::pa_sink_input_info,
+    eol: i32,
+    userdata: *mut c_void,
+) {
+    // SAFETY: as state_callback; the query operation is cancelled before the
+    // userdata is freed, and `info` is valid for this call only.
+    let mut events = unsafe { &*userdata.cast::<RefCell<Events>>() }.borrow_mut();
+    if !info.is_null() {
+        #[cfg(test)]
+        {
+            events.records += 1;
+        }
+        // SAFETY: non-null, callback-scoped record.
+        events.server_corked = Some(unsafe { (*info).corked } != 0);
+    } else if eol < 0 && events.server_corked.is_none() {
+        events.server_corked = Some(false);
+    }
+}
 extern "C" fn drain_callback(_: *mut pa::pa_stream, success: i32, userdata: *mut c_void) {
     if success != 0 {
         // SAFETY: as state_callback; the drain operation is cancelled before
@@ -269,6 +295,8 @@ extern "C" fn drain_callback(_: *mut pa::pa_stream, success: i32, userdata: *mut
 pub(super) struct Stream {
     stream: *mut pa::pa_stream,
     drain: *mut pa::pa_operation,
+    /// A pending `query_server_cork` sink-input lookup.
+    query: *mut pa::pa_operation,
     events: Box<RefCell<Events>>,
     connection: Rc<Connection>,
 }
@@ -278,9 +306,11 @@ impl Drop for Stream {
         // operation cancelled before the userdata box is freed. Disconnect
         // removes the sink input immediately, discarding queued audio.
         unsafe {
-            if !self.drain.is_null() {
-                pa::pa_operation_cancel(self.drain);
-                pa::pa_operation_unref(self.drain);
+            for operation in [self.drain, self.query] {
+                if !operation.is_null() {
+                    pa::pa_operation_cancel(operation);
+                    pa::pa_operation_unref(operation);
+                }
             }
             pa::pa_stream_set_state_callback(self.stream, None, ptr::null_mut());
             pa::pa_stream_set_event_callback(self.stream, None, ptr::null_mut());
@@ -321,6 +351,7 @@ impl Stream {
         let output = Self {
             stream,
             drain: ptr::null_mut(),
+            query: ptr::null_mut(),
             events: Box::new(RefCell::new(Events::default())),
             connection,
         };
@@ -387,6 +418,10 @@ impl Stream {
             underflows: events.underflows,
             underrun: events.underrun,
             drained: events.drained,
+            // Read by `query_server_cork` only.
+            server_corked: None,
+            #[cfg(test)]
+            records: events.records,
         };
         Ok(facts)
     }
@@ -482,6 +517,61 @@ impl Stream {
         // SAFETY: non-null pointer to the stream's current attributes.
         let target = unsafe { (*attr).tlength } as usize;
         self.writable() >= target
+    }
+    /// Whether the server holds this stream's sink input corked (a session
+    /// policy can cork it without a `request-cork` event). Starts one
+    /// sink-input lookup and answers None until its reply was dispatched.
+    pub fn query_server_cork(&mut self) -> Option<bool> {
+        if !self.query.is_null() {
+            // SAFETY: owned operation reference.
+            if unsafe { pa::pa_operation_get_state(self.query) } == pa::PA_OPERATION_RUNNING {
+                return None;
+            }
+            // SAFETY: owned operation reference, released once.
+            unsafe { pa::pa_operation_unref(self.query) };
+            self.query = ptr::null_mut();
+            // A lookup cancelled by a context failure also answers uncorked;
+            // `service()` reports that failure first.
+            return Some(
+                self.events
+                    .borrow_mut()
+                    .server_corked
+                    .take()
+                    .unwrap_or(false),
+            );
+        }
+        self.events.borrow_mut().server_corked = None;
+        let userdata = ptr::from_ref(&*self.events).cast_mut().cast::<c_void>();
+        // SAFETY: live stream and context; the operation is kept and
+        // cancelled in Drop before the userdata box is freed.
+        self.query = unsafe {
+            pa::pa_context_get_sink_input_info(
+                self.connection.context,
+                pa::pa_stream_get_index(self.stream),
+                Some(sink_input_callback),
+                userdata,
+            )
+        };
+        // A query that cannot start answers uncorked.
+        self.query.is_null().then_some(false)
+    }
+    /// Cancel a pending `query_server_cork` and discard its answer.
+    pub fn forget_server_cork(&mut self) {
+        if !self.query.is_null() {
+            // SAFETY: owned operation reference, cancelled and released once.
+            unsafe {
+                pa::pa_operation_cancel(self.query);
+                pa::pa_operation_unref(self.query);
+            }
+            self.query = ptr::null_mut();
+        }
+        self.events.borrow_mut().server_corked = None;
+    }
+    /// The sink this stream is connected to is suspended (libpulse keeps
+    /// the flag from the server's create reply and SUSPENDED notifications).
+    pub fn suspended(&self) -> bool {
+        // SAFETY: live stream.
+        unsafe { pa::pa_stream_is_suspended(self.stream) == 1 }
     }
     /// Audible stream time in frames: data read by the server minus the
     /// sink latency, interpolated between timing updates. None before the

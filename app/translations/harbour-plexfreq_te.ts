@@ -4,50 +4,50 @@
     <name>AlphabetRail</name>
     <message>
       <source>Alphabet</source>
-      <translation>వర్ణమాల</translation>
+      <translation>అక్షర క్రమం</translation>
     </message>
   </context>
   <context>
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>ఆడియో సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>స్ట్రీమింగ్ నాణ్యత</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · ఆడియో</translation>
+      <translation>Wi-Fi ఆడియో</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>నెట్‌వర్క్ · ఆడియో</translation>
+      <translation>మొబైల్ డేటా ఆడియో</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>డౌన్‌లోడ్‌లు · ఆడియో</translation>
+      <translation>ఆడియోను డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · డీకోడర్ · మళ్లీ ప్రయత్నించు</translation>
+      <translation>Plex కోడెక్ ప్రత్యామ్నాయం</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు · తరువాతి · పాటలు · డౌన్‌లోడ్‌లు · సిద్ధం · ఆడియో</translation>
+      <translation>నాణ్యత మార్పులు తదుపరి ట్రాక్‌లకు, డౌన్‌లోడ్‌లకు వర్తిస్తాయి. పూర్తయిన స్థానిక ఆడియోకు ప్రాధాన్యత ఉంటుంది.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · ఆడియో · అంతరాయం లేకుండా · PCM · అవుట్‌పుట్</translation>
+      <translation>Rust ఆడియో ఇంజిన్ · గ్యాప్‌లెస్ PCM అవుట్‌పుట్</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · సెకన్లు</translation>
+      <translation>%1 సెకన్లు</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>ఆఫ్</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -55,31 +55,31 @@
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>సాధారణీకరణ</translation>
+      <translation>లౌడ్‌నెస్ నార్మలైజ్ చేయండి</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>పాట · సాధారణీకరణ</translation>
+      <translation>ట్రాక్ గెయిన్</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>ఆల్బమ్‌లు · సాధారణీకరణ</translation>
+      <translation>ఆల్బమ్ గెయిన్</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>స్వయంచాలక ప్లే · సాధారణీకరణ</translation>
+      <translation>ఆటోమేటిక్ గెయిన్</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>ఆడియో · శబ్దం · పరిధి</translation>
+      <translation>హెడ్‌రూమ్</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · మెటాడేటా · సాధారణీకరణ · ఆల్బమ్‌లు · అంతరాయం లేకుండా · క్రాస్‌ఫేడ్ · off</translation>
+      <translation>అందుబాటులో ఉన్నప్పుడు Plex గెయిన్ మెటాడేటాను ఉపయోగిస్తుంది. ఒకే ఆల్బమ్‌లోని ట్రాక్‌లు క్రాస్‌ఫేడ్ లేకుండా గ్యాప్‌లెస్‌గా మారుతాయి.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,42 +87,42 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>రీసెట్ చేయి · ఈక్వలైజర్</translation>
+      <translation>ఈక్వలైజర్‌ను రీసెట్ చేయండి</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>ఆడియో సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>స్ట్రీమింగ్ నాణ్యత</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · ఆడియో</translation>
+      <translation>Wi-Fi ఆడియో</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>నెట్‌వర్క్ · ఆడియో</translation>
+      <translation>మొబైల్ డేటా ఆడియో</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>డౌన్‌లోడ్‌లు · ఆడియో</translation>
+      <translation>ఆడియోను డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · డీకోడర్ · మళ్లీ ప్రయత్నించు</translation>
+      <translation>Plex కోడెక్ ప్రత్యామ్నాయం</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు · తరువాతి · పాటలు · డౌన్‌లోడ్‌లు · సిద్ధం · ఆడియో</translation>
+      <translation>నాణ్యత మార్పులు తదుపరి ట్రాక్‌లకు, డౌన్‌లోడ్‌లకు వర్తిస్తాయి. పూర్తయిన స్థానిక ఆడియోకు ప్రాధాన్యత ఉంటుంది.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · ఆడియో · అంతరాయం లేకుండా · PCM · అవుట్‌పుట్</translation>
+      <translation>Rust ఆడియో ఇంజిన్ · గ్యాప్‌లెస్ PCM అవుట్‌పుట్</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -130,43 +130,43 @@
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · సెకన్లు</translation>
+      <translation>%1 సెకన్లు</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>ఆఫ్</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>సాధారణీకరణ</translation>
+      <translation>లౌడ్‌నెస్ నార్మలైజ్ చేయండి</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>సాధారణీకరణ · సెట్టింగ్‌లు</translation>
+      <translation>నార్మలైజేషన్ మోడ్</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>ఆల్బమ్‌లు · సాధారణీకరణ</translation>
+      <translation>ఆల్బమ్ గెయిన్</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>స్వయంచాలక ప్లే · సాధారణీకరణ</translation>
+      <translation>ఆటోమేటిక్ గెయిన్</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>పాట · సాధారణీకరణ</translation>
+      <translation>ట్రాక్ గెయిన్</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>ఆడియో · శబ్దం · పరిధి</translation>
+      <translation>హెడ్‌రూమ్</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · మెటాడేటా · సాధారణీకరణ · ఆల్బమ్‌లు · అంతరాయం లేకుండా · క్రాస్‌ఫేడ్ · off</translation>
+      <translation>అందుబాటులో ఉన్నప్పుడు Plex గెయిన్ మెటాడేటాను ఉపయోగిస్తుంది. ఒకే ఆల్బమ్‌లోని ట్రాక్‌లు క్రాస్‌ఫేడ్ లేకుండా గ్యాప్‌లెస్‌గా మారుతాయి.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,346 +174,350 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>రీసెట్ చేయి · ఈక్వలైజర్</translation>
+      <translation>ఈక్వలైజర్‌ను రీసెట్ చేయండి</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>రేడియోను నవీకరించలేకపోయింది. డౌన్‌లోడ్ చేసిన పాటలు మళ్లీ వినిపించవచ్చు.</translation>
+      <translation>రేడియో రిఫ్రెష్ కాలేదు. డౌన్‌లోడ్ చేసిన ట్రాక్‌లు పునరావృతం కావచ్చు.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · విఫలమైంది</translation>
+      <translation>Plex HTTP %1 ఇచ్చింది</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · డేటా · చెల్లనిది · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>అనూహ్య Plex ప్రతిస్పందన (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>చేర్చు · పాటలు · ఆల్బమ్‌లు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్‌కు ట్రాక్‌లు లేదా ఆల్బమ్‌లు జోడించండి</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>చేర్చు · పైకి · 1000 · పాటలు</translation>
+      <translation>ఒకసారి గరిష్ఠంగా 1000 ట్రాక్‌లు జోడించండి</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>కళాకారుడు · ఆల్బమ్ · మెటాడేటా · అందుబాటులో లేదు</translation>
+      <translation>ఆర్టిస్ట్ లేదా ఆల్బమ్ వివరాలు అందుబాటులో లేవు</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>ఫోటోలు · పరిమితి · పరిమాణం</translation>
+      <translation>కవర్ చిత్రం పరిమాణ పరిమితిని మించింది</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>ఆడియో · కాష్ · ప్రస్తుత · వాడినది · PlexFreq</translation>
+      <translation>ఆడియో కాష్‌ను ఇప్పటికే మరొక PlexFreq ఇన్‌స్టాన్స్ ఉపయోగిస్తోంది</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>ఆడియో · సర్వర్ · అందినది · పరిధి</translation>
+      <translation>ఆడియో మారింది లేదా సర్వర్ తప్పు బైట్ పరిధిని ఇచ్చింది; మొదటి నుండి మళ్లీ ప్రయత్నిస్తోంది</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>ఆడియో · వరుస · అందుబాటులో లేదు</translation>
+      <translation>ఆడియో ఆదేశాల క్యూ అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>ఆడియో · డీకోడర్ · విఫలమైంది</translation>
+      <translation>ఆడియో డీకోడింగ్ లేదా స్ట్రీమింగ్ విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>ఆడియో · డౌన్‌లోడ్‌లు · అసంపూర్ణం · వేచి ఉంది · కొనసాగించు</translation>
+      <translation>ఆడియో డౌన్‌లోడ్ అసంపూర్ణం; కొనసాగించడానికి వేచి ఉంది</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>ఆడియో · మొదలుపెట్టు</translation>
+      <translation>ఆడియో ఇంజిన్ ప్రారంభమవుతోంది</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>ఆడియో · పరిమితి · కాష్</translation>
+      <translation>ఆడియో ఫైల్ కాష్ పరిమితిని మించింది</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>ఆడియో · అవుట్‌పుట్ · విఫలమైంది</translation>
+      <translation>ఆడియో అవుట్‌పుట్ విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>ఆడియో · అవుట్‌పుట్ · అందుబాటులో లేదు</translation>
+      <translation>ఆడియో అవుట్‌పుట్ అందుబాటులో లేదు</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>ఆడియో అవుట్‌పుట్ స్పందించడం ఆగిపోయింది; ఆడియో పరికరాన్ని మళ్లీ కనెక్ట్ చేసి, ఆపై ప్లే నొక్కండి</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>ఆడియో · ప్లే చేయి · విఫలమైంది</translation>
+      <translation>ఆడియో ప్లేబ్యాక్ విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>ఆడియో · డేటా · పరిమితి · పరిమాణం</translation>
+      <translation>ఆడియో ప్రతిస్పందన ప్రకటించిన పరిమాణాన్ని మించింది</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>ఆడియో · శబ్దం · విఫలమైంది</translation>
+      <translation>ఆడియోలో స్థానం మార్చడం విఫలమైంది</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు · పరిధి</translation>
+      <translation>ఆడియో సెట్టింగ్‌లు మద్దతు ఉన్న పరిధిని మించాయి</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>ఆడియో · విఫలమైంది</translation>
+      <translation>ఆడియో స్ట్రీమింగ్ విఫలమైంది</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>ఆడియో · వరుస · అందుబాటులో లేదు</translation>
+      <translation>బ్యాకెండ్ ఆదేశాల క్యూ అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>ఆడియో · విఫలమైంది</translation>
+      <translation>బ్యాకెండ్ అంతర్గత లోపం</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>ఆడియో · అందుబాటులో లేదు</translation>
+      <translation>బ్యాకెండ్ అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>కాష్ · పరిమితి · శుభ్రం చేయి · ఆడియో</translation>
+      <translation>కాష్ నిండింది; పరిమితిని పెంచండి లేదా కాష్ చేసిన ఆడియోను తొలగించండి</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>కాష్ · పరిమితి · 64–8192 · MiB · తరువాతి · 0–20 · పాటలు</translation>
+      <translation>కాష్ పరిమితి 64–8192 MiB, ముందస్తు 0–20 ట్రాక్‌లు ఉండాలి</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>కాష్ · అభ్యర్థన · రద్దైంది</translation>
+      <translation>కాష్ అభ్యర్థన రద్దు చేయబడింది</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>కాష్ · పైకి · 1000 · చెల్లుబాటు · పాటలు</translation>
+      <translation>కాష్ అభ్యర్థనకు గరిష్ఠంగా 1000 చెల్లుబాటు అయ్యే సంగీత ట్రాక్‌లు అవసరం</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>కాష్ · చెల్లనిది · ఆడియో · డేటా</translation>
+      <translation>కాష్‌కు ఎన్‌కోడ్ చేయని ఆడియో ప్రతిస్పందన అవసరం</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>కాష్ · ప్రక్రియ · అందుబాటులో లేదు</translation>
+      <translation>కాష్ ప్రాసెస్ అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>విఫలమైంది · సెట్టింగ్‌లు · స్థితి</translation>
+      <translation>యాప్ స్థితిని చదవడం లేదా సేవ్ చేయడం సాధ్యం కాదు</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>ఎంచుకో · 1–10 · కళాకారులు · ఆల్బమ్‌లు · మిశ్రమం</translation>
+      <translation>మిక్స్ కోసం 1–10 ఆర్టిస్ట్‌లు లేదా ఆల్బమ్‌లను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>ఎంచుకో · 2–8 · పాటలు · సారూప్య</translation>
+      <translation>సోనిక్ ప్రయాణం కోసం 2–8 ట్రాక్‌లను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>ఎంచుకో · 30–480 · రేడియో · డౌన్‌లోడ్‌లు</translation>
+      <translation>రేడియో డౌన్‌లోడ్ కోసం 30–480 నిమిషాలు ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>ఎంచుకో · 7 · 30 · 90 · చరిత్ర</translation>
+      <translation>7, 30, 90 రోజులు లేదా మొత్తం వినికిడి చరిత్రను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>ఎంచుకో</translation>
+      <translation>సంగీత అంశాన్ని ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>ఎంచుకో · ప్లేలిస్ట్ · పాట</translation>
+      <translation>ప్లేలిస్ట్‌లోని ఒక ఎంట్రీని ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>ఎంచుకో · ప్లేలిస్ట్ · ఆల్బమ్ · రేడియో · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ కోసం ప్లేలిస్ట్, ఆల్బమ్ లేదా రేడియోను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>ఎంచుకో · రిఫ్రెష్ చేయి · 1 · 6 · 12 · 24</translation>
+      <translation>1, 6, 12 లేదా 24 గంటల రిఫ్రెష్ వ్యవధిని ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>ఎంచుకో · పాట · ఆల్బమ్ · ప్లేలిస్ట్ · ఆఫ్‌లైన్‌లో ఉంచు</translation>
+      <translation>ఆఫ్‌లైన్‌లో ఉంచడానికి ట్రాక్, ఆల్బమ్ లేదా ప్లేలిస్ట్‌ను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>ఎంచుకో · ఆడియో · 64–320</translation>
+      <translation>అసలు ఆడియో లేదా 64–320 kbps ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>ఎంచుకో · పాటలు · వరుస · పరిమితి · 10000</translation>
+      <translation>క్యూ కోసం ట్రాక్‌లను ఎంచుకోండి (గరిష్ఠం 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>ఎంచుకో · పాటలు · ఆల్బమ్ · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ కోసం ట్రాక్‌లు లేదా ఆల్బమ్‌ను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>ఎంచుకో · పైకి · 1000 · చెల్లుబాటు · పాటలు · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ చేయడానికి గరిష్ఠంగా 1000 చెల్లుబాటు అయ్యే ట్రాక్‌లను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>కనెక్ట్ చేయి · Plex · సర్వర్ · మొదలుపెట్టు</translation>
+      <translation>ముందుగా Plex సర్వర్‌కు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>వేరే మూలం · Plex</translation>
+      <translation>వేరే మూలం నుండి వచ్చిన Plex మార్గం తిరస్కరించబడింది</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>డౌన్‌లోడ్‌లు · రకాలు · ఏదీ లేదు</translation>
+      <translation>డౌన్‌లోడ్ సమూహం ఇక లేదు</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>డౌన్‌లోడ్‌లు · అంతరాయం · మళ్లీ ప్రయత్నించు · కనెక్షన్</translation>
+      <translation>డౌన్‌లోడ్‌కు అంతరాయం కలిగింది; కనెక్షన్ మెరుగుపడినప్పుడు మళ్లీ ప్రయత్నిస్తుంది</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>డౌన్‌లోడ్‌లు · పరిమితి · 1000 · పాటలు</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్ 1000 ట్రాక్‌లను మించింది</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>డౌన్‌లోడ్‌లు · పరిమితి · 1000 · పాటలు · ఉంచడం ఆపు · మొదలుపెట్టు</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్ 1000 ట్రాక్‌లను మించింది; ముందుగా కొన్ని డౌన్‌లోడ్‌లను ఆఫ్‌లైన్‌లో ఉంచడం ఆపండి</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>ప్రారంభించు · ఆడియో · కాష్ · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను ఆఫ్‌లైన్‌లో ఉంచే ముందు ఆడియో కాష్‌ను ప్రారంభించండి</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>ప్రారంభించు · ఆడియో · కాష్ · కనెక్షన్ · సెట్టింగ్‌లు · మొదలుపెట్టు</translation>
+      <translation>ముందుగా కనెక్షన్ సెట్టింగ్‌లలో ఆడియో కాష్‌ను ప్రారంభించండి</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>ప్లేలిస్ట్ · పైకి · 512 · పరిమాణం</translation>
+      <translation>ప్లేలిస్ట్ పేరు నమోదు చేయండి (గరిష్ఠంగా 512 బైట్‌లు)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>చెల్లుబాటు · గుర్తింపు · Plex</translation>
+      <translation>సంఖ్యాత్మక Plex ఐడెంటిఫైయర్ ఆశించబడింది</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>చెల్లుబాటు · Plex</translation>
+      <translation>సర్వర్-సాపేక్ష Plex మార్గం ఆశించబడింది</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>ఆన్‌లైన్</translation>
+      <translation>ఆన్‌లైన్‌కు వెళ్లండి</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>ఆన్‌లైన్ · Plex · ప్లేలిస్ట్‌లు</translation>
+      <translation>Plex ప్లేలిస్ట్‌లను సవరించడానికి ఆన్‌లైన్‌కు వెళ్లండి</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>ఆన్‌లైన్ · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను రిఫ్రెష్ చేయడానికి ఆన్‌లైన్‌కు వెళ్లండి</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>రకాలు · పరిమితి · 1000 · ఆల్బమ్‌లు · కళాకారుడు</translation>
+      <translation>సమూహపరచడం ఒక్కో ఆర్టిస్ట్‌కు 1000 ఆల్బమ్‌లకు పరిమితం</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>చెల్లనిది · URL</translation>
+      <translation>చెల్లని URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>చెల్లనిది · UTF · 8 · అభ్యర్థన</translation>
+      <translation>చెల్లని UTF-8 అభ్యర్థన</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>చెల్లనిది · ఆడియో</translation>
+      <translation>చెల్లని ఆడియో రూపం</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>చెల్లనిది · ఆడియో · మూలం</translation>
+      <translation>చెల్లని ఆడియో మూలం</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>చెల్లనిది · ఆడియో · శబ్దం</translation>
+      <translation>చెల్లని ఆడియో వాల్యూమ్</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>చెల్లనిది · కాష్ · ఆడియో</translation>
+      <translation>కాష్ చేసిన ఆడియో మార్గం చెల్లదు</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>చెల్లనిది · గుర్తింపు</translation>
+      <translation>చెల్లని క్లయింట్ ఐడెంటిఫైయర్</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>చెల్లనిది · వెతుకు</translation>
+      <translation>చెల్లని అన్వేషణ లేఅవుట్</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>చెల్లనిది · ఫిల్టర్</translation>
+      <translation>చెల్లని సంగీత ఫిల్టర్ విలువలు</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>చెల్లనిది · వరుస · సూచిక</translation>
+      <translation>చెల్లని క్యూ సూచిక</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>చెల్లనిది · వరుస · క్రమం</translation>
+      <translation>చెల్లని క్యూ క్రమం</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>చెల్లనిది · అభ్యర్థన · డేటా</translation>
+      <translation>చెల్లని అభ్యర్థన డేటా</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>చెల్లనిది · డౌన్‌లోడ్‌లు · పరిధి</translation>
+      <translation>కొనసాగించిన డౌన్‌లోడ్ పరిధి చెల్లదు</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>చెల్లనిది · శబ్దం</translation>
+      <translation>చెల్లని సీక్ స్థానం</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>చెల్లనిది · సర్వర్ · సూచిక</translation>
+      <translation>చెల్లని సర్వర్ సూచిక</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>చరిత్ర · సింక్ చేయి · ఇంకా చదువు</translation>
+      <translation>మరిన్ని ప్లేలను నమోదు చేసే ముందు వినికిడి చరిత్రను సింక్ చేయాలి</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>సైన్ ఇన్ · గడువు ముగిసింది · మొదలుపెట్టు</translation>
+      <translation>సైన్ ఇన్ గడువు ముగిసింది; మళ్లీ ప్రారంభించండి</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>పాట సాహిత్యం · పరిమాణం · పరిమితి</translation>
+      <translation>లిరిక్స్ పరిమాణ పరిమితిని మించాయి</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>పాట సాహిత్యం · అందుబాటులో లేదు · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+      <translation>లిరిక్స్ ఆఫ్‌లైన్‌కు సేవ్ కాలేదు</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>మిశ్రమం · కళాకారులు · ఆల్బమ్‌లు</translation>
+      <translation>మిక్స్ ఆధారాలు ఆర్టిస్ట్‌లు లేదా ఆల్బమ్‌లు అయి ఉండాలి</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>నెట్‌వర్క్ · అభ్యర్థన · విఫలమైంది · తనిఖీ చేయి · కనెక్షన్ · సర్వర్</translation>
+      <translation>నెట్‌వర్క్ అభ్యర్థన విఫలమైంది (కనెక్షన్ మరియు సర్వర్ చిరునామాను తనిఖీ చేయండి)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>తరువాతి · పాట · డీకోడర్ · విఫలమైంది</translation>
+      <translation>తదుపరి ట్రాక్ డీకోడింగ్ విఫలమైంది</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>ఏదీ లేదు · ప్రస్తుత · రేడియో</translation>
+      <translation>సక్రియ రేడియో లేదు</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>ఏదీ లేదు · కళాకారులు · సూచిక</translation>
+      <translation>ఆ అక్షరంతో ఆర్టిస్ట్‌లు ఎవరూ లేరు</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>ఏదీ లేదు · వరుస</translation>
+      <translation>క్యూలో ఏమీ లేదు</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
@@ -521,254 +525,274 @@
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>చదవడానికి మాత్రమే · ఆడియో · ప్లేలిస్ట్‌లు · డౌన్‌లోడ్ అయింది</translation>
+      <translation>ఆడియో ప్లేలిస్ట్‌లను మాత్రమే డౌన్‌లోడ్ చేయగలరు</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>ఆఫ్‌లైన్‌లో ఉంచు · పైకి · 1000 · ప్లే చేయి · పాటలు</translation>
+      <translation>గరిష్ఠంగా 1000 ప్లే చేయగల ట్రాక్‌లను ఆఫ్‌లైన్‌లో ఉంచండి</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>ప్లేలిస్ట్ · ఎంచుకో · పరిమితి · 1000 · ప్లేలిస్ట్‌లు</translation>
+      <translation>ప్లేలిస్ట్ ఎంపిక 1000 ప్లేలిస్ట్‌లకు పరిమితం</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>ప్లేలిస్ట్ · చదవడానికి మాత్రమే</translation>
+      <translation>చదవడానికి మాత్రమే తనిఖీలో ప్లేలిస్ట్ సవరణలు నిలిపివేయబడ్డాయి</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · సైన్ ఇన్ · విఫలమైంది · తనిఖీ చేయి · సర్వర్ · టోకెన్</translation>
+      <translation>Plex అధికారీకరణ విఫలమైంది; మళ్లీ సైన్ ఇన్ చేయండి లేదా సర్వర్ టోకెన్‌ను తనిఖీ చేయండి</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · అందుబాటులో లేదు · కళాకారుడు · రేడియో</translation>
+      <translation>ఈ ఆర్టిస్ట్ కోసం Plex ఆర్టిస్ట్ రేడియో స్టేషన్ అందించదు</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>ఈ ఆల్బమ్ కోసం Plex సోనిక్ సిఫార్సులు ఇవ్వలేదు. సంగీత లైబ్రరీ యొక్క సోనిక్ విశ్లేషణ సెట్టింగ్‌ను, అది పూర్తయిందో లేదో తనిఖీ చేయండి, లేదా ఆర్టిస్ట్ రేడియో ఉపయోగించండి.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · అందినది · ఏదీ లేదు · సారూప్య · పాట · తనిఖీ చేయి · లైబ్రరీ · వాడినది · కళాకారుడు · రేడియో</translation>
+      <translation>ఈ ట్రాక్ కోసం Plex సోనిక్ సిఫార్సులు ఇవ్వలేదు. సంగీత లైబ్రరీ యొక్క సోనిక్ విశ్లేషణ సెట్టింగ్‌ను, అది పూర్తయిందో లేదో తనిఖీ చేయండి, లేదా ఆర్టిస్ట్ రేడియో ఉపయోగించండి.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>వరుస · పాటలు · చెల్లుబాటు · మొదలుపెట్టు · సూచిక</translation>
+      <translation>క్యూకు ట్రాక్‌లు, చెల్లుబాటు అయ్యే ప్రారంభ సూచిక అవసరం</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>రేడియో · స్వయంచాలక ప్లే · ఆపు · పునరావృతం</translation>
+      <translation>రేడియో ఆటోమేటిక్‌గా కొనసాగుతుంది; రిపీట్ కోసం రేడియోను ఆపండి</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>రేడియో · ఏదీ లేదు · ఇంకా చదువు · సారూప్య · మిశ్రమం</translation>
+      <translation>రేడియోకు ఇక సోనిక్ సిఫార్సులు లేవు; మరొక ఆధారాన్ని ప్రయత్నించండి</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>రేడియో · క్రమం · ఆపు · కలుపు</translation>
+      <translation>రేడియో సిఫార్సు చేసిన క్రమాన్ని పాటిస్తుంది; షఫుల్ కోసం రేడియోను ఆపండి</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>రేడియో · ప్లే చేయి · కనెక్షన్</translation>
+      <translation>రేడియో ప్లేబ్యాక్‌కు కనెక్షన్ అవసరం</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>రేడియో · అందినది · ఏదీ లేదు · ప్లే చేయి · పాటలు</translation>
+      <translation>రేడియో ప్లే చేయగల ట్రాక్‌లను ఇవ్వలేదు</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>రేడియో · మిశ్రమం · అందుబాటులో లేదు</translation>
+      <translation>రేడియో ఆధారం ఎంచుకున్న సంగీత రకానికి సరిపోలడం లేదు</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>ఆడియో · నిడివి · అసంగతం</translation>
+      <translation>కొనసాగించిన ఆడియో నిడివి అసంగతంగా ఉంది</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>డౌన్‌లోడ్‌లు · ఏదీ లేదు · Content-Range</translation>
+      <translation>కొనసాగించిన డౌన్‌లోడ్‌లో Content-Range లేదు</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>భద్రపరచినది · వరుస · చెల్లనిది</translation>
+      <translation>సేవ్ చేసిన క్యూ చెల్లదు</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>సర్వర్ · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>సర్వర్ URL తప్పనిసరిగా HTTP(S) మూలం అయి ఉండాలి, ఉదా. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>సర్వర్ · అందినది · పాట</translation>
+      <translation>ఈ ట్రాక్ కోసం సర్వర్ ఆడియో కాని కంటెంట్ ఇచ్చింది</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>సైన్ ఇన్ · మొదలుపెట్టు</translation>
+      <translation>ముందుగా సైన్ ఇన్ చేయండి</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్ · ఫిల్టర్ · Plex</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్‌ల కంటెంట్‌ను వాటి Plex ఫిల్టర్‌లు నియంత్రిస్తాయి</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>సారూప్య · పరిమితి · 250 · పాటలు</translation>
+      <translation>సోనిక్ ప్రయాణం 250 ట్రాక్‌లను మించింది</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>మొదలుపెట్టు · సైన్ ఇన్</translation>
+      <translation>ముందుగా సైన్ ఇన్ ప్రారంభించండి</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>ఆల్బమ్ · ఏదీ లేదు · ప్లే చేయి · పాటలు</translation>
+      <translation>ఈ ఆల్బమ్‌లో ప్లే చేయగల ట్రాక్‌లు లేవు</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>కళాకారుడు · ఆల్బమ్ · అందుబాటులో లేదు · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+      <translation>ఈ ఆర్టిస్ట్ లేదా ఆల్బమ్ ఆఫ్‌లైన్‌కు సేవ్ కాలేదు</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>లైబ్రరీ · అందుబాటులో లేదు · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+      <translation>ఈ లైబ్రరీ పేజీ ఇంకా ఆఫ్‌లైన్‌కు సేవ్ కాలేదు</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>పాట · ఏదీ లేదు · ప్లే చేయి · డేటా</translation>
+      <translation>ఈ ట్రాక్‌లో ప్లే చేయగల మీడియా భాగం లేదు</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>పాట · అందుబాటులో లేదు · డౌన్‌లోడ్ అయింది</translation>
+      <translation>ఈ ట్రాక్ డౌన్‌లోడ్ కాలేదు</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
+      <translation>ఈ ట్రాక్ ఇక సర్వర్‌లో లేదు</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>పాట · అందుబాటులో లేదు · కాష్ · డౌన్‌లోడ్ అయింది · పాటలు</translation>
+      <translation>ఈ ట్రాక్ ఇంకా పూర్తిగా కాష్ కాలేదు; డౌన్‌లోడ్ చేసిన ట్రాక్‌లు అందుబాటులోనే ఉంటాయి</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>పాట · నిడివి · డౌన్‌లోడ్‌లు</translation>
+      <translation>సమయ పరిమిత డౌన్‌లోడ్ కోసం ట్రాక్ నిడివి అవసరం</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>పాట · ఏదీ లేదు · డౌన్‌లోడ్‌లు · డేటా</translation>
+      <translation>ట్రాక్‌లో డౌన్‌లోడ్ చేయగల మీడియా భాగం లేదు</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>చెల్లనిది · Plex · డేటా</translation>
+      <translation>అనూహ్య Plex ప్రతిస్పందన</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>చెల్లనిది · ఆడియో</translation>
+      <translation>తెలియని ఆడియో ఆదేశం</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>చెల్లనిది · వెతుకు</translation>
+      <translation>తెలియని అన్వేషణ వీక్షణ</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>చెల్లనిది · డౌన్‌లోడ్‌లు</translation>
+      <translation>తెలియని డౌన్‌లోడ్ చర్య</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>చెల్లనిది · లైబ్రరీ · క్రమబద్ధీకరించు</translation>
+      <translation>తెలియని లైబ్రరీ క్రమం</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>చెల్లనిది</translation>
+      <translation>తెలియని సంగీత రకం</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>చెల్లనిది · ఆఫ్‌లైన్</translation>
+      <translation>తెలియని ఆఫ్‌లైన్ సంగీత రకం</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>చెల్లనిది · ప్లే చేయి · స్థితి</translation>
+      <translation>తెలియని ప్లేబ్యాక్ స్థితి</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>చెల్లనిది · ప్లేలిస్ట్</translation>
+      <translation>తెలియని ప్లేలిస్ట్ చర్య</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>చెల్లనిది · పునరావృతం</translation>
+      <translation>తెలియని రిపీట్ మోడ్</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>ఆల్బమ్ · రేడియో · పాటలు</translation>
+      <translation>ఆల్బమ్ రేడియో ట్రాక్‌ల పఠనం</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>కళాకారుడు · కళాకారులు · సూచిక</translation>
+      <translation>ఆర్టిస్ట్ అక్షర సూచిక</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>ఫోటోలు</translation>
+      <translation>కవర్ చిత్రం</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>బ్రౌజర్ సైన్ ఇన్ సృష్టి</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>బ్రౌజర్ సైన్ ఇన్ స్థితి తనిఖీ</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>కాష్ · పాట · మెటాడేటా</translation>
+      <translation>కాష్ ట్రాక్ మెటాడేటా పఠనం</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్</translation>
+      <translation>సృష్టించిన ప్లేలిస్ట్ పఠనం</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ పంక్తుల పఠనం</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ భాగం పాఠ్యం పఠనం</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ భాగాల పఠనం</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ JSON పఠనం</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>పాట సాహిత్యం</translation>
+      <source>playlist creation</source>
+      <translation>ప్లేలిస్ట్ సృష్టి</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>ప్లేలిస్ట్ · మెటాడేటా</translation>
+      <translation>ప్లేలిస్ట్ మెటాడేటా పఠనం</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>రేడియో · డౌన్‌లోడ్‌లు · పాటలు</translation>
+      <translation>రేడియో డౌన్‌లోడ్ ట్రాక్‌ల పఠనం</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>రేడియో · వరుస</translation>
+      <translation>రేడియో క్యూ స్థానం పఠనం</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>రేడియో · వరుస</translation>
+      <translation>రేడియో క్యూ కొనసాగింపు</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>రేడియో క్యూ సృష్టి</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>రేడియో · వరుస · గుర్తింపు</translation>
+      <translation>రేడియో క్యూ గుర్తింపు పఠనం</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>రేడియో · వరుస · పాటలు</translation>
+      <translation>రేడియో క్యూ ట్రాక్‌ల పఠనం</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>రేడియో · సర్వర్ · గుర్తింపు</translation>
+      <translation>రేడియో సర్వర్ గుర్తింపు పఠనం</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>సర్వర్ · వెతుకు</translation>
+      <translation>సర్వర్‌ల శోధన</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>సర్వర్ లైబ్రరీ అభ్యర్థన</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>సారూప్య</translation>
+      <translation>సోనిక్ సాహసయాత్ర సృష్టి</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>కదిలించు · ఇంకా చదువు · ఫోటోలు</translation>
+      <translation>మరిన్ని ఫోటోల కోసం స్వైప్ చేయండి</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,39 +800,39 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>ప్లే చేయి · పాటలు</translation>
+      <translation>ట్రాక్‌లను ప్లే చేయండి</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>డౌన్‌లోడ్‌లు · పాటలు</translation>
+      <translation>ట్రాక్‌లను డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>వివరణ · అందుబాటులో లేదు · Plex</translation>
+      <translation>Plex ఎలాంటి వివరణ అందించలేదు.</translation>
     </message>
     <message>
       <source>Read less</source>
-      <translation>తక్కువగా చదువు</translation>
+      <translation>తక్కువ చూపండి</translation>
     </message>
     <message>
       <source>Read more</source>
-      <translation>ఇంకా చదువు</translation>
+      <translation>మరింత చదవండి</translation>
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>సారూప్య · కళాకారులు</translation>
+      <translation>సారూప్య ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>లోడ్ అవుతోంది · సారూప్య · కళాకారులు</translation>
+      <translation>సారూప్య ఆర్టిస్ట్‌లు లోడ్ అవుతున్నారు…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>సారూప్య · కళాకారులు · అందుబాటులో లేదు</translation>
+      <translation>సారూప్య ఆర్టిస్ట్‌లు ప్రస్తుతం అందుబాటులో లేరు.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>సారూప్య · కళాకారులు · అందుబాటులో లేదు · Plex</translation>
+      <translation>Plex సారూప్య ఆర్టిస్ట్‌లను ఇవ్వలేదు.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -816,254 +840,254 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+      <translation>అన్వేషణను అనుకూలీకరించండి</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+      <translation>అన్వేషణను అనుకూలీకరించండి</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>కదిలించు · పైకి</translation>
+      <translation>పైకి జరపండి</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>కదిలించు · కిందకి</translation>
+      <translation>కిందికి జరపండి</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+      <translation>డౌన్‌లోడ్ మేనేజర్</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>స్వయంచాలక ప్లే · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్‌లను ఆటోమేటిక్‌గా రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 గంటలు</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>రిఫ్రెష్ చేయి · నిడివి</translation>
+      <translation>రిఫ్రెష్ వ్యవధి</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు · లోడ్ అవుతోంది</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్‌లు రిఫ్రెష్ అవుతున్నాయి…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 నిమిషాలు</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>రేడియో · డౌన్‌లోడ్‌లు · నిడివి</translation>
+      <translation>రేడియో డౌన్‌లోడ్ నిడివి</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>డౌన్‌లోడ్‌లు · చదవడానికి మాత్రమే · Wi-Fi</translation>
+      <translation>Wi-Fiలో మాత్రమే డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>కొనసాగించు · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను కొనసాగించండి</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>విరామం · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను పాజ్ చేయండి</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · Wi-Fi · ఆడియో · ప్లే చేయి · ఆన్‌లైన్</translation>
+      <translation>నిర్ధారిత Wi-Fi కోసం వేచి ఉంది; స్ట్రీమింగ్ అందుబాటులో ఉంటుంది.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+      <translation>స్ట్రీమ్ స్థిరపడే వరకు డౌన్‌లోడ్‌లు వేచి ఉంటాయి</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · ఆడియో · కాష్ · వాడినది</translation>
+      <translation>%1 MiB ఆడియో కాష్ ఉపయోగించబడింది</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>ఆఫ్‌లైన్ · లైబ్రరీ · డేటా · భద్రపరచు · విఫలమైంది · %1</translation>
+      <translation>ఆఫ్‌లైన్ లైబ్రరీ డేటాను సేవ్ చేయడం సాధ్యపడలేదు: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>ఆడియో · నిడివి · %1</translation>
+      <translation>ప్లాన్‌లోని ఆడియో: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · పాటలు · %3 · MiB</translation>
+      <translation>%1/%2 ట్రాక్‌లు · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>ప్రస్తుత · పాట · %1 · MiB · అందినది</translation>
+      <translation>ప్రస్తుత ట్రాక్: %1 MiB అందింది</translation>
     </message>
     <message>
       <source>Play</source>
-      <translation>ప్లే చేయి</translation>
+      <translation>ప్లే</translation>
     </message>
     <message>
       <source>Refresh</source>
-      <translation>రిఫ్రెష్</translation>
+      <translation>రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>Retry</source>
-      <translation>మళ్లీ ప్రయత్నించు</translation>
+      <translation>మళ్లీ ప్రయత్నించండి</translation>
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>రద్దైంది</translation>
+      <translation>ప్లాన్ రద్దు చేయండి</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>తొలగించు</translation>
+      <translation>ఫైళ్లను తీసివేయండి</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>పెండింగ్ · చరిత్ర · %1</translation>
+      <translation>పెండింగ్‌లో ఉన్న వినికిడి చరిత్ర: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>సింక్ చేయి · చరిత్ర</translation>
+      <translation>చరిత్రను సింక్ చేయండి</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+      <translation>డౌన్‌లోడ్ మేనేజర్</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>స్వయంచాలక ప్లే · రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్‌లను ఆటోమేటిక్‌గా రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>రిఫ్రెష్ చేయి · నిడివి</translation>
+      <translation>రిఫ్రెష్ వ్యవధి</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 గంటలు</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు · లోడ్ అవుతోంది</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్‌లు రిఫ్రెష్ అవుతున్నాయి…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>రేడియో · డౌన్‌లోడ్‌లు · నిడివి</translation>
+      <translation>రేడియో డౌన్‌లోడ్ నిడివి</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 నిమిషాలు</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>డౌన్‌లోడ్‌లు · చదవడానికి మాత్రమే · Wi-Fi</translation>
+      <translation>Wi-Fiలో మాత్రమే డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>కొనసాగించు · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను కొనసాగించండి</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>విరామం · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్‌లను పాజ్ చేయండి</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · Wi-Fi · ఆడియో · ప్లే చేయి · ఆన్‌లైన్</translation>
+      <translation>నిర్ధారిత Wi-Fi కనెక్షన్ కోసం వేచి ఉంది. స్ట్రీమింగ్ అందుబాటులో ఉంటుంది.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+      <translation>స్ట్రీమ్ స్థిరపడే వరకు డౌన్‌లోడ్‌లు వేచి ఉంటాయి</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · ఆడియో · కాష్ · వాడినది</translation>
+      <translation>%1 MiB ఆడియో కాష్ ఉపయోగించబడింది</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>ఆఫ్‌లైన్ · లైబ్రరీ · డేటా · భద్రపరచు · విఫలమైంది · %1</translation>
+      <translation>ఆఫ్‌లైన్ లైబ్రరీ డేటాను సేవ్ చేయడం సాధ్యపడలేదు: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>పెండింగ్ · చరిత్ర · %1</translation>
+      <translation>పెండింగ్‌లో ఉన్న వినికిడి చరిత్ర: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>సింక్ చేయి · చరిత్ర</translation>
+      <translation>వినికిడి చరిత్రను సింక్ చేయండి</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>ఆడియో · నిడివి · %1</translation>
+      <translation>ప్లాన్‌లోని ఆడియో: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · పాటలు · %3 · MiB</translation>
+      <translation>%1/%2 ట్రాక్‌లు · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>డౌన్‌లోడ్ అవుతోంది</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>ప్రస్తుత · పాట · %1 · MiB · అందినది</translation>
+      <translation>ప్రస్తుత ట్రాక్: %1 MiB అందింది</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>ప్లే చేయి · డౌన్‌లోడ్ అయింది · పాటలు</translation>
+      <translation>డౌన్‌లోడ్ చేసిన ట్రాక్‌లను ప్లే చేయండి</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>రిఫ్రెష్ చేయి · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ ప్లాన్‌ను రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>మళ్లీ ప్రయత్నించు · కొనసాగించు</translation>
+      <translation>మళ్లీ ప్రయత్నించండి/కొనసాగించండి</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>రద్దైంది</translation>
+      <translation>ప్లాన్ రద్దు / ఫైళ్లు ఉంచండి</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>తొలగించు · డౌన్‌లోడ్‌లు</translation>
+      <translation>డౌన్‌లోడ్ తీసివేయండి</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>లైబ్రరీ · ఫిల్టర్</translation>
+      <translation>లైబ్రరీ ఫిల్టర్‌లు</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · ఫిల్టర్ · చదవడానికి మాత్రమే</translation>
+      <translation>ఈ స్మార్ట్ ప్లేలిస్ట్ నియమాలను ఈ ఎడిటర్ చూపలేదు.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1071,15 +1095,15 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Genre</source>
-      <translation>రకం</translation>
+      <translation>జానర్</translation>
     </message>
     <message>
       <source>Mood</source>
-      <translation>మనోభావం</translation>
+      <translation>మూడ్</translation>
     </message>
     <message>
       <source>Style</source>
@@ -1087,62 +1111,62 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>ఏదైనా</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>శీర్షిక · ఫిల్టర్</translation>
+      <translation>శీర్షికలో ఉన్నది</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>సంవత్సరం · మొదలుపెట్టు</translation>
+      <translation>ఆరంభ సంవత్సరం</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>సంవత్సరం · పరిమితి</translation>
+      <translation>ముగింపు సంవత్సరం</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>ఇష్టమైనవి · పరిమితి</translation>
+      <translation>కనిష్ఠ రేటింగ్</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>ప్లే చేయి · ఏదీ లేదు</translation>
+      <translation>ప్లే చేయనివి మాత్రమే</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>క్రమబద్ధీకరించు</translation>
+      <translation>క్రమీకరించండి</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>పరిమితి · పాటలు</translation>
+      <translation>గరిష్ఠ ట్రాక్‌లు</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>లైబ్రరీ · ఫిల్టర్</translation>
+      <translation>లైబ్రరీ ఫిల్టర్‌లు</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · ఫిల్టర్ · చదవడానికి మాత్రమే</translation>
+      <translation>ఈ స్మార్ట్ ప్లేలిస్ట్ నియమాలను ఈ ఎడిటర్ చూపలేదు.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>లైబ్రరీ</translation>
+      <translation>బ్రౌజ్</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1150,15 +1174,15 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Genre</source>
-      <translation>రకం</translation>
+      <translation>జానర్</translation>
     </message>
     <message>
       <source>Mood</source>
-      <translation>మనోభావం</translation>
+      <translation>మూడ్</translation>
     </message>
     <message>
       <source>Style</source>
@@ -1166,62 +1190,62 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>ఏదైనా</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>శీర్షిక · ఫిల్టర్</translation>
+      <translation>శీర్షికలో ఉన్నది</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>సంవత్సరం · మొదలుపెట్టు</translation>
+      <translation>ఆరంభ సంవత్సరం</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>సంవత్సరం · పరిమితి</translation>
+      <translation>ముగింపు సంవత్సరం</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>ఇష్టమైనవి · పరిమితి</translation>
+      <translation>కనిష్ఠ రేటింగ్</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>ప్లే చేయి · ఏదీ లేదు</translation>
+      <translation>ప్లే చేయనివి మాత్రమే</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>క్రమబద్ధీకరించు</translation>
+      <translation>క్రమీకరించండి</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>పరిమితి · పాటలు</translation>
+      <translation>గరిష్ఠ ట్రాక్‌లు</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+      <translation>వినికిడి గణాంకాలు</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+      <translation>%1 అర్హత ప్లేలు · %2 విన్నారు</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>చరిత్ర · local · ప్లే చేయి · మెటాడేటా</translation>
+      <translation>గణాంకాల నమోదు ప్రారంభమైనప్పటి నుండి స్థానికంగా కొలిచిన అర్హత ప్లేల ఆధారంగా.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 రోజులు</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · చరిత్ర</translation>
+      <translation>మొత్తం చరిత్ర</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1229,46 +1253,46 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+      <translation>%1 ప్లేలు · %2 విన్నారు</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+      <translation>వినికిడి గణాంకాలు</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+      <translation>%1 అర్హత ప్లేలు · %2 విన్నారు</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>చరిత్ర · local · ప్లే చేయి · మెటాడేటా</translation>
+      <translation>గణాంకాల నమోదు ప్రారంభమైనప్పటి నుండి స్థానికంగా కొలిచిన అర్హత ప్లేల ఆధారంగా.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>నిడివి</translation>
+      <translation>కాలవ్యవధి</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 రోజులు</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · చరిత్ర</translation>
+      <translation>మొత్తం చరిత్ర</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>లైబ్రరీ</translation>
+      <translation>బ్రౌజ్</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1276,117 +1300,117 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · ప్లే చేయి · %2 · చరిత్ర</translation>
+      <translation>%1 ప్లేలు · %2 విన్నారు</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>చేర్చు · Sonic · మూలం</translation>
+      <translation>సోనిక్ మజిలీ జోడించండి</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>స్మార్ట్ · ఫిల్టర్ · సెట్టింగ్‌లు</translation>
+      <translation>స్మార్ట్ ఫిల్టర్‌లను సవరించండి</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>ఆడియో · సారూప్య</translation>
+      <translation>ధ్వనిపరంగా సారూప్యం</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>మొదలుపెట్టు · Sonic · Adventure</translation>
+      <translation>ఇక్కడి నుండి సోనిక్ సాహసయాత్ర ప్రారంభించండి</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · పాట</translation>
+      <translation>ఈ ట్రాక్ వరకు సోనిక్ సాహసయాత్ర</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>డౌన్‌లోడ్‌లు · రేడియో · %1 · min</translation>
+      <translation>రేడియో డౌన్‌లోడ్ · %1 నిమిషాలు</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>డౌన్‌లోడ్‌లు · %1 · min</translation>
+      <translation>%1 నిమిషాలు డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>ప్లే చేయి · తరువాతి</translation>
+      <translation>తదుపరి ప్లే చేయండి</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>చేర్చు · వరుస</translation>
+      <translation>క్యూకు జోడించండి</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>చేర్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్‌కు జోడించండి</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్</translation>
+      <translation>దీని నుండి ప్లేలిస్ట్ సృష్టించండి</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>చేర్చు · మిశ్రమం</translation>
+      <translation>మిక్స్‌కు ఆధారంగా జోడించండి</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>పేరు మార్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు మార్చండి</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>తుడిచివేయి · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ తొలగించండి</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>కదిలించు · ప్లేలిస్ట్ · పైకి</translation>
+      <translation>ప్లేలిస్ట్ ఎంట్రీని పైకి జరపండి</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>కదిలించు · ప్లేలిస్ట్ · కిందకి</translation>
+      <translation>ప్లేలిస్ట్ ఎంట్రీని కిందికి జరపండి</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>తొలగించు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ నుండి తీసివేయండి</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>తొలగించు</translation>
+      <translation>ఇష్టమైనవాటి నుండి తీసివేయండి</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>చేర్చు · ఇష్టమైనవి</translation>
+      <translation>ఇష్టమైనవాటికి జోడించండి</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>ఉంచడం ఆపు · డౌన్‌లోడ్‌లు</translation>
+      <translation>ఆఫ్‌లైన్‌లో ఉంచడం ఆపండి</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>ఆఫ్‌లైన్‌లో ఉంచు · ఆఫ్‌లైన్ · చరిత్ర</translation>
+      <translation>ఆఫ్‌లైన్‌లో వినడం కోసం ఉంచండి</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>కదిలించు · పైకి</translation>
+      <translation>పైకి జరపండి</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>కదిలించు · కిందకి</translation>
+      <translation>కిందికి జరపండి</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>తొలగించు · వరుస</translation>
+      <translation>క్యూ నుండి తీసివేయండి</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>పైకి · తరువాతి</translation>
+      <translation>తదుపరి</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>ఆఫ్‌లైన్ · భద్రపరచినది · లైబ్రరీ · మెటాడేటా</translation>
+      <translation>ఆఫ్‌లైన్ · సేవ్ చేసిన లైబ్రరీ మెటాడేటా చూపుతోంది</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+      <translation>స్ట్రీమ్ స్థిరపడే వరకు డౌన్‌లోడ్‌లు వేచి ఉంటాయి</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>కాష్ · ఆడియో</translation>
+      <translation>ఆడియో కాష్ అవుతోంది…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · పాటలు · సిద్ధం · ఆఫ్‌లైన్</translation>
+      <translation>%1 ట్రాక్‌లు ఆఫ్‌లైన్‌కు సిద్ధం</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1414,11 +1438,11 @@
     </message>
     <message>
       <source>Search</source>
-      <translation>వెతుకు</translation>
+      <translation>శోధించండి</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1426,7 +1450,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1434,7 +1458,7 @@
     </message>
     <message>
       <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
+      <translation>ఇటీవల జోడించినవి</translation>
     </message>
     <message>
       <source>Year</source>
@@ -1442,27 +1466,27 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>వెతుకు · కళాకారులు · ఆల్బమ్‌లు · పాటలు</translation>
+      <translation>ఆర్టిస్ట్‌లు, ఆల్బమ్‌లు, ట్రాక్‌లను శోధించండి</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>లైబ్రరీ</translation>
+      <translation>బ్రౌజ్</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>క్రమబద్ధీకరించు</translation>
+      <translation>క్రమీకరించండి</translation>
     </message>
     <message>
       <source>Open artist</source>
-      <translation>తెరువు · కళాకారుడు</translation>
+      <translation>ఆర్టిస్ట్‌ను తెరవండి</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>తెరువు · ఆల్బమ్</translation>
+      <translation>ఆల్బమ్ తెరవండి</translation>
     </message>
     <message>
       <source>Track</source>
-      <translation>పాట</translation>
+      <translation>ట్రాక్</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
+      <translation>ఇక సర్వర్‌లో లేదు</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>మళ్లీ ప్రయత్నించు · లోడ్ అవుతోంది</translation>
+      <translation>మళ్లీ లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>ఏదీ లేదు</translation>
+      <translation>సంగీతం కనుగొనబడలేదు</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>కనెక్ట్ చేయి · Plex</translation>
+      <translation>Plexకు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · కనెక్షన్ · సెట్టింగ్‌లు</translation>
+      <translation>కనెక్షన్ సెట్టింగ్‌ల కోసం పుల్-అప్ మెనూను ఉపయోగించండి</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>ఏదీ లేదు · ప్లే చేయి</translation>
+      <translation>ఏదీ ప్లే కావడం లేదు</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>ప్లే చేయి</translation>
+      <translation>ఇప్పుడు ప్లే అవుతోంది</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>పౌనఃపున్యం · వెతుకు</translation>
+      <translation>మీ ఫ్రీక్వెన్సీని కనుగొనండి.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>ఆఫ్‌లైన్ · భద్రపరచినది · లైబ్రరీ · మెటాడేటా</translation>
+      <translation>ఆఫ్‌లైన్ · సేవ్ చేసిన లైబ్రరీ మెటాడేటా చూపుతోంది</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>డౌన్‌లోడ్‌లు · వేచి ఉంది · ఆడియో · లోడ్ అవుతోంది</translation>
+      <translation>స్ట్రీమ్ స్థిరపడే వరకు డౌన్‌లోడ్‌లు వేచి ఉంటాయి</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>కాష్ · ఆడియో</translation>
+      <translation>ఆడియో కాష్ అవుతోంది…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · పాటలు · సిద్ధం · ఆఫ్‌లైన్</translation>
+      <translation>%1 ట్రాక్‌లు ఆఫ్‌లైన్‌కు సిద్ధం</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,19 +1549,19 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>వెతుకు · కళాకారులు · ఆల్బమ్‌లు · పాటలు</translation>
+      <translation>ఆర్టిస్ట్‌లు, ఆల్బమ్‌లు, ట్రాక్‌లను శోధించండి</translation>
     </message>
     <message>
       <source>Search</source>
-      <translation>వెతుకు</translation>
+      <translation>శోధించండి</translation>
     </message>
     <message>
       <source>Up next</source>
-      <translation>పైకి · తరువాతి</translation>
+      <translation>తదుపరి</translation>
     </message>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1545,7 +1569,7 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1553,7 +1577,7 @@
     </message>
     <message>
       <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
+      <translation>ఇటీవల జోడించినవి</translation>
     </message>
     <message>
       <source>Year</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>తెరువు · కళాకారుడు</translation>
+      <translation>ఆర్టిస్ట్‌ను తెరవండి</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>తెరువు · ఆల్బమ్</translation>
+      <translation>ఆల్బమ్ తెరవండి</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>పాట · సర్వర్ · అందుబాటులో లేదు</translation>
+      <translation>ఇక సర్వర్‌లో లేదు</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,83 +1601,83 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>మళ్లీ ప్రయత్నించు · లోడ్ అవుతోంది</translation>
+      <translation>మళ్లీ లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>ఏదీ లేదు</translation>
+      <translation>సంగీతం కనుగొనబడలేదు.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>కనెక్ట్ చేయి · Plex · సర్వర్ · మొదలుపెట్టు · చరిత్ర</translation>
+      <translation>వినడం ప్రారంభించడానికి మీ Plex సంగీత సర్వర్‌కు కనెక్ట్ చేయండి.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>ప్లే చేయి</translation>
+      <translation>ఇప్పుడు ప్లే అవుతోంది</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>ఏదీ లేదు · ప్లే చేయి</translation>
+      <translation>ఏదీ ప్లే కావడం లేదు</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>కలుపు</translation>
+      <translation>షఫుల్</translation>
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>పునరావృతం: ఒకటి</translation>
+      <translation>రిపీట్: ఒకటి</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>పునరావృతం: అన్నీ</translation>
+      <translation>రిపీట్: అన్నీ</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>పునరావృతం: ఆఫ్</translation>
+      <translation>రిపీట్: ఆఫ్</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>కనెక్ట్ చేయి · Plex</translation>
+      <translation>Plexకు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>సైన్ ఇన్ · Plex · బ్రౌజర్</translation>
+      <translation>బ్రౌజర్‌లో Plexతో సైన్ ఇన్ చేయండి</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>వేచి ఉంది · బ్రౌజర్ · సైన్ ఇన్</translation>
+      <translation>బ్రౌజర్ అధికారీకరణ కోసం వేచి ఉంది…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>తెరువు · సైన్ ఇన్</translation>
+      <translation>సైన్ ఇన్‌ను మళ్లీ తెరవండి</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>ఎంచుకో · Plex · సర్వర్</translation>
+      <translation>Plex సర్వర్‌ను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>సర్వర్ · తెరువు · లైబ్రరీ</translation>
+      <translation>సంగీత లైబ్రరీలను తెరవడానికి సర్వర్‌ను ఎంచుకోండి.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>రిఫ్రెష్ చేయి · Plex</translation>
+      <translation>మీ Plex సర్వర్‌లను కనుగొనడానికి జాబితాను రిఫ్రెష్ చేయండి.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>రిఫ్రెష్ చేయి</translation>
+      <translation>సర్వర్‌లను రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>కనెక్ట్ చేయి · లైబ్రరీ</translation>
+      <translation>సంగీత లైబ్రరీలకు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>కనెక్షన్</translation>
+      <translation>ప్రత్యక్ష కనెక్షన్</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>కనెక్ట్ చేయి · సర్వర్ · URL · Plex · టోకెన్</translation>
+      <translation>లేదా సర్వర్ URL మరియు Plex టోకెన్‌తో నేరుగా కనెక్ట్ చేయండి:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,62 +1685,62 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>కనెక్ట్ చేయి · కనెక్షన్</translation>
+      <translation>నేరుగా కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>సైన్ ఇన్ · శుభ్రం చేయి · భద్రపరచినది</translation>
+      <translation>సైన్ అవుట్ చేసి సేవ్ చేసిన టోకెన్‌లను తొలగించండి</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>ఆఫ్‌లైన్ · ఆడియో · కాష్</translation>
+      <translation>ఆఫ్‌లైన్ ఆడియో కాష్</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>ఆడియో సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>స్వయంచాలక ప్లే · సారూప్య · వరుస</translation>
+      <translation>క్యూ ముగిశాక సంబంధిత సంగీతాన్ని ఆటోప్లే చేయండి</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>కాష్ · వరుస · ఆడియో · స్వయంచాలక ప్లే</translation>
+      <translation>క్యూలోని ఆడియోను ఆటోమేటిక్‌గా కాష్ చేయండి</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>కాష్ · పరిమితి</translation>
+      <translation>కాష్ పరిమితి</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · పాటలు · డౌన్‌లోడ్ అయింది · %2 · MiB · వాడినది</translation>
+      <translation>%1 ట్రాక్‌లు డౌన్‌లోడ్ అయ్యాయి · %2 MiB ఉపయోగం</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>శుభ్రం చేయి · కాష్ · ఆపు · ప్లే చేయి</translation>
+      <translation>కాష్‌ను తొలగించి ప్లేబ్యాక్ ఆపండి</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>ఆఫ్‌లైన్ · లైబ్రరీ</translation>
+      <translation>ఆఫ్‌లైన్ లైబ్రరీ</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>సెట్టింగ్‌లు</translation>
+      <translation>పేజీ చర్యలు</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>లైబ్రరీ</translation>
+      <translation>మరిన్ని గమ్యస్థానాలు</translation>
     </message>
     <message>
       <source>Show all</source>
-      <translation>అన్నీ చూపించు</translation>
+      <translation>అన్నీ చూపండి</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>వెతుకు</translation>
+      <translation>అన్వేషణ</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1728,63 +1752,63 @@
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>వెతుకు · సెట్టింగ్‌లు</translation>
+      <translation>అన్వేషణను అనుకూలీకరించండి</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>లైబ్రరీ · ఫిల్టర్</translation>
+      <translation>లైబ్రరీ ఫిల్టర్‌లు</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>రకాలు · ఆల్బమ్‌లు</translation>
+      <translation>ఆల్బమ్‌లను రకం ప్రకారం సమూహపరచండి</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>సృష్టించు · స్మార్ట్ · ప్లేలిస్ట్‌లు</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్ సృష్టించండి</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్ · పాటలు · వరుస</translation>
+      <translation>ట్రాక్‌లు/క్యూ నుండి ప్లేలిస్ట్ సృష్టించండి</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>డౌన్‌లోడ్‌లు · పాటలు</translation>
+      <translation>చూపిన ట్రాక్‌లను డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>శుభ్రం చేయి · మిశ్రమం</translation>
+      <translation>మిక్స్ ఆధారాలను తొలగించండి</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>శుభ్రం చేయి · Sonic · మూలం</translation>
+      <translation>సోనిక్ మజిలీలను తొలగించండి</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>ఆపు · రేడియో</translation>
+      <translation>రేడియోను ఆపండి</translation>
     </message>
     <message>
       <source>Queue</source>
-      <translation>వరుస</translation>
+      <translation>క్యూ</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>డౌన్‌లోడ్ అయింది</translation>
+      <translation>డౌన్‌లోడ్ చేసిన సంగీతం</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>భద్రపరచినది · ఆల్బమ్‌లు</translation>
+      <translation>సేవ్ చేసిన ఆల్బమ్‌లు</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>చరిత్ర · సెట్టింగ్‌లు</translation>
+      <translation>వినికిడి గణాంకాలు</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>ఇష్టమైనవి · ★ · 5</translation>
+      <translation>ఇష్టమైనవి · 5 నక్షత్రాలు</translation>
     </message>
     <message>
       <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
+      <translation>ఇటీవల జోడించినవి</translation>
     </message>
     <message>
       <source>Recently played</source>
@@ -1792,7 +1816,7 @@
     </message>
     <message>
       <source>Download manager</source>
-      <translation>డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+      <translation>డౌన్‌లోడ్ మేనేజర్</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,124 +1824,124 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>పైకి</translation>
+      <translation>వెనుకకు</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>ఆన్‌లైన్</translation>
+      <translation>ఆన్‌లైన్‌కు వెళ్లండి</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>లైబ్రరీ · భద్రపరచినది · ఆఫ్‌లైన్</translation>
+      <translation>సేవ్ చేసిన లైబ్రరీని ఆఫ్‌లైన్‌లో బ్రౌజ్ చేయండి</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>ప్లే చేయి · మిశ్రమం · %1 · మూలం</translation>
+      <translation>మిక్స్ ప్లే చేయండి (%1 ఆధారాలు)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · మిశ్రమం · %1 · పాటలు</translation>
+      <translation>సోనిక్ ప్రయాణం (%1 ట్రాక్‌లు)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>ప్లే చేయి</translation>
+      <translation>ఇప్పుడు ప్లే అవుతోంది</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>ఏదీ లేదు · ప్లే చేయి</translation>
+      <translation>ఏదీ ప్లే కావడం లేదు</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · ఇష్టమైనవి</translation>
+      <translation>★ ఇష్టమైనది</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · చేర్చు · ఇష్టమైనవి</translation>
+      <translation>☆ ఇష్టమైనవాటికి జోడించండి</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>లోడ్ అవుతోంది · పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ లోడ్ అవుతున్నాయి…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>పాట సాహిత్యం · అందుబాటులో లేదు · ఆఫ్‌లైన్ · సర్వర్</translation>
+      <translation>ఆఫ్‌లైన్‌లో లేదా ఈ సర్వర్‌లో లిరిక్స్ అందుబాటులో లేవు.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>పాట సాహిత్యం · అందుబాటులో లేదు · Plex</translation>
+      <translation>Plex లిరిక్స్ అందించలేదు.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ మళ్లీ లోడ్ చేయండి</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ మళ్లీ లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>ప్లే చేయి</translation>
+      <translation>ఇప్పుడు ప్లే అవుతోంది</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>ఏదీ లేదు · ప్లే చేయి</translation>
+      <translation>ఏదీ ప్లే కావడం లేదు</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · ఇష్టమైనవి</translation>
+      <translation>★ ఇష్టమైనది</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · చేర్చు · ఇష్టమైనవి</translation>
+      <translation>☆ ఇష్టమైనవాటికి జోడించండి</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>లోడ్ అవుతోంది · పాట సాహిత్యం</translation>
+      <translation>లిరిక్స్ లోడ్ అవుతున్నాయి…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>పాట సాహిత్యం · అందుబాటులో లేదు · ఆఫ్‌లైన్ · సర్వర్</translation>
+      <translation>ఆఫ్‌లైన్‌లో లేదా ఈ సర్వర్‌లో లిరిక్స్ అందుబాటులో లేవు.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>పాట సాహిత్యం · అందుబాటులో లేదు · Plex</translation>
+      <translation>Plex లిరిక్స్ అందించలేదు.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>చేర్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్‌కు జోడించండి</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>పేరు మార్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు మార్చండి</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ సృష్టించండి</translation>
     </message>
     <message>
       <source>Save</source>
-      <translation>సేవ్ చేయి</translation>
+      <translation>సేవ్ చేయండి</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు</translation>
     </message>
     <message>
       <source>Playlist</source>
@@ -1925,30 +1949,30 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · Plex · ఫిల్టర్ · కొత్త · ప్లేలిస్ట్‌లు · పాటలు · ఆల్బమ్‌లు · వరుస</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్‌ల కంటెంట్‌ను Plex ఫిల్టర్‌లు నిర్వహిస్తాయి. కొత్త ప్లేలిస్ట్‌లు ఎంచుకున్న ట్రాక్‌లు/ఆల్బమ్ లేదా క్యూను ఉపయోగిస్తాయి.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>చేర్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్‌కు జోడించండి</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>పేరు మార్చు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు మార్చండి</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>సృష్టించు · ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ సృష్టించండి</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>ప్లేలిస్ట్</translation>
+      <translation>ప్లేలిస్ట్ పేరు</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>స్మార్ట్ · ప్లేలిస్ట్‌లు · Plex · ఫిల్టర్ · కొత్త · ప్లేలిస్ట్‌లు · పాటలు · ఆల్బమ్‌లు · వరుస</translation>
+      <translation>స్మార్ట్ ప్లేలిస్ట్‌లు Plex ఫిల్టర్‌లను ఉపయోగిస్తాయి. కొత్త ప్లేలిస్ట్‌లు ఎంచుకున్న ట్రాక్‌లు/ఆల్బమ్ లేదా క్యూను ఉపయోగిస్తాయి.</translation>
     </message>
   </context>
   <context>
@@ -1962,7 +1986,7 @@
     <name>Session</name>
     <message>
       <source>Artists</source>
-      <translation>కళాకారులు</translation>
+      <translation>ఆర్టిస్ట్‌లు</translation>
     </message>
     <message>
       <source>Title</source>
@@ -1970,7 +1994,7 @@
     </message>
     <message>
       <source>Recently added</source>
-      <translation>ఇటీవల చేర్చినవి</translation>
+      <translation>ఇటీవల జోడించినవి</translation>
     </message>
     <message>
       <source>Year</source>
@@ -1982,39 +2006,39 @@
     </message>
     <message>
       <source>Most played</source>
-      <translation>చరిత్ర · ప్లే చేయి</translation>
+      <translation>ఎక్కువగా ప్లే చేసినవి</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>కలుపు</translation>
+      <translation>షఫుల్</translation>
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>ఫిల్టర్ · ఆడియో</translation>
+      <translation>ఫిల్టర్ చేసిన సంగీతం</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>సోనిక్ సాహసయాత్ర</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>వెతుకు</translation>
+      <translation>అన్వేషణ</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>మూలం · ఆడియో</translation>
+      <translation>అసలు ఆడియో</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>ఆడియో · సారూప్య</translation>
+      <translation>ధ్వనిపరంగా సారూప్యం</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>ఇష్టమైనవి · ★ · 5</translation>
+      <translation>ఇష్టమైనవి · 5 నక్షత్రాలు</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2022,47 +2046,47 @@
     </message>
     <message>
       <source>Tracks</source>
-      <translation>పాటలు</translation>
+      <translation>ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>డౌన్‌లోడ్ అయింది</translation>
+      <translation>డౌన్‌లోడ్ చేసిన సంగీతం</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>పాట · సంఖ్య · అందుబాటులో లేదు</translation>
+      <translation>ట్రాక్‌ల సంఖ్య అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · పాట</translation>
+      <translation>1 ట్రాక్</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · పాటలు</translation>
+      <translation>%1 ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>నిడివి · అందుబాటులో లేదు</translation>
+      <translation>వ్యవధి అందుబాటులో లేదు</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>కళాకారుడు · రేడియో</translation>
+      <translation>ఆర్టిస్ట్ రేడియో</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>ఆల్బమ్ · రేడియో</translation>
+      <translation>ఆల్బమ్ రేడియో</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>పాట · రేడియో</translation>
+      <translation>ట్రాక్ రేడియో</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>ఆఫ్‌లైన్ · లైబ్రరీ</translation>
+      <translation>ఆఫ్‌లైన్ లైబ్రరీ</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>వెతుకు</translation>
+      <translation>శోధన ఫలితాలు</translation>
     </message>
     <message>
       <source>Playlists</source>
@@ -2073,110 +2097,110 @@
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>కనెక్ట్ చేయి · Plex</translation>
+      <translation>Plexకు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>సైన్ ఇన్ · Plex</translation>
+      <translation>Plexతో సైన్ ఇన్ చేయండి</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>సైన్ ఇన్ · బ్రౌజర్ · అందినది</translation>
+      <translation>మీ బ్రౌజర్‌లో సైన్ ఇన్ పూర్తి చేసి, ఆపై ఇక్కడకు తిరిగి రండి.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>తెరువు · బ్రౌజర్</translation>
+      <translation>బ్రౌజర్‌ను మళ్లీ తెరవండి</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>ఎంచుకో · Plex · సర్వర్</translation>
+      <translation>Plex సర్వర్‌ను ఎంచుకోండి</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>ఎంచుకో · సర్వర్ · తెరువు · లైబ్రరీ</translation>
+      <translation>సంగీత లైబ్రరీలను తెరవడానికి సర్వర్‌ను నొక్కండి.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>రిఫ్రెష్ చేయి · Plex</translation>
+      <translation>మీ Plex సర్వర్‌లను కనుగొనడానికి జాబితాను రిఫ్రెష్ చేయండి.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>రిఫ్రెష్ చేయి</translation>
+      <translation>సర్వర్‌లను రిఫ్రెష్ చేయండి</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>కనెక్ట్ చేయి · లైబ్రరీ</translation>
+      <translation>సంగీత లైబ్రరీలకు కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>కనెక్షన్</translation>
+      <translation>ప్రత్యక్ష కనెక్షన్</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>సర్వర్ · URL</translation>
+      <translation>సర్వర్ URL</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · టోకెన్</translation>
+      <translation>Plex టోకెన్</translation>
     </message>
     <message>
       <source>Connect</source>
-      <translation>కనెక్ట్ చేయి</translation>
+      <translation>కనెక్ట్ చేయండి</translation>
     </message>
     <message>
       <source>Sign out</source>
-      <translation>సైన్ ఇన్</translation>
+      <translation>సైన్ అవుట్ చేయండి</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>ఆఫ్‌లైన్ · ఆడియో · కాష్</translation>
+      <translation>ఆఫ్‌లైన్ ఆడియో కాష్</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>ఆడియో · సెట్టింగ్‌లు</translation>
+      <translation>ఆడియో సెట్టింగ్‌లు</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>స్వయంచాలక ప్లే · సారూప్య · వరుస</translation>
+      <translation>క్యూ ముగిసినప్పుడు సంబంధిత సంగీతాన్ని ఆటోప్లే చేయండి</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>డౌన్‌లోడ్‌లు · చదవడానికి మాత్రమే · Wi-Fi</translation>
+      <translation>Wi-Fiలో మాత్రమే డౌన్‌లోడ్ చేయండి</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>తెరువు · డౌన్‌లోడ్‌లు · నిర్వహణ</translation>
+      <translation>డౌన్‌లోడ్ మేనేజర్‌ను తెరవండి</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>కాష్ · వరుస · ఆడియో · స్వయంచాలక ప్లే</translation>
+      <translation>క్యూలోని ఆడియోను ఆటోమేటిక్‌గా కాష్ చేయండి</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>కాష్ · పరిమితి</translation>
+      <translation>కాష్ పరిమితి</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · పాటలు · డౌన్‌లోడ్ అయింది · %2 · MiB · వాడినది</translation>
+      <translation>%1 ట్రాక్‌లు డౌన్‌లోడ్ అయ్యాయి · %2 MiB ఉపయోగం</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>కాష్ · ప్రస్తుత · పాట · తరువాతి · %1 · పాటలు · డౌన్‌లోడ్‌లు · ఆల్బమ్‌లు · సిద్ధం · ఆఫ్‌లైన్</translation>
+      <translation>ప్రస్తుత ట్రాక్, క్యూలోని తదుపరి %1 ట్రాక్‌లు కాష్ చేయబడతాయి. ప్రయాణానికి ముందు ఆల్బమ్‌ను డౌన్‌లోడ్ చేయండి; పూర్తయిన డౌన్‌లోడ్‌లు మాత్రమే ఆఫ్‌లైన్‌లో పనిచేస్తాయి.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>శుభ్రం చేయి · కాష్ · ఆపు · ప్లే చేయి</translation>
+      <translation>కాష్‌ను తొలగించి ప్లేబ్యాక్ ఆపండి</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · నేరుగా స్ట్రీమింగ్ సంగీత ప్లేయర్</translation>
+      <translation>PlexFreq %1 · డైరెక్ట్-స్ట్రీమ్ సంగీత ప్లేయర్</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>ఏదీ లేదు · ప్లే చేయి</translation>
+      <translation>ఏదీ ప్లే కావడం లేదు</translation>
     </message>
   </context>
   <context>
@@ -2187,7 +2211,7 @@
     </message>
     <message>
       <source>EPs</source>
-      <translation>EP</translation>
+      <translation>EPలు</translation>
     </message>
     <message>
       <source>Singles</source>
@@ -2195,7 +2219,7 @@
     </message>
     <message>
       <source>Live</source>
-      <translation>ప్రత్యక్షం</translation>
+      <translation>లైవ్</translation>
     </message>
     <message>
       <source>Compilations</source>

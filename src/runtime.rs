@@ -1309,6 +1309,17 @@ fn worker(
                         shared.touched();
                         let _ = events.send(json!({"kind":"seeked","position":position}).into());
                     }
+                    // The engine already paused with everything loaded; Play
+                    // retries once the route is back.
+                    // The pause is the engine's, whichever item it names.
+                    Event::OutputStuck { id } => {
+                        if id != current {
+                            crate::diagnostics::event(format_args!(
+                                "output stuck for occurrence={id} while current={current}"
+                            ));
+                        }
+                        audio_error(&events, crate::audio::OUTPUT_STUCK);
+                    }
                 }
             }
             let input = match receiver.recv_timeout(Duration::from_millis(25)) {

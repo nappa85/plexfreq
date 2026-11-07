@@ -160,11 +160,17 @@ transport errors to Network. Reqwest's per-read timeout resets after every
 successful read, unlike the whole-request timeout (docs.rs reqwest 0.12
 `ClientBuilder::read_timeout`).
 
+Plex Media Server passes tag bytes through unchanged, so a file tagged in
+Latin-1 or Windows-1252 puts invalid UTF-8 inside an otherwise valid JSON or
+lyrics body. Valid UTF-8 is kept and each invalid byte is read as Windows-1252
+(the WHATWG Encoding Standard "latin1" decoder) instead of rejecting the page.
+Invalid bytes are all at least 0x80, so they never alter JSON structure.
+
 URL confinement (`plex.rs`): a server URL must be a bare HTTP(S) origin.
 Request paths must be query-free and server-relative; `//`, `\`, dot segments,
 control characters, and literal or encoded separators/escapes
 (`%2e %2f %5c %25 %3f %23 %00`) are rejected, and the joined origin is checked.
-Advertised keys (station and artwork keys) may carry queries, but never an
+Advertised keys (station, hub and artwork keys) may carry queries, but never an
 `X-Plex-*` parameter.
 
 ### Authentication and servers
@@ -545,7 +551,8 @@ shm/srbchannel), libpulse's `pstream.c` reads one packet per iteration (libpulse
 Each load or seek creates a float32 stereo 48 kHz playback stream, started
 corked.
 - Buffer attributes: `tlength` = 300 ms, `minreq` = 20 ms, `prebuf` = -1
-  (equal to tlength), `maxlength` = server maximum.
+  (the server default, capped at tlength − minreq + one frame; PulseAudio
+  `protocol-native.c` `fix_playback_buffer_attr`), `maxlength` = server maximum.
 - `ADJUST_LATENCY` is not set, so `tlength` is the stream's own buffer rather
   than total latency including the sink (PulseAudio 17.0 `pulse/stream.h`,
   `def.h`).
@@ -561,12 +568,37 @@ On Sailfish, mainvolume and stream-restore recognize `x-maemo`
 pulseaudio-modules-nemo `module-meego-mainvolume.c`). The user-session policy
 then owns volume keys and routing. The app writes no policy.
 
-Pause, a recording hold and the gates cork the stream; load, seek and stop
-disconnect it, discarding queued audio. A policy `request-cork` event clears
-play intent; `request-uncork` is ignored, because it is not permission to undo a
-user or disconnect pause. A stream failure (daemon restart) reports "Audio
-output is unavailable", and the next load reconnects. Volume is Rust DSP gain,
-not a stream volume.
+Pause, a recording hold, the gates and a stuck output cork the stream; load,
+seek and stop disconnect it, discarding queued audio. A policy `request-cork`
+event clears play intent; `request-uncork` is ignored, because it is not
+permission to undo a user or disconnect pause. A stream failure (daemon restart)
+reports "Audio output is unavailable", and the next load reconnects. Volume is
+Rust DSP gain, not a stream volume.
+
+**Stuck output.** PulseAudio's `module-suspend-on-idle` suspends a sink with no
+uncorked input and resumes it when one appears (PulseAudio 16
+`src/modules/module-suspend-on-idle.c`); libpulse reports the connected sink's
+suspension through `pa_stream_is_suspended`, updated from the create reply and
+`PLAYBACK_STREAM_SUSPENDED`/`MOVED` (`pulse/stream.c`). A sink that stays
+suspended under an uncorked input has stopped taking audio for another suspend
+cause the app cannot clear: an A2DP sink that failed to resume while its BlueZ
+transport stays active, a user or `pasuspender` suspend, or a lost session.
+
+The engine counts a window while play is intended, no recording hold, resume
+gate or held-failure drain owns the stream, the stream is uncorked, its sink is
+suspended, and the Bluetooth route is not idle. A BlueZ `MediaTransport1` that
+is idle while none is active is treated as an expected suspension, whether the
+remote end or the local sink released it (§8.2); a resume that fails back to an
+idle transport is therefore not detected. The window restarts whenever any
+condition fails or the position advances by 100 ms. After 10 s the engine looks
+up its sink input; a session policy may cork it on the server without a
+`request-cork` event, and that is the policy's pause, so the window restarts.
+Otherwise the engine clears play intent and corks the stream, keeping the
+track, decoders and queued audio, and the runtime shows "Audio output stopped
+responding; reconnect the audio device, then press Play". It does not retry,
+recreate the stream or move it; Play uncorks again and starts a new window.
+These facts are PulseAudio's; PipeWire's pulse server has not been verified to
+report them the same way.
 
 ### 5.6 DSP (`src/audio/dsp.rs`)
 
@@ -661,7 +693,9 @@ modification time are pruned first; reading a snapshot refreshes its time at
 most once an hour, so pruning approximates least recent use.
 
 On network or 5xx failures, saved pages may be used and the reply is flagged
-offline; authorization failures never fall back silently. Explicit offline mode
+offline; a search with no saved page searches the offline library instead. Such
+a fallback never enters explicit offline mode, so the next request tries the
+server again. Authorization failures never fall back silently. Explicit offline mode
 bypasses Plex and cancels plan refresh, audio downloads and artwork downloads.
 Offline browsing merges saved metadata with the completed-audio catalogue, 100
 items per page, sorted by lowercase title then ratingKey so pages agree on one
@@ -787,6 +821,10 @@ disappears while playing. Device1 can stay connected through another profile
 after the audio profile is gone. An idle transport, a read error or an unknown
 fact is not a disconnect. Switching between accessories forgets the previous
 route, and reconnection never resumes playback.
+
+The same observations tell the audio engine whether the route is idle (a
+transport idle and none active), so a suspended Bluetooth sink is then not
+reported as a stuck output (§5.5).
 
 ### 8.3 Recording hold
 

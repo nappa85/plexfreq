@@ -621,6 +621,140 @@ fn pulse_stream_survives_moves_between_sinks() {
     eprintln!("pulse_sink_move: final {state:?}, {}", probe.report());
 }
 
+/// The sink is suspended under an uncorked stream (an A2DP sink that never
+/// resumed after a stall): the engine pauses with the track loaded and says
+/// so, and Play plays on once the sink is back.
+#[test]
+fn pulse_stream_on_a_sink_that_stays_suspended_pauses_and_resumes_on_play() {
+    let Some(_server) = isolated_server("pulse_stuck_output") else {
+        return;
+    };
+    const SECONDS: f64 = 40.;
+    let dir = tempfile::tempdir().unwrap();
+    let path = tone(dir.path(), "stuck.wav", SECONDS, 440.);
+    move_default_sink();
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    let mut probe = Probe::new(&engine);
+    engine
+        .handle
+        .load(source(1, &path, SECONDS, ""), false)
+        .unwrap();
+    probe.playing();
+    probe.track(true);
+    probe.advances(1000, "before suspend");
+    probe.track(false);
+    let target = sink_input().1;
+    pactl(&["suspend-sink", &target, "1"]);
+    let state = probe.until(
+        crate::audio::OUTPUT_STUCK_AFTER + Duration::from_secs(3),
+        "the stuck-output pause",
+        |_, events| {
+            events
+                .iter()
+                .any(|e| matches!(e, Event::OutputStuck { id: 1 }))
+        },
+    );
+    probe.until(Duration::from_secs(1), "paused and loaded", |s, _| {
+        s.paused && s.loaded && !s.intent
+    });
+    pactl(&["suspend-sink", &target, "0"]);
+    engine.handle.play().unwrap();
+    probe.track(true);
+    probe.until(Duration::from_secs(2), "Play after resume", |s, _| {
+        s.playing
+    });
+    probe.advances(1000, "after resume");
+    assert!(probe.poll().position >= state.position);
+    eprintln!("pulse_stuck_output: {}", probe.report());
+}
+
+/// The sink-input lookup behind the stuck-output check reads the server's
+/// cork state from a real record: a new stream starts corked, then plays.
+#[test]
+fn pulse_sink_input_lookup_reports_the_server_cork_state() {
+    let Some(_server) = isolated_server("pulse_cork_lookup") else {
+        return;
+    };
+    move_default_sink();
+    let mut stream = super::Stream::new(super::Connection::new().unwrap(), "").unwrap();
+    let answer = |stream: &mut super::Stream| {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            stream.service().unwrap();
+            if let Some(corked) = stream.query_server_cork() {
+                return corked;
+            }
+            assert!(Instant::now() < deadline, "lookup never answered");
+            thread::sleep(POLL);
+        }
+    };
+    assert!(answer(&mut stream), "a new stream starts corked");
+    stream.cork(false).unwrap();
+    assert!(!answer(&mut stream), "uncorked");
+    // Both answers came from records, not a failed lookup.
+    assert_eq!(stream.events.borrow().records, 2);
+    // A forgotten lookup is not answered later.
+    assert!(stream.query_server_cork().is_none());
+    stream.forget_server_cork();
+    stream.cork(true).unwrap();
+    assert!(answer(&mut stream), "corked again");
+    // The forgotten lookup's record never arrived: only this one did.
+    assert_eq!(stream.events.borrow().records, 3);
+}
+
+/// Normal playback, moves, long pauses and a sink resuming within the
+/// window never report a stuck output.
+#[test]
+fn pulse_running_sinks_never_report_a_stuck_output() {
+    let Some(_server) = isolated_server("pulse_not_stuck") else {
+        return;
+    };
+    const SECONDS: f64 = 20.;
+    let dir = tempfile::tempdir().unwrap();
+    let path = tone(dir.path(), "not-stuck.wav", SECONDS, 660.);
+    move_default_sink();
+    let engine = Engine::new(Sink::Pulse).unwrap();
+    let mut probe = Probe::new(&engine);
+    engine
+        .handle
+        .load(source(1, &path, SECONDS, ""), false)
+        .unwrap();
+    probe.playing();
+    probe.track(true);
+    for round in 0..4 {
+        let target = if round % 2 == 0 { SINK_B } else { SINK_A };
+        move_stream(target);
+        probe.advances(1200, &format!("move {round}"));
+    }
+    probe.track(false);
+    engine.handle.pause().unwrap();
+    probe.run_for(crate::audio::OUTPUT_STUCK_AFTER + Duration::from_secs(1));
+    engine.handle.play().unwrap();
+    probe.track(true);
+    probe.advances(1000, "after a long pause");
+    // A sink that resumes within the window (3 s, below the 10 s patience):
+    // Play on a suspended sink must not be reported once it plays.
+    probe.track(false);
+    engine.handle.pause().unwrap();
+    probe.frozen("before the slow resume");
+    let target = sink_input().1;
+    pactl(&["suspend-sink", &target, "1"]);
+    engine.handle.play().unwrap();
+    probe.run_for(Duration::from_secs(3));
+    pactl(&["suspend-sink", &target, "0"]);
+    probe.track(true);
+    probe.advances(1000, "after the slow resume");
+    probe.run_for(crate::audio::OUTPUT_STUCK_AFTER);
+    assert!(
+        !probe
+            .events
+            .iter()
+            .any(|e| matches!(e, Event::OutputStuck { .. })),
+        "stuck reported: {:?}",
+        probe.events
+    );
+}
+
 /// The sink disappears under the stream (Bluetooth disconnect): the server
 /// rescues the stream to the remaining sink, dropping what it had queued.
 /// Playback must continue, and Play after a paused rescue must play.

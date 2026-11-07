@@ -11,75 +11,75 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Lydinnstillinger</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Strømmekvalitet</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Lyd</translation>
+      <translation>Lyd på Wi-Fi</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Nettverk · Lyd</translation>
+      <translation>Lyd på mobilnett</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Nedlastinger · Lyd</translation>
+      <translation>Lyd for nedlastinger</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekoder · Prøv igjen</translation>
+      <translation>Plex-omkoding som reserve</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Lyd · Innstillinger · Neste · Spor · Nedlastinger · Klar · Lyd</translation>
+      <translation>Kvalitetsendringer gjelder for påfølgende spor og nedlastinger. Ferdig lokal lyd foretrekkes.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Lyd · Uten pauser · PCM · Utgang</translation>
+      <translation>Rust-lydmotor · sømløs PCM-utgang</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Sekunder</translation>
+      <translation>%1 sekunder</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Av</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Overtoning</translation>
+      <translation>Krysstoning</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalisering</translation>
+      <translation>Normaliser lydstyrke</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Spor · Normalisering</translation>
+      <translation>Sporforsterkning</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Album · Normalisering</translation>
+      <translation>Albumforsterkning</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automatisk avspilling · Normalisering</translation>
+      <translation>Automatisk forsterkning</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Lyd · Volum · Område</translation>
+      <translation>Margin</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metadata · Normalisering · Album · Uten pauser · Overtoning · off</translation>
+      <translation>Bruker forsterkningsmetadata fra Plex når de finnes. Spor på samme album spilles sømløst uten krysstoning.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,86 +87,86 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Tilbakestill · Equalizer</translation>
+      <translation>Tilbakestill equalizer</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Lydinnstillinger</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Strømmekvalitet</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Lyd</translation>
+      <translation>Lyd på Wi-Fi</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Nettverk · Lyd</translation>
+      <translation>Lyd på mobilnett</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Nedlastinger · Lyd</translation>
+      <translation>Lyd for nedlastinger</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekoder · Prøv igjen</translation>
+      <translation>Plex-omkoding som reserve</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Lyd · Innstillinger · Neste · Spor · Nedlastinger · Klar · Lyd</translation>
+      <translation>Kvalitetsendringer gjelder for påfølgende spor og nedlastinger. Ferdig lokal lyd foretrekkes.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Lyd · Uten pauser · PCM · Utgang</translation>
+      <translation>Rust-lydmotor · sømløs PCM-utgang</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Overtoning</translation>
+      <translation>Krysstoning</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Sekunder</translation>
+      <translation>%1 sekunder</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Av</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalisering</translation>
+      <translation>Normaliser lydstyrke</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>Normalisering · Innstillinger</translation>
+      <translation>Normaliseringsmodus</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Album · Normalisering</translation>
+      <translation>Albumforsterkning</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automatisk avspilling · Normalisering</translation>
+      <translation>Automatisk forsterkning</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Spor · Normalisering</translation>
+      <translation>Sporforsterkning</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Lyd · Volum · Område</translation>
+      <translation>Margin</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metadata · Normalisering · Album · Uten pauser · Overtoning · off</translation>
+      <translation>Bruker forsterkningsmetadata fra Plex når de finnes. Spor på samme album spilles sømløst uten krysstoning.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,346 +174,350 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Tilbakestill · Equalizer</translation>
+      <translation>Tilbakestill equalizer</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>Radioen kunne ikke oppdateres. Nedlastede spor kan bli gjentatt.</translation>
+      <translation>Kunne ikke oppdatere radioen. Nedlastede spor kan gjentas.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · Mislyktes</translation>
+      <translation>Plex returnerte HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · Data · Ugyldig · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>Uventet svar fra Plex (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>Legg til · Spor · Album · Spilleliste</translation>
+      <translation>Legg til spor eller album i en spilleliste</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>Legg til · Opp · 1000 · Spor</translation>
+      <translation>Legg til maks 1000 spor om gangen</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>Artist · Album · Metadata · Utilgjengelig</translation>
+      <translation>Detaljer om artist eller album er ikke tilgjengelige</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>Bilder · Grense · Størrelse</translation>
+      <translation>Omslagsbildet overskrider størrelsesgrensen</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>Lyd · Cache · Gjeldende · Brukt · PlexFreq</translation>
+      <translation>Lydhurtigbufferen brukes allerede av en annen PlexFreq-instans</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>Lyd · Tjener · Mottatt · Område</translation>
+      <translation>Lyden er endret, eller serveren returnerte feil byteområde; prøver på nytt fra begynnelsen</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Lyd · Kø · Utilgjengelig</translation>
+      <translation>Køen for lydkommandoer er ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>Lyd · Dekoder · Mislyktes</translation>
+      <translation>Dekoding eller strømming av lyd mislyktes</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>Lyd · Nedlastinger · Ufullstendig · Venter · Fortsett</translation>
+      <translation>Lydnedlastingen er ufullstendig; venter på å fortsette</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>Lyd · Start</translation>
+      <translation>Lydmotoren starter</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>Lyd · Grense · Cache</translation>
+      <translation>Lydfilen overskrider grensen for hurtigbufferen</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>Lyd · Utgang · Mislyktes</translation>
+      <translation>Lydutgangen mislyktes</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>Lyd · Utgang · Utilgjengelig</translation>
+      <translation>Lydutgangen er ikke tilgjengelig</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>Lydutgangen sluttet å svare; koble til lydenheten på nytt, og trykk deretter på Spill av</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>Lyd · Spill · Mislyktes</translation>
+      <translation>Lydavspillingen mislyktes</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>Lyd · Data · Grense · Størrelse</translation>
+      <translation>Lydsvaret overskrider den oppgitte størrelsen</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Lyd · Volum · Mislyktes</translation>
+      <translation>Spoling i lyden mislyktes</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>Lyd · Innstillinger · Område</translation>
+      <translation>Lydinnstillingene er utenfor det støttede området</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>Lyd · Mislyktes</translation>
+      <translation>Lydstrømmingen mislyktes</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Lyd · Kø · Utilgjengelig</translation>
+      <translation>Køen for motorkommandoer er ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>Lyd · Mislyktes</translation>
+      <translation>Intern feil i motoren</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>Lyd · Utilgjengelig</translation>
+      <translation>Motoren er ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Cache · Grense · Tøm · Lyd</translation>
+      <translation>Hurtigbufferen er full; øk grensen eller tøm bufret lyd</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>Cache · Grense · 64–8192 · MiB · Neste · 0–20 · Spor</translation>
+      <translation>Grensen for hurtigbufferen må være 64–8192 MiB og forhåndslastingen 0–20 spor</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Cache · Forespørsel · Avbrutt</translation>
+      <translation>Bufringsforespørselen ble avbrutt</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>Cache · Opp · 1000 · Gyldig · Spor</translation>
+      <translation>En bufringsforespørsel kan inneholde maks 1000 gyldige musikkspor</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>Cache · Ugyldig · Lyd · Data</translation>
+      <translation>Hurtigbufferen krever et ukodet lydsvar</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Cache · Prosess · Utilgjengelig</translation>
+      <translation>Bufringsprosessen er ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>Mislyktes · Innstillinger · Tilstand</translation>
+      <translation>Kan ikke lese eller skrive apptilstanden</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Velg · 1–10 · Artister · Album · Miks</translation>
+      <translation>Velg 1–10 artister eller album for en miks</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>Velg · 2–8 · Spor · Lignende</translation>
+      <translation>Velg 2–8 spor for en lydreise</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>Velg · 30–480 · Radio · Nedlastinger</translation>
+      <translation>Velg 30–480 minutter for en radionedlasting</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>Velg · 7 · 30 · 90 · Historikk</translation>
+      <translation>Velg 7, 30 eller 90 dager eller hele lyttehistorikken</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>Velg</translation>
+      <translation>Velg et musikkelement</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>Velg · Spilleliste · Spor</translation>
+      <translation>Velg en oppføring i spillelisten</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>Velg · Spilleliste · Album · Radio · Nedlastinger</translation>
+      <translation>Velg en spilleliste, et album eller en radio å laste ned</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>Velg · Oppdater · 1 · 6 · 12 · 24</translation>
+      <translation>Velg et oppdateringsintervall på 1, 6, 12 eller 24 timer</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>Velg · Spor · Album · Spilleliste · Behold frakoblet</translation>
+      <translation>Velg et spor, et album eller en spilleliste å beholde frakoblet</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>Velg · Lyd · 64–320</translation>
+      <translation>Velg originallyd eller 64–320 kbps</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Velg · Spor · Kø · Grense · 10000</translation>
+      <translation>Velg spor for køen (maks 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>Velg · Spor · Album · Spilleliste</translation>
+      <translation>Velg spor eller et album for spillelisten</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>Velg · Opp · 1000 · Gyldig · Spor · Nedlastinger</translation>
+      <translation>Velg maks 1000 gyldige spor å laste ned</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>Koble til · Plex · Tjener · Start</translation>
+      <translation>Koble til en Plex-server først</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>Annen opprinnelse · Plex</translation>
+      <translation>Plex-bane fra annen opprinnelse ble avvist</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>Nedlastinger · Typer · Ingen</translation>
+      <translation>Nedlastingsgruppen finnes ikke lenger</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>Nedlastinger · Avbrutt · Prøv igjen · Tilkobling</translation>
+      <translation>Nedlastingen ble avbrutt; den prøves på nytt når tilkoblingen blir bedre</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>Nedlastinger · Grense · 1000 · Spor</translation>
+      <translation>Nedlastingsplanen overskrider 1000 spor</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>Nedlastinger · Grense · 1000 · Spor · Ikke behold · Start</translation>
+      <translation>Nedlastingsplanen overskrider 1000 spor; slutt å beholde noen nedlastinger frakoblet først</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Aktiver · Lyd · Cache · Nedlastinger</translation>
+      <translation>Slå på lydbufring før du beholder nedlastinger frakoblet</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Aktiver · Lyd · Cache · Tilkobling · Innstillinger · Start</translation>
+      <translation>Slå på lydbufring i tilkoblingsinnstillingene først</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>Spilleliste · Opp · 512 · Størrelse</translation>
+      <translation>Skriv inn et navn på spillelisten (maks 512 byte)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>Gyldig · Identifikator · Plex</translation>
+      <translation>Forventet en numerisk Plex-identifikator</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>Gyldig · Plex</translation>
+      <translation>Forventet en serverrelativ Plex-bane</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Tilkoblet</translation>
+      <translation>Gå på nett</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>Tilkoblet · Plex · Spillelister</translation>
+      <translation>Gå på nett for å redigere Plex-spillelister</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>Tilkoblet · Oppdater · Nedlastinger</translation>
+      <translation>Gå på nett for å oppdatere nedlastinger</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>Typer · Grense · 1000 · Album · Artist</translation>
+      <translation>Gruppering er begrenset til 1000 album per artist</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>Ugyldig · URL</translation>
+      <translation>Ugyldig URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>Ugyldig · UTF · 8 · Forespørsel</translation>
+      <translation>Ugyldig UTF-8-forespørsel</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>Ugyldig · Lyd</translation>
+      <translation>Ugyldig lydrepresentasjon</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>Ugyldig · Lyd · Kilde</translation>
+      <translation>Ugyldig lydkilde</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>Ugyldig · Lyd · Volum</translation>
+      <translation>Ugyldig lydvolum</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>Ugyldig · Cache · Lyd</translation>
+      <translation>Ugyldig bane til bufret lyd</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>Ugyldig · Identifikator</translation>
+      <translation>Ugyldig klientidentifikator</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>Ugyldig · Søk</translation>
+      <translation>Ugyldig oppsett for Utforsk</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>Ugyldig · Filter</translation>
+      <translation>Ugyldige verdier for musikkfilter</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>Ugyldig · Kø · Indeks</translation>
+      <translation>Ugyldig køindeks</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>Ugyldig · Kø · Rekkefølge</translation>
+      <translation>Ugyldig rekkefølge i køen</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>Ugyldig · Forespørsel · Data</translation>
+      <translation>Ugyldige forespørselsdata</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>Ugyldig · Nedlastinger · Område</translation>
+      <translation>Ugyldig område for gjenopptatt nedlasting</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Ugyldig · Volum</translation>
+      <translation>Ugyldig spoleposisjon</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>Ugyldig · Tjener · Indeks</translation>
+      <translation>Ugyldig serverindeks</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>Historikk · Synkroniser · Les mer</translation>
+      <translation>Lyttehistorikken må synkroniseres før flere avspillinger kan registreres</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>Logg inn · Utløpt · Start</translation>
+      <translation>Påloggingen er utløpt; start på nytt</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>Sangtekster · Størrelse · Grense</translation>
+      <translation>Sangteksten overskrider størrelsesgrensen</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>Sangtekster · Utilgjengelig · Lagret · Frakoblet</translation>
+      <translation>Sangteksten er ikke lagret for frakoblet bruk</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Miks · Artister · Album</translation>
+      <translation>Utgangspunkter for miks må være artister eller album</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>Nettverk · Forespørsel · Mislyktes · Kontroller · Tilkobling · Tjener</translation>
+      <translation>Nettverksforespørselen mislyktes (kontroller tilkoblingen og serveradressen)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>Neste · Spor · Dekoder · Mislyktes</translation>
+      <translation>Dekoding av neste spor mislyktes</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>Ingen · Gjeldende · Radio</translation>
+      <translation>Ingen aktiv radio</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>Ingen · Artister · Indeks</translation>
+      <translation>Ingen artister under den bokstaven</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Ingen · Kø</translation>
+      <translation>Køen er tom</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
@@ -521,254 +525,274 @@
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>Skrivebeskyttet · Lyd · Spillelister · Lastet ned</translation>
+      <translation>Bare lydspillelister kan lastes ned</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>Behold frakoblet · Opp · 1000 · Spill · Spor</translation>
+      <translation>Behold maks 1000 spillbare spor frakoblet</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>Spilleliste · Velg · Grense · 1000 · Spillelister</translation>
+      <translation>Spillelistevelgeren er begrenset til 1000 spillelister</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>Spilleliste · Skrivebeskyttet</translation>
+      <translation>Endringer i spillelister er deaktivert i skrivebeskyttet inspeksjon</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · Logg inn · Mislyktes · Kontroller · Tjener · Token</translation>
+      <translation>Plex-autorisering mislyktes; logg på igjen eller kontroller servertokenet</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · Utilgjengelig · Artist · Radio</translation>
+      <translation>Plex tilbyr ingen artistradiostasjon for denne artisten</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex returnerte ingen lydmessige anbefalinger for dette albumet. Kontroller innstillingen og fremdriften for lydanalyse i musikkbiblioteket, eller bruk Artistradio.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · Mottatt · Ingen · Lignende · Spor · Kontroller · Bibliotek · Brukt · Artist · Radio</translation>
+      <translation>Plex returnerte ingen lydmessige anbefalinger for dette sporet. Kontroller innstillingen og fremdriften for lydanalyse i musikkbiblioteket, eller bruk Artistradio.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Kø · Spor · Gyldig · Start · Indeks</translation>
+      <translation>Køen krever spor og en gyldig startindeks</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>Radio · Automatisk avspilling · Stopp · Gjenta</translation>
+      <translation>Radioen fortsetter automatisk; stopp radioen for å gjenta</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>Radio · Ingen · Les mer · Lignende · Miks</translation>
+      <translation>Radioen har ingen flere lydmessige anbefalinger; prøv et annet utgangspunkt</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>Radio · Rekkefølge · Stopp · Bland</translation>
+      <translation>Radioen beholder den anbefalte rekkefølgen; stopp radioen for å stokke</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>Radio · Spill · Tilkobling</translation>
+      <translation>Radioavspilling krever en tilkobling</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Radio · Mottatt · Ingen · Spill · Spor</translation>
+      <translation>Radioen returnerte ingen spillbare spor</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>Radio · Miks · Utilgjengelig</translation>
+      <translation>Radioens utgangspunkt samsvarer ikke med den valgte musikktypen</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>Lyd · Varighet · Inkonsistent</translation>
+      <translation>Lengden på den gjenopptatte lyden er inkonsekvent</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>Nedlastinger · Ingen · Content-Range</translation>
+      <translation>Den gjenopptatte nedlastingen mangler Content-Range</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Lagret · Kø · Ugyldig</translation>
+      <translation>Den lagrede køen er ugyldig</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>Tjener · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>Server-URL-en må være en HTTP(S)-opprinnelse, f.eks. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>Tjener · Mottatt · Spor</translation>
+      <translation>Serveren returnerte innhold som ikke er lyd, for dette sporet</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>Logg inn · Start</translation>
+      <translation>Logg på først</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>Smart · Spilleliste · Filter · Plex</translation>
+      <translation>Innholdet i smarte spillelister styres av Plex-filtrene deres</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>Lignende · Grense · 250 · Spor</translation>
+      <translation>Lydreisen overskrider 250 spor</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>Start · Logg inn</translation>
+      <translation>Start påloggingen først</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>Album · Ingen · Spill · Spor</translation>
+      <translation>Dette albumet inneholder ingen spillbare spor</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Artist · Album · Utilgjengelig · Lagret · Frakoblet</translation>
+      <translation>Denne artisten eller dette albumet er ikke lagret for frakoblet bruk</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>Bibliotek · Utilgjengelig · Lagret · Frakoblet</translation>
+      <translation>Denne biblioteksiden er ikke lagret for frakoblet bruk ennå</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>Spor · Ingen · Spill · Data</translation>
+      <translation>Dette sporet har ingen spillbar mediedel</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>Spor · Utilgjengelig · Lastet ned</translation>
+      <translation>Dette sporet er ikke lastet ned</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>Spor · Tjener · Utilgjengelig</translation>
+      <translation>Dette sporet er ikke lenger på serveren</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Spor · Utilgjengelig · Cache · Lastet ned</translation>
+      <translation>Dette sporet er ikke helt bufret ennå; nedlastede spor er fortsatt tilgjengelige</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>Spor · Varighet · Nedlastinger</translation>
+      <translation>Sporvarighet kreves for en tidsbasert nedlasting</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>Spor · Ingen · Nedlastinger · Data</translation>
+      <translation>Sporet har ingen nedlastbar mediedel</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>Ugyldig · Plex · Data</translation>
+      <translation>Uventet svar fra Plex</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>Ugyldig · Lyd</translation>
+      <translation>Ukjent lydkommando</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>Ugyldig · Søk</translation>
+      <translation>Ukjent visning i Utforsk</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>Ugyldig · Nedlastinger</translation>
+      <translation>Ukjent nedlastingshandling</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>Ugyldig · Bibliotek · Sorter</translation>
+      <translation>Ukjent biblioteksortering</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>Ugyldig</translation>
+      <translation>Ukjent musikktype</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>Ugyldig · Frakoblet</translation>
+      <translation>Ukjent type frakoblet musikk</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>Ugyldig · Spill · Tilstand</translation>
+      <translation>Ukjent avspillingstilstand</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>Ugyldig · Spilleliste</translation>
+      <translation>Ukjent spillelistehandling</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>Ugyldig · Gjenta</translation>
+      <translation>Ukjent gjentakelsesmodus</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>Album · Radio · Spor</translation>
+      <translation>albumradioens spor</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>Artist · Artister · Indeks</translation>
+      <translation>alfabetisk artistindeks</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>Bilder</translation>
+      <translation>omslagsbilde</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>oppretting av nettleserpålogging</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>kontroll av nettleserpålogging</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>Cache · Spor · Metadata</translation>
+      <translation>spormetadata for bufring</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>Opprett · Spilleliste</translation>
+      <translation>opprettet spilleliste</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>Sangtekster</translation>
+      <translation>tekstlinjer</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>Sangtekster</translation>
+      <translation>tekst i tekstsegment</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>Sangtekster</translation>
+      <translation>tekstsegmenter</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>Sangtekster</translation>
+      <translation>sangtekst-JSON</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>Sangtekster</translation>
+      <source>playlist creation</source>
+      <translation>oppretting av spilleliste</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>Spilleliste · Metadata</translation>
+      <translation>spillelistemetadata</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>Radio · Nedlastinger · Spor</translation>
+      <translation>spor for radionedlasting</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>Radio · Kø</translation>
+      <translation>radiokøens midtpunkt</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>Radio · Kø</translation>
+      <translation>fortsettelse av radiokøen</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>oppretting av radiokø</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>Radio · Kø · Identifikator</translation>
+      <translation>radiokøens identitet</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>Radio · Kø · Spor</translation>
+      <translation>radiokøens spor</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>Radio · Tjener · Identifikator</translation>
+      <translation>serveridentitet for radio</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>Tjener · Søk</translation>
+      <translation>serversøk</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>forespørsel om serverbiblioteker</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>Lignende</translation>
+      <translation>lydeventyr</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Flytt · Les mer · Bilder</translation>
+      <translation>Sveip for flere bilder</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,39 +800,39 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>Spill · Spor</translation>
+      <translation>Spill av spor</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>Nedlastinger · Spor</translation>
+      <translation>Last ned spor</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Beskrivelse · Utilgjengelig · Plex</translation>
+      <translation>Plex har ikke oppgitt noen beskrivelse.</translation>
     </message>
     <message>
       <source>Read less</source>
-      <translation>Les mindre</translation>
+      <translation>Vis mindre</translation>
     </message>
     <message>
       <source>Read more</source>
-      <translation>Les mer</translation>
+      <translation>Vis mer</translation>
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>Lignende · Artister</translation>
+      <translation>Lignende artister</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>Laster · Lignende · Artister</translation>
+      <translation>Laster inn lignende artister…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>Lignende · Artister · Utilgjengelig</translation>
+      <translation>Lignende artister er ikke tilgjengelige akkurat nå.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Lignende · Artister · Utilgjengelig · Plex</translation>
+      <translation>Plex returnerte ingen lignende artister.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -823,97 +847,97 @@
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Søk · Innstillinger</translation>
+      <translation>Tilpass Utforsk</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Søk · Innstillinger</translation>
+      <translation>Tilpass Utforsk</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Flytt · Opp</translation>
+      <translation>Flytt opp</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Flytt · Ned</translation>
+      <translation>Flytt ned</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>Nedlastinger · Behandling</translation>
+      <translation>Nedlastingsbehandler</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automatisk avspilling · Oppdater · Nedlastinger</translation>
+      <translation>Oppdater nedlastingsplaner automatisk</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 timer</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Oppdater · Varighet</translation>
+      <translation>Oppdateringsintervall</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Oppdater · Nedlastinger · Laster</translation>
+      <translation>Oppdaterer nedlastingsplaner…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minutter</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Nedlastinger · Varighet</translation>
+      <translation>Lengde på radionedlastinger</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Nedlastinger · Skrivebeskyttet · Wi-Fi</translation>
+      <translation>Last ned bare via Wi-Fi</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Fortsett · Nedlastinger</translation>
+      <translation>Gjenoppta nedlastinger</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Pause · Nedlastinger</translation>
+      <translation>Sett nedlastinger på pause</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>Nedlastinger · Venter · Wi-Fi · Lyd · Spill · Tilkoblet</translation>
+      <translation>Venter på bekreftet Wi-Fi; strømming er fortsatt tilgjengelig.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+      <translation>Nedlastinger venter mens strømmen tar igjen</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Lyd · Cache · Brukt</translation>
+      <translation>%1 MiB lydhurtigbuffer brukt</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Frakoblet · Bibliotek · Data · Lagre · Mislyktes · %1</translation>
+      <translation>Kunne ikke lagre data for frakoblet bibliotek: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Lyd · Varighet · %1</translation>
+      <translation>Planlagt lyd: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Spor · %3 · MiB</translation>
+      <translation>%1/%2 spor · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Gjeldende · Spor · %1 · MiB · Mottatt</translation>
+      <translation>Gjeldende spor: %1 MiB mottatt</translation>
     </message>
     <message>
       <source>Play</source>
-      <translation>Spill</translation>
+      <translation>Spill av</translation>
     </message>
     <message>
       <source>Refresh</source>
@@ -925,141 +949,141 @@
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>Avbrutt</translation>
+      <translation>Avbryt plan</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>Fjern</translation>
+      <translation>Fjern filer</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Venter · Historikk · %1</translation>
+      <translation>Lyttehistorikk som venter: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>Synkroniser · Historikk</translation>
+      <translation>Synkroniser historikk</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>Nedlastinger · Behandling</translation>
+      <translation>Nedlastingsbehandler</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automatisk avspilling · Oppdater · Nedlastinger</translation>
+      <translation>Oppdater nedlastingsplaner automatisk</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Oppdater · Varighet</translation>
+      <translation>Oppdateringsintervall</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 timer</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Oppdater · Nedlastinger · Laster</translation>
+      <translation>Oppdaterer nedlastingsplaner…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Nedlastinger · Varighet</translation>
+      <translation>Lengde på radionedlastinger</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minutter</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Nedlastinger · Skrivebeskyttet · Wi-Fi</translation>
+      <translation>Last ned bare via Wi-Fi</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Fortsett · Nedlastinger</translation>
+      <translation>Gjenoppta nedlastinger</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Pause · Nedlastinger</translation>
+      <translation>Sett nedlastinger på pause</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>Nedlastinger · Venter · Wi-Fi · Lyd · Spill · Tilkoblet</translation>
+      <translation>Venter på en bekreftet Wi-Fi-tilkobling. Strømming er fortsatt tilgjengelig.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+      <translation>Nedlastinger venter mens strømmen tar igjen</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Lyd · Cache · Brukt</translation>
+      <translation>%1 MiB lydhurtigbuffer brukt</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Frakoblet · Bibliotek · Data · Lagre · Mislyktes · %1</translation>
+      <translation>Kunne ikke lagre data for frakoblet bibliotek: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Venter · Historikk · %1</translation>
+      <translation>Lyttehistorikk som venter: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>Synkroniser · Historikk</translation>
+      <translation>Synkroniser lyttehistorikk</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Lyd · Varighet · %1</translation>
+      <translation>Planlagt lyd: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Spor · %3 · MiB</translation>
+      <translation>%1/%2 spor · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>Laster ned</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Gjeldende · Spor · %1 · MiB · Mottatt</translation>
+      <translation>Gjeldende spor: %1 MiB mottatt</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>Spill · Lastet ned · Spor</translation>
+      <translation>Spill av nedlastede spor</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>Oppdater · Nedlastinger</translation>
+      <translation>Oppdater nedlastingsplan</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>Prøv igjen · Fortsett</translation>
+      <translation>Prøv igjen/gjenoppta</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>Avbrutt</translation>
+      <translation>Avbryt plan og behold filer</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>Fjern · Nedlastinger</translation>
+      <translation>Fjern nedlasting</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>Bibliotek · Filter</translation>
+      <translation>Bibliotekfiltre</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Smart · Spillelister</translation>
+      <translation>Smart spilleliste</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Smart · Spillelister · Filter · Skrivebeskyttet</translation>
+      <translation>Disse reglene for smarte spillelister kan ikke gjengis i dette redigeringsverktøyet.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Spilleliste</translation>
+      <translation>Navn på spilleliste</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1087,27 +1111,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Alle</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Tittel · Filter</translation>
+      <translation>Tittelen inneholder</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>År · Start</translation>
+      <translation>Fra år</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>År · Grense</translation>
+      <translation>Til år</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Favoritter · Grense</translation>
+      <translation>Minste vurdering</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Spill · Ingen</translation>
+      <translation>Bare uspilte</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1115,30 +1139,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Grense · Spor</translation>
+      <translation>Maks antall spor</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>Bibliotek · Filter</translation>
+      <translation>Bibliotekfiltre</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Smart · Spillelister</translation>
+      <translation>Smart spilleliste</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Smart · Spillelister · Filter · Skrivebeskyttet</translation>
+      <translation>Disse reglene for smarte spillelister kan ikke gjengis i dette redigeringsverktøyet.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Spilleliste</translation>
+      <translation>Navn på spilleliste</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Bibliotek</translation>
+      <translation>Bla gjennom</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1166,27 +1190,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Alle</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Tittel · Filter</translation>
+      <translation>Tittelen inneholder</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>År · Start</translation>
+      <translation>Fra år</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>År · Grense</translation>
+      <translation>Til år</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Favoritter · Grense</translation>
+      <translation>Minste vurdering</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Spill · Ingen</translation>
+      <translation>Bare uspilte</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1194,30 +1218,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Grense · Spor</translation>
+      <translation>Maks antall spor</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historikk · Innstillinger</translation>
+      <translation>Lyttestatistikk</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Spill · %2 · Historikk</translation>
+      <translation>%1 kvalifiserte avspillinger · %2 lyttet</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historikk · local · Spill · Metadata</translation>
+      <translation>Basert på lokalt målte kvalifiserte avspillinger siden statistikkregistreringen startet.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 dager</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historikk</translation>
+      <translation>Hele historikken</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1233,38 +1257,38 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Spill · %2 · Historikk</translation>
+      <translation>%1 avspillinger · %2 lyttet</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historikk · Innstillinger</translation>
+      <translation>Lyttestatistikk</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Spill · %2 · Historikk</translation>
+      <translation>%1 kvalifiserte avspillinger · %2 lyttet</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historikk · local · Spill · Metadata</translation>
+      <translation>Basert på lokalt målte kvalifiserte avspillinger siden statistikkregistreringen startet.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>Varighet</translation>
+      <translation>Periode</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 dager</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historikk</translation>
+      <translation>Hele historikken</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Bibliotek</translation>
+      <translation>Bla gjennom</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1280,113 +1304,113 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Spill · %2 · Historikk</translation>
+      <translation>%1 avspillinger · %2 lyttet</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Legg til · Sonic · Kilde</translation>
+      <translation>Legg til veipunkt for lydreise</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>Smart · Filter · Innstillinger</translation>
+      <translation>Rediger smarte filtre</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Lyd · Lignende</translation>
+      <translation>Lignende lydbilde</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>Start · Sonic · Adventure</translation>
+      <translation>Start lydeventyr her</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Spor</translation>
+      <translation>Lydeventyr til dette sporet</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>Nedlastinger · Radio · %1 · min</translation>
+      <translation>Last ned radio · %1 minutter</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>Nedlastinger · %1 · min</translation>
+      <translation>Last ned %1 minutter</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>Spill · Neste</translation>
+      <translation>Spill av neste</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Legg til · Kø</translation>
+      <translation>Legg til i køen</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>Legg til · Spilleliste</translation>
+      <translation>Legg til i spilleliste</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>Opprett · Spilleliste</translation>
+      <translation>Opprett spilleliste fra dette</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Legg til · Miks</translation>
+      <translation>Legg til som utgangspunkt for miks</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Gi nytt navn · Spilleliste</translation>
+      <translation>Gi nytt navn til spilleliste</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>Slett · Spilleliste</translation>
+      <translation>Slett spilleliste</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>Flytt · Spilleliste · Opp</translation>
+      <translation>Flytt oppføringen opp i spillelisten</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>Flytt · Spilleliste · Ned</translation>
+      <translation>Flytt oppføringen ned i spillelisten</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>Fjern · Spilleliste</translation>
+      <translation>Fjern fra spilleliste</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>Fjern</translation>
+      <translation>Fjern favoritt</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>Legg til · Favoritter</translation>
+      <translation>Legg til i favoritter</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>Ikke behold · Nedlastinger</translation>
+      <translation>Ikke behold frakoblet</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>Behold frakoblet · Frakoblet · Historikk</translation>
+      <translation>Behold for frakoblet lytting</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Flytt · Opp</translation>
+      <translation>Flytt opp</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Flytt · Ned</translation>
+      <translation>Flytt ned</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Fjern · Kø</translation>
+      <translation>Fjern fra køen</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>Opp · Neste</translation>
+      <translation>Neste</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Frakoblet · Lagret · Bibliotek · Metadata</translation>
+      <translation>Frakoblet · viser lagrede bibliotekmetadata</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+      <translation>Nedlastinger venter mens strømmen tar igjen</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Cache · Lyd</translation>
+      <translation>Bufrer lyd…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Spor · Klar · Frakoblet</translation>
+      <translation>%1 spor tilgjengelige frakoblet</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1442,11 +1466,11 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Søk · Artister · Album · Spor</translation>
+      <translation>Søk etter artister, album og spor</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Bibliotek</translation>
+      <translation>Bla gjennom</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1454,11 +1478,11 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Åpne · Artist</translation>
+      <translation>Åpne artist</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Åpne · Album</translation>
+      <translation>Åpne album</translation>
     </message>
     <message>
       <source>Track</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Spor · Tjener · Utilgjengelig</translation>
+      <translation>Ikke lenger på serveren</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Prøv igjen · Laster</translation>
+      <translation>Prøv å laste inn igjen</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>Ingen</translation>
+      <translation>Fant ingen musikk</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Koble til · Plex</translation>
+      <translation>Koble til Plex</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · Tilkobling · Innstillinger</translation>
+      <translation>Bruk opptrekksmenyen for tilkoblingsinnstillinger</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ingen · Spill</translation>
+      <translation>Ingenting spilles</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Spill</translation>
+      <translation>Spilles nå</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Frekvens · Søk</translation>
+      <translation>Finn din frekvens.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Frakoblet · Lagret · Bibliotek · Metadata</translation>
+      <translation>Frakoblet · viser lagrede bibliotekmetadata</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Nedlastinger · Venter · Lyd · Laster</translation>
+      <translation>Nedlastinger venter mens strømmen tar igjen</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Cache · Lyd</translation>
+      <translation>Bufrer lyd…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Spor · Klar · Frakoblet</translation>
+      <translation>%1 spor tilgjengelige frakoblet</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,7 +1549,7 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Søk · Artister · Album · Spor</translation>
+      <translation>Søk etter artister, album og spor</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1533,7 +1557,7 @@
     </message>
     <message>
       <source>Up next</source>
-      <translation>Opp · Neste</translation>
+      <translation>Neste</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Åpne · Artist</translation>
+      <translation>Åpne artist</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Åpne · Album</translation>
+      <translation>Åpne album</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Spor · Tjener · Utilgjengelig</translation>
+      <translation>Ikke lenger på serveren</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,83 +1601,83 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Prøv igjen · Laster</translation>
+      <translation>Prøv å laste inn igjen</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>Ingen</translation>
+      <translation>Fant ingen musikk.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>Koble til · Plex · Tjener · Start · Historikk</translation>
+      <translation>Koble til Plex-musikkserveren din for å begynne å lytte.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Spill</translation>
+      <translation>Spilles nå</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ingen · Spill</translation>
+      <translation>Ingenting spilles</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Bland</translation>
+      <translation>Stokk</translation>
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Gjenta: én</translation>
+      <translation>Gjenta ett spor</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>Gjenta: alle</translation>
+      <translation>Gjenta alle</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Gjenta: av</translation>
+      <translation>Gjenta av</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Koble til · Plex</translation>
+      <translation>Koble til Plex</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>Logg inn · Plex · Nettleser</translation>
+      <translation>Logg på med Plex i nettleseren</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>Venter · Nettleser · Logg inn</translation>
+      <translation>Venter på autorisering i nettleseren…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>Åpne · Logg inn</translation>
+      <translation>Åpne påloggingen igjen</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Velg · Plex · Tjener</translation>
+      <translation>Velg en Plex-server</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>Tjener · Åpne · Bibliotek</translation>
+      <translation>Velg en server for å åpne musikkbibliotekene på den.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Oppdater · Plex</translation>
+      <translation>Oppdater listen for å finne Plex-serverne dine.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Oppdater</translation>
+      <translation>Oppdater servere</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Koble til · Bibliotek</translation>
+      <translation>Koble til musikkbiblioteker</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Tilkobling</translation>
+      <translation>Direkte tilkobling</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>Koble til · Tjener · URL · Plex · Token</translation>
+      <translation>Eller koble til direkte med en server-URL og et Plex-token:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,54 +1685,54 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>Koble til · Tilkobling</translation>
+      <translation>Koble til direkte</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>Logg inn · Tøm · Lagret</translation>
+      <translation>Logg av og fjern lagrede tokener</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Frakoblet · Lyd · Cache</translation>
+      <translation>Lydhurtigbuffer for frakoblet bruk</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Lydinnstillinger</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Automatisk avspilling · Lignende · Kø</translation>
+      <translation>Spill av lignende musikk når køen er slutt</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Cache · Kø · Lyd · Automatisk avspilling</translation>
+      <translation>Bufre lyd i køen automatisk</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Cache · Grense</translation>
+      <translation>Grense for hurtigbuffer</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Spor · Lastet ned · %2 · MiB · Brukt</translation>
+      <translation>%1 spor lastet ned · %2 MiB brukt</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Tøm · Cache · Stopp · Spill</translation>
+      <translation>Tøm hurtigbufferen og stopp avspillingen</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>Frakoblet · Bibliotek</translation>
+      <translation>Frakoblet bibliotek</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>Innstillinger</translation>
+      <translation>Sidehandlinger</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Bibliotek</translation>
+      <translation>Flere steder</translation>
     </message>
     <message>
       <source>Show all</source>
@@ -1716,7 +1740,7 @@
     </message>
     <message>
       <source>Discover</source>
-      <translation>Søk</translation>
+      <translation>Utforsk</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1728,39 +1752,39 @@
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>Søk · Innstillinger</translation>
+      <translation>Tilpass Utforsk</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>Bibliotek · Filter</translation>
+      <translation>Bibliotekfiltre</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>Typer · Album</translation>
+      <translation>Grupper album etter type</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>Opprett · Smart · Spillelister</translation>
+      <translation>Opprett smart spilleliste</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Opprett · Spilleliste · Spor · Kø</translation>
+      <translation>Opprett spilleliste fra spor/kø</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>Nedlastinger · Spor</translation>
+      <translation>Last ned viste spor</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Tøm · Miks</translation>
+      <translation>Fjern utgangspunkter for miks</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Tøm · Sonic · Kilde</translation>
+      <translation>Fjern veipunkter for lydreise</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>Stopp · Radio</translation>
+      <translation>Stopp radio</translation>
     </message>
     <message>
       <source>Queue</source>
@@ -1768,19 +1792,19 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Lastet ned</translation>
+      <translation>Nedlastet musikk</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>Lagret · Album</translation>
+      <translation>Lagrede album</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>Historikk · Innstillinger</translation>
+      <translation>Lyttestatistikk</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Favoritter · ★ · 5</translation>
+      <translation>Favoritter · 5 stjerner</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1792,7 +1816,7 @@
     </message>
     <message>
       <source>Download manager</source>
-      <translation>Nedlastinger · Behandling</translation>
+      <translation>Nedlastingsbehandler</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,116 +1824,116 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>Opp</translation>
+      <translation>Tilbake</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Tilkoblet</translation>
+      <translation>Gå på nett</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>Bibliotek · Lagret · Frakoblet</translation>
+      <translation>Bla i lagret bibliotek frakoblet</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Spill · Miks · %1 · Kilde</translation>
+      <translation>Spill av miks (%1 utgangspunkter)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · Miks · %1 · Spor</translation>
+      <translation>Lydreise (%1 spor)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>Spill</translation>
+      <translation>Spilles nå</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ingen · Spill</translation>
+      <translation>Ingenting spilles</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Favoritter</translation>
+      <translation>★ Favoritt</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Legg til · Favoritter</translation>
+      <translation>☆ Legg til i favoritter</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Sangtekster</translation>
+      <translation>Sangtekst</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Laster · Sangtekster</translation>
+      <translation>Laster inn sangtekst…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Sangtekster · Utilgjengelig · Frakoblet · Tjener</translation>
+      <translation>Sangtekst er ikke tilgjengelig frakoblet eller på denne serveren.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Sangtekster · Utilgjengelig · Plex</translation>
+      <translation>Plex har ikke oppgitt noen sangtekst.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>Sangtekster</translation>
+      <translation>Last inn sangtekst på nytt</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>Sangtekster</translation>
+      <translation>Last inn sangtekst på nytt</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Spill</translation>
+      <translation>Spilles nå</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ingen · Spill</translation>
+      <translation>Ingenting spilles</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Favoritter</translation>
+      <translation>★ Favoritt</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Legg til · Favoritter</translation>
+      <translation>☆ Legg til i favoritter</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Sangtekster</translation>
+      <translation>Sangtekst</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Laster · Sangtekster</translation>
+      <translation>Laster inn sangtekst…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Sangtekster · Utilgjengelig · Frakoblet · Tjener</translation>
+      <translation>Sangtekst er ikke tilgjengelig frakoblet eller på denne serveren.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Sangtekster · Utilgjengelig · Plex</translation>
+      <translation>Plex har ikke oppgitt noen sangtekst.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Legg til · Spilleliste</translation>
+      <translation>Legg til i spilleliste</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Gi nytt navn · Spilleliste</translation>
+      <translation>Gi nytt navn til spilleliste</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Opprett · Spilleliste</translation>
+      <translation>Opprett spilleliste</translation>
     </message>
     <message>
       <source>Save</source>
@@ -1917,7 +1941,7 @@
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Spilleliste</translation>
+      <translation>Navn på spilleliste</translation>
     </message>
     <message>
       <source>Playlist</source>
@@ -1925,30 +1949,30 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Smart · Spillelister · Plex · Filter · Ny · Spillelister · Spor · Album · Kø</translation>
+      <translation>Innholdet i smarte spillelister styres av Plex-filtre. Nye spillelister bruker valgte spor/album eller køen.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Legg til · Spilleliste</translation>
+      <translation>Legg til i spilleliste</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Gi nytt navn · Spilleliste</translation>
+      <translation>Gi nytt navn til spilleliste</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Opprett · Spilleliste</translation>
+      <translation>Opprett spilleliste</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Spilleliste</translation>
+      <translation>Navn på spilleliste</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Smart · Spillelister · Plex · Filter · Ny · Spillelister · Spor · Album · Kø</translation>
+      <translation>Smarte spillelister bruker Plex-filtre. Nye spillelister bruker valgte spor/album eller køen.</translation>
     </message>
   </context>
   <context>
@@ -1982,39 +2006,39 @@
     </message>
     <message>
       <source>Most played</source>
-      <translation>Historikk · Spill</translation>
+      <translation>Mest spilt</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Bland</translation>
+      <translation>Stokk</translation>
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>Filter · Lyd</translation>
+      <translation>Filtrert musikk</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>Lydeventyr</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Søk</translation>
+      <translation>Utforsk</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>Kilde · Lyd</translation>
+      <translation>Originallyd</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Lyd · Lignende</translation>
+      <translation>Lignende lydbilde</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Favoritter · ★ · 5</translation>
+      <translation>Favoritter · 5 stjerner</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2026,43 +2050,43 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Lastet ned</translation>
+      <translation>Nedlastet musikk</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>Spor · Antall · Utilgjengelig</translation>
+      <translation>Antall spor ikke tilgjengelig</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · Spor</translation>
+      <translation>1 spor</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · Spor</translation>
+      <translation>%1 spor</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>Varighet · Utilgjengelig</translation>
+      <translation>Varighet ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>Artist · Radio</translation>
+      <translation>Artistradio</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>Album · Radio</translation>
+      <translation>Albumradio</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>Spor · Radio</translation>
+      <translation>Sporradio</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>Frakoblet · Bibliotek</translation>
+      <translation>Frakoblet bibliotek</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>Søk</translation>
+      <translation>Søkeresultater</translation>
     </message>
     <message>
       <source>Playlists</source>
@@ -2073,51 +2097,51 @@
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>Koble til · Plex</translation>
+      <translation>Koble til Plex</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>Logg inn · Plex</translation>
+      <translation>Logg på med Plex</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>Logg inn · Nettleser · Mottatt</translation>
+      <translation>Fullfør påloggingen i nettleseren, og kom deretter tilbake hit.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>Åpne · Nettleser</translation>
+      <translation>Åpne nettleseren igjen</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Velg · Plex · Tjener</translation>
+      <translation>Velg en Plex-server</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>Velg · Tjener · Åpne · Bibliotek</translation>
+      <translation>Trykk på en server for å åpne musikkbibliotekene på den.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Oppdater · Plex</translation>
+      <translation>Oppdater listen for å finne Plex-serverne dine.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Oppdater</translation>
+      <translation>Oppdater servere</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Koble til · Bibliotek</translation>
+      <translation>Koble til musikkbiblioteker</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Tilkobling</translation>
+      <translation>Direkte tilkobling</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>Tjener · URL</translation>
+      <translation>Server-URL</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · Token</translation>
+      <translation>Plex-token</translation>
     </message>
     <message>
       <source>Connect</source>
@@ -2125,58 +2149,58 @@
     </message>
     <message>
       <source>Sign out</source>
-      <translation>Logg inn</translation>
+      <translation>Logg av</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Frakoblet · Lyd · Cache</translation>
+      <translation>Lydhurtigbuffer for frakoblet bruk</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Lyd · Innstillinger</translation>
+      <translation>Lydinnstillinger</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Automatisk avspilling · Lignende · Kø</translation>
+      <translation>Spill av lignende musikk når køen er slutt</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Nedlastinger · Skrivebeskyttet · Wi-Fi</translation>
+      <translation>Last ned bare via Wi-Fi</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>Åpne · Nedlastinger · Behandling</translation>
+      <translation>Åpne nedlastingsbehandleren</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Cache · Kø · Lyd · Automatisk avspilling</translation>
+      <translation>Bufre lyd i køen automatisk</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Cache · Grense</translation>
+      <translation>Grense for hurtigbuffer</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Spor · Lastet ned · %2 · MiB · Brukt</translation>
+      <translation>%1 spor lastet ned · %2 MiB brukt</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Cache · Gjeldende · Spor · Neste · %1 · Spor · Nedlastinger · Album · Klar · Frakoblet</translation>
+      <translation>Gjeldende spor og de %1 neste sporene i køen bufres. Last ned et album før du reiser; bare fullførte nedlastinger fungerer frakoblet.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Tøm · Cache · Stopp · Spill</translation>
+      <translation>Tøm hurtigbufferen og stopp avspillingen</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · Musikkspiller med direkte strømming</translation>
+      <translation>PlexFreq %1 · Musikkspiller med direktestrømming</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>Ingen · Spill</translation>
+      <translation>Ingenting spilles</translation>
     </message>
   </context>
   <context>
@@ -2187,7 +2211,7 @@
     </message>
     <message>
       <source>EPs</source>
-      <translation>EP</translation>
+      <translation>EP-er</translation>
     </message>
     <message>
       <source>Singles</source>

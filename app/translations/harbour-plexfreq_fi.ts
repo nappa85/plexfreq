@@ -11,43 +11,43 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Ääniasetukset</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Suoratoiston laatu</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Ääni</translation>
+      <translation>Ääni Wi-Fi-yhteydellä</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Verkko · Ääni</translation>
+      <translation>Ääni mobiiliverkossa</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Lataukset · Ääni</translation>
+      <translation>Latausten ääni</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekooderi · Yritä uudelleen</translation>
+      <translation>Plexin varamuunnos</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Ääni · Asetukset · Seuraava · Kappaleet · Lataukset · Valmis · Ääni</translation>
+      <translation>Laatumuutokset koskevat seuraavia kappaleita ja latauksia. Valmiita paikallisia äänitiedostoja käytetään ensisijaisesti.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Ääni · Tauoton · PCM · Ulostulo</translation>
+      <translation>Rust-äänimoottori · katkoton PCM-lähtö</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Sekuntia</translation>
+      <translation>%1 sekuntia</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Pois</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -55,31 +55,31 @@
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalisointi</translation>
+      <translation>Tasoita äänenvoimakkuus</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Kappale · Normalisointi</translation>
+      <translation>Kappaleen vahvistus</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Albumit · Normalisointi</translation>
+      <translation>Albumin vahvistus</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automaattinen toisto · Normalisointi</translation>
+      <translation>Automaattinen vahvistus</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Ääni · Äänenvoimakkuus · Alue</translation>
+      <translation>Säätövara</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metatiedot · Normalisointi · Albumit · Tauoton · Ristihäivytys · off</translation>
+      <translation>Käyttää Plexin vahvistusmetatietoja, kun ne ovat saatavilla. Saman albumin kappaleet toistetaan katkottomasti ilman ristihäivytystä.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,42 +87,42 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Palauta · Taajuuskorjain</translation>
+      <translation>Nollaa taajuuskorjain</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Ääniasetukset</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Suoratoiston laatu</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Ääni</translation>
+      <translation>Ääni Wi-Fi-yhteydellä</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Verkko · Ääni</translation>
+      <translation>Ääni mobiiliverkossa</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Lataukset · Ääni</translation>
+      <translation>Latausten ääni</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekooderi · Yritä uudelleen</translation>
+      <translation>Plexin varamuunnos</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Ääni · Asetukset · Seuraava · Kappaleet · Lataukset · Valmis · Ääni</translation>
+      <translation>Laatumuutokset koskevat seuraavia kappaleita ja latauksia. Valmiita paikallisia äänitiedostoja käytetään ensisijaisesti.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Ääni · Tauoton · PCM · Ulostulo</translation>
+      <translation>Rust-äänimoottori · katkoton PCM-lähtö</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -130,43 +130,43 @@
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Sekuntia</translation>
+      <translation>%1 sekuntia</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Pois</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalisointi</translation>
+      <translation>Tasoita äänenvoimakkuus</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>Normalisointi · Asetukset</translation>
+      <translation>Tasoitustila</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Albumit · Normalisointi</translation>
+      <translation>Albumin vahvistus</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automaattinen toisto · Normalisointi</translation>
+      <translation>Automaattinen vahvistus</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Kappale · Normalisointi</translation>
+      <translation>Kappaleen vahvistus</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Ääni · Äänenvoimakkuus · Alue</translation>
+      <translation>Säätövara</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metatiedot · Normalisointi · Albumit · Tauoton · Ristihäivytys · off</translation>
+      <translation>Käyttää Plexin vahvistusmetatietoja, kun ne ovat saatavilla. Saman albumin kappaleet toistetaan katkottomasti ilman ristihäivytystä.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,346 +174,350 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Palauta · Taajuuskorjain</translation>
+      <translation>Nollaa taajuuskorjain</translation>
     </message>
   </context>
   <context>
     <name>Core</name>
     <message>
       <source>Radio could not refresh. Downloaded tracks may repeat.</source>
-      <translation>Radion päivittäminen epäonnistui. Ladatut kappaleet saattavat toistua.</translation>
+      <translation>Radiota ei voitu päivittää. Ladatut kappaleet voivat toistua.</translation>
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · Epäonnistui</translation>
+      <translation>Plex palautti HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · Tiedot · Virheellinen · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>Odottamaton Plex-vastaus (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>Lisää · Kappaleet · Albumit · Soittolista</translation>
+      <translation>Lisää kappaleita tai albumeita soittolistaan</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>Lisää · Ylös · 1000 · Kappaleet</translation>
+      <translation>Lisää enintään 1000 kappaletta kerrallaan</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>Artisti · Albumi · Metatiedot · Ei saatavilla</translation>
+      <translation>Artistin tai albumin tietoja ei ole saatavilla</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>Kuvat · Raja · Koko</translation>
+      <translation>Kansikuva ylittää kokorajan</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>Ääni · Välimuisti · Nykyinen · Käytetty · PlexFreq</translation>
+      <translation>Toinen PlexFreq-instanssi käyttää jo äänivälimuistia</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>Ääni · Palvelin · Vastaanotettu · Alue</translation>
+      <translation>Ääni on muuttunut tai palvelin palautti väärän tavualueen; yritetään uudelleen alusta</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Ääni · Jono · Ei saatavilla</translation>
+      <translation>Äänikomentojen jono ei ole käytettävissä</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>Ääni · Dekooderi · Epäonnistui</translation>
+      <translation>Äänen purku tai suoratoisto epäonnistui</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>Ääni · Lataukset · Keskeneräinen · Odotetaan · Jatka</translation>
+      <translation>Äänen lataus on kesken; odotetaan jatkamista</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>Ääni · Aloita</translation>
+      <translation>Äänimoottori käynnistyy</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>Ääni · Raja · Välimuisti</translation>
+      <translation>Äänitiedosto ylittää välimuistin rajan</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>Ääni · Ulostulo · Epäonnistui</translation>
+      <translation>Äänilähtö epäonnistui</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>Ääni · Ulostulo · Ei saatavilla</translation>
+      <translation>Äänilähtö ei ole käytettävissä</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>Äänilähtö lakkasi vastaamasta; yhdistä äänilaite uudelleen ja paina sitten Toista</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>Ääni · Toista · Epäonnistui</translation>
+      <translation>Äänen toisto epäonnistui</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>Ääni · Tiedot · Raja · Koko</translation>
+      <translation>Äänivastaus ylittää ilmoitetun kokonsa</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Ääni · Äänenvoimakkuus · Epäonnistui</translation>
+      <translation>Äänen kelaus epäonnistui</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>Ääni · Asetukset · Alue</translation>
+      <translation>Ääniasetukset ylittävät tuetun alueen</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>Ääni · Epäonnistui</translation>
+      <translation>Äänen suoratoisto epäonnistui</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Ääni · Jono · Ei saatavilla</translation>
+      <translation>Taustamoottorin komentojono ei ole käytettävissä</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>Ääni · Epäonnistui</translation>
+      <translation>Taustamoottorin sisäinen virhe</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>Ääni · Ei saatavilla</translation>
+      <translation>Taustamoottori ei ole käytettävissä</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Välimuisti · Raja · Tyhjennä · Ääni</translation>
+      <translation>Välimuisti on täynnä; nosta rajaa tai tyhjennä välimuistin ääni</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>Välimuisti · Raja · 64–8192 · MiB · Seuraava · 0–20 · Kappaleet</translation>
+      <translation>Välimuistin rajan on oltava 64–8192 MiB ja ennakkolatauksen 0–20 kappaletta</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Välimuisti · Pyyntö · Peruutettu</translation>
+      <translation>Välimuistipyyntö peruttiin</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>Välimuisti · Ylös · 1000 · Kelvollinen · Kappaleet</translation>
+      <translation>Välimuistipyynnössä voi olla enintään 1000 kelvollista musiikkikappaletta</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>Välimuisti · Virheellinen · Ääni · Tiedot</translation>
+      <translation>Välimuisti vaatii koodaamattoman äänivastauksen</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Välimuisti · Prosessi · Ei saatavilla</translation>
+      <translation>Välimuistiprosessi ei ole käytettävissä</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>Epäonnistui · Asetukset · Tila</translation>
+      <translation>Sovelluksen tilaa ei voi lukea tai kirjoittaa</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Valitse · 1–10 · Artistit · Albumit · Miksaus</translation>
+      <translation>Valitse miksaukseen 1–10 artistia tai albumia</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>Valitse · 2–8 · Kappaleet · Samankaltainen</translation>
+      <translation>Valitse äänimatkaan 2–8 kappaletta</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>Valitse · 30–480 · Radio · Lataukset</translation>
+      <translation>Valitse radiolataukselle 30–480 minuuttia</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>Valitse · 7 · 30 · 90 · Historia</translation>
+      <translation>Valitse 7, 30 tai 90 päivää tai koko kuunteluhistoria</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>Valitse</translation>
+      <translation>Valitse musiikkikohde</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>Valitse · Soittolista · Kappale</translation>
+      <translation>Valitse soittolistan kohta</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>Valitse · Soittolista · Albumi · Radio · Lataukset</translation>
+      <translation>Valitse ladattava soittolista, albumi tai radio</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>Valitse · Päivitä · 1 · 6 · 12 · 24</translation>
+      <translation>Valitse päivitysväliksi 1, 6, 12 tai 24 tuntia</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>Valitse · Kappale · Albumi · Soittolista · Säilytä offline</translation>
+      <translation>Valitse offline-tilaan säilytettävä kappale, albumi tai soittolista</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>Valitse · Ääni · 64–320</translation>
+      <translation>Valitse alkuperäinen ääni tai 64–320 kbps</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Valitse · Kappaleet · Jono · Raja · 10000</translation>
+      <translation>Valitse kappaleet jonoon (enintään 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>Valitse · Kappaleet · Albumi · Soittolista</translation>
+      <translation>Valitse soittolistaan kappaleita tai albumi</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>Valitse · Ylös · 1000 · Kelvollinen · Kappaleet · Lataukset</translation>
+      <translation>Valitse ladattavaksi enintään 1000 kelvollista kappaletta</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>Yhdistä · Plex · Palvelin · Aloita</translation>
+      <translation>Yhdistä ensin Plex-palvelimeen</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>Eri alkuperä · Plex</translation>
+      <translation>Toisen alkuperän Plex-polku hylättiin</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>Lataukset · Tyypit · Ei mitään</translation>
+      <translation>Latausryhmää ei ole enää olemassa</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>Lataukset · Keskeytetty · Yritä uudelleen · Yhteys</translation>
+      <translation>Lataus keskeytyi; sitä yritetään uudelleen, kun yhteys paranee</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>Lataukset · Raja · 1000 · Kappaleet</translation>
+      <translation>Latausuunnitelma ylittää 1000 kappaletta</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>Lataukset · Raja · 1000 · Kappaleet · Älä säilytä · Aloita</translation>
+      <translation>Latausuunnitelma ylittää 1000 kappaletta; lopeta ensin joidenkin latausten säilyttäminen offline-tilassa</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Ota käyttöön · Ääni · Välimuisti · Lataukset</translation>
+      <translation>Ota äänivälimuisti käyttöön ennen latausten säilyttämistä offline-tilassa</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Ota käyttöön · Ääni · Välimuisti · Yhteys · Asetukset · Aloita</translation>
+      <translation>Ota ensin äänivälimuisti käyttöön yhteysasetuksissa</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>Soittolista · Ylös · 512 · Koko</translation>
+      <translation>Anna soittolistalle nimi (enintään 512 tavua)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>Kelvollinen · Tunniste · Plex</translation>
+      <translation>Odotettiin numeerista Plex-tunnistetta</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>Kelvollinen · Plex</translation>
+      <translation>Odotettiin palvelimeen suhteutettua Plex-polkua</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Online</translation>
+      <translation>Siirry online-tilaan</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>Online · Plex · Soittolistat</translation>
+      <translation>Siirry online-tilaan muokataksesi Plex-soittolistoja</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>Online · Päivitä · Lataukset</translation>
+      <translation>Siirry online-tilaan päivittääksesi lataukset</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>Tyypit · Raja · 1000 · Albumit · Artisti</translation>
+      <translation>Ryhmittely on rajattu 1000 albumiin artistia kohden</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>Virheellinen · URL</translation>
+      <translation>Virheellinen URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>Virheellinen · UTF · 8 · Pyyntö</translation>
+      <translation>Virheellinen UTF-8-pyyntö</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>Virheellinen · Ääni</translation>
+      <translation>Virheellinen äänen esitysmuoto</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>Virheellinen · Ääni · Lähde</translation>
+      <translation>Virheellinen äänilähde</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>Virheellinen · Ääni · Äänenvoimakkuus</translation>
+      <translation>Virheellinen äänenvoimakkuus</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>Virheellinen · Välimuisti · Ääni</translation>
+      <translation>Virheellinen välimuistin äänen polku</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>Virheellinen · Tunniste</translation>
+      <translation>Virheellinen asiakastunniste</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>Virheellinen · Haku</translation>
+      <translation>Virheellinen Löydä-asettelu</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>Virheellinen · Suodatin</translation>
+      <translation>Virheelliset musiikkisuodattimen arvot</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>Virheellinen · Jono · Indeksi</translation>
+      <translation>Virheellinen jonon indeksi</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>Virheellinen · Jono · Järjestys</translation>
+      <translation>Virheellinen jonon järjestys</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>Virheellinen · Pyyntö · Tiedot</translation>
+      <translation>Virheelliset pyyntötiedot</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>Virheellinen · Lataukset · Alue</translation>
+      <translation>Virheellinen jatketun latauksen alue</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Virheellinen · Äänenvoimakkuus</translation>
+      <translation>Virheellinen kelauskohta</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>Virheellinen · Palvelin · Indeksi</translation>
+      <translation>Virheellinen palvelimen indeksi</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>Historia · Synkronoi · Lue lisää</translation>
+      <translation>Kuunteluhistoria on synkronoitava ennen uusien kuuntelujen tallentamista</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>Kirjaudu sisään · Vanhentunut · Aloita</translation>
+      <translation>Kirjautuminen vanheni; aloita alusta</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>Sanoitukset · Koko · Raja</translation>
+      <translation>Sanoitukset ylittävät kokorajan</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>Sanoitukset · Ei saatavilla · Tallennettu · Offline</translation>
+      <translation>Sanoituksia ei ole tallennettu offline-käyttöön</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Miksaus · Artistit · Albumit</translation>
+      <translation>Miksauksen lähtökohtien on oltava artisteja tai albumeita</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>Verkko · Pyyntö · Epäonnistui · Tarkista · Yhteys · Palvelin</translation>
+      <translation>Verkkopyyntö epäonnistui (tarkista yhteys ja palvelimen osoite)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>Seuraava · Kappale · Dekooderi · Epäonnistui</translation>
+      <translation>Seuraavan kappaleen purku epäonnistui</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>Ei mitään · Nykyinen · Radio</translation>
+      <translation>Ei aktiivista radiota</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>Ei mitään · Artistit · Indeksi</translation>
+      <translation>Tällä kirjaimella ei ole artisteja</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Ei mitään · Jono</translation>
+      <translation>Jono on tyhjä</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
@@ -521,254 +525,274 @@
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>Vain luku · Ääni · Soittolistat · Ladattu</translation>
+      <translation>Vain äänisoittolistoja voi ladata</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>Säilytä offline · Ylös · 1000 · Toista · Kappaleet</translation>
+      <translation>Säilytä offline-tilassa enintään 1000 toistettavaa kappaletta</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>Soittolista · Valitse · Raja · 1000 · Soittolistat</translation>
+      <translation>Soittolistan valitsin on rajattu 1000 soittolistaan</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>Soittolista · Vain luku</translation>
+      <translation>Soittolistojen muokkaus on poistettu käytöstä vain luku -tarkastelussa</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · Kirjaudu sisään · Epäonnistui · Tarkista · Palvelin · Tunniste</translation>
+      <translation>Plex-valtuutus epäonnistui; kirjaudu uudelleen tai tarkista palvelimen tunnus</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · Ei saatavilla · Artisti · Radio</translation>
+      <translation>Plex ei tarjoa tälle artistille artistiradioasemaa</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>Plex ei palauttanut tälle albumille äänellisiä suosituksia. Tarkista musiikkikirjaston äänianalyysin asetus ja edistyminen tai käytä artistiradiota.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · Vastaanotettu · Ei mitään · Samankaltainen · Kappale · Tarkista · Kirjasto · Käytetty · Artisti · Radio</translation>
+      <translation>Plex ei palauttanut tälle kappaleelle äänellisiä suosituksia. Tarkista musiikkikirjaston äänianalyysin asetus ja edistyminen tai käytä artistiradiota.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Jono · Kappaleet · Kelvollinen · Aloita · Indeksi</translation>
+      <translation>Jono vaatii kappaleita ja kelvollisen aloitusindeksin</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>Radio · Automaattinen toisto · Pysäytä · Toista uudelleen</translation>
+      <translation>Radio jatkuu automaattisesti; pysäytä radio käyttääksesi uudelleentoistoa</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>Radio · Ei mitään · Lue lisää · Samankaltainen · Miksaus</translation>
+      <translation>Radiolla ei ole enempää äänellisiä suosituksia; kokeile toista lähtökohtaa</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>Radio · Järjestys · Pysäytä · Sekoita</translation>
+      <translation>Radio säilyttää suositellun järjestyksen; pysäytä radio sekoittaaksesi</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>Radio · Toista · Yhteys</translation>
+      <translation>Radion toisto vaatii yhteyden</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Radio · Vastaanotettu · Ei mitään · Toista · Kappaleet</translation>
+      <translation>Radio ei palauttanut toistettavia kappaleita</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>Radio · Miksaus · Ei saatavilla</translation>
+      <translation>Radion lähtökohta ei vastaa valittua musiikkityyppiä</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>Ääni · Kesto · Ristiriitainen</translation>
+      <translation>Jatketun äänen pituus on epäjohdonmukainen</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>Lataukset · Ei mitään · Content-Range</translation>
+      <translation>Jatketulta lataukselta puuttuu Content-Range</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Tallennettu · Jono · Virheellinen</translation>
+      <translation>Tallennettu jono on virheellinen</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>Palvelin · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>Palvelimen URL-osoitteen on oltava HTTP(S)-alkuperä, esim. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>Palvelin · Vastaanotettu · Kappale</translation>
+      <translation>Palvelin palautti tälle kappaleelle muuta sisältöä kuin ääntä</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>Kirjaudu sisään · Aloita</translation>
+      <translation>Kirjaudu ensin sisään</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>Älykäs · Soittolista · Suodatin · Plex</translation>
+      <translation>Älykkäiden soittolistojen sisältöä ohjaavat niiden Plex-suodattimet</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>Samankaltainen · Raja · 250 · Kappaleet</translation>
+      <translation>Äänimatka ylittää 250 kappaletta</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>Aloita · Kirjaudu sisään</translation>
+      <translation>Aloita kirjautuminen ensin</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>Albumi · Ei mitään · Toista · Kappaleet</translation>
+      <translation>Tällä albumilla ei ole toistettavia kappaleita</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Artisti · Albumi · Ei saatavilla · Tallennettu · Offline</translation>
+      <translation>Tätä artistia tai albumia ei ole tallennettu offline-käyttöön</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>Kirjasto · Ei saatavilla · Tallennettu · Offline</translation>
+      <translation>Tätä kirjaston sivua ei ole vielä tallennettu offline-käyttöön</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>Kappale · Ei mitään · Toista · Tiedot</translation>
+      <translation>Tällä kappaleella ei ole toistettavaa mediaosaa</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>Kappale · Ei saatavilla · Ladattu</translation>
+      <translation>Tätä kappaletta ei ole ladattu</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>Kappale · Palvelin · Ei saatavilla</translation>
+      <translation>Tämä kappale ei ole enää palvelimella</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Kappale · Ei saatavilla · Välimuisti · Ladattu · Kappaleet</translation>
+      <translation>Tämä kappale ei ole vielä kokonaan välimuistissa; ladatut kappaleet ovat yhä käytettävissä</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>Kappale · Kesto · Lataukset</translation>
+      <translation>Kestoon perustuva lataus vaatii kappaleiden keston</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>Kappale · Ei mitään · Lataukset · Tiedot</translation>
+      <translation>Kappaleella ei ole ladattavaa mediaosaa</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>Virheellinen · Plex · Tiedot</translation>
+      <translation>Odottamaton Plex-vastaus</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>Virheellinen · Ääni</translation>
+      <translation>Tuntematon äänikomento</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>Virheellinen · Haku</translation>
+      <translation>Tuntematon Löydä-näkymä</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>Virheellinen · Lataukset</translation>
+      <translation>Tuntematon lataustoiminto</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>Virheellinen · Kirjasto · Järjestä</translation>
+      <translation>Tuntematon kirjaston lajittelu</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>Virheellinen</translation>
+      <translation>Tuntematon musiikkityyppi</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>Virheellinen · Offline</translation>
+      <translation>Tuntematon offline-musiikin tyyppi</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>Virheellinen · Toista · Tila</translation>
+      <translation>Tuntematon toistotila</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>Virheellinen · Soittolista</translation>
+      <translation>Tuntematon soittolistatoiminto</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>Virheellinen · Toista uudelleen</translation>
+      <translation>Tuntematon uudelleentoistotila</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>Albumi · Radio · Kappaleet</translation>
+      <translation>albumiradion kappaleet</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>Artisti · Artistit · Indeksi</translation>
+      <translation>artistien aakkoshakemisto</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>Kuvat</translation>
+      <translation>kansikuva</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>selainkirjautumisen luonti</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>selainkirjautumisen tarkistus</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>Välimuisti · Kappale · Metatiedot</translation>
+      <translation>välimuistin kappaleiden metatiedot</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>Luo · Soittolista</translation>
+      <translation>luotu soittolista</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>Sanoitukset</translation>
+      <translation>sanoitusrivit</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>Sanoitukset</translation>
+      <translation>sanoitusjakson teksti</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>Sanoitukset</translation>
+      <translation>sanoitusjaksot</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>Sanoitukset</translation>
+      <translation>sanoitusten JSON</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>Sanoitukset</translation>
+      <source>playlist creation</source>
+      <translation>soittolistan luonti</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>Soittolista · Metatiedot</translation>
+      <translation>soittolistan metatiedot</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>Radio · Lataukset · Kappaleet</translation>
+      <translation>radiolatauksen kappaleet</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>Radio · Jono</translation>
+      <translation>radiojonon keskikohta</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>Radio · Jono</translation>
+      <translation>radiojonon jatko</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>radiojonon luonti</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>Radio · Jono · Tunniste</translation>
+      <translation>radiojonon tunniste</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>Radio · Jono · Kappaleet</translation>
+      <translation>radiojonon kappaleet</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>Radio · Palvelin · Tunniste</translation>
+      <translation>radion palvelintunniste</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>Palvelin · Haku</translation>
+      <translation>palvelinten haku</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>palvelimen kirjastopyyntö</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>Samankaltainen</translation>
+      <translation>ääniseikkailu</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Siirrä · Lue lisää · Kuvat</translation>
+      <translation>Pyyhkäise nähdäksesi lisää kuvia</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,39 +800,39 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>Toista · Kappaleet</translation>
+      <translation>Toista kappaleet</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>Lataukset · Kappaleet</translation>
+      <translation>Lataa kappaleet</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Kuvaus · Ei saatavilla · Plex</translation>
+      <translation>Plex ei tarjoa kuvausta.</translation>
     </message>
     <message>
       <source>Read less</source>
-      <translation>Lue vähemmän</translation>
+      <translation>Näytä vähemmän</translation>
     </message>
     <message>
       <source>Read more</source>
-      <translation>Lue lisää</translation>
+      <translation>Näytä lisää</translation>
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>Samankaltainen · Artistit</translation>
+      <translation>Samankaltaiset artistit</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>Ladataan · Samankaltainen · Artistit</translation>
+      <translation>Ladataan samankaltaisia artisteja…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>Samankaltainen · Artistit · Ei saatavilla</translation>
+      <translation>Samankaltaisia artisteja ei ole juuri nyt saatavilla.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Samankaltainen · Artistit · Ei saatavilla · Plex</translation>
+      <translation>Plex ei palauttanut samankaltaisia artisteja.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -823,93 +847,93 @@
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Haku · Asetukset</translation>
+      <translation>Mukauta Löydä-näkymää</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Haku · Asetukset</translation>
+      <translation>Mukauta Löydä-näkymää</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Siirrä · Ylös</translation>
+      <translation>Siirrä ylös</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Siirrä · Alas</translation>
+      <translation>Siirrä alas</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>Lataukset · Hallinta</translation>
+      <translation>Lataustenhallinta</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automaattinen toisto · Päivitä · Lataukset</translation>
+      <translation>Päivitä latausuunnitelmat automaattisesti</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 tuntia</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Päivitä · Kesto</translation>
+      <translation>Päivitysväli</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Päivitä · Lataukset · Ladataan</translation>
+      <translation>Päivitetään latausuunnitelmia…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minuuttia</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Lataukset · Kesto</translation>
+      <translation>Radiolatausten pituus</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Lataukset · Vain luku · Wi-Fi</translation>
+      <translation>Lataa vain Wi-Fi-yhteydellä</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Jatka · Lataukset</translation>
+      <translation>Jatka latauksia</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Tauko · Lataukset</translation>
+      <translation>Keskeytä lataukset</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>Lataukset · Odotetaan · Wi-Fi · Ääni · Toista · Online</translation>
+      <translation>Odotetaan vahvistettua Wi-Fi-yhteyttä; suoratoisto on yhä käytettävissä.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+      <translation>Lataukset odottavat, kunnes suoratoisto ehtii mukaan</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Ääni · Välimuisti · Käytetty</translation>
+      <translation>Äänivälimuistia käytetty %1 MiB</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Offline · Kirjasto · Tiedot · Tallenna · Epäonnistui · %1</translation>
+      <translation>Offline-kirjaston tietoja ei voitu tallentaa: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Ääni · Kesto · %1</translation>
+      <translation>Suunniteltu ääni: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Kappaleet · %3 · MiB</translation>
+      <translation>%1/%2 kappaletta · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Nykyinen · Kappale · %1 · MiB · Vastaanotettu</translation>
+      <translation>Nykyinen kappale: %1 MiB vastaanotettu</translation>
     </message>
     <message>
       <source>Play</source>
@@ -925,141 +949,141 @@
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>Peruutettu</translation>
+      <translation>Peru suunnitelma</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>Poista</translation>
+      <translation>Poista tiedostot</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Odottaa · Historia · %1</translation>
+      <translation>Synkronoimaton kuunteluhistoria: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>Synkronoi · Historia</translation>
+      <translation>Synkronoi historia</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>Lataukset · Hallinta</translation>
+      <translation>Lataustenhallinta</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automaattinen toisto · Päivitä · Lataukset</translation>
+      <translation>Päivitä latausuunnitelmat automaattisesti</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Päivitä · Kesto</translation>
+      <translation>Päivitysväli</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 tuntia</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Päivitä · Lataukset · Ladataan</translation>
+      <translation>Päivitetään latausuunnitelmia…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Radio · Lataukset · Kesto</translation>
+      <translation>Radiolatausten pituus</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 minuuttia</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Lataukset · Vain luku · Wi-Fi</translation>
+      <translation>Lataa vain Wi-Fi-yhteydellä</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Jatka · Lataukset</translation>
+      <translation>Jatka latauksia</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Tauko · Lataukset</translation>
+      <translation>Keskeytä lataukset</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>Lataukset · Odotetaan · Wi-Fi · Ääni · Toista · Online</translation>
+      <translation>Odotetaan vahvistettua Wi-Fi-yhteyttä. Suoratoisto on yhä käytettävissä.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+      <translation>Lataukset odottavat, kunnes suoratoisto ehtii mukaan</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Ääni · Välimuisti · Käytetty</translation>
+      <translation>Äänivälimuistia käytetty %1 MiB</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Offline · Kirjasto · Tiedot · Tallenna · Epäonnistui · %1</translation>
+      <translation>Offline-kirjaston tietoja ei voitu tallentaa: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Odottaa · Historia · %1</translation>
+      <translation>Synkronoimaton kuunteluhistoria: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>Synkronoi · Historia</translation>
+      <translation>Synkronoi kuunteluhistoria</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Ääni · Kesto · %1</translation>
+      <translation>Suunniteltu ääni: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Kappaleet · %3 · MiB</translation>
+      <translation>%1/%2 kappaletta · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>Ladataan</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Nykyinen · Kappale · %1 · MiB · Vastaanotettu</translation>
+      <translation>Nykyinen kappale: %1 MiB vastaanotettu</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>Toista · Ladattu · Kappaleet</translation>
+      <translation>Toista ladatut kappaleet</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>Päivitä · Lataukset</translation>
+      <translation>Päivitä latausuunnitelma</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>Yritä uudelleen · Jatka</translation>
+      <translation>Yritä uudelleen/jatka</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>Peruutettu</translation>
+      <translation>Peru suunnitelma, säilytä tiedostot</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>Poista · Lataukset</translation>
+      <translation>Poista lataus</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>Kirjasto · Suodatin</translation>
+      <translation>Kirjaston suodattimet</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Älykäs · Soittolistat</translation>
+      <translation>Älykäs soittolista</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Älykäs · Soittolistat · Suodatin · Vain luku</translation>
+      <translation>Tämä muokkain ei pysty esittämään näitä älykkään soittolistan sääntöjä.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Soittolista</translation>
+      <translation>Soittolistan nimi</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1075,7 +1099,7 @@
     </message>
     <message>
       <source>Genre</source>
-      <translation>Genre</translation>
+      <translation>Tyylilaji</translation>
     </message>
     <message>
       <source>Mood</source>
@@ -1087,58 +1111,58 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Kaikki</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Nimi · Suodatin</translation>
+      <translation>Nimi sisältää</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Vuosi · Aloita</translation>
+      <translation>Vuodesta</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Vuosi · Raja</translation>
+      <translation>Vuoteen</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Suosikit · Raja</translation>
+      <translation>Vähimmäisarvio</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Toista · Ei mitään</translation>
+      <translation>Vain soittamattomat</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>Järjestä</translation>
+      <translation>Lajittele</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Raja · Kappaleet</translation>
+      <translation>Kappaleita enintään</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>Kirjasto · Suodatin</translation>
+      <translation>Kirjaston suodattimet</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Älykäs · Soittolistat</translation>
+      <translation>Älykäs soittolista</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Älykäs · Soittolistat · Suodatin · Vain luku</translation>
+      <translation>Tämä muokkain ei pysty esittämään näitä älykkään soittolistan sääntöjä.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Soittolista</translation>
+      <translation>Soittolistan nimi</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Kirjasto</translation>
+      <translation>Selaa</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1154,7 +1178,7 @@
     </message>
     <message>
       <source>Genre</source>
-      <translation>Genre</translation>
+      <translation>Tyylilaji</translation>
     </message>
     <message>
       <source>Mood</source>
@@ -1166,58 +1190,58 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Kaikki</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Nimi · Suodatin</translation>
+      <translation>Nimi sisältää</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Vuosi · Aloita</translation>
+      <translation>Vuodesta</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Vuosi · Raja</translation>
+      <translation>Vuoteen</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Suosikit · Raja</translation>
+      <translation>Vähimmäisarvio</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Toista · Ei mitään</translation>
+      <translation>Vain soittamattomat</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>Järjestä</translation>
+      <translation>Lajittele</translation>
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Raja · Kappaleet</translation>
+      <translation>Kappaleita enintään</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historia · Asetukset</translation>
+      <translation>Kuuntelutilastot</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Toista · %2 · Historia</translation>
+      <translation>%1 hyväksyttyä kuuntelua · %2 kuunneltu</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historia · local · Toista · Metatiedot</translation>
+      <translation>Perustuu paikallisesti mitattuihin hyväksyttyihin kuunteluihin tilastoinnin alusta lähtien.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 päivää</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historia</translation>
+      <translation>Koko historia</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1233,38 +1257,38 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Toista · %2 · Historia</translation>
+      <translation>%1 kuuntelua · %2 kuunneltu</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>Historia · Asetukset</translation>
+      <translation>Kuuntelutilastot</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Toista · %2 · Historia</translation>
+      <translation>%1 hyväksyttyä kuuntelua · %2 kuunneltu</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Historia · local · Toista · Metatiedot</translation>
+      <translation>Perustuu paikallisesti mitattuihin hyväksyttyihin kuunteluihin tilastoinnin alusta lähtien.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>Kesto</translation>
+      <translation>Ajanjakso</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 päivää</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Historia</translation>
+      <translation>Koko historia</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Kirjasto</translation>
+      <translation>Selaa</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1280,113 +1304,113 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Toista · %2 · Historia</translation>
+      <translation>%1 kuuntelua · %2 kuunneltu</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Lisää · Sonic · Lähde</translation>
+      <translation>Lisää äänimatkan välipiste</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>Älykäs · Suodatin · Asetukset</translation>
+      <translation>Muokkaa älykkäitä suodattimia</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Ääni · Samankaltainen</translation>
+      <translation>Samankaltainen soundi</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>Aloita · Sonic · Adventure</translation>
+      <translation>Aloita ääniseikkailu tästä</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Kappale</translation>
+      <translation>Ääniseikkailu tähän kappaleeseen</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>Lataukset · Radio · %1 · min</translation>
+      <translation>Lataa radio · %1 minuuttia</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>Lataukset · %1 · min</translation>
+      <translation>Lataa %1 minuuttia</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>Toista · Seuraava</translation>
+      <translation>Toista seuraavaksi</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Lisää · Jono</translation>
+      <translation>Lisää jonoon</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>Lisää · Soittolista</translation>
+      <translation>Lisää soittolistaan</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>Luo · Soittolista</translation>
+      <translation>Luo soittolista tästä</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Lisää · Miksaus</translation>
+      <translation>Lisää miksauksen lähtökohdaksi</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Nimeä uudelleen · Soittolista</translation>
+      <translation>Nimeä soittolista uudelleen</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>Poista · Soittolista</translation>
+      <translation>Poista soittolista</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>Siirrä · Soittolista · Ylös</translation>
+      <translation>Siirrä soittolistan kohtaa ylös</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>Siirrä · Soittolista · Alas</translation>
+      <translation>Siirrä soittolistan kohtaa alas</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>Poista · Soittolista</translation>
+      <translation>Poista soittolistasta</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>Poista</translation>
+      <translation>Poista suosikeista</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>Lisää · Suosikit</translation>
+      <translation>Lisää suosikkeihin</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>Älä säilytä · Lataukset</translation>
+      <translation>Älä säilytä offline-tilassa</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>Säilytä offline · Offline · Historia</translation>
+      <translation>Säilytä offline-kuuntelua varten</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Siirrä · Ylös</translation>
+      <translation>Siirrä ylös</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Siirrä · Alas</translation>
+      <translation>Siirrä alas</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Poista · Jono</translation>
+      <translation>Poista jonosta</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>Ylös · Seuraava</translation>
+      <translation>Seuraavana</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Tallennettu · Kirjasto · Metatiedot</translation>
+      <translation>Offline · näytetään tallennetut kirjaston metatiedot</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+      <translation>Lataukset odottavat, kunnes suoratoisto ehtii mukaan</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Välimuisti · Ääni</translation>
+      <translation>Tallennetaan ääntä välimuistiin…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Kappaleet · Valmis · Offline</translation>
+      <translation>%1 kappaletta käytettävissä offline-tilassa</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1442,23 +1466,23 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Haku · Artistit · Albumit · Kappaleet</translation>
+      <translation>Hae artisteja, albumeita ja kappaleita</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Kirjasto</translation>
+      <translation>Selaa</translation>
     </message>
     <message>
       <source>Sort</source>
-      <translation>Järjestä</translation>
+      <translation>Lajittele</translation>
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Avaa · Artisti</translation>
+      <translation>Avaa artisti</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Avaa · Albumi</translation>
+      <translation>Avaa albumi</translation>
     </message>
     <message>
       <source>Track</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Kappale · Palvelin · Ei saatavilla</translation>
+      <translation>Ei enää palvelimella</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Yritä uudelleen · Ladataan</translation>
+      <translation>Yritä ladata uudelleen</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>Ei mitään</translation>
+      <translation>Musiikkia ei löytynyt</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Yhdistä · Plex</translation>
+      <translation>Yhdistä Plexiin</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · Yhteys · Asetukset</translation>
+      <translation>Avaa yhteysasetukset ylös vedettävästä valikosta</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ei mitään · Toista</translation>
+      <translation>Mitään ei toisteta</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Toista</translation>
+      <translation>Nyt toistetaan</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Taajuus · Haku</translation>
+      <translation>Löydä taajuutesi.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Tallennettu · Kirjasto · Metatiedot</translation>
+      <translation>Offline · näytetään tallennetut kirjaston metatiedot</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Lataukset · Odotetaan · Ääni · Ladataan</translation>
+      <translation>Lataukset odottavat, kunnes suoratoisto ehtii mukaan</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Välimuisti · Ääni</translation>
+      <translation>Tallennetaan ääntä välimuistiin…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Kappaleet · Valmis · Offline</translation>
+      <translation>%1 kappaletta käytettävissä offline-tilassa</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,7 +1549,7 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Haku · Artistit · Albumit · Kappaleet</translation>
+      <translation>Hae artisteja, albumeita ja kappaleita</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1533,7 +1557,7 @@
     </message>
     <message>
       <source>Up next</source>
-      <translation>Ylös · Seuraava</translation>
+      <translation>Seuraavana</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Avaa · Artisti</translation>
+      <translation>Avaa artisti</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Avaa · Albumi</translation>
+      <translation>Avaa albumi</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Kappale · Palvelin · Ei saatavilla</translation>
+      <translation>Ei enää palvelimella</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,23 +1601,23 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Yritä uudelleen · Ladataan</translation>
+      <translation>Yritä ladata uudelleen</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>Ei mitään</translation>
+      <translation>Musiikkia ei löytynyt.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>Yhdistä · Plex · Palvelin · Aloita · Historia</translation>
+      <translation>Yhdistä Plex-musiikkipalvelimeesi aloittaaksesi kuuntelun.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Toista</translation>
+      <translation>Nyt toistetaan</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ei mitään · Toista</translation>
+      <translation>Mitään ei toisteta</translation>
     </message>
     <message>
       <source>Shuffle</source>
@@ -1601,59 +1625,59 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Toisto: yksi</translation>
+      <translation>Toista kappale uudelleen</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>Toisto: kaikki</translation>
+      <translation>Toista kaikki uudelleen</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Toisto: pois</translation>
+      <translation>Uudelleentoisto pois</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Yhdistä · Plex</translation>
+      <translation>Yhdistä Plexiin</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>Kirjaudu sisään · Plex · Selain</translation>
+      <translation>Kirjaudu Plexillä selaimessa</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>Odotetaan · Selain · Kirjaudu sisään</translation>
+      <translation>Odotetaan valtuutusta selaimessa…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>Avaa · Kirjaudu sisään</translation>
+      <translation>Avaa kirjautuminen uudelleen</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Valitse · Plex · Palvelin</translation>
+      <translation>Valitse Plex-palvelin</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>Palvelin · Avaa · Kirjasto</translation>
+      <translation>Valitse palvelin avataksesi sen musiikkikirjastot.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Päivitä · Plex</translation>
+      <translation>Päivitä luettelo löytääksesi Plex-palvelimesi.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Päivitä</translation>
+      <translation>Päivitä palvelimet</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Yhdistä · Kirjasto</translation>
+      <translation>Yhdistä musiikkikirjastoihin</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Yhteys</translation>
+      <translation>Suora yhteys</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>Yhdistä · Palvelin · URL · Plex · Tunniste</translation>
+      <translation>Tai yhdistä suoraan palvelimen URL-osoitteella ja Plex-tunnuksella:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,54 +1685,54 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>Yhdistä · Yhteys</translation>
+      <translation>Yhdistä suoraan</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>Kirjaudu sisään · Tyhjennä · Tallennettu</translation>
+      <translation>Kirjaudu ulos ja poista tallennetut tunnukset</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Offline · Ääni · Välimuisti</translation>
+      <translation>Offline-äänivälimuisti</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Ääniasetukset</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Automaattinen toisto · Samankaltainen · Jono</translation>
+      <translation>Toista samankaltaista musiikkia jonon loputtua</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Välimuisti · Jono · Ääni · Automaattinen toisto</translation>
+      <translation>Tallenna jonon ääni välimuistiin automaattisesti</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Välimuisti · Raja</translation>
+      <translation>Välimuistin raja</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Kappaleet · Ladattu · %2 · MiB · Käytetty</translation>
+      <translation>%1 kappaletta ladattu · %2 MiB käytetty</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Tyhjennä · Välimuisti · Pysäytä · Toista</translation>
+      <translation>Tyhjennä välimuisti ja pysäytä toisto</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>Offline · Kirjasto</translation>
+      <translation>Offline-kirjasto</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>Asetukset</translation>
+      <translation>Sivun toiminnot</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Kirjasto</translation>
+      <translation>Lisää kohteita</translation>
     </message>
     <message>
       <source>Show all</source>
@@ -1716,7 +1740,7 @@
     </message>
     <message>
       <source>Discover</source>
-      <translation>Haku</translation>
+      <translation>Löydä</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1728,39 +1752,39 @@
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>Haku · Asetukset</translation>
+      <translation>Mukauta Löydä-näkymää</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>Kirjasto · Suodatin</translation>
+      <translation>Kirjaston suodattimet</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>Tyypit · Albumit</translation>
+      <translation>Ryhmittele albumit tyypin mukaan</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>Luo · Älykäs · Soittolistat</translation>
+      <translation>Luo älykäs soittolista</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Luo · Soittolista · Kappaleet · Jono</translation>
+      <translation>Luo soittolista kappaleista/jonosta</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>Lataukset · Kappaleet</translation>
+      <translation>Lataa näytetyt kappaleet</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Tyhjennä · Miksaus</translation>
+      <translation>Tyhjennä miksauksen lähtökohdat</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Tyhjennä · Sonic · Lähde</translation>
+      <translation>Tyhjennä äänimatkan välipisteet</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>Pysäytä · Radio</translation>
+      <translation>Pysäytä radio</translation>
     </message>
     <message>
       <source>Queue</source>
@@ -1768,19 +1792,19 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Ladattu</translation>
+      <translation>Ladattu musiikki</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>Tallennettu · Albumit</translation>
+      <translation>Tallennetut albumit</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>Historia · Asetukset</translation>
+      <translation>Kuuntelutilastot</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Suosikit · ★ · 5</translation>
+      <translation>Suosikit · 5 tähteä</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1788,11 +1812,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Äskettäin toistetut</translation>
+      <translation>Äskettäin soitetut</translation>
     </message>
     <message>
       <source>Download manager</source>
-      <translation>Lataukset · Hallinta</translation>
+      <translation>Lataustenhallinta</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,42 +1824,42 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>Ylös</translation>
+      <translation>Takaisin</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Online</translation>
+      <translation>Siirry online-tilaan</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>Kirjasto · Tallennettu · Offline</translation>
+      <translation>Selaa tallennettua kirjastoa offline-tilassa</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Toista · Miksaus · %1 · Lähde</translation>
+      <translation>Toista miksaus (%1 lähtökohtaa)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · Miksaus · %1 · Kappaleet</translation>
+      <translation>Äänimatka (%1 kappaletta)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>Toista</translation>
+      <translation>Nyt toistetaan</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ei mitään · Toista</translation>
+      <translation>Mitään ei toisteta</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Suosikit</translation>
+      <translation>★ Suosikki</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Lisää · Suosikit</translation>
+      <translation>☆ Lisää suosikkeihin</translation>
     </message>
     <message>
       <source>Lyrics</source>
@@ -1843,42 +1867,42 @@
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Ladataan · Sanoitukset</translation>
+      <translation>Ladataan sanoituksia…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Sanoitukset · Ei saatavilla · Offline · Palvelin</translation>
+      <translation>Sanoitukset eivät ole saatavilla offline-tilassa tai tällä palvelimella.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Sanoitukset · Ei saatavilla · Plex</translation>
+      <translation>Plex ei tarjoa sanoituksia.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>Sanoitukset</translation>
+      <translation>Lataa sanoitukset uudelleen</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>Sanoitukset</translation>
+      <translation>Lataa sanoitukset uudelleen</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Toista</translation>
+      <translation>Nyt toistetaan</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Ei mitään · Toista</translation>
+      <translation>Mitään ei toisteta</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Suosikit</translation>
+      <translation>★ Suosikki</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Lisää · Suosikit</translation>
+      <translation>☆ Lisää suosikkeihin</translation>
     </message>
     <message>
       <source>Lyrics</source>
@@ -1886,30 +1910,30 @@
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Ladataan · Sanoitukset</translation>
+      <translation>Ladataan sanoituksia…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Sanoitukset · Ei saatavilla · Offline · Palvelin</translation>
+      <translation>Sanoitukset eivät ole saatavilla offline-tilassa tai tällä palvelimella.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Sanoitukset · Ei saatavilla · Plex</translation>
+      <translation>Plex ei tarjoa sanoituksia.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Lisää · Soittolista</translation>
+      <translation>Lisää soittolistaan</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Nimeä uudelleen · Soittolista</translation>
+      <translation>Nimeä soittolista uudelleen</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Luo · Soittolista</translation>
+      <translation>Luo soittolista</translation>
     </message>
     <message>
       <source>Save</source>
@@ -1917,7 +1941,7 @@
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Soittolista</translation>
+      <translation>Soittolistan nimi</translation>
     </message>
     <message>
       <source>Playlist</source>
@@ -1925,30 +1949,30 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Älykäs · Soittolistat · Plex · Suodatin · Uusi · Soittolistat · Kappaleet · Albumit · Jono</translation>
+      <translation>Älykkäiden soittolistojen sisältöä hallitsevat Plex-suodattimet. Uudet soittolistat käyttävät valittuja kappaleita/albumia tai jonoa.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Lisää · Soittolista</translation>
+      <translation>Lisää soittolistaan</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Nimeä uudelleen · Soittolista</translation>
+      <translation>Nimeä soittolista uudelleen</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Luo · Soittolista</translation>
+      <translation>Luo soittolista</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Soittolista</translation>
+      <translation>Soittolistan nimi</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Älykäs · Soittolistat · Plex · Suodatin · Uusi · Soittolistat · Kappaleet · Albumit · Jono</translation>
+      <translation>Älykkäät soittolistat käyttävät Plex-suodattimia. Uudet soittolistat käyttävät valittuja kappaleita/albumia tai jonoa.</translation>
     </message>
   </context>
   <context>
@@ -1978,11 +2002,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Äskettäin toistetut</translation>
+      <translation>Äskettäin soitetut</translation>
     </message>
     <message>
       <source>Most played</source>
-      <translation>Historia · Toista</translation>
+      <translation>Eniten soitetut</translation>
     </message>
     <message>
       <source>Shuffle</source>
@@ -1990,31 +2014,31 @@
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>Suodatin · Ääni</translation>
+      <translation>Suodatettu musiikki</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>Ääniseikkailu</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Haku</translation>
+      <translation>Löydä</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>Lähde · Ääni</translation>
+      <translation>Alkuperäinen ääni</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Ääni · Samankaltainen</translation>
+      <translation>Samankaltainen soundi</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Suosikit · ★ · 5</translation>
+      <translation>Suosikit · 5 tähteä</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2026,43 +2050,43 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Ladattu</translation>
+      <translation>Ladattu musiikki</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>Kappale · Määrä · Ei saatavilla</translation>
+      <translation>Kappalemäärä ei saatavilla</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · Kappale</translation>
+      <translation>1 kappale</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · Kappaleet</translation>
+      <translation>%1 kappaletta</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>Kesto · Ei saatavilla</translation>
+      <translation>Kesto ei saatavilla</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>Artisti · Radio</translation>
+      <translation>Artistiradio</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>Albumi · Radio</translation>
+      <translation>Albumiradio</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>Kappale · Radio</translation>
+      <translation>Kappaleradio</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>Offline · Kirjasto</translation>
+      <translation>Offline-kirjasto</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>Haku</translation>
+      <translation>Hakutulokset</translation>
     </message>
     <message>
       <source>Playlists</source>
@@ -2073,51 +2097,51 @@
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>Yhdistä · Plex</translation>
+      <translation>Yhdistä Plexiin</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>Kirjaudu sisään · Plex</translation>
+      <translation>Kirjaudu Plexillä</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>Kirjaudu sisään · Selain · Vastaanotettu</translation>
+      <translation>Viimeistele kirjautuminen selaimessa ja palaa sitten tänne.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>Avaa · Selain</translation>
+      <translation>Avaa selain uudelleen</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Valitse · Plex · Palvelin</translation>
+      <translation>Valitse Plex-palvelin</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>Valitse · Palvelin · Avaa · Kirjasto</translation>
+      <translation>Napauta palvelinta avataksesi sen musiikkikirjastot.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Päivitä · Plex</translation>
+      <translation>Päivitä luettelo löytääksesi Plex-palvelimesi.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Päivitä</translation>
+      <translation>Päivitä palvelimet</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Yhdistä · Kirjasto</translation>
+      <translation>Yhdistä musiikkikirjastoihin</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Yhteys</translation>
+      <translation>Suora yhteys</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>Palvelin · URL</translation>
+      <translation>Palvelimen URL</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · Tunniste</translation>
+      <translation>Plex-tunnus</translation>
     </message>
     <message>
       <source>Connect</source>
@@ -2125,58 +2149,58 @@
     </message>
     <message>
       <source>Sign out</source>
-      <translation>Kirjaudu sisään</translation>
+      <translation>Kirjaudu ulos</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Offline · Ääni · Välimuisti</translation>
+      <translation>Offline-äänivälimuisti</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Ääni · Asetukset</translation>
+      <translation>Ääniasetukset</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Automaattinen toisto · Samankaltainen · Jono</translation>
+      <translation>Toista samankaltaista musiikkia jonon loputtua</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Lataukset · Vain luku · Wi-Fi</translation>
+      <translation>Lataa vain Wi-Fi-yhteydellä</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>Avaa · Lataukset · Hallinta</translation>
+      <translation>Avaa lataustenhallinta</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Välimuisti · Jono · Ääni · Automaattinen toisto</translation>
+      <translation>Tallenna jonon ääni välimuistiin automaattisesti</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Välimuisti · Raja</translation>
+      <translation>Välimuistin raja</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Kappaleet · Ladattu · %2 · MiB · Käytetty</translation>
+      <translation>%1 kappaletta ladattu · %2 MiB käytetty</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Välimuisti · Nykyinen · Kappale · Seuraava · %1 · Kappaleet · Lataukset · Albumit · Valmis · Offline</translation>
+      <translation>Nykyinen kappale ja %1 seuraavaa jonon kappaletta tallennetaan välimuistiin. Lataa albumi ennen matkaa; vain valmiit lataukset toimivat offline-tilassa.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Tyhjennä · Välimuisti · Pysäytä · Toista</translation>
+      <translation>Tyhjennä välimuisti ja pysäytä toisto</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · Suoraan suoratoistava musiikkisoitin</translation>
+      <translation>PlexFreq %1 · Suoratoistava musiikkisoitin</translation>
     </message>
   </context>
   <context>
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>Ei mitään · Toista</translation>
+      <translation>Mitään ei toisteta</translation>
     </message>
   </context>
   <context>
@@ -2187,7 +2211,7 @@
     </message>
     <message>
       <source>EPs</source>
-      <translation>EP</translation>
+      <translation>EP:t</translation>
     </message>
     <message>
       <source>Singles</source>
@@ -2195,7 +2219,7 @@
     </message>
     <message>
       <source>Live</source>
-      <translation>Live</translation>
+      <translation>Livealbumit</translation>
     </message>
     <message>
       <source>Compilations</source>

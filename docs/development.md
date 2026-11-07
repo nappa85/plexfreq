@@ -194,7 +194,7 @@ dispatch, with six independent jobs on Ubuntu 24.04:
 | `pulse` | `tools/pulse-test-server.sh` with the native daemon and `PLEXFREQ_REQUIRE_PULSE=1`, once with shared memory and once with `PLEXFREQ_PULSE_SHM=0` |
 | `qt` | Qt6 Release build with `BUILD_TESTING=ON` and `ctest` |
 | `qml` | Qt5 `qmllint` syntax check of all Silica, shared and desktop QML |
-| `i18n` | `tools/build-qm.sh --check`; `python3 -m unittest test_external_review` |
+| `i18n` | `tools/build-qm.sh --check`; `python3 -m unittest test_translations test_review_snapshot` |
 | `harbour` | `tools/build-sailfish.sh`, then `tools/check-harbour.sh` |
 
 CI does not exercise phone audio routing, hardware keys, Sailjail or a real Plex
@@ -253,25 +253,39 @@ wraps `tools/translations.py`; `tools/translations.json` is the authored source 
 every locale and the only input a normal build needs.
 
 1. Extract source strings from `app/qml` and `app/src` (`lupdate`) plus the Rust
-   user-facing errors (`Error::Input`/`Error::ProtocolAt` literals and the `Core`
-   list in `translations.py`) into `app/translations/harbour-plexfreq.ts`:
+   user-facing errors into `app/translations/harbour-plexfreq.ts`:
 
    ```sh
    tools/build-qm.sh --extract
    ```
 
-2. Author translations for new strings only:
+   The Rust messages are:
+   - every string literal in an `Error::Input`/`Error::ProtocolAt` argument,
+     including match arms;
+   - `Error::Input(CONSTANT)`, resolved through its `const` definition, except
+     for `INTERNAL_CONSTANTS`, which never reach the presentation;
+   - the `OUTPUT_STUCK` banner;
+   - the `Core` list in `translations.py`;
+   - the request contexts: string literals passed directly as the last argument
+     of a call to `CONTEXT_FUNCTIONS` (`.request` on any receiver, `bounded_json`,
+     `plex_json`, with or without a turbofish).
 
-   ```sh
-   python3 tools/author-translations.py --missing-only
-   ```
+   A context fills %1 in "Unexpected Plex response (%1)", so it is a nominative
+   noun phrase. Extraction fails in two cases:
+   - `Error::ProtocolAt` gets a parameter in a function that is not in
+     `CONTEXT_FUNCTIONS`, or an argument that is not a literal, constant or
+     parameter;
+   - an `Error::Input`/`Error::ProtocolAt` constant cannot be resolved.
 
-   Existing entries are kept. New strings are filled from exact reference matches,
-   then from compact phrase recipes (`SIMPLE`, `PHRASES`, `ALIASES` with
-   `tools/translation-vocabulary.json`); Italian uses the full sentences in
-   `ITALIAN`. Without `--missing-only` every entry is regenerated, discarding
-   hand edits. Review the result and edit `tools/translations.json` directly
-   where a recipe is not good enough.
+   Comments, `#[cfg(test)]`/`#[cfg(all(test, …))]` modules and `*_tests.rs`
+   files are skipped; other test-only items are scanned (`tools/test_translations.py`).
+
+2. Add every new source to each locale in `tools/translations.json`. The
+   translations are machine-written and are not reviewed by native speakers.
+   Translate each locale from the English source, keeping the locale's existing
+   terms. Then have a separate agent translate the result back into English and
+   compare it with the source. A translation identical to the English, other than
+   names, units and placeholders, must be listed under that locale in `_same`.
 
 3. Generate the per-locale TS, QM and `app/translations.qrc`, then verify:
 
@@ -280,9 +294,13 @@ every locale and the only input a normal build needs.
    tools/build-qm.sh --check
    ```
 
-The check fails on a missing or empty translation, a placeholder mismatch
-(`%1`…`%9`, `%n`), or any committed TS/QM/qrc file that differs from the
-generated one. Identical translations are allowed (loanwords such as "Mix").
+The check fails on any of these:
+- a missing, stale or empty translation;
+- a placeholder mismatch (`%1`…`%9`, `%n`);
+- a " · " keyword list that the source does not have;
+- text without the locale's script (Cyrillic, Greek, Indic or Han locales);
+- English left in place but not listed in `_same`;
+- any committed TS/QM/qrc file that differs from the generated one.
 
 ## Device testing on SailfishOS
 
@@ -357,23 +375,23 @@ runs unpacked from any directory. Runtime requirements ship in
 
 - Every plan gets an independent adversarial review before execution, and every
   material change set before it is marked complete. Self-review does not count.
-- Reviews run in parallel: OpenAI Sol through `tools/external_review.py --chain
-  main` and a fresh Sonnet subagent. A third review uses `--chain third`, the
-  first available of Space Bunny, DeepSeek v4.1 Flash and Muse Spark; if none
-  works, record that and continue with two.
+- Reviews run in parallel: a fresh Sonnet subagent and the external panel of the
+  [`external-agents`](https://github.com/nappa85/external-agents) skill, OpenAI Sol
+  plus the optional DeepSeek v4.1 Flash free tier:
 
   ```sh
-  python3 tools/external_review.py --source . --prompt-file <prompt.md> \
-      --output review-notes/<name>.md --chain main [--diff]
+  EXTERNAL_REVIEWERS='opencode:openai/gpt-6.1-sol; ? opencode:opencode/deepseek-v4.1-flash-free' \
+  python3 -I <skill-dir>/scripts/external_agents.py review --prompt-file <prompt.md> \
+      --output-dir review-notes/<name>/ --base HEAD
   ```
 
-  The tool runs `opencode` with a read-only reviewer agent on a sanitized snapshot
-  (no Git data, build output, packages, logs, session/queue/listen/history files,
-  credentials or compiled catalogues; `--diff` adds `git diff HEAD`). Exit code 0
-  means a review was written (the first line names the model), 3 that every model
-  in the chain was unavailable. Its sanitization and fallback order are tested by
-  `tools/test_external_review.py`. Free tiers may log prompts: send only
-  repository source and docs.
+  Each reviewer gets a snapshot of the tracked and untracked non-ignored files, with
+  no Git data, as a read-only opencode agent; the diff against `--base` is in
+  `REVIEW_DIFF.patch`. `.gitignore` keeps build output, packages, logs, Plex
+  session/queue/resume/listen/history files and credentials out of the snapshot,
+  tested by `tools/test_review_snapshot.py`. Exit code 3 means a required slot had
+  no available reviewer: record it and continue with the others. Free tiers may log
+  prompts: send only repository source and docs.
 - Adjudicate blocking findings against the code before acting; resolve them before
   completion, or record the work as blocked.
 - Records (scope, findings, severity, disposition, verification) go in the

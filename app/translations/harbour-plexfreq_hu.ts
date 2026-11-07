@@ -11,75 +11,75 @@
     <name>AudioSettings</name>
     <message>
       <source>Audio settings</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Hangbeállítások</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Streamelési minőség</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Hang</translation>
+      <translation>Hang Wi-Fi-n</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Hálózat · Hang</translation>
+      <translation>Hang mobilneten</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Letöltések · Hang</translation>
+      <translation>Letöltési hangminőség</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekóder · Újrapróbálás</translation>
+      <translation>Plex-átkódolás nem támogatott kodeknél</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Hang · Beállítások · Következő · Számok · Letöltések · Kész · Hang</translation>
+      <translation>A minőség változása a következő számokra és letöltésekre vonatkozik. A már letöltött helyi hang elsőbbséget élvez.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Hang · Szünetmentes · PCM · Kimenet</translation>
+      <translation>Rust hangmotor · szünetmentes PCM-kimenet</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Másodperc</translation>
+      <translation>%1 másodperc</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Ki</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Átkeverés</translation>
+      <translation>Áttűnés</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalizálás</translation>
+      <translation>Hangerő-normalizálás</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Szám · Normalizálás</translation>
+      <translation>Számerősítés</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Albumok · Normalizálás</translation>
+      <translation>Albumerősítés</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automatikus lejátszás · Normalizálás</translation>
+      <translation>Automatikus erősítés</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Hang · Hangerő · Tartomány</translation>
+      <translation>Tartalék szint</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metaadatok · Normalizálás · Albumok · Szünetmentes · Átkeverés · off</translation>
+      <translation>Ha elérhetők, a Plex erősítési metaadatait használja. Az azonos album számai áttűnés nélkül, szünetmentesen követik egymást.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -87,86 +87,86 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Visszaállítás · Hangszínszabályzó</translation>
+      <translation>Hangszínszabályzó visszaállítása</translation>
     </message>
   </context>
   <context>
     <name>AudioSettingsPage</name>
     <message>
       <source>Audio settings</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Hangbeállítások</translation>
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Streamelési minőség</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
-      <translation>Wi-Fi · Hang</translation>
+      <translation>Hang Wi-Fi-n</translation>
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Hálózat · Hang</translation>
+      <translation>Hang mobilneten</translation>
     </message>
     <message>
       <source>Download audio</source>
-      <translation>Letöltések · Hang</translation>
+      <translation>Letöltési hangminőség</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
-      <translation>Plex · Dekóder · Újrapróbálás</translation>
+      <translation>Plex-átkódolás nem támogatott kodeknél</translation>
     </message>
     <message>
       <source>Quality changes apply to following tracks and downloads. Completed local audio is preferred.</source>
-      <translation>Hang · Beállítások · Következő · Számok · Letöltések · Kész · Hang</translation>
+      <translation>A minőség változása a következő számokra és letöltésekre vonatkozik. A már letöltött helyi hang elsőbbséget élvez.</translation>
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Rust · Hang · Szünetmentes · PCM · Kimenet</translation>
+      <translation>Rust hangmotor · szünetmentes PCM-kimenet</translation>
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Átkeverés</translation>
+      <translation>Áttűnés</translation>
     </message>
     <message>
       <source>%1 seconds</source>
-      <translation>%1 · Másodperc</translation>
+      <translation>%1 másodperc</translation>
     </message>
     <message>
       <source>Off</source>
-      <translation>off</translation>
+      <translation>Ki</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>Normalizálás</translation>
+      <translation>Hangerő-normalizálás</translation>
     </message>
     <message>
       <source>Normalization mode</source>
-      <translation>Normalizálás · Beállítások</translation>
+      <translation>Normalizálási mód</translation>
     </message>
     <message>
       <source>Album gain</source>
-      <translation>Albumok · Normalizálás</translation>
+      <translation>Albumerősítés</translation>
     </message>
     <message>
       <source>Automatic gain</source>
-      <translation>Automatikus lejátszás · Normalizálás</translation>
+      <translation>Automatikus erősítés</translation>
     </message>
     <message>
       <source>Track gain</source>
-      <translation>Szám · Normalizálás</translation>
+      <translation>Számerősítés</translation>
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Hang · Hangerő · Tartomány</translation>
+      <translation>Tartalék szint</translation>
     </message>
     <message>
       <source>%1 dB</source>
-      <translation>%1 · dB</translation>
+      <translation>%1 dB</translation>
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Plex · Metaadatok · Normalizálás · Albumok · Szünetmentes · Átkeverés · off</translation>
+      <translation>Ha elérhetők, a Plex erősítési metaadatait használja. Az azonos album számai áttűnés nélkül, szünetmentesen követik egymást.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -174,7 +174,7 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Visszaállítás · Hangszínszabályzó</translation>
+      <translation>Hangszínszabályzó visszaállítása</translation>
     </message>
   </context>
   <context>
@@ -185,335 +185,339 @@
     </message>
     <message>
       <source>Plex returned HTTP %1</source>
-      <translation>Plex · HTTP · %1 · Sikertelen</translation>
+      <translation>A Plex HTTP %1 kódot adott vissza</translation>
     </message>
     <message>
-      <source>Unexpected Plex response during %1</source>
-      <translation>Plex · Adatok · Érvénytelen · %1</translation>
+      <source>Unexpected Plex response (%1)</source>
+      <translation>Váratlan Plex-válasz (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
-      <translation>Hozzáadás · Számok · Albumok · Lejátszási lista</translation>
+      <translation>Adj hozzá számokat vagy albumokat egy lejátszási listához</translation>
     </message>
     <message>
       <source>Add up to 1000 tracks at a time</source>
-      <translation>Hozzáadás · Fel · 1000 · Számok</translation>
+      <translation>Egyszerre legfeljebb 1000 számot adhatsz hozzá</translation>
     </message>
     <message>
       <source>Artist or album details are unavailable</source>
-      <translation>Előadó · Album · Metaadatok · Nem érhető el</translation>
+      <translation>Az előadó vagy az album adatai nem érhetők el</translation>
     </message>
     <message>
       <source>Artwork exceeds size limit</source>
-      <translation>Fényképek · Korlát · Méret</translation>
+      <translation>A borítókép túllépi a méretkorlátot</translation>
     </message>
     <message>
       <source>Audio cache is already in use by another PlexFreq instance</source>
-      <translation>Hang · Gyorsítótár · Jelenlegi · Használva · PlexFreq</translation>
+      <translation>A hang-gyorsítótárat már egy másik PlexFreq-példány használja</translation>
     </message>
     <message>
       <source>Audio changed or server returned the wrong byte range; retrying from the beginning</source>
-      <translation>Hang · Kiszolgáló · Fogadva · Tartomány</translation>
+      <translation>A hang megváltozott, vagy a szerver hibás bájttartományt küldött; újrapróbálás az elejétől</translation>
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Hang · Sor · Nem érhető el</translation>
+      <translation>A hangparancsok sora nem érhető el</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
-      <translation>Hang · Dekóder · Sikertelen</translation>
+      <translation>A hang dekódolása vagy streamelése sikertelen</translation>
     </message>
     <message>
       <source>Audio download is incomplete; waiting to resume</source>
-      <translation>Hang · Letöltések · Hiányos · Várakozás · Folytatás</translation>
+      <translation>A hang letöltése nem teljes; várakozás a folytatásra</translation>
     </message>
     <message>
       <source>Audio engine is starting</source>
-      <translation>Hang · Indítás</translation>
+      <translation>A hangmotor indul</translation>
     </message>
     <message>
       <source>Audio file exceeds the cache limit</source>
-      <translation>Hang · Korlát · Gyorsítótár</translation>
+      <translation>A hangfájl túllépi a gyorsítótár korlátját</translation>
     </message>
     <message>
       <source>Audio output failed</source>
-      <translation>Hang · Kimenet · Sikertelen</translation>
+      <translation>A hangkimenet hibát jelzett</translation>
     </message>
     <message>
       <source>Audio output is unavailable</source>
-      <translation>Hang · Kimenet · Nem érhető el</translation>
+      <translation>A hangkimenet nem érhető el</translation>
+    </message>
+    <message>
+      <source>Audio output stopped responding; reconnect the audio device, then press Play</source>
+      <translation>A hangkimenet nem válaszol; csatlakoztasd újra a hangeszközt, majd nyomd meg a Lejátszás gombot</translation>
     </message>
     <message>
       <source>Audio playback failed</source>
-      <translation>Hang · Lejátszás · Sikertelen</translation>
+      <translation>A hang lejátszása sikertelen</translation>
     </message>
     <message>
       <source>Audio response exceeds its declared size</source>
-      <translation>Hang · Adatok · Korlát · Méret</translation>
+      <translation>A hangválasz túllépi a megadott méretet</translation>
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Hang · Hangerő · Sikertelen</translation>
+      <translation>A hangban való tekerés sikertelen</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
-      <translation>Hang · Beállítások · Tartomány</translation>
+      <translation>A hangbeállítások kívül esnek a támogatott tartományon</translation>
     </message>
     <message>
       <source>Audio streaming failed</source>
-      <translation>Hang · Sikertelen</translation>
+      <translation>A hang streamelése sikertelen</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Hang · Sor · Nem érhető el</translation>
+      <translation>A háttérrendszer parancssora nem érhető el</translation>
     </message>
     <message>
       <source>Backend panic</source>
-      <translation>Hang · Sikertelen</translation>
+      <translation>Belső hiba a háttérrendszerben</translation>
     </message>
     <message>
       <source>Backend unavailable</source>
-      <translation>Hang · Nem érhető el</translation>
+      <translation>A háttérrendszer nem érhető el</translation>
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Gyorsítótár · Korlát · Ürítés · Hang</translation>
+      <translation>A gyorsítótár megtelt; növeld a korlátot, vagy töröld a gyorsítótárazott hangot</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
-      <translation>Gyorsítótár · Korlát · 64–8192 · MiB · Következő · 0–20 · Számok</translation>
+      <translation>A gyorsítótár korlátja 64–8192 MiB, az előtöltés 0–20 szám lehet</translation>
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Gyorsítótár · Kérés · Megszakítva</translation>
+      <translation>Gyorsítótárazási kérés megszakítva</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>Gyorsítótár · Fel · 1000 · Érvényes · Számok</translation>
+      <translation>Egy gyorsítótárazási kérés legfeljebb 1000 érvényes zeneszámot tartalmazhat</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
-      <translation>Gyorsítótár · Érvénytelen · Hang · Adatok</translation>
+      <translation>A gyorsítótárhoz kódolatlan hangválasz szükséges</translation>
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Gyorsítótár · Folyamat · Nem érhető el</translation>
+      <translation>A gyorsítótár-folyamat nem érhető el</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
-      <translation>Sikertelen · Beállítások · Állapot</translation>
+      <translation>Az alkalmazás állapota nem olvasható vagy írható</translation>
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Kiválasztás · 1–10 · Előadók · Albumok · Mix</translation>
+      <translation>Válassz 1–10 előadót vagy albumot a mixhez</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
-      <translation>Kiválasztás · 2–8 · Számok · Hasonló</translation>
+      <translation>Válassz 2–8 számot a hangzásbeli utazáshoz</translation>
     </message>
     <message>
       <source>Choose 30–480 minutes for a radio download</source>
-      <translation>Kiválasztás · 30–480 · Rádió · Letöltések</translation>
+      <translation>Válassz 30–480 percet a rádió letöltéséhez</translation>
     </message>
     <message>
       <source>Choose 7, 30, 90 days or all listening history</source>
-      <translation>Kiválasztás · 7 · 30 · 90 · Előzmények</translation>
+      <translation>Válassz 7, 30, 90 napot vagy a teljes hallgatási előzményt</translation>
     </message>
     <message>
       <source>Choose a music item</source>
-      <translation>Kiválasztás</translation>
+      <translation>Válassz egy zenei elemet</translation>
     </message>
     <message>
       <source>Choose a playlist occurrence</source>
-      <translation>Kiválasztás · Lejátszási lista · Szám</translation>
+      <translation>Válassz egy bejegyzést a lejátszási listában</translation>
     </message>
     <message>
       <source>Choose a playlist, album or radio download</source>
-      <translation>Kiválasztás · Lejátszási lista · Album · Rádió · Letöltések</translation>
+      <translation>Válassz letöltendő lejátszási listát, albumot vagy rádiót</translation>
     </message>
     <message>
       <source>Choose a refresh interval of 1, 6, 12 or 24 hours</source>
-      <translation>Kiválasztás · Frissítés · 1 · 6 · 12 · 24</translation>
+      <translation>Válassz 1, 6, 12 vagy 24 órás frissítési időközt</translation>
     </message>
     <message>
       <source>Choose a track, album or playlist to pin</source>
-      <translation>Kiválasztás · Szám · Album · Lejátszási lista · Megőrzés offline</translation>
+      <translation>Válassz rögzítendő számot, albumot vagy lejátszási listát</translation>
     </message>
     <message>
       <source>Choose original audio or 64–320 kbps</source>
-      <translation>Kiválasztás · Hang · 64–320</translation>
+      <translation>Válaszd az eredeti hangot vagy 64–320 kbps-t</translation>
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Kiválasztás · Számok · Sor · Korlát · 10000</translation>
+      <translation>Válassz számokat a lejátszási sorba (legfeljebb 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
-      <translation>Kiválasztás · Számok · Album · Lejátszási lista</translation>
+      <translation>Válassz számokat vagy albumot a lejátszási listához</translation>
     </message>
     <message>
       <source>Choose up to 1000 valid tracks to download</source>
-      <translation>Kiválasztás · Fel · 1000 · Érvényes · Számok · Letöltések</translation>
+      <translation>Legfeljebb 1000 érvényes számot válassz letöltésre</translation>
     </message>
     <message>
       <source>Connect to a Plex server first</source>
-      <translation>Csatlakozás · Plex · Kiszolgáló · Indítás</translation>
+      <translation>Előbb csatlakozz egy Plex-szerverhez</translation>
     </message>
     <message>
       <source>Cross-origin Plex path rejected</source>
-      <translation>Eltérő eredet · Plex</translation>
+      <translation>Más eredetű Plex-útvonal elutasítva</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
-      <translation>Letöltések · Típusok · Nincs</translation>
+      <translation>A letöltési csoport már nem létezik</translation>
     </message>
     <message>
       <source>Download interrupted; it will retry when the connection improves</source>
-      <translation>Letöltések · Megszakadt · Újrapróbálás · Kapcsolat</translation>
+      <translation>A letöltés megszakadt; a kapcsolat javulásakor újrapróbálkozik</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks</source>
-      <translation>Letöltések · Korlát · 1000 · Számok</translation>
+      <translation>A letöltési terv meghaladja az 1000 számot</translation>
     </message>
     <message>
       <source>Download plan exceeds 1000 tracks; unpin some downloads first</source>
-      <translation>Letöltések · Korlát · 1000 · Számok · Megőrzés megszüntetése · Indítás</translation>
+      <translation>A letöltési terv meghaladja az 1000 számot; előbb oldd fel néhány letöltés rögzítését</translation>
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Engedélyezés · Hang · Gyorsítótár · Letöltések</translation>
+      <translation>A letöltések rögzítése előtt kapcsold be a hang gyorsítótárazását</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Engedélyezés · Hang · Gyorsítótár · Kapcsolat · Beállítások · Indítás</translation>
+      <translation>Előbb kapcsold be a hang gyorsítótárazását a Kapcsolat beállításaiban</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
-      <translation>Lejátszási lista · Fel · 512 · Méret</translation>
+      <translation>Add meg a lejátszási lista nevét (legfeljebb 512 bájt)</translation>
     </message>
     <message>
       <source>Expected a numeric Plex identifier</source>
-      <translation>Érvényes · Azonosító · Plex</translation>
+      <translation>Numerikus Plex-azonosító szükséges</translation>
     </message>
     <message>
       <source>Expected a server-relative Plex path</source>
-      <translation>Érvényes · Plex</translation>
+      <translation>Szerverhez viszonyított Plex-útvonal szükséges</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Online</translation>
+      <translation>Váltás online módra</translation>
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>Online · Plex · Lejátszási listák</translation>
+      <translation>A Plex lejátszási listák szerkesztéséhez válts online módra</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>Online · Frissítés · Letöltések</translation>
+      <translation>A letöltések frissítéséhez válts online módra</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
-      <translation>Típusok · Korlát · 1000 · Albumok · Előadó</translation>
+      <translation>A csoportosítás előadónként legfeljebb 1000 albumra korlátozódik</translation>
     </message>
     <message>
       <source>Invalid URL</source>
-      <translation>Érvénytelen · URL</translation>
+      <translation>Érvénytelen URL</translation>
     </message>
     <message>
       <source>Invalid UTF-8 request</source>
-      <translation>Érvénytelen · UTF · 8 · Kérés</translation>
+      <translation>Érvénytelen UTF-8 kérés</translation>
     </message>
     <message>
       <source>Invalid audio representation</source>
-      <translation>Érvénytelen · Hang</translation>
+      <translation>Érvénytelen hangábrázolás</translation>
     </message>
     <message>
       <source>Invalid audio source</source>
-      <translation>Érvénytelen · Hang · Forrás</translation>
+      <translation>Érvénytelen hangforrás</translation>
     </message>
     <message>
       <source>Invalid audio volume</source>
-      <translation>Érvénytelen · Hang · Hangerő</translation>
+      <translation>Érvénytelen hangerő</translation>
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>Érvénytelen · Gyorsítótár · Hang</translation>
+      <translation>Érvénytelen gyorsítótárazott hangútvonal</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
-      <translation>Érvénytelen · Azonosító</translation>
+      <translation>Érvénytelen kliensazonosító</translation>
     </message>
     <message>
       <source>Invalid discovery layout</source>
-      <translation>Érvénytelen · Keresés</translation>
+      <translation>Érvénytelen Felfedezés-elrendezés</translation>
     </message>
     <message>
       <source>Invalid music filter values</source>
-      <translation>Érvénytelen · Szűrő</translation>
+      <translation>Érvénytelen zenei szűrőértékek</translation>
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>Érvénytelen · Sor · Index</translation>
+      <translation>Érvénytelen sorindex</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>Érvénytelen · Sor · Sorrend</translation>
+      <translation>Érvénytelen sorrend a lejátszási sorban</translation>
     </message>
     <message>
       <source>Invalid request data</source>
-      <translation>Érvénytelen · Kérés · Adatok</translation>
+      <translation>Érvénytelen kérésadatok</translation>
     </message>
     <message>
       <source>Invalid resumed download range</source>
-      <translation>Érvénytelen · Letöltések · Tartomány</translation>
+      <translation>Érvénytelen folytatott letöltési tartomány</translation>
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Érvénytelen · Hangerő</translation>
+      <translation>Érvénytelen tekerési pozíció</translation>
     </message>
     <message>
       <source>Invalid server index</source>
-      <translation>Érvénytelen · Kiszolgáló · Index</translation>
+      <translation>Érvénytelen szerverindex</translation>
     </message>
     <message>
       <source>Listening history sync is needed before recording more plays</source>
-      <translation>Előzmények · Szinkronizálás · Több olvasása</translation>
+      <translation>További lejátszások rögzítése előtt szinkronizálni kell a hallgatási előzményeket</translation>
     </message>
     <message>
       <source>Login expired; start again</source>
-      <translation>Bejelentkezés · Lejárt · Indítás</translation>
+      <translation>A bejelentkezés lejárt; kezdd újra</translation>
     </message>
     <message>
       <source>Lyrics exceed the size limit</source>
-      <translation>Dalszövegek · Méret · Korlát</translation>
+      <translation>A dalszöveg túllépi a méretkorlátot</translation>
     </message>
     <message>
       <source>Lyrics have not been saved offline</source>
-      <translation>Dalszövegek · Nem érhető el · Mentve · Offline</translation>
+      <translation>A dalszöveg nincs offline mentve</translation>
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Mix · Előadók · Albumok</translation>
+      <translation>A mix kiindulói csak előadók vagy albumok lehetnek</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
-      <translation>Hálózat · Kérés · Sikertelen · Ellenőrzés · Kapcsolat · Kiszolgáló</translation>
+      <translation>A hálózati kérés sikertelen (ellenőrizd a kapcsolatot és a szerver címét)</translation>
     </message>
     <message>
       <source>Next track decoding failed</source>
-      <translation>Következő · Szám · Dekóder · Sikertelen</translation>
+      <translation>A következő szám dekódolása sikertelen</translation>
     </message>
     <message>
       <source>No active radio</source>
-      <translation>Nincs · Jelenlegi · Rádió</translation>
+      <translation>Nincs aktív rádió</translation>
     </message>
     <message>
       <source>No artists indexed under that letter</source>
-      <translation>Nincs · Előadók · Index</translation>
+      <translation>Ezzel a betűvel nincs előadó</translation>
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Nincs · Sor</translation>
+      <translation>A lejátszási sor üres</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
@@ -521,254 +525,274 @@
     </message>
     <message>
       <source>Only audio playlists can be downloaded</source>
-      <translation>Csak olvasható · Hang · Lejátszási listák · Letöltve</translation>
+      <translation>Csak hangos lejátszási listák tölthetők le</translation>
     </message>
     <message>
       <source>Pin up to 1000 playable tracks</source>
-      <translation>Megőrzés offline · Fel · 1000 · Lejátszás · Számok</translation>
+      <translation>Legfeljebb 1000 lejátszható számot rögzíthetsz</translation>
     </message>
     <message>
       <source>Playlist chooser is limited to 1000 playlists</source>
-      <translation>Lejátszási lista · Kiválasztás · Korlát · 1000 · Lejátszási listák</translation>
+      <translation>A listaválasztó legfeljebb 1000 lejátszási listát jelenít meg</translation>
     </message>
     <message>
       <source>Playlist edits are disabled in read-only inspection</source>
-      <translation>Lejátszási lista · Csak olvasható</translation>
+      <translation>Írásvédett vizsgálati módban a lejátszási listák nem szerkeszthetők</translation>
     </message>
     <message>
       <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex · Bejelentkezés · Sikertelen · Ellenőrzés · Kiszolgáló · Token</translation>
+      <translation>Plex-hitelesítés sikertelen; jelentkezz be újra, vagy ellenőrizd a szerver tokenjét</translation>
     </message>
     <message>
       <source>Plex does not expose an artist radio station for this artist</source>
-      <translation>Plex · Nem érhető el · Előadó · Rádió</translation>
+      <translation>A Plex nem kínál rádióállomást ehhez az előadóhoz</translation>
+    </message>
+    <message>
+      <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
+      <translation>A Plex nem adott hangzásalapú ajánlást ehhez az albumhoz. Ellenőrizd a zenei könyvtár hangzáselemzési beállítását és állapotát, vagy használd az előadórádiót.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex · Fogadva · Nincs · Hasonló · Szám · Ellenőrzés · Könyvtár · Használva · Előadó · Rádió</translation>
+      <translation>A Plex nem adott hangzásalapú ajánlást ehhez a számhoz. Ellenőrizd a zenei könyvtár hangzáselemzési beállítását és állapotát, vagy használd az előadórádiót.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Sor · Számok · Érvényes · Indítás · Index</translation>
+      <translation>A lejátszási sorhoz számok és érvényes kezdőindex szükséges</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
-      <translation>Rádió · Automatikus lejátszás · Leállítás · Ismétlés</translation>
+      <translation>A rádió automatikusan folytatódik; az ismétléshez állítsd le a rádiót</translation>
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>Rádió · Nincs · Több olvasása · Hasonló · Mix</translation>
+      <translation>A rádiónak nincs több hangzásalapú ajánlása; próbálj másik kiindulót</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
-      <translation>Rádió · Sorrend · Leállítás · Véletlenszerű</translation>
+      <translation>A rádió megtartja az ajánlott sorrendet; a keveréshez állítsd le a rádiót</translation>
     </message>
     <message>
       <source>Radio playback requires a connection</source>
-      <translation>Rádió · Lejátszás · Kapcsolat</translation>
+      <translation>A rádió lejátszásához kapcsolat szükséges</translation>
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Rádió · Fogadva · Nincs · Lejátszás · Számok</translation>
+      <translation>A rádió nem adott vissza lejátszható számot</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>Rádió · Mix · Nem érhető el</translation>
+      <translation>A rádió kiindulója nem egyezik a kiválasztott zenetípussal</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
-      <translation>Hang · Időtartam · Ellentmondásos</translation>
+      <translation>A folytatott hang hossza nem egyezik</translation>
     </message>
     <message>
       <source>Resumed download has no Content-Range</source>
-      <translation>Letöltések · Nincs · Content-Range</translation>
+      <translation>A folytatott letöltésből hiányzik a Content-Range</translation>
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Mentve · Sor · Érvénytelen</translation>
+      <translation>A mentett lejátszási sor érvénytelen</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
-      <translation>Kiszolgáló · URL · HTTP(S) · http://192.168.1.10:32400</translation>
+      <translation>A szerver URL-jének HTTP(S)-eredetnek kell lennie, pl. http://192.168.1.10:32400</translation>
     </message>
     <message>
       <source>Server returned non-audio content for this track</source>
-      <translation>Kiszolgáló · Fogadva · Szám</translation>
+      <translation>A szerver nem hangtartalmat küldött ehhez a számhoz</translation>
     </message>
     <message>
       <source>Sign in first</source>
-      <translation>Bejelentkezés · Indítás</translation>
+      <translation>Előbb jelentkezz be</translation>
     </message>
     <message>
       <source>Smart playlist contents are controlled by their Plex filters</source>
-      <translation>Intelligens · Lejátszási lista · Szűrő · Plex</translation>
+      <translation>Az intelligens lejátszási listák tartalmát a Plex-szűrőik határozzák meg</translation>
     </message>
     <message>
       <source>Sonic journey exceeds 250 tracks</source>
-      <translation>Hasonló · Korlát · 250 · Számok</translation>
+      <translation>A hangzásbeli utazás meghaladja a 250 számot</translation>
     </message>
     <message>
       <source>Start login first</source>
-      <translation>Indítás · Bejelentkezés</translation>
+      <translation>Előbb indítsd el a bejelentkezést</translation>
     </message>
     <message>
       <source>This album contains no playable tracks</source>
-      <translation>Album · Nincs · Lejátszás · Számok</translation>
+      <translation>Ez az album nem tartalmaz lejátszható számot</translation>
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Előadó · Album · Nem érhető el · Mentve · Offline</translation>
+      <translation>Ez az előadó vagy album nincs offline mentve</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
-      <translation>Könyvtár · Nem érhető el · Mentve · Offline</translation>
+      <translation>Ez a könyvtároldal még nincs offline mentve</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
-      <translation>Szám · Nincs · Lejátszás · Adatok</translation>
+      <translation>Ennek a számnak nincs lejátszható médiarésze</translation>
     </message>
     <message>
       <source>This track has not been downloaded</source>
-      <translation>Szám · Nem érhető el · Letöltve</translation>
+      <translation>Ez a szám nincs letöltve</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
-      <translation>Szám · Kiszolgáló · Nem érhető el</translation>
+      <translation>Ez a szám már nincs a szerveren</translation>
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Szám · Nem érhető el · Gyorsítótár · Letöltve · Számok</translation>
+      <translation>Ez a szám még nincs teljesen gyorsítótárazva; a letöltött számok továbbra is elérhetők</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
-      <translation>Szám · Időtartam · Letöltések</translation>
+      <translation>Időalapú letöltéshez szükséges a számok hossza</translation>
     </message>
     <message>
       <source>Track has no downloadable media part</source>
-      <translation>Szám · Nincs · Letöltések · Adatok</translation>
+      <translation>A számnak nincs letölthető médiarésze</translation>
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>Érvénytelen · Plex · Adatok</translation>
+      <translation>Váratlan Plex-válasz</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
-      <translation>Érvénytelen · Hang</translation>
+      <translation>Ismeretlen hangparancs</translation>
     </message>
     <message>
       <source>Unknown discovery view</source>
-      <translation>Érvénytelen · Keresés</translation>
+      <translation>Ismeretlen Felfedezés-nézet</translation>
     </message>
     <message>
       <source>Unknown download action</source>
-      <translation>Érvénytelen · Letöltések</translation>
+      <translation>Ismeretlen letöltési művelet</translation>
     </message>
     <message>
       <source>Unknown library sort</source>
-      <translation>Érvénytelen · Könyvtár · Rendezés</translation>
+      <translation>Ismeretlen könyvtárrendezés</translation>
     </message>
     <message>
       <source>Unknown music type</source>
-      <translation>Érvénytelen</translation>
+      <translation>Ismeretlen zenetípus</translation>
     </message>
     <message>
       <source>Unknown offline music type</source>
-      <translation>Érvénytelen · Offline</translation>
+      <translation>Ismeretlen offline zenetípus</translation>
     </message>
     <message>
       <source>Unknown playback state</source>
-      <translation>Érvénytelen · Lejátszás · Állapot</translation>
+      <translation>Ismeretlen lejátszási állapot</translation>
     </message>
     <message>
       <source>Unknown playlist action</source>
-      <translation>Érvénytelen · Lejátszási lista</translation>
+      <translation>Ismeretlen lejátszásilista-művelet</translation>
     </message>
     <message>
       <source>Unknown repeat mode</source>
-      <translation>Érvénytelen · Ismétlés</translation>
+      <translation>Ismeretlen ismétlési mód</translation>
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>Album · Rádió · Számok</translation>
+      <translation>albumrádió számai</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
-      <translation>Előadó · Előadók · Index</translation>
+      <translation>előadók betűrendes indexe</translation>
     </message>
     <message>
       <source>artwork</source>
-      <translation>Fényképek</translation>
+      <translation>borítókép</translation>
+    </message>
+    <message>
+      <source>browser sign-in creation</source>
+      <translation>böngészős bejelentkezés létrehozása</translation>
+    </message>
+    <message>
+      <source>browser sign-in polling</source>
+      <translation>böngészős bejelentkezés ellenőrzése</translation>
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>Gyorsítótár · Szám · Metaadatok</translation>
+      <translation>gyorsítótárazandó számok metaadatai</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>Létrehozás · Lejátszási lista</translation>
+      <translation>létrehozott lejátszási lista</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>Dalszövegek</translation>
+      <translation>dalszövegsorok</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>Dalszövegek</translation>
+      <translation>dalszövegszakasz szövege</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>Dalszövegek</translation>
+      <translation>dalszövegszakaszok</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>Dalszövegek</translation>
+      <translation>dalszöveg-JSON</translation>
     </message>
     <message>
-      <source>lyrics text</source>
-      <translation>Dalszövegek</translation>
+      <source>playlist creation</source>
+      <translation>lejátszási lista létrehozása</translation>
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>Lejátszási lista · Metaadatok</translation>
+      <translation>lejátszási lista metaadatai</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>Rádió · Letöltések · Számok</translation>
+      <translation>letöltendő rádiószámok</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>Rádió · Sor</translation>
+      <translation>rádiós lejátszási sor középpontja</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>Rádió · Sor</translation>
+      <translation>rádiós lejátszási sor folytatása</translation>
+    </message>
+    <message>
+      <source>radio queue creation</source>
+      <translation>rádiós lejátszási sor létrehozása</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>Rádió · Sor · Azonosító</translation>
+      <translation>rádiós lejátszási sor azonosítója</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>Rádió · Sor · Számok</translation>
+      <translation>rádiós lejátszási sor számai</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>Rádió · Kiszolgáló · Azonosító</translation>
+      <translation>szerverazonosító a rádióhoz</translation>
     </message>
     <message>
       <source>server discovery</source>
-      <translation>Kiszolgáló · Keresés</translation>
+      <translation>szerverkeresés</translation>
+    </message>
+    <message>
+      <source>server library request</source>
+      <translation>szerverkönyvtárak lekérése</translation>
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>Hasonló</translation>
+      <translation>hangzásbeli kaland</translation>
     </message>
   </context>
   <context>
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Áthelyezés · Több olvasása · Fényképek</translation>
+      <translation>További fotókért lapozz</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -776,39 +800,39 @@
     </message>
     <message>
       <source>Play tracks</source>
-      <translation>Lejátszás · Számok</translation>
+      <translation>Számok lejátszása</translation>
     </message>
     <message>
       <source>Download tracks</source>
-      <translation>Letöltések · Számok</translation>
+      <translation>Számok letöltése</translation>
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Leírás · Nem érhető el · Plex</translation>
+      <translation>A Plex nem adott meg leírást.</translation>
     </message>
     <message>
       <source>Read less</source>
-      <translation>Kevesebb olvasása</translation>
+      <translation>Kevesebb</translation>
     </message>
     <message>
       <source>Read more</source>
-      <translation>Több olvasása</translation>
+      <translation>Tovább</translation>
     </message>
     <message>
       <source>Similar artists</source>
-      <translation>Hasonló · Előadók</translation>
+      <translation>Hasonló előadók</translation>
     </message>
     <message>
       <source>Loading similar artists…</source>
-      <translation>Betöltés · Hasonló · Előadók</translation>
+      <translation>Hasonló előadók betöltése…</translation>
     </message>
     <message>
       <source>Similar artists are unavailable right now.</source>
-      <translation>Hasonló · Előadók · Nem érhető el</translation>
+      <translation>A hasonló előadók most nem érhetők el.</translation>
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Hasonló · Előadók · Nem érhető el · Plex</translation>
+      <translation>A Plex nem adott vissza hasonló előadókat.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -823,93 +847,93 @@
     <name>DiscoverySettings</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Keresés · Beállítások</translation>
+      <translation>Felfedezés testreszabása</translation>
     </message>
   </context>
   <context>
     <name>DiscoverySettingsPage</name>
     <message>
       <source>Customize discovery</source>
-      <translation>Keresés · Beállítások</translation>
+      <translation>Felfedezés testreszabása</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Áthelyezés · Fel</translation>
+      <translation>Mozgatás fel</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Áthelyezés · Le</translation>
+      <translation>Mozgatás le</translation>
     </message>
   </context>
   <context>
     <name>Downloads</name>
     <message>
       <source>Download manager</source>
-      <translation>Letöltések · Kezelés</translation>
+      <translation>Letöltéskezelő</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automatikus lejátszás · Frissítés · Letöltések</translation>
+      <translation>Letöltési tervek automatikus frissítése</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 óra</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Frissítés · Időtartam</translation>
+      <translation>Frissítési időköz</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Frissítés · Letöltések · Betöltés</translation>
+      <translation>Letöltési tervek frissítése…</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 perc</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Rádió · Letöltések · Időtartam</translation>
+      <translation>Rádióletöltés hossza</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Letöltések · Csak olvasható · Wi-Fi</translation>
+      <translation>Letöltés csak Wi-Fi-n</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Folytatás · Letöltések</translation>
+      <translation>Letöltések folytatása</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Szünet · Letöltések</translation>
+      <translation>Letöltések szüneteltetése</translation>
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>Letöltések · Várakozás · Wi-Fi · Hang · Lejátszás · Online</translation>
+      <translation>Várakozás megerősített Wi-Fi-re; a streamelés továbbra is elérhető.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+      <translation>A letöltések várnak, amíg a stream utoléri magát</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Hang · Gyorsítótár · Használva</translation>
+      <translation>%1 MiB hang-gyorsítótár használatban</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Offline · Könyvtár · Adatok · Mentés · Sikertelen · %1</translation>
+      <translation>Az offline könyvtár adatai nem menthetők: %1</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Hang · Időtartam · %1</translation>
+      <translation>Tervezett hanganyag: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Számok · %3 · MiB</translation>
+      <translation>%1/%2 szám · %3 MiB</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Jelenlegi · Szám · %1 · MiB · Fogadva</translation>
+      <translation>Aktuális szám: %1 MiB fogadva</translation>
     </message>
     <message>
       <source>Play</source>
@@ -921,145 +945,145 @@
     </message>
     <message>
       <source>Retry</source>
-      <translation>Újrapróbálás</translation>
+      <translation>Újra</translation>
     </message>
     <message>
       <source>Cancel plan</source>
-      <translation>Megszakítva</translation>
+      <translation>Terv elvetése</translation>
     </message>
     <message>
       <source>Remove files</source>
-      <translation>Eltávolítás</translation>
+      <translation>Fájlok eltávolítása</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Függőben · Előzmények · %1</translation>
+      <translation>Szinkronizálásra váró lejátszások: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
-      <translation>Szinkronizálás · Előzmények</translation>
+      <translation>Előzmények szinkronizálása</translation>
     </message>
   </context>
   <context>
     <name>DownloadsPage</name>
     <message>
       <source>Download manager</source>
-      <translation>Letöltések · Kezelés</translation>
+      <translation>Letöltéskezelő</translation>
     </message>
     <message>
       <source>Automatically refresh download plans</source>
-      <translation>Automatikus lejátszás · Frissítés · Letöltések</translation>
+      <translation>Letöltési tervek automatikus frissítése</translation>
     </message>
     <message>
       <source>Refresh interval</source>
-      <translation>Frissítés · Időtartam</translation>
+      <translation>Frissítési időköz</translation>
     </message>
     <message>
       <source>%1 hours</source>
-      <translation>%1 · h</translation>
+      <translation>%1 óra</translation>
     </message>
     <message>
       <source>Refreshing download plans…</source>
-      <translation>Frissítés · Letöltések · Betöltés</translation>
+      <translation>Letöltési tervek frissítése…</translation>
     </message>
     <message>
       <source>Radio download length</source>
-      <translation>Rádió · Letöltések · Időtartam</translation>
+      <translation>Rádióletöltés hossza</translation>
     </message>
     <message>
       <source>%1 minutes</source>
-      <translation>%1 · min</translation>
+      <translation>%1 perc</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Letöltések · Csak olvasható · Wi-Fi</translation>
+      <translation>Letöltés csak Wi-Fi-n</translation>
     </message>
     <message>
       <source>Resume downloads</source>
-      <translation>Folytatás · Letöltések</translation>
+      <translation>Letöltések folytatása</translation>
     </message>
     <message>
       <source>Pause downloads</source>
-      <translation>Szünet · Letöltések</translation>
+      <translation>Letöltések szüneteltetése</translation>
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>Letöltések · Várakozás · Wi-Fi · Hang · Lejátszás · Online</translation>
+      <translation>Várakozás megerősített Wi-Fi-kapcsolatra. A streamelés továbbra is elérhető.</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+      <translation>A letöltések várnak, amíg a stream utoléri magát</translation>
     </message>
     <message>
       <source>%1 MiB audio cache used</source>
-      <translation>%1 · MiB · Hang · Gyorsítótár · Használva</translation>
+      <translation>%1 MiB hang-gyorsítótár használatban</translation>
     </message>
     <message>
       <source>Offline library data could not be saved: %1</source>
-      <translation>Offline · Könyvtár · Adatok · Mentés · Sikertelen · %1</translation>
+      <translation>Az offline könyvtár adatai nem menthetők: %1</translation>
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Függőben · Előzmények · %1</translation>
+      <translation>Szinkronizálásra váró lejátszások: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
-      <translation>Szinkronizálás · Előzmények</translation>
+      <translation>Hallgatási előzmények szinkronizálása</translation>
     </message>
     <message>
       <source>Planned audio: %1</source>
-      <translation>Hang · Időtartam · %1</translation>
+      <translation>Tervezett hanganyag: %1</translation>
     </message>
     <message>
       <source>%1/%2 tracks · %3 MiB</source>
-      <translation>%1/%2 · Számok · %3 · MiB</translation>
+      <translation>%1/%2 szám · %3 MiB</translation>
     </message>
     <message>
       <source>Downloading</source>
-      <translation>downloading</translation>
+      <translation>Letöltés folyamatban</translation>
     </message>
     <message>
       <source>Current track: %1 MiB received</source>
-      <translation>Jelenlegi · Szám · %1 · MiB · Fogadva</translation>
+      <translation>Aktuális szám: %1 MiB fogadva</translation>
     </message>
     <message>
       <source>Play downloaded tracks</source>
-      <translation>Lejátszás · Letöltve · Számok</translation>
+      <translation>Letöltött számok lejátszása</translation>
     </message>
     <message>
       <source>Refresh download plan</source>
-      <translation>Frissítés · Letöltések</translation>
+      <translation>Letöltési terv frissítése</translation>
     </message>
     <message>
       <source>Retry/resume</source>
-      <translation>Újrapróbálás · Folytatás</translation>
+      <translation>Újra/folytatás</translation>
     </message>
     <message>
       <source>Cancel plan / keep files</source>
-      <translation>Megszakítva</translation>
+      <translation>Terv elvetése / fájlok megtartása</translation>
     </message>
     <message>
       <source>Remove download</source>
-      <translation>Eltávolítás · Letöltések</translation>
+      <translation>Letöltés eltávolítása</translation>
     </message>
   </context>
   <context>
     <name>Filters</name>
     <message>
       <source>Library filters</source>
-      <translation>Könyvtár · Szűrő</translation>
+      <translation>Könyvtárszűrők</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Intelligens · Lejátszási listák</translation>
+      <translation>Intelligens lejátszási lista</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Intelligens · Lejátszási listák · Szűrő · Csak olvasható</translation>
+      <translation>Ezek az intelligens listaszabályok ebben a szerkesztőben nem jeleníthetők meg.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lejátszási lista</translation>
+      <translation>Lejátszási lista neve</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1087,27 +1111,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Bármelyik</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Cím · Szűrő</translation>
+      <translation>A cím tartalmazza</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Év · Indítás</translation>
+      <translation>Évtől</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Év · Korlát</translation>
+      <translation>Évig</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Kedvencek · Korlát</translation>
+      <translation>Minimális értékelés</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Lejátszás · Nincs</translation>
+      <translation>Csak nem játszottak</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1115,30 +1139,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Korlát · Számok</translation>
+      <translation>Számok maximális száma</translation>
     </message>
   </context>
   <context>
     <name>FiltersDialog</name>
     <message>
       <source>Library filters</source>
-      <translation>Könyvtár · Szűrő</translation>
+      <translation>Könyvtárszűrők</translation>
     </message>
     <message>
       <source>Smart playlist</source>
-      <translation>Intelligens · Lejátszási listák</translation>
+      <translation>Intelligens lejátszási lista</translation>
     </message>
     <message>
       <source>These smart-playlist rules cannot be represented by this editor.</source>
-      <translation>Intelligens · Lejátszási listák · Szűrő · Csak olvasható</translation>
+      <translation>Ezek az intelligens listaszabályok ebben a szerkesztőben nem jeleníthetők meg.</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lejátszási lista</translation>
+      <translation>Lejátszási lista neve</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Könyvtár</translation>
+      <translation>Böngészés</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1166,27 +1190,27 @@
     </message>
     <message>
       <source>Any</source>
-      <translation>all</translation>
+      <translation>Bármelyik</translation>
     </message>
     <message>
       <source>Title contains</source>
-      <translation>Cím · Szűrő</translation>
+      <translation>A cím tartalmazza</translation>
     </message>
     <message>
       <source>Year from</source>
-      <translation>Év · Indítás</translation>
+      <translation>Évtől</translation>
     </message>
     <message>
       <source>Year to</source>
-      <translation>Év · Korlát</translation>
+      <translation>Évig</translation>
     </message>
     <message>
       <source>Minimum rating</source>
-      <translation>Kedvencek · Korlát</translation>
+      <translation>Minimális értékelés</translation>
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Lejátszás · Nincs</translation>
+      <translation>Csak nem játszottak</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1194,30 +1218,30 @@
     </message>
     <message>
       <source>Maximum tracks</source>
-      <translation>Korlát · Számok</translation>
+      <translation>Számok maximális száma</translation>
     </message>
   </context>
   <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
-      <translation>Előzmények · Beállítások</translation>
+      <translation>Hallgatási statisztikák</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+      <translation>%1 érvényes lejátszás · %2 hallgatás</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Előzmények · local · Lejátszás · Metaadatok</translation>
+      <translation>A statisztikák rögzítésének kezdete óta helyben mért érvényes lejátszások alapján.</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 nap</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Előzmények</translation>
+      <translation>Teljes előzmények</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1233,38 +1257,38 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+      <translation>%1 lejátszás · %2 hallgatás</translation>
     </message>
   </context>
   <context>
     <name>InsightsPage</name>
     <message>
       <source>Listening insights</source>
-      <translation>Előzmények · Beállítások</translation>
+      <translation>Hallgatási statisztikák</translation>
     </message>
     <message>
       <source>%1 qualified plays · %2 listened</source>
-      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+      <translation>%1 érvényes lejátszás · %2 hallgatás</translation>
     </message>
     <message>
       <source>Based on locally measured qualified plays since insights tracking began.</source>
-      <translation>Előzmények · local · Lejátszás · Metaadatok</translation>
+      <translation>A statisztikák rögzítésének kezdete óta helyben mért érvényes lejátszások alapján.</translation>
     </message>
     <message>
       <source>Period</source>
-      <translation>Időtartam</translation>
+      <translation>Időszak</translation>
     </message>
     <message>
       <source>%1 days</source>
-      <translation>%1 · d</translation>
+      <translation>%1 nap</translation>
     </message>
     <message>
       <source>All history</source>
-      <translation>all · Előzmények</translation>
+      <translation>Teljes előzmények</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Könyvtár</translation>
+      <translation>Böngészés</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1280,113 +1304,113 @@
     </message>
     <message>
       <source>%1 plays · %2 listened</source>
-      <translation>%1 · Lejátszás · %2 · Előzmények</translation>
+      <translation>%1 lejátszás · %2 hallgatás</translation>
     </message>
   </context>
   <context>
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Hozzáadás · Sonic · Forrás</translation>
+      <translation>Hangzásbeli útpont hozzáadása</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
-      <translation>Intelligens · Szűrő · Beállítások</translation>
+      <translation>Intelligens szűrők szerkesztése</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Hang · Hasonló</translation>
+      <translation>Hangzásban hasonló</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>Indítás · Sonic · Adventure</translation>
+      <translation>Hangzásbeli kaland innen</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>Sonic · Adventure · Szám</translation>
+      <translation>Hangzásbeli kaland eddig a számig</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
-      <translation>Letöltések · Rádió · %1 · min</translation>
+      <translation>Rádió letöltése · %1 perc</translation>
     </message>
     <message>
       <source>Download %1 minutes</source>
-      <translation>Letöltések · %1 · min</translation>
+      <translation>%1 perc letöltése</translation>
     </message>
     <message>
       <source>Play next</source>
-      <translation>Lejátszás · Következő</translation>
+      <translation>Lejátszás következőként</translation>
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Hozzáadás · Sor</translation>
+      <translation>Hozzáadás a lejátszási sorhoz</translation>
     </message>
     <message>
       <source>Add to playlist</source>
-      <translation>Hozzáadás · Lejátszási lista</translation>
+      <translation>Hozzáadás lejátszási listához</translation>
     </message>
     <message>
       <source>Create playlist from this</source>
-      <translation>Létrehozás · Lejátszási lista</translation>
+      <translation>Lejátszási lista ebből</translation>
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Hozzáadás · Mix</translation>
+      <translation>Hozzáadás mixkiindulóként</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Átnevezés · Lejátszási lista</translation>
+      <translation>Lejátszási lista átnevezése</translation>
     </message>
     <message>
       <source>Delete playlist</source>
-      <translation>Törlés · Lejátszási lista</translation>
+      <translation>Lejátszási lista törlése</translation>
     </message>
     <message>
       <source>Move playlist entry up</source>
-      <translation>Áthelyezés · Lejátszási lista · Fel</translation>
+      <translation>Listabejegyzés mozgatása fel</translation>
     </message>
     <message>
       <source>Move playlist entry down</source>
-      <translation>Áthelyezés · Lejátszási lista · Le</translation>
+      <translation>Listabejegyzés mozgatása le</translation>
     </message>
     <message>
       <source>Remove from playlist</source>
-      <translation>Eltávolítás · Lejátszási lista</translation>
+      <translation>Eltávolítás a lejátszási listából</translation>
     </message>
     <message>
       <source>Remove favorite</source>
-      <translation>Eltávolítás</translation>
+      <translation>Eltávolítás a kedvencekből</translation>
     </message>
     <message>
       <source>Add to favorites</source>
-      <translation>Hozzáadás · Kedvencek</translation>
+      <translation>Hozzáadás a kedvencekhez</translation>
     </message>
     <message>
       <source>Unpin download</source>
-      <translation>Megőrzés megszüntetése · Letöltések</translation>
+      <translation>Rögzítés feloldása</translation>
     </message>
     <message>
       <source>Pin for offline listening</source>
-      <translation>Megőrzés offline · Offline · Előzmények</translation>
+      <translation>Rögzítés offline hallgatáshoz</translation>
     </message>
     <message>
       <source>Move up</source>
-      <translation>Áthelyezés · Fel</translation>
+      <translation>Mozgatás fel</translation>
     </message>
     <message>
       <source>Move down</source>
-      <translation>Áthelyezés · Le</translation>
+      <translation>Mozgatás le</translation>
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Eltávolítás · Sor</translation>
+      <translation>Eltávolítás a lejátszási sorból</translation>
     </message>
   </context>
   <context>
     <name>LibraryPage</name>
     <message>
       <source>Up next</source>
-      <translation>Fel · Következő</translation>
+      <translation>Következik</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1394,19 +1418,19 @@
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Mentve · Könyvtár · Metaadatok</translation>
+      <translation>Offline · mentett könyvtári metaadatok</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+      <translation>A letöltések várnak, amíg a stream utoléri magát</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Gyorsítótár · Hang</translation>
+      <translation>Hang gyorsítótárazása…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Számok · Kész · Offline</translation>
+      <translation>%1 szám érhető el offline</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1442,11 +1466,11 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Keresés · Előadók · Albumok · Számok</translation>
+      <translation>Előadók, albumok és számok keresése</translation>
     </message>
     <message>
       <source>Browse</source>
-      <translation>Könyvtár</translation>
+      <translation>Böngészés</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1454,11 +1478,11 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Megnyitás · Előadó</translation>
+      <translation>Előadó megnyitása</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Megnyitás · Album</translation>
+      <translation>Album megnyitása</translation>
     </message>
     <message>
       <source>Track</source>
@@ -1470,54 +1494,54 @@
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Szám · Kiszolgáló · Nem érhető el</translation>
+      <translation>Már nincs a szerveren</translation>
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Újrapróbálás · Betöltés</translation>
+      <translation>Betöltés újra</translation>
     </message>
     <message>
       <source>No music found</source>
-      <translation>Nincs</translation>
+      <translation>Nem található zene</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Csatlakozás · Plex</translation>
+      <translation>Csatlakozás a Plexhez</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
-      <translation>↑ · Kapcsolat · Beállítások</translation>
+      <translation>A kapcsolatbeállításokat a felhúzható menüben találod</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Nincs · Lejátszás</translation>
+      <translation>Nincs lejátszás</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Lejátszás</translation>
+      <translation>Most szól</translation>
     </message>
   </context>
   <context>
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Frekvencia · Keresés</translation>
+      <translation>Találd meg a frekvenciádat.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
-      <translation>Offline · Mentve · Könyvtár · Metaadatok</translation>
+      <translation>Offline · mentett könyvtári metaadatok</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
-      <translation>Letöltések · Várakozás · Hang · Betöltés</translation>
+      <translation>A letöltések várnak, amíg a stream utoléri magát</translation>
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Gyorsítótár · Hang</translation>
+      <translation>Hang gyorsítótárazása…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
-      <translation>%1 · Számok · Kész · Offline</translation>
+      <translation>%1 szám érhető el offline</translation>
     </message>
     <message>
       <source>Radio</source>
@@ -1525,7 +1549,7 @@
     </message>
     <message>
       <source>Search artists, albums and tracks</source>
-      <translation>Keresés · Előadók · Albumok · Számok</translation>
+      <translation>Előadók, albumok és számok keresése</translation>
     </message>
     <message>
       <source>Search</source>
@@ -1533,7 +1557,7 @@
     </message>
     <message>
       <source>Up next</source>
-      <translation>Fel · Következő</translation>
+      <translation>Következik</translation>
     </message>
     <message>
       <source>Artists</source>
@@ -1561,15 +1585,15 @@
     </message>
     <message>
       <source>Open artist</source>
-      <translation>Megnyitás · Előadó</translation>
+      <translation>Előadó megnyitása</translation>
     </message>
     <message>
       <source>Open album</source>
-      <translation>Megnyitás · Album</translation>
+      <translation>Album megnyitása</translation>
     </message>
     <message>
       <source>No longer on the server</source>
-      <translation>Szám · Kiszolgáló · Nem érhető el</translation>
+      <translation>Már nincs a szerveren</translation>
     </message>
     <message>
       <source>Downloaded</source>
@@ -1577,83 +1601,83 @@
     </message>
     <message>
       <source>Retry loading</source>
-      <translation>Újrapróbálás · Betöltés</translation>
+      <translation>Betöltés újra</translation>
     </message>
     <message>
       <source>No music found.</source>
-      <translation>Nincs</translation>
+      <translation>Nem található zene.</translation>
     </message>
     <message>
       <source>Connect to your Plex music server to start listening.</source>
-      <translation>Csatlakozás · Plex · Kiszolgáló · Indítás · Előzmények</translation>
+      <translation>A zenehallgatáshoz csatlakozz a Plex-zeneszerveredhez.</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Lejátszás</translation>
+      <translation>Most szól</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Nincs · Lejátszás</translation>
+      <translation>Nincs lejátszás</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Véletlenszerű</translation>
+      <translation>Keverés</translation>
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Ismétlés: egy</translation>
+      <translation>Egy szám ismétlése</translation>
     </message>
     <message>
       <source>Repeat all</source>
-      <translation>Ismétlés: mind</translation>
+      <translation>Összes ismétlése</translation>
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Ismétlés: ki</translation>
+      <translation>Ismétlés ki</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
-      <translation>Csatlakozás · Plex</translation>
+      <translation>Csatlakozás a Plexhez</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
-      <translation>Bejelentkezés · Plex · Böngésző</translation>
+      <translation>Bejelentkezés Plexszel a böngészőben</translation>
     </message>
     <message>
       <source>Waiting for browser authorization…</source>
-      <translation>Várakozás · Böngésző · Bejelentkezés</translation>
+      <translation>Várakozás a böngészős hitelesítésre…</translation>
     </message>
     <message>
       <source>Open sign-in again</source>
-      <translation>Megnyitás · Bejelentkezés</translation>
+      <translation>Bejelentkezés újbóli megnyitása</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Kiválasztás · Plex · Kiszolgáló</translation>
+      <translation>Válassz Plex-szervert</translation>
     </message>
     <message>
       <source>Select a server to open its music libraries.</source>
-      <translation>Kiszolgáló · Megnyitás · Könyvtár</translation>
+      <translation>Válassz egy szervert a zenei könyvtárai megnyitásához.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Frissítés · Plex</translation>
+      <translation>Frissítsd a listát a Plex-szervereid megkereséséhez.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Frissítés</translation>
+      <translation>Szerverek frissítése</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Csatlakozás · Könyvtár</translation>
+      <translation>Csatlakozás a zenei könyvtárakhoz</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Kapcsolat</translation>
+      <translation>Közvetlen kapcsolat</translation>
     </message>
     <message>
       <source>Or connect directly using a server URL and Plex token:</source>
-      <translation>Csatlakozás · Kiszolgáló · URL · Plex · Token</translation>
+      <translation>Vagy csatlakozz közvetlenül a szerver URL-jével és Plex-tokennel:</translation>
     </message>
     <message>
       <source>X-Plex-Token</source>
@@ -1661,54 +1685,54 @@
     </message>
     <message>
       <source>Connect directly</source>
-      <translation>Csatlakozás · Kapcsolat</translation>
+      <translation>Közvetlen csatlakozás</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
-      <translation>Bejelentkezés · Ürítés · Mentve</translation>
+      <translation>Kijelentkezés és mentett tokenek törlése</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Offline · Hang · Gyorsítótár</translation>
+      <translation>Offline hang-gyorsítótár</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Hangbeállítások</translation>
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Automatikus lejátszás · Hasonló · Sor</translation>
+      <translation>Hasonló zene automatikus lejátszása a sor végén</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Gyorsítótár · Sor · Hang · Automatikus lejátszás</translation>
+      <translation>Sorban álló hang automatikus gyorsítótárazása</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Gyorsítótár · Korlát</translation>
+      <translation>Gyorsítótár korlátja</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Számok · Letöltve · %2 · MiB · Használva</translation>
+      <translation>%1 szám letöltve · %2 MiB használatban</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Ürítés · Gyorsítótár · Leállítás · Lejátszás</translation>
+      <translation>Gyorsítótár törlése és lejátszás leállítása</translation>
     </message>
   </context>
   <context>
     <name>Navigation</name>
     <message>
       <source>Offline library</source>
-      <translation>Offline · Könyvtár</translation>
+      <translation>Offline könyvtár</translation>
     </message>
     <message>
       <source>Page actions</source>
-      <translation>Beállítások</translation>
+      <translation>Oldalműveletek</translation>
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Könyvtár</translation>
+      <translation>További célok</translation>
     </message>
     <message>
       <source>Show all</source>
@@ -1716,7 +1740,7 @@
     </message>
     <message>
       <source>Discover</source>
-      <translation>Keresés</translation>
+      <translation>Felfedezés</translation>
     </message>
     <message>
       <source>Library</source>
@@ -1728,59 +1752,59 @@
     </message>
     <message>
       <source>Customize discovery</source>
-      <translation>Keresés · Beállítások</translation>
+      <translation>Felfedezés testreszabása</translation>
     </message>
     <message>
       <source>Library filters</source>
-      <translation>Könyvtár · Szűrő</translation>
+      <translation>Könyvtárszűrők</translation>
     </message>
     <message>
       <source>Group albums by type</source>
-      <translation>Típusok · Albumok</translation>
+      <translation>Albumok csoportosítása típus szerint</translation>
     </message>
     <message>
       <source>Create smart playlist</source>
-      <translation>Létrehozás · Intelligens · Lejátszási listák</translation>
+      <translation>Intelligens lejátszási lista</translation>
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Létrehozás · Lejátszási lista · Számok · Sor</translation>
+      <translation>Lejátszási lista számokból/sorból</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
-      <translation>Letöltések · Számok</translation>
+      <translation>Megjelenített számok letöltése</translation>
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Ürítés · Mix</translation>
+      <translation>Mixkiindulók törlése</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Ürítés · Sonic · Forrás</translation>
+      <translation>Hangzásbeli útpontok törlése</translation>
     </message>
     <message>
       <source>Stop radio</source>
-      <translation>Leállítás · Rádió</translation>
+      <translation>Rádió leállítása</translation>
     </message>
     <message>
       <source>Queue</source>
-      <translation>Sor</translation>
+      <translation>Lejátszási sor</translation>
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Letöltve</translation>
+      <translation>Letöltött zene</translation>
     </message>
     <message>
       <source>Saved albums</source>
-      <translation>Mentve · Albumok</translation>
+      <translation>Mentett albumok</translation>
     </message>
     <message>
       <source>Listening insights</source>
-      <translation>Előzmények · Beállítások</translation>
+      <translation>Hallgatási statisztikák</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Kedvencek · ★ · 5</translation>
+      <translation>Kedvencek · 5 csillag</translation>
     </message>
     <message>
       <source>Recently added</source>
@@ -1788,11 +1812,11 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Nemrég lejátszott</translation>
+      <translation>Nemrég játszott</translation>
     </message>
     <message>
       <source>Download manager</source>
-      <translation>Letöltések · Kezelés</translation>
+      <translation>Letöltéskezelő</translation>
     </message>
     <message>
       <source>Connection</source>
@@ -1800,116 +1824,116 @@
     </message>
     <message>
       <source>Back</source>
-      <translation>Fel</translation>
+      <translation>Vissza</translation>
     </message>
     <message>
       <source>Go online</source>
-      <translation>Online</translation>
+      <translation>Váltás online módra</translation>
     </message>
     <message>
       <source>Browse saved library offline</source>
-      <translation>Könyvtár · Mentve · Offline</translation>
+      <translation>Mentett könyvtár böngészése offline</translation>
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Lejátszás · Mix · %1 · Forrás</translation>
+      <translation>Mix lejátszása (%1 kiinduló)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
-      <translation>Sonic · Mix · %1 · Számok</translation>
+      <translation>Hangzásbeli utazás (%1 szám)</translation>
     </message>
   </context>
   <context>
     <name>NowPlaying</name>
     <message>
       <source>Now playing</source>
-      <translation>Lejátszás</translation>
+      <translation>Most szól</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Nincs · Lejátszás</translation>
+      <translation>Nincs lejátszás</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Kedvencek</translation>
+      <translation>★ Kedvenc</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Hozzáadás · Kedvencek</translation>
+      <translation>☆ Hozzáadás a kedvencekhez</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Dalszövegek</translation>
+      <translation>Dalszöveg</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Betöltés · Dalszövegek</translation>
+      <translation>Dalszöveg betöltése…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Dalszövegek · Nem érhető el · Offline · Kiszolgáló</translation>
+      <translation>A dalszöveg offline vagy ezen a szerveren nem érhető el.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Dalszövegek · Nem érhető el · Plex</translation>
+      <translation>A Plex nem adott meg dalszöveget.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
-      <translation>Dalszövegek</translation>
+      <translation>Dalszöveg újratöltése</translation>
     </message>
   </context>
   <context>
     <name>NowPlayingPage</name>
     <message>
       <source>Reload lyrics</source>
-      <translation>Dalszövegek</translation>
+      <translation>Dalszöveg újratöltése</translation>
     </message>
     <message>
       <source>Now playing</source>
-      <translation>Lejátszás</translation>
+      <translation>Most szól</translation>
     </message>
     <message>
       <source>Nothing playing</source>
-      <translation>Nincs · Lejátszás</translation>
+      <translation>Nincs lejátszás</translation>
     </message>
     <message>
       <source>★ Favorite</source>
-      <translation>★ · Kedvencek</translation>
+      <translation>★ Kedvenc</translation>
     </message>
     <message>
       <source>☆ Add to favorites</source>
-      <translation>☆ · Hozzáadás · Kedvencek</translation>
+      <translation>☆ Hozzáadás a kedvencekhez</translation>
     </message>
     <message>
       <source>Lyrics</source>
-      <translation>Dalszövegek</translation>
+      <translation>Dalszöveg</translation>
     </message>
     <message>
       <source>Loading lyrics…</source>
-      <translation>Betöltés · Dalszövegek</translation>
+      <translation>Dalszöveg betöltése…</translation>
     </message>
     <message>
       <source>Lyrics unavailable while offline or on this server.</source>
-      <translation>Dalszövegek · Nem érhető el · Offline · Kiszolgáló</translation>
+      <translation>A dalszöveg offline vagy ezen a szerveren nem érhető el.</translation>
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Dalszövegek · Nem érhető el · Plex</translation>
+      <translation>A Plex nem adott meg dalszöveget.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistDialog</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Hozzáadás · Lejátszási lista</translation>
+      <translation>Hozzáadás lejátszási listához</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Átnevezés · Lejátszási lista</translation>
+      <translation>Lejátszási lista átnevezése</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Létrehozás · Lejátszási lista</translation>
+      <translation>Lejátszási lista létrehozása</translation>
     </message>
     <message>
       <source>Save</source>
@@ -1917,7 +1941,7 @@
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lejátszási lista</translation>
+      <translation>Lejátszási lista neve</translation>
     </message>
     <message>
       <source>Playlist</source>
@@ -1925,30 +1949,30 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Intelligens · Lejátszási listák · Plex · Szűrő · Új · Lejátszási listák · Számok · Albumok · Sor</translation>
+      <translation>Az intelligens lejátszási listák tartalmát Plex-szűrők kezelik. Az új lejátszási listák a kijelölt számokat/albumot vagy a lejátszási sort használják.</translation>
     </message>
   </context>
   <context>
     <name>PlaylistEditor</name>
     <message>
       <source>Add to playlist</source>
-      <translation>Hozzáadás · Lejátszási lista</translation>
+      <translation>Hozzáadás lejátszási listához</translation>
     </message>
     <message>
       <source>Rename playlist</source>
-      <translation>Átnevezés · Lejátszási lista</translation>
+      <translation>Lejátszási lista átnevezése</translation>
     </message>
     <message>
       <source>Create playlist</source>
-      <translation>Létrehozás · Lejátszási lista</translation>
+      <translation>Lejátszási lista létrehozása</translation>
     </message>
     <message>
       <source>Playlist name</source>
-      <translation>Lejátszási lista</translation>
+      <translation>Lejátszási lista neve</translation>
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Intelligens · Lejátszási listák · Plex · Szűrő · Új · Lejátszási listák · Számok · Albumok · Sor</translation>
+      <translation>Az intelligens listák Plex-szűrőket használnak. Az új listák a kijelölt számokat/albumot vagy a lejátszási sort használják.</translation>
     </message>
   </context>
   <context>
@@ -1978,43 +2002,43 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Nemrég lejátszott</translation>
+      <translation>Nemrég játszott</translation>
     </message>
     <message>
       <source>Most played</source>
-      <translation>Előzmények · Lejátszás</translation>
+      <translation>Legtöbbet játszott</translation>
     </message>
     <message>
       <source>Shuffle</source>
-      <translation>Véletlenszerű</translation>
+      <translation>Keverés</translation>
     </message>
     <message>
       <source>Filtered music</source>
-      <translation>Szűrő · Hang</translation>
+      <translation>Szűrt zene</translation>
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>Sonic · Adventure</translation>
+      <translation>Hangzásbeli kaland</translation>
     </message>
     <message>
       <source>Discover</source>
-      <translation>Keresés</translation>
+      <translation>Felfedezés</translation>
     </message>
     <message>
       <source>%1 kbps</source>
-      <translation>%1 · kbps</translation>
+      <translation>%1 kbps</translation>
     </message>
     <message>
       <source>Original audio</source>
-      <translation>Forrás · Hang</translation>
+      <translation>Eredeti hang</translation>
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Hang · Hasonló</translation>
+      <translation>Hangzásban hasonló</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
-      <translation>Kedvencek · ★ · 5</translation>
+      <translation>Kedvencek · 5 csillag</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -2026,43 +2050,43 @@
     </message>
     <message>
       <source>Downloaded music</source>
-      <translation>Letöltve</translation>
+      <translation>Letöltött zene</translation>
     </message>
     <message>
       <source>Track count unavailable</source>
-      <translation>Szám · Darabszám · Nem érhető el</translation>
+      <translation>A számok száma nem érhető el</translation>
     </message>
     <message>
       <source>1 track</source>
-      <translation>1 · Szám</translation>
+      <translation>1 szám</translation>
     </message>
     <message>
       <source>%1 tracks</source>
-      <translation>%1 · Számok</translation>
+      <translation>%1 szám</translation>
     </message>
     <message>
       <source>Duration unavailable</source>
-      <translation>Időtartam · Nem érhető el</translation>
+      <translation>Az időtartam nem érhető el</translation>
     </message>
     <message>
       <source>Artist radio</source>
-      <translation>Előadó · Rádió</translation>
+      <translation>Előadórádió</translation>
     </message>
     <message>
       <source>Album radio</source>
-      <translation>Album · Rádió</translation>
+      <translation>Albumrádió</translation>
     </message>
     <message>
       <source>Track radio</source>
-      <translation>Szám · Rádió</translation>
+      <translation>Számrádió</translation>
     </message>
     <message>
       <source>Offline library</source>
-      <translation>Offline · Könyvtár</translation>
+      <translation>Offline könyvtár</translation>
     </message>
     <message>
       <source>Search results</source>
-      <translation>Keresés</translation>
+      <translation>Keresési találatok</translation>
     </message>
     <message>
       <source>Playlists</source>
@@ -2073,51 +2097,51 @@
     <name>SettingsPage</name>
     <message>
       <source>Connect to Plex</source>
-      <translation>Csatlakozás · Plex</translation>
+      <translation>Csatlakozás a Plexhez</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
-      <translation>Bejelentkezés · Plex</translation>
+      <translation>Bejelentkezés Plex-fiókkal</translation>
     </message>
     <message>
       <source>Complete sign-in in your browser, then return here.</source>
-      <translation>Bejelentkezés · Böngésző · Fogadva</translation>
+      <translation>Fejezd be a bejelentkezést a böngészőben, majd térj vissza ide.</translation>
     </message>
     <message>
       <source>Open browser again</source>
-      <translation>Megnyitás · Böngésző</translation>
+      <translation>Böngésző újbóli megnyitása</translation>
     </message>
     <message>
       <source>Choose a Plex server</source>
-      <translation>Kiválasztás · Plex · Kiszolgáló</translation>
+      <translation>Válassz Plex-szervert</translation>
     </message>
     <message>
       <source>Tap a server to open its music libraries.</source>
-      <translation>Kiválasztás · Kiszolgáló · Megnyitás · Könyvtár</translation>
+      <translation>Koppints egy szerverre a zenei könyvtárai megnyitásához.</translation>
     </message>
     <message>
       <source>Refresh the list to find your Plex servers.</source>
-      <translation>Frissítés · Plex</translation>
+      <translation>Frissítsd a listát a Plex-szervereid megkereséséhez.</translation>
     </message>
     <message>
       <source>Refresh servers</source>
-      <translation>Frissítés</translation>
+      <translation>Szerverek frissítése</translation>
     </message>
     <message>
       <source>Connect to music libraries</source>
-      <translation>Csatlakozás · Könyvtár</translation>
+      <translation>Csatlakozás a zenei könyvtárakhoz</translation>
     </message>
     <message>
       <source>Direct connection</source>
-      <translation>Kapcsolat</translation>
+      <translation>Közvetlen kapcsolat</translation>
     </message>
     <message>
       <source>Server URL</source>
-      <translation>Kiszolgáló · URL</translation>
+      <translation>Szerver URL-je</translation>
     </message>
     <message>
       <source>Plex token</source>
-      <translation>Plex · Token</translation>
+      <translation>Plex-token</translation>
     </message>
     <message>
       <source>Connect</source>
@@ -2125,47 +2149,47 @@
     </message>
     <message>
       <source>Sign out</source>
-      <translation>Bejelentkezés</translation>
+      <translation>Kijelentkezés</translation>
     </message>
     <message>
       <source>Offline audio cache</source>
-      <translation>Offline · Hang · Gyorsítótár</translation>
+      <translation>Offline hang-gyorsítótár</translation>
     </message>
     <message>
       <source>Audio settings</source>
-      <translation>Hang · Beállítások</translation>
+      <translation>Hangbeállítások</translation>
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Automatikus lejátszás · Hasonló · Sor</translation>
+      <translation>Hasonló zene lejátszása, ha a lejátszási sor véget ér</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
-      <translation>Letöltések · Csak olvasható · Wi-Fi</translation>
+      <translation>Letöltés csak Wi-Fi-n</translation>
     </message>
     <message>
       <source>Open download manager</source>
-      <translation>Megnyitás · Letöltések · Kezelés</translation>
+      <translation>Letöltéskezelő megnyitása</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Gyorsítótár · Sor · Hang · Automatikus lejátszás</translation>
+      <translation>Sorban álló hang automatikus gyorsítótárazása</translation>
     </message>
     <message>
       <source>Cache limit</source>
-      <translation>Gyorsítótár · Korlát</translation>
+      <translation>Gyorsítótár korlátja</translation>
     </message>
     <message>
       <source>%1 tracks downloaded · %2 MiB used</source>
-      <translation>%1 · Számok · Letöltve · %2 · MiB · Használva</translation>
+      <translation>%1 szám letöltve · %2 MiB használatban</translation>
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Gyorsítótár · Jelenlegi · Szám · Következő · %1 · Számok · Letöltések · Albumok · Kész · Offline</translation>
+      <translation>Az aktuális és a sorban következő %1 szám gyorsítótárba kerül. Utazás előtt tölts le egy albumot; offline csak a befejezett letöltések működnek.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
-      <translation>Ürítés · Gyorsítótár · Leállítás · Lejátszás</translation>
+      <translation>Gyorsítótár törlése és lejátszás leállítása</translation>
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
@@ -2176,7 +2200,7 @@
     <name>harbour-plexfreq</name>
     <message>
       <source>Nothing playing</source>
-      <translation>Nincs · Lejátszás</translation>
+      <translation>Nincs lejátszás</translation>
     </message>
   </context>
   <context>
@@ -2187,7 +2211,7 @@
     </message>
     <message>
       <source>EPs</source>
-      <translation>EP</translation>
+      <translation>EP-k</translation>
     </message>
     <message>
       <source>Singles</source>

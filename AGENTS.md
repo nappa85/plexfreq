@@ -47,16 +47,19 @@
   the gitignored `review-notes/` folder (and summarize them in the commit message
   when committing), never in `docs/`. Review findings are not proof of
   correctness.
-- Reviewer setup (adopted from ../mimik, user decision 2026-10-16):
-  - Main reviewers: OpenAI Sol (`openai/gpt-6.1-sol` via
-    `tools/external_review.py --chain main`) and a fresh Sonnet subagent, in parallel.
-  - Third reviewer: the first that works of Space Bunny, DeepSeek v4.1 Flash, then
-    Muse Spark (`--chain third`). If none works, proceed with the two main reviews
-    and record that.
-  - `tools/external_review.py` reviews a sanitized read-only snapshot: no Git data,
-    build output, packages, logs, Plex session/queue/listen/history files or
-    credentials (`tools/test_external_review.py`). Free tiers may log prompts, so
-    send only repository source and docs.
+- Reviewer setup (adopted from ../mimik, user decisions 2026-10-16 and 2026-11-07):
+  - External reviewers run through the `external-agents` skill
+    (https://github.com/nappa85/external-agents at commit f861139, cloned under
+    `/media/data/mimik/external-agents` and linked as `~/.claude/skills/external-agents`;
+    it installs its pinned opencode in `~/.opencode/bin`, which must come first on PATH) with
+    the panel `opencode:openai/gpt-6.1-sol; ? opencode:opencode/deepseek-v4.1-flash-free`
+    (`EXTERNAL_REVIEWERS` or `--reviewers`), next to a fresh Sonnet subagent, in
+    parallel. Sol is the main external reviewer; DeepSeek v4.1 Flash is the optional
+    third. If a slot has no available reviewer, proceed with the others and record it.
+  - The skill snapshots the tracked and untracked non-ignored files without VCS data.
+    `.gitignore` keeps build output, packages, logs, Plex session/queue/resume/listen/
+    history files and credentials out of it (`tools/test_review_snapshot.py`). Free
+    tiers may log prompts, so send only repository source and docs.
   - Adjudicate Blocking findings against the code before acting on them.
 - Resolve blocking findings before completion. If independence is unavailable or a
   blocker cannot be fixed, explicitly record it and keep the work blocked; do not
