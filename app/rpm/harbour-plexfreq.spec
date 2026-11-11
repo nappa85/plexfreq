@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.10
+Version: 0.1.11
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,10 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Wed Nov 11 2026 PlexFreq contributors - 0.1.11-1
+- No more freezes when browsing a large library, opening artists or switching to Discover
+- The log records why queued tracks are not cached ahead (cache full, track too large, downloads off)
+- Improved translations in 35 languages
 * Sat Nov 07 2026 PlexFreq contributors - 0.1.10-1
 - Recently added and other home sections open again
 - A saved library no longer leaves the app stuck offline; search uses downloaded music while the server is unreachable
