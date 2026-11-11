@@ -3,7 +3,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 # Every user-visible Core/QML string needs all 39 translations (CI gate).
 bash "$root/tools/build-qm.sh" --check
-(cd "$root/tools" && python3 -m unittest -q test_translations test_review_snapshot)
+(cd "$root/tools" && python3 -m unittest -q test_translations test_review_snapshot test_qml_readers)
 cargo fmt --manifest-path "$root/Cargo.toml" --all --check
 cargo clippy --manifest-path "$root/Cargo.toml" --locked --all-targets --all-features -- -D warnings
 # Tests never reach the host audio server or D-Bus buses.

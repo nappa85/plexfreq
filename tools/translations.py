@@ -213,6 +213,11 @@ def validate(language,source,translation,same=()):
         raise ValueError(f"No {language} script: {source}")
     if words and translation==source and source not in same:
         raise ValueError(f"Untranslated {language}: {source}")
+    # Translator notes must not ship: more parenthesized asides than the source has (a
+    # placeholder in parentheses is a legitimate reordering) or review vocabulary.
+    aside=lambda text:[a for a in re.findall(r"[(（][^()（）]*[)）]",text) if not re.search(r"%[1-9n]",a)]
+    if len(aside(translation))>len(aside(source)) or re.search(r"(?i)glossary|flag only",translation) or re.search(r"\b(?:TODO|FIXME|XXX)\b",translation):
+        raise ValueError(f"Annotation left in {language}: {source}")
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument("--extract",action="store_true");parser.add_argument("--check",action="store_true");args=parser.parse_args()

@@ -937,7 +937,7 @@
     </message>
     <message>
       <source>Play</source>
-      <translation>Redare</translation>
+      <translation>Redați</translation>
     </message>
     <message>
       <source>Refresh</source>

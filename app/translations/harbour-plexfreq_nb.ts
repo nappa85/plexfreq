@@ -289,11 +289,11 @@
     </message>
     <message>
       <source>Cache request cancelled</source>
-      <translation>Bufringsforespørselen ble avbrutt</translation>
+      <translation>Hurtigbufferforespørselen ble avbrutt</translation>
     </message>
     <message>
       <source>Cache requests require up to 1000 valid music tracks</source>
-      <translation>En bufringsforespørsel kan inneholde maks 1000 gyldige musikkspor</translation>
+      <translation>En hurtigbufferforespørsel kan inneholde maks 1000 gyldige musikkspor</translation>
     </message>
     <message>
       <source>Cache requires an unencoded audio response</source>
@@ -301,7 +301,7 @@
     </message>
     <message>
       <source>Cache worker unavailable</source>
-      <translation>Bufringsprosessen er ikke tilgjengelig</translation>
+      <translation>Hurtigbufferprosessen er ikke tilgjengelig</translation>
     </message>
     <message>
       <source>Cannot read or write application state</source>
@@ -385,11 +385,11 @@
     </message>
     <message>
       <source>Enable audio caching before pinning downloads</source>
-      <translation>Slå på lydbufring før du beholder nedlastinger frakoblet</translation>
+      <translation>Slå på hurtigbuffer for lyd før du beholder nedlastinger frakoblet</translation>
     </message>
     <message>
       <source>Enable audio caching in Connection settings first</source>
-      <translation>Slå på lydbufring i tilkoblingsinnstillingene først</translation>
+      <translation>Slå på hurtigbuffer for lyd i tilkoblingsinnstillingene først</translation>
     </message>
     <message>
       <source>Enter a playlist name (up to 512 bytes)</source>
@@ -645,7 +645,7 @@
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Dette sporet er ikke helt bufret ennå; nedlastede spor er fortsatt tilgjengelige</translation>
+      <translation>Dette sporet er ikke helt hurtigbufret ennå; nedlastede spor er fortsatt tilgjengelige</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
@@ -717,7 +717,7 @@
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>spormetadata for bufring</translation>
+      <translation>spormetadata for hurtigbuffer</translation>
     </message>
     <message>
       <source>created playlist</source>
@@ -1426,7 +1426,7 @@
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Bufrer lyd…</translation>
+      <translation>Hurtigbufrer lyd…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
@@ -1537,7 +1537,7 @@
     </message>
     <message>
       <source>Caching audio…</source>
-      <translation>Bufrer lyd…</translation>
+      <translation>Hurtigbufrer lyd…</translation>
     </message>
     <message>
       <source>%1 tracks ready offline</source>
@@ -1705,7 +1705,7 @@
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Bufre lyd i køen automatisk</translation>
+      <translation>Hurtigbufre lyd i køen automatisk</translation>
     </message>
     <message>
       <source>Cache limit</source>
@@ -2173,7 +2173,7 @@
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Bufre lyd i køen automatisk</translation>
+      <translation>Hurtigbufre lyd i køen automatisk</translation>
     </message>
     <message>
       <source>Cache limit</source>
@@ -2185,7 +2185,7 @@
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Gjeldende spor og de %1 neste sporene i køen bufres. Last ned et album før du reiser; bare fullførte nedlastinger fungerer frakoblet.</translation>
+      <translation>Gjeldende spor og de %1 neste sporene i køen hurtigbufres. Last ned et album før du reiser; bare fullførte nedlastinger fungerer frakoblet.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>

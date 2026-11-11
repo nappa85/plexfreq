@@ -257,7 +257,7 @@
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Helis kerimine nurjus</translation>
+      <translation>Heli kerimine nurjus</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>

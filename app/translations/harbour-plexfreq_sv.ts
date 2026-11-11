@@ -71,7 +71,7 @@
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Marginal</translation>
+      <translation>Headroom</translation>
     </message>
     <message>
       <source>%1 dB</source>
@@ -158,7 +158,7 @@
     </message>
     <message>
       <source>Headroom</source>
-      <translation>Marginal</translation>
+      <translation>Headroom</translation>
     </message>
     <message>
       <source>%1 dB</source>

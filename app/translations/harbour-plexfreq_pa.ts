@@ -257,7 +257,7 @@
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>ਆਡੀਓ ਵਿੱਚ ਸਥਿਤੀ ਬਦਲਣਾ ਅਸਫਲ ਰਿਹਾ</translation>
+      <translation>ਆਡੀਓ ਸੀਕ ਅਸਫਲ ਰਿਹਾ</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
@@ -785,7 +785,7 @@
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>ਸੋਨਿਕ ਸਫ਼ਰ</translation>
+      <translation>ਸੋਨਿਕ ਐਡਵੈਂਚਰ</translation>
     </message>
   </context>
   <context>
@@ -1323,11 +1323,11 @@
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>ਇੱਥੋਂ ਸੋਨਿਕ ਸਫ਼ਰ ਸ਼ੁਰੂ ਕਰੋ</translation>
+      <translation>ਇੱਥੋਂ ਸੋਨਿਕ ਐਡਵੈਂਚਰ ਸ਼ੁਰੂ ਕਰੋ</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>ਇਸ ਗੀਤ ਤੱਕ ਸੋਨਿਕ ਸਫ਼ਰ</translation>
+      <translation>ਇਸ ਗੀਤ ਤੱਕ ਸੋਨਿਕ ਐਡਵੈਂਚਰ</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
@@ -1339,7 +1339,7 @@
     </message>
     <message>
       <source>Play next</source>
-      <translation>ਅੱਗੇ ਚਲਾਓ</translation>
+      <translation>ਇਸ ਤੋਂ ਬਾਅਦ ਚਲਾਓ</translation>
     </message>
     <message>
       <source>Add to queue</source>
@@ -2018,7 +2018,7 @@
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>ਸੋਨਿਕ ਸਫ਼ਰ</translation>
+      <translation>ਸੋਨਿਕ ਐਡਵੈਂਚਰ</translation>
     </message>
     <message>
       <source>Discover</source>

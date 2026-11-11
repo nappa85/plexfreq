@@ -1490,7 +1490,7 @@
     </message>
     <message>
       <source>Downloaded</source>
-      <translation>Transferido</translation>
+      <translation>Transferida</translation>
     </message>
     <message>
       <source>No longer on the server</source>
@@ -1597,7 +1597,7 @@
     </message>
     <message>
       <source>Downloaded</source>
-      <translation>Transferido</translation>
+      <translation>Transferida</translation>
     </message>
     <message>
       <source>Retry loading</source>

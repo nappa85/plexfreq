@@ -27,7 +27,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ഓഡിയോ ഡൗൺലോഡ് ചെയ്യുക</translation>
+      <translation>ഡൗൺലോഡ് ഓഡിയോ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -110,7 +110,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ഓഡിയോ ഡൗൺലോഡ് ചെയ്യുക</translation>
+      <translation>ഡൗൺലോഡ് ഓഡിയോ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -697,7 +697,7 @@
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>ആൽബം റേഡിയോ ട്രാക്കുകൾ വായിക്കൽ</translation>
+      <translation>ആൽബം റേഡിയോ ട്രാക്കുകൾ</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
@@ -717,27 +717,27 @@
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>കാഷെ ട്രാക്ക് മെറ്റാഡാറ്റ വായിക്കൽ</translation>
+      <translation>കാഷെ ട്രാക്ക് മെറ്റാഡാറ്റ</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>സൃഷ്ടിച്ച പ്ലേലിസ്റ്റ് വായിക്കൽ</translation>
+      <translation>സൃഷ്ടിച്ച പ്ലേലിസ്റ്റ്</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>വരികളുടെ ലൈനുകൾ വായിക്കൽ</translation>
+      <translation>വരികളുടെ ലൈനുകൾ</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>വരിഭാഗത്തിന്റെ ടെക്സ്റ്റ് വായിക്കൽ</translation>
+      <translation>വരിഭാഗത്തിന്റെ ടെക്സ്റ്റ്</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>വരിഭാഗങ്ങൾ വായിക്കൽ</translation>
+      <translation>വരിഭാഗങ്ങൾ</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>വരികളുടെ JSON വായിക്കൽ</translation>
+      <translation>വരികളുടെ JSON</translation>
     </message>
     <message>
       <source>playlist creation</source>
@@ -745,15 +745,15 @@
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>പ്ലേലിസ്റ്റ് മെറ്റാഡാറ്റ വായിക്കൽ</translation>
+      <translation>പ്ലേലിസ്റ്റ് മെറ്റാഡാറ്റ</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>റേഡിയോ ഡൗൺലോഡ് ട്രാക്കുകൾ വായിക്കൽ</translation>
+      <translation>റേഡിയോ ഡൗൺലോഡ് ട്രാക്കുകൾ</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>റേഡിയോ ക്യൂ സ്ഥാനം വായിക്കൽ</translation>
+      <translation>റേഡിയോ ക്യൂ കേന്ദ്രം</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
@@ -765,15 +765,15 @@
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>റേഡിയോ ക്യൂ ഐഡന്റിറ്റി വായിക്കൽ</translation>
+      <translation>റേഡിയോ ക്യൂ ഐഡന്റിറ്റി</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>റേഡിയോ ക്യൂ ട്രാക്കുകൾ വായിക്കൽ</translation>
+      <translation>റേഡിയോ ക്യൂ ട്രാക്കുകൾ</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>റേഡിയോ സെർവർ ഐഡന്റിറ്റി വായിക്കൽ</translation>
+      <translation>റേഡിയോ സെർവർ ഐഡന്റിറ്റി</translation>
     </message>
     <message>
       <source>server discovery</source>
@@ -785,7 +785,7 @@
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>സോണിക് സാഹസികയാത്ര സൃഷ്ടിക്കൽ</translation>
+      <translation>സോണിക് സാഹസികയാത്ര</translation>
     </message>
   </context>
   <context>

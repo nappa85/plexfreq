@@ -95,6 +95,13 @@ class ValidationTests(unittest.TestCase):
             ("hi", "Play", "Play"),
             ("de", "Shuffle", "Shuffle"),
             ("hi", "Rusty Plexus", "Rusty Plexus"),
+            ("vi", "Audio command queue is unavailable",
+             "Hàng đợi lệnh âm thanh không khả dụng (keep, flag only: glossary mismatch)"),
+            ("de", "Play", "Abspielen TODO"),
+            ("de", "Pause", "Pause FIXME"),
+            ("zh_CN", "Play", "播放（保留）"),
+            ("it", "Choose tracks for the queue (maximum 10000)",
+             "Scegli i brani per la coda (massimo 10000) (da rivedere)"),
         ]:
             with self.subTest(source=source), self.assertRaises(ValueError):
                 validate(language, source, translation)
@@ -105,6 +112,10 @@ class ValidationTests(unittest.TestCase):
         validate("de", "Radio", "Radio", {"Radio"})
         validate("bg", "%1/%2 tracks · %3 MiB", "%1/%2 песни · %3 MiB")
         validate("el", "Session expired; start again", "Η σύνδεση έληξε· ξεκινήστε ξανά")
+        validate("pl", "The next %1 tracks", "Następne utwory (%1)")
+        validate("it", "Unexpected Plex response (%1)", "Risposta Plex inattesa (%1)")
+        validate("es", "Show all", "Mostrar todo")
+        validate("bg", "Choose tracks for the queue (maximum 10000)", "Изберете песни за опашката (максимум 10000)")
 
 
 if __name__ == "__main__":

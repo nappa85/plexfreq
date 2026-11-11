@@ -150,6 +150,44 @@ struct State {
     /// Batches up to this epoch ran before the user asked to retry: their
     /// refusals are not cooled down any more.
     forgotten: u64,
+    /// Outcome of the most recent batch the worker finished (diagnostics, tests).
+    #[cfg_attr(not(test), allow(dead_code))]
+    last_batch: Option<BatchSummary>,
+}
+
+/// Why a batch stopped.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum BatchEnd {
+    Done,
+    Superseded,
+    GateClosed,
+    RetriesExhausted,
+}
+impl BatchEnd {
+    fn name(self) -> &'static str {
+        match self {
+            Self::Done => "done",
+            Self::Superseded => "superseded",
+            Self::GateClosed => "gate_closed",
+            Self::RetriesExhausted => "retries_exhausted",
+        }
+    }
+}
+
+/// Counts of one batch. Items are counted once: `cached` were already
+/// complete, `completed` were downloaded, `skipped` were cooling down and
+/// `failed` ended on a failure (class per rating key in `failures`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(test), allow(dead_code))]
+struct BatchSummary {
+    epoch: u64,
+    pass: usize,
+    reason: BatchEnd,
+    completed: usize,
+    cached: usize,
+    skipped: usize,
+    failed: usize,
+    failures: BTreeMap<String, String>,
 }
 
 /// Playback lookups update LRU timestamps in memory; persist them at most this
@@ -165,6 +203,8 @@ const CORRUPT_PRESERVE_WINDOW: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 const COOLDOWN: Duration = Duration::from_secs(30 * 60);
 const UNENCODED_REQUIRED: &str = "Cache requires an unencoded audio response";
 const NON_AUDIO: &str = "Server returned non-audio content for this track";
+const CACHE_FULL_MESSAGE: &str = "Cache is full; increase its limit or clear cached audio";
+const TOO_LARGE_MESSAGE: &str = "Audio file exceeds the cache limit";
 /// Transcode bitrates a download id may encode.
 const TRANSCODE_KBPS: &[u32] = crate::quality::BITRATES;
 
@@ -218,6 +258,27 @@ impl Failure {
             _ => false,
         }
     }
+    /// Fixed diagnostic class, derived from the variant only: never from
+    /// message text that could carry a URL or path.
+    fn class(&self) -> String {
+        match self {
+            Self::Interrupted => "interrupted".into(),
+            Self::Incomplete => "incomplete".into(),
+            Self::Restart => "restart".into(),
+            Self::Held => "held".into(),
+            Self::Cancelled => "cancelled".into(),
+            Self::Other(Error::Http(status)) => format!("http_{status}"),
+            Self::Other(Error::Network) => "network".into(),
+            Self::Other(Error::Io(_)) => "io".into(),
+            Self::Other(Error::Input(message)) if *message == CACHE_FULL_MESSAGE => {
+                "cache_full".into()
+            }
+            Self::Other(Error::Input(message)) if *message == TOO_LARGE_MESSAGE => {
+                "too_large".into()
+            }
+            Self::Other(_) => "other".into(),
+        }
+    }
     fn into_error(self) -> Error {
         match self {
             Self::Interrupted => {
@@ -258,6 +319,7 @@ impl State {
             preserve_until: None,
             cooldown: HashMap::new(),
             forgotten: 0,
+            last_batch: None,
         }
     }
     fn touch_catalogue(&mut self) {
@@ -1467,14 +1529,29 @@ async fn worker(
             continue;
         }
         changed.borrow_and_update();
+        crate::diagnostics::event(format_args!(
+            "cache batch start epoch={} items={} quality_kbps={}",
+            batch.epoch,
+            batch.items.len(),
+            batch.quality_kbps
+        ));
+        let mut completed_keys = BTreeSet::new();
+        let mut cached_keys = BTreeSet::new();
+        let mut skipped_keys = BTreeSet::new();
+        let mut failures: BTreeMap<String, String> = BTreeMap::new();
+        let mut end = BatchEnd::Superseded;
+        let mut pass = 0;
         let mut terminal = BTreeSet::new();
         // Items whose server ignored a resume range: never interrupted
         // again in this batch, across its retry passes.
         let mut unresumable: BTreeSet<String> = BTreeSet::new();
         for attempt in 0..4 {
+            pass = attempt + 1;
             let mut failed = false;
+            let mut stopped = false;
             for (position, item) in batch.items.iter().enumerate() {
                 if epoch.load(Ordering::SeqCst) != batch.epoch || !gate.allowed() {
+                    stopped = true;
                     break;
                 }
                 if terminal.contains(&item.rating_key) {
@@ -1490,6 +1567,12 @@ async fn worker(
                         s.errors.insert(item.rating_key.clone(), error);
                         drop(s);
                         terminal.insert(item.rating_key.clone());
+                        if skipped_keys.insert(item.rating_key.clone()) {
+                            crate::diagnostics::event(format_args!(
+                                "cache item skipped key={} class=cooldown",
+                                item.rating_key
+                            ));
+                        }
                         continue;
                     }
                 }
@@ -1508,12 +1591,15 @@ async fn worker(
                 // attempt; `resumable` turns false if the server then
                 // ignores the range, so that item is not interrupted again.
                 let mut resumable = !unresumable.contains(&item.rating_key);
+                let mut started = Instant::now();
                 let result = loop {
                     if unheld(&gate, &mut changed).await.is_err()
                         || epoch.load(Ordering::SeqCst) != batch.epoch
                     {
                         break None;
                     }
+                    // Measure the transfer, not the hold waits before it.
+                    started = Instant::now();
                     match download(
                         &client,
                         &shared,
@@ -1554,39 +1640,69 @@ async fn worker(
                         }
                     }
                 }
-                let Some(result) = result else { break };
-                if let Err(error) = result {
-                    if epoch.load(Ordering::SeqCst) == batch.epoch {
-                        let retryable = error.retryable();
-                        let lasting = error.lasting();
-                        let suspect = match &error {
-                            Failure::Other(Error::Http(404)) => true,
-                            Failure::Other(Error::Http(400)) => transcoded > 0,
-                            _ => false,
-                        };
-                        let error = error.into_error();
-                        if suspect {
-                            crate::mutex_lock(state)
-                                .suspects
-                                .insert(item.rating_key.clone());
-                        }
-                        failed |= retryable;
-                        if !retryable {
-                            terminal.insert(item.rating_key.clone());
-                        }
-                        let mut s = crate::mutex_lock(state);
-                        s.error = error.to_string();
-                        s.errors.insert(item.rating_key.clone(), error.to_string());
-                        if lasting && batch.epoch > s.forgotten {
-                            s.cooldown
-                                .insert(id.clone(), (Instant::now(), error.to_string()));
+                let Some(result) = result else {
+                    stopped = true;
+                    break;
+                };
+                match result {
+                    Err(error) => {
+                        if epoch.load(Ordering::SeqCst) == batch.epoch {
+                            let retryable = error.retryable();
+                            let class = error.class();
+                            crate::diagnostics::event(format_args!(
+                            "cache item failed key={} class={class} retryable={retryable} pass={pass}",
+                            item.rating_key
+                        ));
+                            failures.insert(item.rating_key.clone(), class);
+                            let lasting = error.lasting();
+                            let suspect = match &error {
+                                Failure::Other(Error::Http(404)) => true,
+                                Failure::Other(Error::Http(400)) => transcoded > 0,
+                                _ => false,
+                            };
+                            let error = error.into_error();
+                            if suspect {
+                                crate::mutex_lock(state)
+                                    .suspects
+                                    .insert(item.rating_key.clone());
+                            }
+                            failed |= retryable;
+                            if !retryable {
+                                terminal.insert(item.rating_key.clone());
+                            }
+                            let mut s = crate::mutex_lock(state);
+                            s.error = error.to_string();
+                            s.errors.insert(item.rating_key.clone(), error.to_string());
+                            if lasting && batch.epoch > s.forgotten {
+                                s.cooldown
+                                    .insert(id.clone(), (Instant::now(), error.to_string()));
+                            }
                         }
                     }
-                } else {
-                    crate::mutex_lock(state).errors.remove(&item.rating_key);
+                    Ok(outcome) => {
+                        failures.remove(&item.rating_key);
+                        match outcome {
+                            Outcome::Present => {
+                                if !completed_keys.contains(&item.rating_key) {
+                                    cached_keys.insert(item.rating_key.clone());
+                                }
+                            }
+                            Outcome::Downloaded { bytes, resumed } => {
+                                cached_keys.remove(&item.rating_key);
+                                completed_keys.insert(item.rating_key.clone());
+                                crate::diagnostics::event(format_args!(
+                                    "cache item done key={} bytes={bytes} ms={} resumed={resumed}",
+                                    item.rating_key,
+                                    started.elapsed().as_millis()
+                                ));
+                            }
+                        }
+                        crate::mutex_lock(state).errors.remove(&item.rating_key);
+                    }
                 }
             }
             if epoch.load(Ordering::SeqCst) != batch.epoch {
+                end = BatchEnd::Superseded;
                 break;
             }
             {
@@ -1596,12 +1712,61 @@ async fn worker(
                 s.active_key.clear();
             }
             if !failed || attempt == 3 || !gate.allowed() {
+                end = if stopped || !gate.allowed() {
+                    BatchEnd::GateClosed
+                } else if failed {
+                    BatchEnd::RetriesExhausted
+                } else {
+                    BatchEnd::Done
+                };
                 break;
             }
             // Retry stalled/interrupted downloads while the same queue is active.
-            tokio::select! { _=changed.changed()=>break, _=tokio::time::sleep(RETRY_PASS)=>{} }
+            tokio::select! {
+                _ = changed.changed() => {
+                    // The watch also fires on gate/policy changes.
+                    end = if epoch.load(Ordering::SeqCst) == batch.epoch && !gate.allowed() {
+                        BatchEnd::GateClosed
+                    } else {
+                        BatchEnd::Superseded
+                    };
+                    break;
+                }
+                _ = tokio::time::sleep(RETRY_PASS) => {}
+            }
         }
+        let summary = BatchSummary {
+            epoch: batch.epoch,
+            pass,
+            reason: end,
+            completed: completed_keys.len(),
+            cached: cached_keys.len(),
+            skipped: skipped_keys.len(),
+            failed: failures.len(),
+            failures,
+        };
+        crate::diagnostics::event(format_args!(
+            "cache batch end epoch={} completed={} cached={} failed={} skipped={} pass={} reason={}",
+            summary.epoch,
+            summary.completed,
+            summary.cached,
+            summary.failed,
+            summary.skipped,
+            summary.pass,
+            summary.reason.name()
+        ));
+        crate::mutex_lock(state).last_batch = Some(summary);
     }
+}
+
+/// What a finished item download did.
+enum Outcome {
+    /// A complete copy already existed (or was re-indexed from preserved media).
+    Present,
+    Downloaded {
+        bytes: u64,
+        resumed: bool,
+    },
 }
 
 /// Wait before a batch retries its interrupted items (short in unit tests).
@@ -1611,7 +1776,7 @@ const RETRY_PASS: Duration = if cfg!(test) {
     Duration::from_secs(30)
 };
 
-const CACHE_FULL: Error = Error::Input("Cache is full; increase its limit or clear cached audio");
+const CACHE_FULL: Error = Error::Input(CACHE_FULL_MESSAGE);
 
 fn evictable_entry(state: &State, key: &str, entry: &Entry, current_key: &str) -> bool {
     key != current_key && !protected(state, &entry.namespace, &entry.item.rating_key)
@@ -1727,7 +1892,7 @@ impl Plan {
 fn room(root: &Path, state: &Mutex<State>, extra: u64, current_key: &str) -> Result<()> {
     let limit = crate::mutex_lock(state).config.limit_mb * 1024 * 1024;
     if extra > limit {
-        return Err(Error::Input("Audio file exceeds the cache limit"));
+        return Err(Error::Input(TOO_LARGE_MESSAGE));
     }
     let mut used = disk_bytes(root);
     let mut checked = false;
@@ -1820,7 +1985,7 @@ async fn download(
     mut item: Item,
     identity: (&str, &str),
     run: ItemRun<'_>,
-) -> std::result::Result<(), Failure> {
+) -> std::result::Result<Outcome, Failure> {
     let ItemRun {
         transcoded,
         gate,
@@ -1830,7 +1995,7 @@ async fn download(
     let (client_id, session) = identity;
     let quality_of = |item: &Item| download_quality(batch.quality_kbps, item);
     if completed(shared, &batch.namespace, &item, quality_of(&item)).await {
-        return Ok(());
+        return Ok(Outcome::Present);
     }
     if part_key(&item).is_none() {
         let url = server_path(
@@ -1867,7 +2032,7 @@ async fn download(
     // Metadata may have been completed above: check for a finished copy again.
     let quality = quality_of(&item);
     if completed(shared, &batch.namespace, &item, quality).await {
-        return Ok(());
+        return Ok(Outcome::Present);
     }
     *transcoded = quality;
     let url = if quality > 0 {
@@ -1914,7 +2079,7 @@ async fn download(
         .await
     };
     let Some((old, mut offset)) = resumed else {
-        return Ok(());
+        return Ok(Outcome::Present);
     };
     if quality > 0
         || old.quality_kbps != quality
@@ -2077,6 +2242,7 @@ async fn download(
         })
         .await?
     };
+    let resumed_from = offset;
     let mut received = offset;
     let mut reserved_until = total.unwrap_or(offset);
     loop {
@@ -2184,7 +2350,11 @@ async fn download(
         fs::File::open(&shared.root)?.sync_all()?;
         Ok(())
     })
-    .await
+    .await?;
+    Ok(Outcome::Downloaded {
+        bytes: received,
+        resumed: resumed_from > 0,
+    })
 }
 
 /// Bitrate of an original-quality download whose format the engine cannot
@@ -2658,6 +2828,123 @@ mod hold_tests {
         control.hold(false);
         let (path, _) = cache.lookup(&namespace, &item, false).unwrap();
         assert_eq!(fs::read(path).unwrap(), b"abcdefghijklmnopqrst");
+    }
+}
+
+/// Batch summaries and failure classes recorded for diagnostics.
+#[cfg(test)]
+mod batch_summary_tests {
+    use super::*;
+    use std::{
+        io::{Read, Write},
+        net::TcpListener,
+    };
+
+    fn track(id: &str) -> Item {
+        Item {
+            rating_key: id.into(),
+            kind: crate::model::ItemKind::Track,
+            media: vec![crate::model::Media {
+                audio_codec: "pcm".into(),
+                container: "wav".into(),
+                parts: vec![crate::model::Part {
+                    key: format!("/library/parts/{id}/file.wav"),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        }
+    }
+    fn serve(listener: TcpListener, requests: usize) {
+        std::thread::spawn(move || {
+            for _ in 0..requests {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut bytes = Vec::new();
+                let mut byte = [0];
+                while !bytes.ends_with(b"\r\n\r\n") && socket.read_exact(&mut byte).is_ok() {
+                    bytes.push(byte[0]);
+                }
+                let request = String::from_utf8_lossy(&bytes).to_string();
+                let reply: Vec<u8> = if request.contains("/parts/1/") {
+                    b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 4\r\nConnection: close\r\n\r\nabcd".to_vec()
+                } else if request.contains("/parts/2/") {
+                    b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                        .to_vec()
+                } else {
+                    format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                        64 * 1024 * 1024
+                    )
+                    .into_bytes()
+                };
+                let _ = socket.write_all(&reply);
+            }
+        });
+    }
+
+    #[test]
+    fn a_batch_reports_counts_classes_and_reason() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/", listener.local_addr().unwrap());
+        serve(listener, 3);
+        let dir = tempfile::tempdir().unwrap();
+        let config = Config {
+            enabled: true,
+            limit_mb: 64,
+            ahead: 5,
+        };
+        let cache = Cache::new(dir.path().into(), config, "fixture").unwrap();
+        cache
+            .schedule(&url, "token", vec![track("1"), track("2"), track("3")])
+            .unwrap();
+        wait(|| crate::mutex_lock(&cache.state).last_batch.is_some());
+        let summary = crate::mutex_lock(&cache.state).last_batch.clone().unwrap();
+        assert_eq!(summary.reason, BatchEnd::Done);
+        assert_eq!(summary.pass, 1);
+        assert_eq!(
+            (
+                summary.completed,
+                summary.cached,
+                summary.skipped,
+                summary.failed
+            ),
+            (1, 0, 0, 2)
+        );
+        assert_eq!(summary.failures["2"], "http_404");
+        assert_eq!(summary.failures["3"], "cache_full");
+    }
+
+    fn wait(mut done: impl FnMut() -> bool) {
+        let until = Instant::now() + Duration::from_secs(8);
+        while !done() {
+            assert!(Instant::now() < until, "timed out");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
+
+    #[test]
+    fn failure_classes_come_from_variants_not_text() {
+        let io = || std::io::Error::other("secret /path/file.part");
+        for (failure, class) in [
+            (Failure::Interrupted, "interrupted"),
+            (Failure::Incomplete, "incomplete"),
+            (Failure::Restart, "restart"),
+            (Failure::Held, "held"),
+            (Failure::Cancelled, "cancelled"),
+            (Failure::Other(Error::Http(503)), "http_503"),
+            (Failure::Other(Error::Network), "network"),
+            (Failure::Other(CACHE_FULL), "cache_full"),
+            (Failure::Other(Error::Input(TOO_LARGE_MESSAGE)), "too_large"),
+            (Failure::Other(io().into()), "io"),
+            (Failure::Other(Error::Input("anything else")), "other"),
+            (Failure::Other(Error::Protocol), "other"),
+        ] {
+            assert_eq!(failure.class(), class);
+        }
     }
 }
 

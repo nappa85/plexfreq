@@ -309,7 +309,7 @@
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>为合辑选择 1–10 个艺人或专辑</translation>
+      <translation>为 Mix 选择 1–10 个艺人或专辑</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
@@ -497,7 +497,7 @@
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>合辑种子必须是艺人或专辑</translation>
+      <translation>Mix 种子必须是艺人或专辑</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
@@ -1355,7 +1355,7 @@
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>添加为合辑种子</translation>
+      <translation>添加为 Mix 种子</translation>
     </message>
     <message>
       <source>Rename playlist</source>
@@ -1776,7 +1776,7 @@
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>清除合辑种子</translation>
+      <translation>清除 Mix 种子</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
@@ -1836,7 +1836,7 @@
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>播放合辑（%1 个种子）</translation>
+      <translation>播放 Mix（%1 个种子）</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>

@@ -217,7 +217,7 @@
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Front zvukových príkazov nie je k dispozícii</translation>
+      <translation>Fronta zvukových príkazov nie je k dispozícii</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -269,7 +269,7 @@
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Front príkazov jadra nie je k dispozícii</translation>
+      <translation>Fronta príkazov jadra nie je k dispozícii</translation>
     </message>
     <message>
       <source>Backend panic</source>
@@ -349,7 +349,7 @@
     </message>
     <message>
       <source>Choose tracks for the queue (maximum 10000)</source>
-      <translation>Zvoľte skladby do frontu (najviac 10000)</translation>
+      <translation>Zvoľte skladby do fronty (najviac 10000)</translation>
     </message>
     <message>
       <source>Choose tracks or an album for the playlist</source>
@@ -457,11 +457,11 @@
     </message>
     <message>
       <source>Invalid queue index</source>
-      <translation>Neplatný index frontu</translation>
+      <translation>Neplatný index fronty</translation>
     </message>
     <message>
       <source>Invalid queue order</source>
-      <translation>Neplatné poradie frontu</translation>
+      <translation>Neplatné poradie fronty</translation>
     </message>
     <message>
       <source>Invalid request data</source>
@@ -517,7 +517,7 @@
     </message>
     <message>
       <source>Nothing is queued</source>
-      <translation>Front je prázdny</translation>
+      <translation>Fronta je prázdna</translation>
     </message>
     <message>
       <source>Offline data exceeds its storage limit</source>
@@ -557,7 +557,7 @@
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
-      <translation>Front vyžaduje skladby a platný počiatočný index</translation>
+      <translation>Fronta vyžaduje skladby a platný počiatočný index</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -593,7 +593,7 @@
     </message>
     <message>
       <source>Saved queue is invalid</source>
-      <translation>Uložený front je neplatný</translation>
+      <translation>Uložená fronta je neplatná</translation>
     </message>
     <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
@@ -757,19 +757,19 @@
     </message>
     <message>
       <source>radio queue continuation</source>
-      <translation>pokračovanie frontu rádia</translation>
+      <translation>pokračovanie fronty rádia</translation>
     </message>
     <message>
       <source>radio queue creation</source>
-      <translation>vytvorenie frontu rádia</translation>
+      <translation>vytvorenie fronty rádia</translation>
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>identifikátor frontu rádia</translation>
+      <translation>identifikátor fronty rádia</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>skladby frontu rádia</translation>
+      <translation>skladby fronty rádia</translation>
     </message>
     <message>
       <source>radio server identity</source>
@@ -1343,7 +1343,7 @@
     </message>
     <message>
       <source>Add to queue</source>
-      <translation>Pridať do frontu</translation>
+      <translation>Pridať do fronty</translation>
     </message>
     <message>
       <source>Add to playlist</source>
@@ -1403,7 +1403,7 @@
     </message>
     <message>
       <source>Remove from queue</source>
-      <translation>Odobrať z frontu</translation>
+      <translation>Odobrať z fronty</translation>
     </message>
   </context>
   <context>
@@ -1625,7 +1625,7 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Opakovať jednu</translation>
+      <translation>Opakovať skladbu</translation>
     </message>
     <message>
       <source>Repeat all</source>
@@ -1701,11 +1701,11 @@
     </message>
     <message>
       <source>Autoplay related music at queue end</source>
-      <translation>Po konci frontu prehrať podobnú hudbu</translation>
+      <translation>Po konci fronty prehrať podobnú hudbu</translation>
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Automaticky ukladať zvuk z frontu do medzipamäte</translation>
+      <translation>Automaticky ukladať zvuk z fronty do medzipamäte</translation>
     </message>
     <message>
       <source>Cache limit</source>
@@ -1768,7 +1768,7 @@
     </message>
     <message>
       <source>Create playlist from tracks/queue</source>
-      <translation>Vytvoriť playlist zo skladieb či frontu</translation>
+      <translation>Vytvoriť playlist zo skladieb či fronty</translation>
     </message>
     <message>
       <source>Download displayed tracks</source>
@@ -1788,7 +1788,7 @@
     </message>
     <message>
       <source>Queue</source>
-      <translation>Front</translation>
+      <translation>Fronta</translation>
     </message>
     <message>
       <source>Downloaded music</source>
@@ -1949,7 +1949,7 @@
     </message>
     <message>
       <source>Smart playlist contents are managed by Plex filters. New playlists use the selected tracks/album, or the queue.</source>
-      <translation>Obsah inteligentných playlistov spravujú filtre Plex. Nové playlisty použijú vybrané skladby či album alebo front.</translation>
+      <translation>Obsah inteligentných playlistov spravujú filtre Plex. Nové playlisty použijú vybrané skladby či album alebo frontu.</translation>
     </message>
   </context>
   <context>
@@ -1972,7 +1972,7 @@
     </message>
     <message>
       <source>Smart playlists use Plex filters. New playlists use selected tracks/album, or the queue.</source>
-      <translation>Inteligentné playlisty používajú filtre Plex. Nové playlisty použijú vybrané skladby či album alebo front.</translation>
+      <translation>Inteligentné playlisty používajú filtre Plex. Nové playlisty použijú vybrané skladby či album alebo frontu.</translation>
     </message>
   </context>
   <context>
@@ -2161,7 +2161,7 @@
     </message>
     <message>
       <source>Autoplay related music when queue ends</source>
-      <translation>Prehrať podobnú hudbu, keď front skončí</translation>
+      <translation>Prehrať podobnú hudbu, keď fronta skončí</translation>
     </message>
     <message>
       <source>Download only on Wi-Fi</source>
@@ -2173,7 +2173,7 @@
     </message>
     <message>
       <source>Cache queued audio automatically</source>
-      <translation>Automaticky ukladať zvuk z frontu do medzipamäte</translation>
+      <translation>Automaticky ukladať zvuk z fronty do medzipamäte</translation>
     </message>
     <message>
       <source>Cache limit</source>

@@ -785,7 +785,7 @@
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>சோனிக் பயணம்</translation>
+      <translation>சோனிக் சாகசம்</translation>
     </message>
   </context>
   <context>
@@ -1323,11 +1323,11 @@
     </message>
     <message>
       <source>Start sonic adventure here</source>
-      <translation>இங்கிருந்து சோனிக் பயணத்தைத் தொடங்கு</translation>
+      <translation>இங்கிருந்து சோனிக் சாகசத்தைத் தொடங்கு</translation>
     </message>
     <message>
       <source>Sonic Adventure to this track</source>
-      <translation>இந்தப் பாடல் வரை சோனிக் பயணம்</translation>
+      <translation>இந்தப் பாடல் வரை சோனிக் சாகசம்</translation>
     </message>
     <message>
       <source>Download radio · %1 minutes</source>
@@ -2018,7 +2018,7 @@
     </message>
     <message>
       <source>Sonic Adventure</source>
-      <translation>சோனிக் பயணம்</translation>
+      <translation>சோனிக் சாகசம்</translation>
     </message>
     <message>
       <source>Discover</source>

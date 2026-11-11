@@ -309,7 +309,7 @@
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>Изберете 1–10 изпълнители или албума за микс</translation>
+      <translation>Изберете 1–10 изпълнители или албуми за микс</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
@@ -1311,7 +1311,7 @@
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Добавяне на точка от маршрута</translation>
+      <translation>Добавяне на звукова точка от маршрута</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
@@ -1780,7 +1780,7 @@
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Изчистване на точките от маршрута</translation>
+      <translation>Изчистване на звуковите точки от маршрута</translation>
     </message>
     <message>
       <source>Stop radio</source>

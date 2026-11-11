@@ -1732,7 +1732,7 @@
     </message>
     <message>
       <source>More destinations</source>
-      <translation>Diğer hedefler</translation>
+      <translation>Diğer bölümler</translation>
     </message>
     <message>
       <source>Show all</source>

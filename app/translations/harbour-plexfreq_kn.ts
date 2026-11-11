@@ -27,7 +27,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ಆಡಿಯೋ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</translation>
+      <translation>ಡೌನ್‌ಲೋಡ್ ಆಡಿಯೋ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -110,7 +110,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ಆಡಿಯೋ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</translation>
+      <translation>ಡೌನ್‌ಲೋಡ್ ಆಡಿಯೋ</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -697,7 +697,7 @@
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>ಆಲ್ಬಮ್ ರೇಡಿಯೋ ಟ್ರ್ಯಾಕ್‌ಗಳ ಓದುವಿಕೆ</translation>
+      <translation>ಆಲ್ಬಮ್ ರೇಡಿಯೋ ಟ್ರ್ಯಾಕ್‌ಗಳು</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
@@ -717,27 +717,27 @@
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>ಕ್ಯಾಶ್ ಟ್ರ್ಯಾಕ್ ಮೆಟಾಡೇಟಾ ಓದುವಿಕೆ</translation>
+      <translation>ಕ್ಯಾಶ್ ಟ್ರ್ಯಾಕ್ ಮೆಟಾಡೇಟಾ</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>ರಚಿಸಿದ ಪ್ಲೇಲಿಸ್ಟ್ ಓದುವಿಕೆ</translation>
+      <translation>ರಚಿಸಿದ ಪ್ಲೇಲಿಸ್ಟ್</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>ಸಾಹಿತ್ಯದ ಸಾಲುಗಳ ಓದುವಿಕೆ</translation>
+      <translation>ಸಾಹಿತ್ಯದ ಸಾಲುಗಳು</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>ಸಾಹಿತ್ಯ ಭಾಗದ ಪಠ್ಯ ಓದುವಿಕೆ</translation>
+      <translation>ಸಾಹಿತ್ಯ ಭಾಗದ ಪಠ್ಯ</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>ಸಾಹಿತ್ಯ ಭಾಗಗಳ ಓದುವಿಕೆ</translation>
+      <translation>ಸಾಹಿತ್ಯ ಭಾಗಗಳು</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>ಸಾಹಿತ್ಯ JSON ಓದುವಿಕೆ</translation>
+      <translation>ಸಾಹಿತ್ಯ JSON</translation>
     </message>
     <message>
       <source>playlist creation</source>
@@ -745,15 +745,15 @@
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>ಪ್ಲೇಲಿಸ್ಟ್ ಮೆಟಾಡೇಟಾ ಓದುವಿಕೆ</translation>
+      <translation>ಪ್ಲೇಲಿಸ್ಟ್ ಮೆಟಾಡೇಟಾ</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>ರೇಡಿಯೋ ಡೌನ್‌ಲೋಡ್ ಟ್ರ್ಯಾಕ್‌ಗಳ ಓದುವಿಕೆ</translation>
+      <translation>ರೇಡಿಯೋ ಡೌನ್‌ಲೋಡ್ ಟ್ರ್ಯಾಕ್‌ಗಳು</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಸ್ಥಾನ ಓದುವಿಕೆ</translation>
+      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಕೇಂದ್ರ</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
@@ -765,15 +765,15 @@
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಗುರುತು ಓದುವಿಕೆ</translation>
+      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಗುರುತು</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಟ್ರ್ಯಾಕ್‌ಗಳ ಓದುವಿಕೆ</translation>
+      <translation>ರೇಡಿಯೋ ಕ್ಯೂ ಟ್ರ್ಯಾಕ್‌ಗಳು</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>ರೇಡಿಯೋ ಸರ್ವರ್ ಗುರುತು ಓದುವಿಕೆ</translation>
+      <translation>ರೇಡಿಯೋ ಸರ್ವರ್ ಗುರುತು</translation>
     </message>
     <message>
       <source>server discovery</source>
@@ -785,7 +785,7 @@
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>ಸೋನಿಕ್ ಸಾಹಸಯಾತ್ರೆ ರಚನೆ</translation>
+      <translation>ಸೋನಿಕ್ ಸಾಹಸಯಾತ್ರೆ</translation>
     </message>
   </context>
   <context>

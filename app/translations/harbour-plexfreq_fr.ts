@@ -39,7 +39,7 @@
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Moteur audio Rust · sortie PCM sans blanc</translation>
+      <translation>Moteur audio Rust · sortie PCM sans coupure</translation>
     </message>
     <message>
       <source>%1 seconds</source>
@@ -79,7 +79,7 @@
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Utilise les métadonnées de gain de Plex si disponibles. Les morceaux d’un même album s’enchaînent sans blanc ni fondu enchaîné.</translation>
+      <translation>Utilise les métadonnées de gain de Plex si disponibles. Les morceaux d’un même album s’enchaînent sans coupure ni fondu enchaîné.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -122,7 +122,7 @@
     </message>
     <message>
       <source>Rust audio engine · gapless PCM output</source>
-      <translation>Moteur audio Rust · sortie PCM sans blanc</translation>
+      <translation>Moteur audio Rust · sortie PCM sans coupure</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -166,7 +166,7 @@
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Utilise les métadonnées de gain de Plex si disponibles. Les morceaux d’un même album s’enchaînent sans blanc ni fondu enchaîné.</translation>
+      <translation>Utilise les métadonnées de gain de Plex si disponibles. Les morceaux d’un même album s’enchaînent sans coupure ni fondu enchaîné.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -497,7 +497,7 @@
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Les bases du mix doivent être des artistes ou des albums</translation>
+      <translation>Les points de départ du mix doivent être des artistes ou des albums</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
@@ -565,7 +565,7 @@
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>La radio n’a plus de recommandations soniques ; essayez une autre base</translation>
+      <translation>La radio n’a plus de recommandations soniques ; essayez un autre point de départ</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
@@ -581,7 +581,7 @@
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>La base de la radio ne correspond pas au type de musique sélectionné</translation>
+      <translation>Le point de départ de la radio ne correspond pas au type de musique sélectionné</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
@@ -1355,7 +1355,7 @@
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Ajouter comme base du mix</translation>
+      <translation>Ajouter comme point de départ du mix</translation>
     </message>
     <message>
       <source>Rename playlist</source>
@@ -1776,7 +1776,7 @@
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Effacer les bases du mix</translation>
+      <translation>Effacer les points de départ du mix</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
@@ -1836,7 +1836,7 @@
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Lire le mix (%1 bases)</translation>
+      <translation>Lire le mix (%1 points de départ)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>

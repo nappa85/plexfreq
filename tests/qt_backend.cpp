@@ -20,6 +20,7 @@
 #include <QTimer>
 #include "plexfreq_core.h"
 #include <memory>
+#include <cmath>
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQmlComponent>
@@ -39,6 +40,7 @@
 #include <QDBusPendingCallWatcher>
 #include <QDBusArgument>
 #include <QDBusVariant>
+#include <functional>
 
 class NavigationBackend : public QObject {
     Q_OBJECT
@@ -46,6 +48,11 @@ class NavigationBackend : public QObject {
     Q_PROPERTY(bool loadingMore READ loadingMore NOTIFY loadingMoreChanged)
     Q_PROPERTY(QVariantMap state READ state NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap cache READ cache NOTIFY cacheChanged)
+    Q_PROPERTY(QVariantList items READ items NOTIFY itemsChanged)
+    Q_PROPERTY(QVariantList queueItems READ queueItems NOTIFY queueItemsChanged)
+    Q_PROPERTY(int itemCount READ itemCount NOTIFY itemsChanged)
+    Q_PROPERTY(int queueCount READ queueCount NOTIFY queueItemsChanged)
+    Q_PROPERTY(int cacheRevision READ cacheRevision NOTIFY cacheRevisionChanged)
     Q_PROPERTY(QAbstractItemModel *itemsModel READ itemsModel CONSTANT)
     Q_PROPERTY(QAbstractItemModel *queueModel READ queueModel CONSTANT)
     Q_PROPERTY(qint64 position READ position NOTIFY playbackChanged)
@@ -57,9 +64,11 @@ public:
     QString operation;
     int commandCount=0;
     QVariantMap arguments;
-    QVariantMap data{{"detail", QVariantMap()}, {"items", QVariantList()}, {"servers", QVariantList()}, {"queue", QVariantMap{{"items", QVariantList()}}}};
-    bool busyValue=false;
-    QVariantMap cacheData{{"enabled",true},{"tracks",0},{"readyKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false},{"held",false},{"goneKeys",QVariantList()},{"error",""}};
+    QVariantMap data{{"detail", QVariantMap()}, {"items", QVariantList()}, {"servers", QVariantList()}, {"queue", QVariantMap{{"repeat","off"},{"shuffled",false}}}};
+    bool busyValue=false,resetOnCommand=false;
+    QVariantMap cacheData{{"enabled",true},{"tracks",0},{"jobs",QVariantList()},{"bytes",0},{"wifiOnly",false},{"paused",false},{"waitingForWifi",false},{"held",false},{"error",""}};
+    QSet<QString> ready,gone,pinnedGroups;
+    int revision=0,itemReads=0,queueReads=0;
     EntryModel itemModel;
     EntryModel queuedModel;
     bool busy() const { return busyValue; }
@@ -73,16 +82,39 @@ public:
     QString error() const {return QString();}
     QVariantMap state() const { return data; }
     QVariantMap cache() const { return cacheData; }
+    QVariantList items() {++itemReads;return itemModel.entries();}
+    QVariantList queueItems() {++queueReads;return queuedModel.entries();}
+    int itemCount() const {return itemModel.rowCount();}
+    int queueCount() const {return queuedModel.rowCount();}
+    int cacheRevision() const {return revision;}
+    Q_INVOKABLE bool isReady(const QString &key) const {return ready.contains(key);}
+    Q_INVOKABLE bool isGone(const QString &key) const {return gone.contains(key);}
+    Q_INVOKABLE bool isPinned(const QString &) const {return false;}
+    Q_INVOKABLE bool isPinnedGroup(const QString &key) const {return pinnedGroups.contains(key);}
+    void setItems(const QVariantList &value){itemModel.replace(value);emit itemsChanged();}
+    void setQueue(const QVariantList &value){queuedModel.replace(value);emit queueItemsChanged();}
+    void setKeys(const QSet<QString> &readyKeys,const QSet<QString> &goneKeys,const QSet<QString> &groups){ready=readyKeys;gone=goneKeys;pinnedGroups=groups;++revision;emit cacheRevisionChanged();}
     QAbstractItemModel *itemsModel() {return &itemModel;}
     QAbstractItemModel *queueModel() {return &queuedModel;}
-    Q_INVOKABLE void command(const QString &op, const QVariantMap &args = QVariantMap()) { ++commandCount; operation = op; arguments = args; }
+    Q_INVOKABLE void command(const QString &op, const QVariantMap &args = QVariantMap()) { ++commandCount; operation = op; arguments = args; if(resetOnCommand && itemModel.rowCount()>0)setItems({}); }
 signals:
     void completed(const QString &op, bool ok, const QVariantMap &data);
     void stateChanged();
     void cacheChanged();
+    void cacheRevisionChanged();
+    void itemsChanged();
+    void queueItemsChanged();
     void busyChanged();
     void loadingMoreChanged();
     void playbackChanged();
+};
+
+class RouteProbe : public QObject {
+    Q_OBJECT
+public:
+    std::function<void()> action;
+public slots:
+    void fire(){if(action)action();}
 };
 
 static QQuickItem *visualItem(QQuickItem *parent,const QString &name) {
@@ -102,6 +134,38 @@ public slots:
     uint Notify(const QString &app,uint replaces,const QString &icon,const QString &summary,const QString &body,const QStringList &actions,const QVariantMap &hints,int timeout){
         calls.append(QVariantMap{{"app",app},{"replaces",replaces},{"icon",icon},{"summary",summary},{"body",body},{"actions",actions},{"hints",hints},{"timeout",timeout}});
         return replaces ? replaces : uint(calls.size());
+    }
+};
+
+struct WindowedGridHarness {
+    QQmlEngine engine;
+    QQuickWindow window;
+    std::unique_ptr<QObject> root;
+    QQuickItem *list=nullptr,*grid=nullptr;
+    QObject *position=nullptr;
+    void open() {
+        QQmlComponent component(&engine,QUrl("qrc:/tests/WindowedGridFixture.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        root.reset(component.create());QVERIFY(root.get());
+        window.resize(400,600);auto *item=qobject_cast<QQuickItem *>(root.get());QVERIFY(item);item->setParentItem(window.contentItem());window.show();QVERIFY(QTest::qWaitForWindowExposed(&window));
+        list=root->findChild<QQuickItem *>("fixtureList");grid=qobject_cast<QQuickItem *>(root->property("grid").value<QObject *>());position=root->property("position").value<QObject *>();QVERIFY(list && grid && position);
+    }
+    void call(const char *name,int value) {QVERIFY(QMetaObject::invokeMethod(root.get(),name,Q_ARG(QVariant,QVariant(value))));}
+    bool has(int index) {QVariant result;QMetaObject::invokeMethod(root.get(),"has",Q_RETURN_ARG(QVariant,result),Q_ARG(QVariant,QVariant(index)));return result.toBool();}
+    bool filled() {QVariant result;QMetaObject::invokeMethod(root.get(),"viewportFilled",Q_RETURN_ARG(QVariant,result));return result.toBool();}
+    int topIndex() {QVariant result;QMetaObject::invokeMethod(root.get(),"topIndex",Q_RETURN_ARG(QVariant,result));return result.toInt();}
+    void jump(int index) {QVERIFY(QMetaObject::invokeMethod(position,"positionArtist",Q_ARG(QVariant,QVariant(index))));}
+    int live() {return root->property("live").toInt();}
+    int count() {return grid->property("count").toInt();}
+    // Delegates one window may hold: its rows, the GridView cache rows (both sides) and a partial row each side.
+    int bound() {
+        const auto cell=grid->property("cellHeight").toReal();
+        const int rows=int(std::ceil(grid->property("windowHeight").toReal()/cell))+2*int(std::ceil(grid->property("marginHeight").toReal()/cell))+2;
+        return rows*grid->property("columns").toInt();
+    }
+    void scrollTo(qreal y) {list->setProperty("contentY",y);}
+    // The window must follow the list: viewport filled, live delegates bounded.
+    void settled() {
+        QTRY_VERIFY(filled());QTRY_VERIFY2(live()<=bound(),qPrintable(QString("live %1 bound %2").arg(live()).arg(bound())));
     }
 };
 
@@ -203,11 +267,11 @@ Item {
         const QVariant addedA=QVariantMap{{"type","album"},{"ratingKey","40"},{"title","New A"},{"discoveryGroup","Recently added"},{"hubIdentifier","music.recentlyAdded"},{"discoveryGrid",true}};
         const QVariant addedB=QVariantMap{{"type","album"},{"ratingKey","41"},{"title","New B"},{"discoveryGroup","Recently added"},{"hubIdentifier","music.recentlyAdded"},{"discoveryGrid",true}};
         const QVariant rotation=QVariantMap{{"type","track"},{"ratingKey","42"},{"title","Rotation"},{"discoveryGroup","Heavy rotation"},{"hubIdentifier","music.rotation"},{"discoveryGrid",false}};
-        const QVariantList discoveryItems{addedA,addedB,rotation};backend.itemModel.replace(discoveryItems);backend.data.insert("items",discoveryItems);emit backend.stateChanged();emit backend.completed("discovery_home",true,QVariantMap{{"start",0}});
+        const QVariantList discoveryItems{addedA,addedB,rotation};backend.setItems(discoveryItems);emit backend.completed("discovery_home",true,QVariantMap{{"start",0}});
         QQuickItem *discoveryGrid=nullptr,*discoveryHost=nullptr;QTRY_VERIFY((discoveryGrid=visualItem(quickWindow->contentItem(),"discoverySectionGrid"))!=nullptr);QTRY_VERIFY((discoveryHost=visualItem(quickWindow->contentItem(),"discoverySectionHost"))!=nullptr);QVERIFY(discoveryGrid->clip());QVERIFY(discoveryHost->clip());QVERIFY(discoveryHost->height()>=discoveryGrid->height()+12);
         QVERIFY(QMetaObject::invokeMethod(library,"clicked"));QCOMPARE(backend.operation,QString("browse"));QVERIFY(filters->property("visible").toBool());QVERIFY(!window->property("showBack").toBool());
         QVariantList artists;for(int i=0;i<60;++i)artists.append(QVariantMap{{"type","artist"},{"ratingKey",QString::number(100+i)},{"title",QString("Artist %1").arg(i)}});
-        backend.itemModel.replace(artists);backend.data.insert("items",artists);backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",30}}});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
+        backend.setItems(artists);backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",30}}});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
         auto *list=window->findChild<QQuickItem *>("libraryList");auto *rail=window->findChild<QObject *>("libraryAlphabet");QVERIFY(list && rail);QTRY_VERIFY(rail->property("visible").toBool());QTRY_VERIFY(list->property("contentHeight").toReal()>list->height());
         QVERIFY(QMetaObject::invokeMethod(music,"jump",Q_ARG(QVariant,QVariant("B"))));QTRY_VERIFY(list->property("contentY").toReal()>list->property("originY").toReal());QTRY_COMPARE(rail->property("current").toString(),QString("B"));
         list->setProperty("contentY",list->property("originY"));QTRY_COMPARE(rail->property("current").toString(),QString("A"));
@@ -219,12 +283,12 @@ Item {
         backend.busyValue=false;emit backend.busyChanged();QVERIFY(QMetaObject::invokeMethod(queue,"triggered"));QVERIFY(music->property("showQueue").toBool());QVERIFY(window->property("showBack").toBool());
         // A track the server no longer has: dimmed text and a subtitle note,
         // updated when the mark expires.
-        backend.cacheData.insert("goneKeys",QVariantList{"7"});emit backend.cacheChanged();
+        backend.setKeys({},{"7"},{});
         const QVariantList tracks{QVariantMap{{"type","track"},{"ratingKey","7"},{"title","Gone track"},{"duration",1000}}};
-        backend.queuedModel.replace(tracks);backend.data.insert("queue",QVariantMap{{"items",tracks}});emit backend.stateChanged();
+        backend.setQueue(tracks);
         QQuickItem *subtitle=nullptr;QTRY_VERIFY((subtitle=visualItem(quickWindow->contentItem(),"rowSubtitle"))!=nullptr);
         QTRY_VERIFY(subtitle->property("text").toString().endsWith("No longer on the server"));QCOMPARE(subtitle->parentItem()->opacity(),0.5);
-        backend.cacheData.insert("goneKeys",QVariantList());emit backend.cacheChanged();
+        backend.setKeys({},{},{});
         QTRY_VERIFY(!subtitle->property("text").toString().contains("No longer on the server"));QCOMPARE(subtitle->parentItem()->opacity(),1.0);
         QVERIFY(QMetaObject::invokeMethod(playlists,"clicked"));QCOMPARE(backend.operation,QString("playlists"));QVERIFY(!window->property("showBack").toBool());
 #endif
@@ -235,22 +299,22 @@ Item {
         std::unique_ptr<QObject> scene(component.create());QVERIFY(scene.get());
         auto *music=scene->property("music").value<QObject *>();auto *root=scene->property("rootView").value<QObject *>();auto *artistPage=scene->property("artistView").value<QObject *>();auto *albumPage=scene->property("albumView").value<QObject *>();QVERIFY(music && root && artistPage && albumPage);
         const QVariant artist=QVariantMap{{"type","artist"},{"ratingKey","10"},{"title","Artist"}},album=QVariantMap{{"type","album"},{"ratingKey","20"},{"title","Album"}},track=QVariantMap{{"type","track"},{"ratingKey","30"},{"title","Track"}};
-        QVERIFY(QMetaObject::invokeMethod(music,"browse"));backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(music,"browse"));backend.setItems(QVariantList{artist});
         QVERIFY(QMetaObject::invokeMethod(music,"activate",Q_ARG(QVariant,artist),Q_ARG(QVariant,QVariant(0))));
         QCOMPARE(root->property("heading").toString(),QString("Artists"));QVERIFY(root->property("detail").toMap().isEmpty());QCOMPARE(root->property("items").toList(),QVariantList{artist});
-        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        backend.setItems(QVariantList{album});emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
         QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));
         QVERIFY(QMetaObject::invokeMethod(music,"activate",Q_ARG(QVariant,album),Q_ARG(QVariant,QVariant(0))));
         QCOMPARE(artistPage->property("heading").toString(),QString("Artist"));QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));QCOMPARE(artistPage->property("items").toList(),QVariantList{album});
-        backend.data.insert("items",QVariantList{track});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",album},{"start",0}});
+        backend.setItems(QVariantList{track});emit backend.completed("detail",true,QVariantMap{{"detail",album},{"start",0}});
         QCOMPARE(albumPage->property("detail").toMap().value("ratingKey").toString(),QString("20"));QCOMPARE(albumPage->property("items").toList(),QVariantList{track});
         // These are the retained pages visible behind a pop/peek animation.
         QCOMPARE(root->property("items").toList(),QVariantList{artist});QCOMPARE(artistPage->property("items").toList(),QVariantList{album});
         auto *rows=qobject_cast<QAbstractItemModel *>(root->property("rows").value<QObject *>());QVERIFY(rows);QCOMPARE(rows->rowCount(),1);QCOMPARE(rows->data(rows->index(0,0),Qt::UserRole+1),artist);
         QVERIFY(QMetaObject::invokeMethod(albumPage,"freeze"));QVERIFY(QMetaObject::invokeMethod(music,"back"));
-        backend.data.insert("items",QVariantList());emit backend.stateChanged();
+        backend.setItems(QVariantList());
         QCOMPARE(artistPage->property("items").toList(),QVariantList{album}); // keep the back-animation target while reloading
-        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        backend.setItems(QVariantList{album});emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
         QVERIFY(QMetaObject::invokeMethod(artistPage,"thaw"));QCOMPARE(artistPage->property("detail").toMap().value("ratingKey").toString(),QString("10"));
         QCOMPARE(albumPage->property("items").toList(),QVariantList{track});
         QCOMPARE(qobject_cast<QAbstractItemModel *>(root->property("rows").value<QObject *>()),rows);
@@ -278,7 +342,7 @@ ApplicationWindow {
         QTRY_VERIFY(app->property("current").value<QObject *>());QTRY_VERIFY(!app->property("transitioning").toBool());
         QObject *root=app->property("current").value<QObject *>();auto *rootView=root->findChild<QObject *>("browsePageView");QVERIFY(rootView);
         const QVariant artist=QVariantMap{{"type","artist"},{"ratingKey","10"},{"title","Artist"}},album=QVariantMap{{"type","album"},{"ratingKey","20"},{"title","Album"}};
-        backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();
+        backend.setItems(QVariantList{artist});
         // Complete (or fail) a request before the native push deactivates the
         // outgoing root. Restoration must not undo the forward route.
         const QVariant detailArgs=QVariantMap{{"key","10"},{"start",0}};
@@ -289,19 +353,19 @@ ApplicationWindow {
         QCOMPARE(rootView->property("heading").toString(),QString("Artists"));QVERIFY(rootView->property("detail").toMap().isEmpty());QCOMPARE(rootView->property("items").toList(),QVariantList{artist});
         QTRY_VERIFY(app->property("current").value<QObject *>()!=root);QTRY_VERIFY(!app->property("transitioning").toBool());
         auto *artistView=app->property("current").value<QObject *>()->findChild<QObject *>("browsePageView");QVERIFY(artistView);
-        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        backend.setItems(QVariantList{album});emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
         QVERIFY(QMetaObject::invokeMethod(music.get(),"activate",Q_ARG(QVariant,album),Q_ARG(QVariant,QVariant(0))));
         QCOMPARE(artistView->property("detail").toMap().value("ratingKey").toString(),QString("10"));QCOMPARE(artistView->property("items").toList(),QVariantList{album});
         QCOMPARE(rootView->property("items").toList(),QVariantList{artist});QTRY_VERIFY(!app->property("transitioning").toBool());
         QVERIFY(QMetaObject::invokeMethod(app,"pop"));
-        backend.data.insert("items",QVariantList());emit backend.stateChanged();
+        backend.setItems(QVariantList());
         QCOMPARE(artistView->property("items").toList(),QVariantList{album});
         QTRY_VERIFY(app->property("current").value<QObject *>() && app->property("current").value<QObject *>()->findChild<QObject *>("browsePageView")==artistView);QTRY_VERIFY(!app->property("transitioning").toBool());
         QCOMPARE(backend.arguments.value("key").toString(),QString("10"));QVERIFY(artistView->property("frozen").toBool());
-        backend.data.insert("items",QVariantList{album});emit backend.stateChanged();emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
+        backend.setItems(QVariantList{album});emit backend.completed("detail",true,QVariantMap{{"detail",artist},{"start",0}});
         QVERIFY(!artistView->property("frozen").toBool());QCOMPARE(artistView->property("detail").toMap().value("ratingKey").toString(),QString("10"));
         QVERIFY(QMetaObject::invokeMethod(app,"pop"));QTRY_COMPARE(app->property("current").value<QObject *>(),root);QTRY_VERIFY(!app->property("transitioning").toBool());
-        backend.data.insert("items",QVariantList{artist});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
+        backend.setItems(QVariantList{artist});emit backend.completed("browse",true,QVariantMap{{"start",0}});
         QVERIFY(!rootView->property("frozen").toBool());
         // Use the shipped destination control, not just the Session method.
         auto *discover=visualItem(qobject_cast<QQuickItem *>(root),"discoverDestination");QVERIFY(discover);
@@ -310,7 +374,7 @@ ApplicationWindow {
         QVERIFY(QMetaObject::invokeMethod(discover,"clicked",QGenericArgument("QQuickMouseEvent*",&mouseEvent)));QCOMPARE(backend.operation,QString("discovery_home"));
         QVERIFY(QMetaObject::invokeMethod(rootView,"freeze"));backend.busyValue=true;emit backend.busyChanged();
         const QVariant discoveryAlbum=QVariantMap{{"type","album"},{"ratingKey","40"},{"title","Discovery album"},{"discoveryGroup","Recently added"},{"hubIdentifier","music.recentlyAdded"},{"discoveryGrid",true}};
-        backend.data.insert("items",QVariantList{discoveryAlbum});emit backend.stateChanged();emit backend.completed("discovery_home",true,QVariantMap{{"start",0}});
+        backend.setItems(QVariantList{discoveryAlbum});emit backend.completed("discovery_home",true,QVariantMap{{"start",0}});
         QTRY_VERIFY(rootView->property("homeView").toBool());QCOMPARE(rootView->property("heading").toString(),QString("Discover"));QCOMPARE(rootView->property("items").toList(),QVariantList{discoveryAlbum});
         QTRY_VERIFY(root->findChild<QObject *>("discoverySectionGrid"));
         QVERIFY(!rootView->property("frozen").toBool());backend.busyValue=false;emit backend.busyChanged();
@@ -318,7 +382,7 @@ ApplicationWindow {
         QTest::qWait(500);QCOMPARE(backend.operation,QString("discovery_home"));
         auto *library=visualItem(qobject_cast<QQuickItem *>(root),"libraryDestination");QVERIFY(library);QVERIFY(QMetaObject::invokeMethod(library,"clicked",QGenericArgument("QQuickMouseEvent*",&mouseEvent)));QCOMPARE(backend.operation,QString("browse"));
         QVariantList artists;for(int i=0;i<60;++i)artists.append(QVariantMap{{"type","artist"},{"ratingKey",QString::number(100+i)},{"title",QString("Artist %1").arg(i)}});
-        backend.data.insert("serverUrl","http://fixture.invalid");backend.data.insert("items",artists);backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",30}}});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
+        backend.data.insert("serverUrl","http://fixture.invalid");backend.setItems(artists);backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",30}}});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
         // Use the production QQuickView/Silica hierarchy for geometry too.
         // The isolated-bus fixture has no native application-visibility owner.
         for(auto *ancestor=qobject_cast<QQuickItem *>(root);ancestor;ancestor=ancestor->parentItem()) {
@@ -416,7 +480,7 @@ ApplicationWindow {
         const auto gone=[&](const QVariantMap &item){QVariant result;QMetaObject::invokeMethod(session.get(),"goneTrack",Q_RETURN_ARG(QVariant,result),Q_ARG(QVariant,QVariant(item)));return result.toBool();};
         const QVariantMap track{{"type","track"},{"ratingKey","7"}},album{{"type","album"},{"ratingKey","7"}};
         QVERIFY(!gone(track));
-        backend.cacheData.insert("goneKeys",QVariantList{"7"});emit backend.cacheChanged();
+        backend.setKeys({},{"7"},{});
         QVERIFY(gone(track));QVERIFY(!gone(album));
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         QQmlComponent component(&engine,QUrl("qrc:/qml/desktop/Downloads.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
@@ -470,6 +534,20 @@ ApplicationWindow {
         backend.data.insert("offlineMode",false);emit backend.stateChanged();QVERIFY(QMetaObject::invokeMethod(session.get(),"browse"));
         backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",30}}});backend.data.insert("hasMore",true);backend.data.insert("next",100);emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});QTRY_COMPARE(backend.operation,QString("browse"));QCOMPARE(backend.arguments.value("start").toInt(),100);
         const int beforeJump=backend.commandCount;QSignalSpy jumped(session.get(),SIGNAL(artistJumped(int)));QVERIFY(QMetaObject::invokeMethod(session.get(),"jump",Q_ARG(QVariant,QVariant("B"))));QCOMPARE(backend.commandCount,beforeJump);QCOMPARE(jumped.size(),1);QCOMPARE(jumped.first().first().toInt(),30);
+    }
+    void replacingListingClearsStaleRowsBeforeTheRouteSwitches() {
+        NavigationBackend backend;backend.resetOnCommand=true;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(component.isReady());std::unique_ptr<QObject> session(component.create());QVERIFY(session.get());session->setProperty("section","1");
+        QVERIFY(QMetaObject::invokeMethod(session.get(),"browse"));
+        QVariantList rows;for(int i=0;i<50;++i)rows.append(QVariantMap{{"ratingKey",QString::number(i)},{"type","artist"},{"title","A"}});
+        backend.setItems(rows);QCOMPARE(session->property("items").toList().size(),50);QVERIFY(session->property("gridBrowse").toBool());
+        QVector<int> counts,listed;
+        RouteProbe probe;probe.action=[&]{counts.append(backend.itemCount());listed.append(session->property("items").toList().size());};
+        QVERIFY(QObject::connect(session.get(),SIGNAL(routeChanged()),&probe,SLOT(fire())));
+        QVERIFY(QMetaObject::invokeMethod(session.get(),"discovery",Q_ARG(QVariant,QVariant("favorites"))));
+        QCOMPARE(backend.operation,QString("collection"));QCOMPARE(counts.size(),1);
+        QCOMPARE(counts.first(),0);QCOMPARE(listed.first(),0);
+        QVERIFY(!session->property("gridBrowse").toBool());
     }
     void filterEditorAndSonicWaypointsKeepStructuredArguments() {
         NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY(component.isReady());std::unique_ptr<QObject> music(component.create());QVERIFY(music.get());music->setProperty("section","1");
@@ -664,6 +742,95 @@ ApplicationWindow {
         QCOMPARE(busy.size(), 0);
         QCOMPARE(changed.size(), 0);
         QCOMPARE(cache.size(), 0);
+        QCOMPARE(backend.cacheRevision(), 0);
+    }
+    // Qt 5.6 converts a whole QVariantMap/QVariantList on every QML read: a
+    // scalar state or cache change must neither re-read the lists nor touch
+    // the models, and a list change must read each list once.
+    void scalarChangesDoNotRereadLists() {
+        NavigationBackend backend; QQmlEngine engine; engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml")); QVERIFY(component.isReady());
+        std::unique_ptr<QObject> session(component.create()); QVERIFY(session.get());
+        backend.setItems(QVariantList{QVariantMap{{"type","artist"},{"ratingKey","1"}}});
+        QCOMPARE(session->property("items").toList().size(),1);
+        const int reads=backend.itemReads,queueReads=backend.queueReads;
+        QSignalSpy entries(&backend.itemModel,&EntryModel::entriesChanged);
+        backend.data.insert("offlineMode",true);emit backend.stateChanged();
+        backend.cacheData.insert("tracks",3);emit backend.cacheChanged();
+        backend.setKeys({"1"},{},{});
+        QCOMPARE(backend.itemReads,reads);QCOMPARE(backend.queueReads,queueReads);QCOMPARE(entries.size(),0);
+        backend.setItems(QVariantList{QVariantMap{{"type","artist"},{"ratingKey","1"}},QVariantMap{{"type","artist"},{"ratingKey","2"}}});
+        QCOMPARE(backend.itemReads,reads+1);QCOMPARE(entries.size(),1);
+        QCOMPARE(session->property("items").toList().size(),2);
+    }
+    // Cache key bindings depend on cacheRevision and update when the sets do.
+    void cacheKeyBindingsFollowTheRevision() {
+        NavigationBackend backend; QQmlEngine engine; engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine);
+        component.setData("import QtQuick 2.6\nItem { property bool ready: backend.cacheRevision >= 0 && backend.isReady('7'); property bool pinned: backend.cacheRevision >= 0 && backend.isPinnedGroup('album:7') }",QUrl());
+        std::unique_ptr<QObject> item(component.create()); QVERIFY2(item.get(),qPrintable(component.errorString()));
+        QVERIFY(!item->property("ready").toBool());QVERIFY(!item->property("pinned").toBool());
+        backend.setKeys({"7"},{},{"album:7"});
+        QVERIFY(item->property("ready").toBool());QVERIFY(item->property("pinned").toBool());
+        backend.setKeys({},{},{});
+        QVERIFY(!item->property("ready").toBool());QVERIFY(!item->property("pinned").toBool());
+    }
+    void backendSplitsListsFromStateAndCache() {
+        QTemporaryDir dir; Backend backend(dir.path());
+        QSignalSpy completed(&backend,&Backend::completed);
+        QTRY_VERIFY(!completed.isEmpty()); completed.clear();
+        const auto row=[](const QString &key){return QVariantMap{{"type","track"},{"ratingKey",key},{"title",key}};};
+        const auto reply=[](const QString &op,const QVariantMap &data){return QVariantMap{{"request",QVariantMap{{"op",op}}},{"response",QVariantMap{{"ok",true},{"data",data}}}};};
+        QStringList order;
+        connect(&backend,&Backend::itemsChanged,this,[&order]{order<<"items";});
+        connect(&backend,&Backend::queueItemsChanged,this,[&order]{order<<"queue";});
+        connect(&backend,&Backend::stateChanged,this,[&order]{order<<"state";});
+        connect(&backend,&Backend::completed,this,[&order]{order<<"completed";});
+        QSignalSpy itemsSpy(&backend,&Backend::itemsChanged),stateSpy(&backend,&Backend::stateChanged);
+        // Replace: the page stays out of state; items, then state, then completed.
+        backend.handle(reply("browse",{{"items",QVariantList{row("1"),row("2")}},{"hasMore",true},{"next",2}}));
+        QCOMPARE(backend.itemCount(),2);QVERIFY(!backend.state().contains("items"));QVERIFY(backend.state().value("hasMore").toBool());
+        QCOMPARE(order,(QStringList{"items","state","completed"}));
+        QVERIFY(!completed.last().at(2).toMap().contains("items")); // rows never reach onCompleted handlers
+        QCOMPARE(completed.last().at(2).toMap().value("itemCount").toInt(),2);
+        // An identical page changes nothing.
+        order.clear();itemsSpy.clear();stateSpy.clear();
+        backend.handle(reply("browse",{{"items",QVariantList{row("1"),row("2")}},{"hasMore",true},{"next",2}}));
+        QCOMPARE(itemsSpy.size(),0);QCOMPARE(stateSpy.size(),0);QCOMPARE(order,(QStringList{"completed"}));
+        // Append: one itemsChanged and the running count, no rows in the payload.
+        itemsSpy.clear();
+        backend.handle(reply("browse",{{"items",QVariantList{row("3")}},{"_listAction","append"}}));
+        QCOMPARE(itemsSpy.size(),1);QCOMPARE(backend.itemCount(),3);QCOMPARE(backend.items().size(),3);
+        QVERIFY(!completed.last().at(2).toMap().contains("items"));
+        QCOMPARE(completed.last().at(2).toMap().value("itemCount").toInt(),3);
+        QVERIFY(!backend.state().contains("items"));
+        // Queue: rows to the model, scalars merged into state["queue"].
+        order.clear();
+        backend.handle(reply("queue",{{"queue",QVariantMap{{"items",QVariantList{row("5"),row("6")}},{"current",1},{"repeat","all"},{"shuffled",true}}}}));
+        QCOMPARE(order,(QStringList{"queue","state","completed"}));
+        QCOMPARE(backend.queueCount(),2);QCOMPARE(backend.queueItems().size(),2);
+        auto queue=backend.state().value("queue").toMap();
+        QVERIFY(!queue.contains("items"));QCOMPARE(queue.value("current").toInt(),1);QCOMPARE(queue.value("repeat").toString(),QString("all"));QVERIFY(queue.value("shuffled").toBool());
+        QVERIFY(!completed.last().at(2).toMap().value("queue").toMap().contains("items"));
+        QCOMPARE(completed.last().at(2).toMap().value("queueCount").toInt(),2);
+        // A scalar-only queue reply keeps the rows, replaces the whole scalar map and does not signal the rows.
+        QSignalSpy queueSpy(&backend,&Backend::queueItemsChanged);
+        backend.handle(reply("repeat",{{"queue",QVariantMap{{"repeat","off"},{"current",1}}}}));
+        QCOMPARE(queueSpy.size(),0);QCOMPARE(backend.queueCount(),2);
+        QCOMPARE(backend.state().value("queue").toMap(),(QVariantMap{{"repeat","off"},{"current",1}}));
+        // Cache: key lists become sets behind invokables; the revision moves only with them.
+        QSignalSpy revision(&backend,&Backend::cacheRevisionChanged),cacheSpy(&backend,&Backend::cacheChanged);
+        const QVariantMap cache{{"tracks",1},{"readyKeys",QVariantList{"7"}},{"goneKeys",QVariantList{"8"}},{"pinnedKeys",QVariantList{"7"}},{"pinnedGroups",QVariantList{"album:7"}},{"readyBytes",QVariantMap{{"7",10}}},{"errors",QVariantMap{{"9","x"}}},{"jobs",QVariantList()}};
+        backend.handle(reply("cache_status",{{"cache",cache}}));
+        QVERIFY(backend.isReady("7"));QVERIFY(!backend.isReady("8"));QVERIFY(backend.isGone("8"));QVERIFY(backend.isPinned("7"));QVERIFY(backend.isPinnedGroup("album:7"));
+        QCOMPARE(revision.size(),1);QCOMPARE(backend.cacheRevision(),1);QCOMPARE(cacheSpy.size(),1);
+        for(const char *key:{"readyKeys","goneKeys","pinnedKeys","pinnedGroups","readyBytes","errors"})QVERIFY2(!backend.cache().contains(key),key);
+        auto scalar=cache;scalar.insert("tracks",2);
+        backend.handle(reply("cache_status",{{"cache",scalar}}));
+        QCOMPARE(revision.size(),1);QCOMPARE(cacheSpy.size(),2);
+        auto changedKeys=scalar;changedKeys.insert("readyKeys",QVariantList{"7","9"});
+        backend.handle(reply("cache_status",{{"cache",changedKeys}}));
+        QCOMPARE(revision.size(),2);QVERIFY(backend.isReady("9"));
     }
     void savedCacheDownload() {
         const auto directory=qgetenv("PLEXFREQ_ACCOUNT_CHECK_STATE_DIR");
@@ -700,6 +867,131 @@ ApplicationWindow {
         const auto data=plan.value("data").toObject(); QCOMPARE(data.value("playbackSource").toString(),QString("cache"));
         const auto path=QUrl(data.value("stream").toString()).toLocalFile(); QVERIFY(!path.isEmpty()); QVERIFY(QFileInfo(path).size()>0);
         qDebug("Real audio cached bytes: %lld; local-file plan verified without playing it", static_cast<long long>(QFileInfo(path).size()));
+    }
+    void windowedGridBoundsLiveDelegatesAndFollowsTheList() {
+        WindowedGridHarness h;h.open();h.call("fill",1200);
+        QTRY_COMPARE(h.count(),1200);QCOMPARE(h.grid->height(),40000.0);
+        h.settled();QVERIFY(h.live()>0);QVERIFY(h.has(0));QVERIFY(!h.has(1000));QVERIFY(h.bound()<200);
+        const qreal last=h.list->property("contentHeight").toReal()-h.list->height();
+        for(const qreal y:{0.0,2500.0,20000.0,39000.0,last,300.0,last/2}){h.scrollTo(y);QTest::qWait(30);h.settled();}
+        QVERIFY2(h.root->property("maxLive").toInt()<=h.bound(),qPrintable(QString("maxLive %1").arg(h.root->property("maxLive").toInt())));
+    }
+    void windowedGridJumpCreatesTheTargetAndDropsTheOld() {
+        WindowedGridHarness h;h.open();h.call("fill",1200);QTRY_COMPARE(h.count(),1200);h.settled();QVERIFY(h.has(0));
+        h.jump(1000);
+        QTRY_VERIFY(h.has(1000));QTRY_VERIFY(!h.has(0));h.settled();QTRY_COMPARE(h.position->property("activeArtistLetter").toString(),QString("C"));
+        h.jump(600);
+        QTRY_VERIFY(h.has(600));QTRY_VERIFY(!h.has(1000));h.settled();QTRY_COMPARE(h.position->property("activeArtistLetter").toString(),QString("B"));
+        h.jump(0);
+        QTRY_VERIFY(h.has(0));QTRY_VERIFY(!h.has(600));h.settled();QTRY_COMPARE(h.position->property("activeArtistLetter").toString(),QString("A"));
+    }
+    void windowedGridShowsRowsAfterAModelResetWhileScrolled() {
+        WindowedGridHarness h;h.open();h.call("fill",1200);QTRY_COMPARE(h.count(),1200);
+        h.jump(1000);QTRY_VERIFY(h.has(1000));
+        const auto before=h.list->property("contentY").toReal();
+        h.call("fill",1200);QTRY_COMPARE(h.count(),1200);h.settled();
+        QCOMPARE(h.list->property("contentY").toReal(),before);QVERIFY(h.has(h.topIndex()));QVERIFY(!h.has(0));
+        // Shrinking below the scroll position leaves a valid window.
+        h.call("fill",3);QTRY_COMPARE(h.live(),3);QCOMPARE(h.grid->property("windowOffset").toReal(),0.0);
+    }
+    void windowedGridHandlesTinyAndEmptyModels() {
+        WindowedGridHarness h;h.open();
+        h.call("fill",0);QTRY_COMPARE(h.count(),0);QCOMPARE(h.grid->height(),0.0);QCOMPARE(h.live(),0);QCOMPARE(h.grid->property("windowHeight").toReal(),0.0);
+        h.call("fill",3);QTRY_COMPARE(h.live(),3);QCOMPARE(h.grid->height(),100.0);QCOMPARE(h.grid->property("windowOffset").toReal(),0.0);QCOMPARE(h.grid->property("windowHeight").toReal(),100.0);
+        QVERIFY(h.has(0) && h.has(1) && h.has(2));
+        h.call("fill",4);QTRY_COMPARE(h.live(),4);QCOMPARE(h.grid->height(),200.0);QCOMPARE(h.grid->property("windowOffset").toReal(),0.0);
+    }
+    void windowedGridFollowsHeaderAndColumnChanges() {
+        WindowedGridHarness h;h.open();h.call("fill",1200);QTRY_COMPARE(h.count(),1200);
+        h.jump(1000);QTRY_VERIFY(h.has(1000));h.settled();
+        h.root->setProperty("headerHeight",450);QTRY_VERIFY(h.has(h.topIndex()));h.settled();
+        h.root->setProperty("headerHeight",0);h.settled();h.root->setProperty("headerHeight",100);h.settled();
+        h.root->setProperty("cols",5);QTRY_COMPARE(h.grid->height(),24000.0);h.settled();QVERIFY(h.has(h.topIndex()));
+        h.root->setProperty("cols",2);QTRY_COMPARE(h.grid->height(),60000.0);h.settled();QVERIFY(h.has(h.topIndex()));
+        h.root->setProperty("cell",150);QTRY_COMPARE(h.grid->height(),90000.0);h.settled();
+    }
+    // The library list is a ListView whose only content is the grid footer. Without a
+    // row of its own, QQuickItemViewPrivate::layout() resets the position to the
+    // start whenever the footer grows; the spacer row prevents that.
+    void scrollWhilePagesAppend(WindowedGridHarness &h,bool spacer,qreal &result) {
+        h.root->setProperty("useSpacer",spacer);
+        h.call("fill",100);QTRY_COMPARE(h.count(),100);QTest::qWait(20);h.settled();
+        h.scrollTo(1500);QTest::qWait(20);
+        for(int page=0;page<4;page++){
+            h.call("append",100);QTRY_COMPARE(h.count(),200+page*100);
+            QTest::qWait(30);
+            result=h.list->property("contentY").toReal();if(result!=1500.0+page*300)return;
+            h.scrollTo(1500.0+(page+1)*300);QTest::qWait(30);
+        }
+        result=h.list->property("contentY").toReal();
+    }
+    void listWithoutRowsSnapsToTheTopWhenTheFooterGrows() {
+        WindowedGridHarness h;h.open();
+        qreal y=0;scrollWhilePagesAppend(h,false,y);QVERIFY2(y<1500.0,qPrintable(QString("contentY %1").arg(y)));
+    }
+    void windowedGridKeepsTheUsersScrollWhilePagesAppend() {
+        WindowedGridHarness h;h.open();
+        qreal y=0;scrollWhilePagesAppend(h,true,y);QCOMPARE(y,2700.0);
+        QCOMPARE(h.list->property("count").toInt(),1);h.settled();
+    }
+    void spacerRowTakesNoSpaceAndStaysInvisible() {
+        WindowedGridHarness h;h.open();h.call("fill",50);QTRY_COMPARE(h.count(),50);h.settled();
+        QCOMPARE(h.list->property("originY").toReal(),-100.0);
+        // header (100) + spacer (0) + grid footer: no spacing or height from the spacer row.
+        QCOMPARE(h.list->property("contentHeight").toReal(),100.0+h.grid->parentItem()->height());
+        const auto children=h.list->property("contentItem").value<QQuickItem *>()->childItems();int spacers=0;
+        for(auto *item:children)if(item->property("spacer").isValid()){QVERIFY(!item->isVisible());QCOMPARE(item->height(),0.0);QVERIFY(!item->isEnabled());++spacers;}
+        QCOMPARE(spacers,1);
+    }
+    void windowedGridFreshListingStartsAtTheTop() {
+        WindowedGridHarness h;h.open();h.call("fill",300);QTRY_COMPARE(h.count(),300);h.settled();
+        h.scrollTo(1500);h.settled();
+        // A reply that replaces the listing: the session emits resetView and the new rows arrive.
+        QVERIFY(QMetaObject::invokeMethod(h.root.get(),"resetView"));
+        h.call("fill",200);QTRY_COMPARE(h.count(),200);QTest::qWait(50);
+        QCOMPARE(h.list->property("contentY").toReal(),h.list->property("originY").toReal());h.settled();
+    }
+    void windowedGridHoldsTheWindowWhileAMenuIsOpen() {
+        WindowedGridHarness h;h.open();h.call("fill",1200);QTRY_COMPARE(h.count(),1200);h.settled();
+        QVERIFY(h.has(0));h.grid->setProperty("holdWindow",true);
+        h.scrollTo(20000);QTest::qWait(50);QVERIFY(h.has(0));QVERIFY(!h.has(h.topIndex()));
+        h.grid->setProperty("holdWindow",false);QTRY_VERIFY(h.has(h.topIndex()));QTRY_VERIFY(!h.has(0));h.settled();
+    }
+    void windowedGridReassertsItsContentY() {
+        // Silica menu animation and model resets move the inner view's contentY.
+        WindowedGridHarness h;h.open();h.call("fill",1200);QTRY_COMPARE(h.count(),1200);h.jump(1000);QTRY_VERIFY(h.has(1000));h.settled();
+        QQuickItem *view=nullptr;for(auto *child:h.grid->childItems())if(child->metaObject()->indexOfProperty("cellHeight")>=0 && child->metaObject()->indexOfProperty("contentItem")>=0)view=child;
+        QVERIFY(view);const auto offset=h.grid->property("windowOffset").toReal();QVERIFY(offset>0);QCOMPARE(view->property("contentY").toReal(),offset);
+        view->setProperty("contentY",0.0);QTRY_COMPARE(view->property("contentY").toReal(),offset);QCOMPARE(view->y(),offset);
+    }
+    void desktopArtistGridIsWindowed() {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        QSKIP("Desktop Controls2 adapter is checked with Qt6");
+#else
+        NavigationBackend backend;backend.data.insert("serverUrl","http://fixture.invalid");backend.data.insert("libraries",QVariantList{QVariantMap{{"key","1"},{"title","Music"}}});
+        QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/qml/desktop/Main.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> window(component.create());QVERIFY(window.get());
+        auto *music=window->findChild<QObject *>("musicSession");QVERIFY(music);music->setProperty("section","1");
+        auto *quickWindow=qobject_cast<QQuickWindow *>(window.get());QVERIFY(quickWindow);QTRY_VERIFY(visualItem(quickWindow->contentItem(),"libraryDestination"));
+        auto *library=visualItem(quickWindow->contentItem(),"libraryDestination");QVERIFY(QMetaObject::invokeMethod(library,"clicked"));QCOMPARE(backend.operation,QString("browse"));
+        QVariantList artists;for(int i=0;i<1200;++i)artists.append(QVariantMap{{"type","artist"},{"ratingKey",QString::number(100+i)},{"title",QString("Artist %1").arg(i)}});
+        backend.setItems(artists);backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}},QVariantMap{{"letter","B"},{"offset",600}}});emit backend.stateChanged();emit backend.completed("browse",true,QVariantMap{{"start",0}});
+        auto *list=window->findChild<QQuickItem *>("libraryList");auto *rail=window->findChild<QObject *>("libraryAlphabet");QVERIFY(list && rail);
+        QQuickItem *grid=nullptr;QTRY_VERIFY((grid=visualItem(quickWindow->contentItem(),"routeGrid"))!=nullptr);QTRY_COMPARE(grid->property("count").toInt(),1200);QTRY_VERIFY(list->property("contentHeight").toReal()>list->height());
+        // The window's delegates are the children of its GridView's content item.
+        auto delegates=[&]()->int{
+            int total=0;for(auto *child:grid->childItems()){const auto content=child->property("contentItem").value<QQuickItem *>();if(content)total+=content->childItems().size();}
+            return total;
+        };
+        const int columns=grid->property("columns").toInt(),cell=int(grid->property("cellHeight").toReal());QVERIFY(columns>0 && cell>0);
+        const int bound=(int(std::ceil(grid->property("windowHeight").toReal()/cell))+2*int(std::ceil(grid->property("marginHeight").toReal()/cell))+2)*columns;
+        QTRY_VERIFY(delegates()>0);QVERIFY2(delegates()<=bound,qPrintable(QString("delegates %1 bound %2").arg(delegates()).arg(bound)));QVERIFY(bound<1200/2);
+        QCOMPARE(grid->height(),std::ceil(1200.0/columns)*cell);
+        QVERIFY(QMetaObject::invokeMethod(music,"jump",Q_ARG(QVariant,QVariant("B"))));QTRY_COMPARE(rail->property("current").toString(),QString("B"));
+        QTRY_VERIFY(delegates()>0);QVERIFY(delegates()<=bound);QVERIFY(grid->property("windowOffset").toReal()>0);
+        list->setProperty("contentY",list->property("originY"));QTRY_COMPARE(rail->property("current").toString(),QString("A"));QCOMPARE(grid->property("windowOffset").toReal(),0.0);QVERIFY(delegates()<=bound);
+#endif
     }
     void radioIconRemainsCompleteAcrossResizeAndReuse() {
         QQmlEngine engine;
@@ -1052,12 +1344,14 @@ ApplicationWindow {
         QCOMPARE(backend.state().value("libraries").toList().size(), 1);
         backend.command("browse", {{"section", "1"}, {"kind", "track"}, {"start", 0}});
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
-        const auto items = backend.state().value("items").toList();
+        const auto items = backend.items();
+        QVERIFY(!backend.state().contains("items"));QCOMPARE(backend.itemCount(),2);
         QCOMPARE(items.size(), 2);
         {
             // Artwork reaches QML as image://plexfreq ids without the token, and
             // loads through the provider; a stalled image does not block another.
-            const auto shown=QString::fromUtf8(QJsonDocument::fromVariant(backend.state()).toJson());
+            // Everything QML can read: state, cache and both list properties.
+            const auto shown=QString::fromUtf8(QJsonDocument::fromVariant(QVariantMap{{"state",backend.state()},{"cache",backend.cache()},{"items",backend.items()},{"queueItems",backend.queueItems()}}).toJson());
             QVERIFY(!shown.contains("test-token"));
             const auto fast=items[0].toMap().value("artwork").toString(),slow=items[1].toMap().value("artwork").toString();
             QVERIFY2(fast.startsWith("image://plexfreq/"),qPrintable(fast));QVERIFY(slow.startsWith("image://plexfreq/"));
@@ -1195,7 +1489,7 @@ ApplicationWindow {
         QTRY_VERIFY_WITH_TIMEOUT(!backend.busy(), 5000);
         QTRY_VERIFY(!backend.playing());
         QVERIFY(backend.state().value("serverUrl").toString().isEmpty());
-        QVERIFY(backend.state().value("queue").toMap().value("items").toList().isEmpty());
+        QVERIFY(!backend.state().value("queue").toMap().contains("items"));QVERIFY(backend.queueItems().isEmpty());QCOMPARE(backend.queueCount(),0);
         backend.play();QVERIFY(!backend.playing());
     }
 };

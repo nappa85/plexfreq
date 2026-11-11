@@ -189,7 +189,7 @@
     </message>
     <message>
       <source>Unexpected Plex response (%1)</source>
-      <translation>Phản hồi Plex không mong đợi (%1)</translation>
+      <translation>Phản hồi Plex bất thường (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -217,7 +217,7 @@
     </message>
     <message>
       <source>Audio command queue is unavailable</source>
-      <translation>Hàng đợi lệnh âm thanh không khả dụng (keep, flag only: glossary mismatch)</translation>
+      <translation>Hàng đợi lệnh âm thanh không khả dụng</translation>
     </message>
     <message>
       <source>Audio decoding or streaming failed</source>
@@ -269,7 +269,7 @@
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
-      <translation>Hàng đợi lệnh của bộ máy không khả dụng (keep, flag only: glossary mismatch)</translation>
+      <translation>Hàng đợi lệnh của bộ máy không khả dụng</translation>
     </message>
     <message>
       <source>Backend panic</source>
@@ -409,11 +409,11 @@
     </message>
     <message>
       <source>Go online to edit Plex playlists</source>
-      <translation>Hãy trực tuyến để sửa danh sách phát Plex</translation>
+      <translation>Hãy chuyển sang trực tuyến để sửa danh sách phát Plex</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
-      <translation>Hãy trực tuyến để làm mới các mục tải xuống</translation>
+      <translation>Hãy chuyển sang trực tuyến để làm mới các mục tải xuống</translation>
     </message>
     <message>
       <source>Grouping is limited to 1000 albums per artist</source>
@@ -657,7 +657,7 @@
     </message>
     <message>
       <source>Unexpected Plex response</source>
-      <translation>Phản hồi Plex không mong đợi</translation>
+      <translation>Phản hồi Plex bất thường</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -2219,7 +2219,7 @@
     </message>
     <message>
       <source>Live</source>
-      <translation>Trực tiếp</translation>
+      <translation>Live</translation>
     </message>
     <message>
       <source>Compilations</source>

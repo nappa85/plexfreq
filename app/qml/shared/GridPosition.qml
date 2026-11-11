@@ -14,8 +14,6 @@ Item {
     property bool hasMore: false
     property int pendingArtistIndex: -1
     property string activeArtistLetter: ""
-    property real gridContentY: 0
-    property bool restoreGridContentY: false
 
     function positionArtist(index) {
         pendingArtistIndex=index
@@ -47,26 +45,9 @@ Item {
         for(var i=0;i<alphabet.length;i++)if(alphabet[i].offset<=first)letter=alphabet[i].letter;else break
         activeArtistLetter=letter
     }
-    // Paging replaces the grid model; keep the scroll position across it.
-    function rememberGridPosition() {
-        gridContentY=listView.contentY
-        restoreGridContentY=true
-    }
-    function retainGridPosition() {
-        if(restoreGridContentY)restoreLater.restart()
-    }
     function relayout() {
         updateArtistLetter()
         positionLater.restart()
     }
     Timer {id:positionLater;interval:0;onTriggered:helper.tryPositionArtist()}
-    Timer {
-        id:restoreLater;interval:0
-        onTriggered:{
-            if(!helper.restoreGridContentY || !helper.listView)return
-            var listView=helper.listView
-            listView.contentY=Math.max(listView.originY,Math.min(helper.gridContentY,Math.max(listView.originY,listView.contentHeight-listView.height)))
-            helper.restoreGridContentY=false
-        }
-    }
 }

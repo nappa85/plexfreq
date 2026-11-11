@@ -497,7 +497,7 @@
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>Mixbases moeten artiesten of albums zijn</translation>
+      <translation>Mixstartpunten moeten artiesten of albums zijn</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
@@ -565,7 +565,7 @@
     </message>
     <message>
       <source>Radio has no more sonic recommendations; try another seed</source>
-      <translation>De radio heeft geen klankaanbevelingen meer; probeer een andere basis</translation>
+      <translation>De radio heeft geen klankaanbevelingen meer; probeer een ander startpunt</translation>
     </message>
     <message>
       <source>Radio keeps its recommended order; stop radio to shuffle</source>
@@ -581,7 +581,7 @@
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
-      <translation>De radiobasis past niet bij het gekozen muziektype</translation>
+      <translation>Het startpunt van de radio past niet bij het gekozen muziektype</translation>
     </message>
     <message>
       <source>Resumed audio length is inconsistent</source>
@@ -1319,7 +1319,7 @@
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Qua klank vergelijkbaar</translation>
+      <translation>Klankmatig vergelijkbaar</translation>
     </message>
     <message>
       <source>Start sonic adventure here</source>
@@ -1355,7 +1355,7 @@
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>Toevoegen als mixbasis</translation>
+      <translation>Toevoegen als startpunt voor mix</translation>
     </message>
     <message>
       <source>Rename playlist</source>
@@ -1776,7 +1776,7 @@
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>Mixbases wissen</translation>
+      <translation>Mixstartpunten wissen</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
@@ -1836,7 +1836,7 @@
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>Mix afspelen (%1 bases)</translation>
+      <translation>Mix afspelen (%1 startpunten)</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>
@@ -2034,7 +2034,7 @@
     </message>
     <message>
       <source>Sonically similar</source>
-      <translation>Qua klank vergelijkbaar</translation>
+      <translation>Klankmatig vergelijkbaar</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>

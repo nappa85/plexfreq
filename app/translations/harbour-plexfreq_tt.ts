@@ -47,7 +47,7 @@
     </message>
     <message>
       <source>Off</source>
-      <translation>Сүнек</translation>
+      <translation>Сүндерелгән</translation>
     </message>
     <message>
       <source>Crossfade</source>
@@ -134,7 +134,7 @@
     </message>
     <message>
       <source>Off</source>
-      <translation>Сүнек</translation>
+      <translation>Сүндерелгән</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -1525,7 +1525,7 @@
     <name>Main</name>
     <message>
       <source>Find your frequency.</source>
-      <translation>Үз ешлыгыңны тап.</translation>
+      <translation>Үз ешлыгыгызны табыгыз.</translation>
     </message>
     <message>
       <source>Offline · showing saved library metadata</source>
@@ -1633,7 +1633,7 @@
     </message>
     <message>
       <source>Repeat off</source>
-      <translation>Кабатлау сүнек</translation>
+      <translation>Кабатлау сүндерелгән</translation>
     </message>
     <message>
       <source>Connect to Plex</source>
@@ -2219,7 +2219,7 @@
     </message>
     <message>
       <source>Live</source>
-      <translation>Концерт</translation>
+      <translation>Концерт язмалары</translation>
     </message>
     <message>
       <source>Compilations</source>

@@ -55,9 +55,10 @@ Page {
         onResetView: if (page.status===PageStatus.Active) list.positionViewAtBeginning()
         onArtistJumped: if (page.status===PageStatus.Active && pageKind==="root") gridPosition.positionArtist(index)
     }
+    GridSpacer {id:gridSpacer}
     SilicaListView {
         id: list; objectName:"libraryList"; anchors.fill: parent; anchors.bottomMargin: player.height; clip: true
-        model: pageView.gridBrowse ? null : pageView.rows
+        model: pageView.gridBrowse ? gridSpacer : pageView.rows
         // Keep header and rows in one scrolling plane, avoiding transparent
         // PullBackHeader overlap when reversing direction on Qt5.6 Silica.
         headerPositioning:ListView.InlineHeader
@@ -67,7 +68,7 @@ Page {
         onCountChanged:moreTimer.restart()
         onHeightChanged:moreTimer.restart()
         Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(pageView.gridBrowse)gridPosition.rememberGridPosition();moreTimer.restart()} }
+        Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
         PullDownMenu {
             Repeater {
                 model:navigation.pageActions
@@ -168,14 +169,16 @@ Page {
         }
         delegate: ListItem {
             property var itemData: entry
+            property bool spacer: itemData.type==="spacer"
             property int rowIndex: index
             property bool discoveryGridItem:pageView.homeView && !!itemData.discoveryGrid
             property var discoveryCards:discoveryGridItem ? music.discoveryGridItems(pageView.items,index) : []
             objectName:discoveryCards.length ? "discoverySectionHost" : ""
             width: list.width - (alphabet.visible ? alphabet.width : 0)
-            contentHeight:discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+Theme.paddingMedium : 0) : Math.max(Theme.itemSizeMedium, rowDetails.height + 2 * Theme.paddingSmall, radioAction.height + 2 * Theme.paddingSmall)
+            visible:!spacer
+            contentHeight:spacer ? 0 : discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+Theme.paddingMedium : 0) : Math.max(Theme.itemSizeMedium, rowDetails.height + 2 * Theme.paddingSmall, radioAction.height + 2 * Theme.paddingSmall)
             clip:discoveryGridItem
-            enabled: !discoveryGridItem && !backend.busy && page.status === PageStatus.Active
+            enabled: !spacer && !discoveryGridItem && !backend.busy && page.status === PageStatus.Active
             menu: ContextMenu {
                 Repeater {
                     model:itemActions.rowActions
@@ -200,7 +203,7 @@ Page {
                 anchors.left: art.right; anchors.leftMargin: Theme.paddingMedium; anchors.right: radioAction.visible ? radioAction.left : parent.right
                 anchors.rightMargin: Theme.paddingMedium; anchors.verticalCenter: parent.verticalCenter
                 Label { width: parent.width; text: itemData.title; truncationMode: TruncationMode.Fade }
-                Label { width: parent.width; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? music.playlistSummary(itemData) : (itemData.index > 0 ? qsTr("Track") + " " + itemData.index + " · " : "") + music.artist(itemData)) + (itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0 ? " · " + qsTr("Downloaded") : "") + (music.goneTrack(itemData) ? " · " + qsTr("No longer on the server") : ""); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; truncationMode: TruncationMode.Fade }
+                Label { width: parent.width; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? music.playlistSummary(itemData) : (itemData.index > 0 ? qsTr("Track") + " " + itemData.index + " · " : "") + music.artist(itemData)) + (itemData.type === "track" && backend.cacheRevision >= 0 && backend.isReady(itemData.ratingKey) ? " · " + qsTr("Downloaded") : "") + (music.goneTrack(itemData) ? " · " + qsTr("No longer on the server") : ""); color: Theme.secondaryColor; font.pixelSize: Theme.fontSizeExtraSmall; truncationMode: TruncationMode.Fade }
             }
             RadioAction {
                 id: radioAction
@@ -241,17 +244,15 @@ Page {
             property int gridCount:artistGrid.count
             property int pagingHeight:!pageView.showQueue && pageView.hasMore ? Theme.itemSizeSmall : 0
             height:artistGrid.height+pagingHeight
-            GridView {
-                id:artistGrid;objectName:"routeGrid"
+            WindowedGrid {
+                id:artistGrid;objectName:"routeGrid";listView:list
                 width:parent.width-(alphabet.visible ? alphabet.width : 0)
-                height:visible ? Math.ceil(count/columns)*cellHeight : 0
                 visible:pageView.gridBrowse
                 model:visible ? pageView.rows : null
-                onCountChanged:{gridPosition.retainGridPosition();gridPosition.relayout()}
+                onCountChanged:gridPosition.relayout()
                 onColumnsChanged:gridPosition.relayout()
                 onHeightChanged:gridPosition.relayout()
-                interactive:false
-                property int columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
+                columns:Math.max(2,Math.floor(width/(Theme.itemSizeExtraLarge*1.35)))
                 cellWidth:width/columns
                 cellHeight:cellWidth+Theme.itemSizeSmall
                 delegate:ListItem {
@@ -260,6 +261,8 @@ Page {
                     enabled:!backend.busy && page.status===PageStatus.Active
                     onClicked:music.activate(itemData,index)
                     property int cellIndex:index
+                    onMenuOpenChanged:artistGrid.holdWindow=menuOpen
+                    Component.onDestruction:if(menuOpen && artistGrid)artistGrid.holdWindow=false
                     menu:ContextMenu {
                         Repeater {
                             model:itemActions.gridActions

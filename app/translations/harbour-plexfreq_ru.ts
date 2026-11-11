@@ -1311,7 +1311,7 @@
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Добавить точку маршрута</translation>
+      <translation>Добавить звуковую точку маршрута</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
@@ -1780,7 +1780,7 @@
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Очистить точки маршрута</translation>
+      <translation>Очистить звуковые точки маршрута</translation>
     </message>
     <message>
       <source>Stop radio</source>

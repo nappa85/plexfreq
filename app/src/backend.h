@@ -2,6 +2,7 @@
 #define BACKEND_H
 #include <QObject>
 #include <QVariantMap>
+#include <QSet>
 #include <QAbstractListModel>
 #include "plexfreq_core.h"
 
@@ -26,6 +27,13 @@ class Backend : public QObject {
     friend class BackendTest;
     Q_PROPERTY(QVariantMap state READ state NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap cache READ cache NOTIFY cacheChanged)
+    // Large collections never live in `state`/`cache` (Qt 5.6 converts a whole
+    // QVariantMap/QVariantList on every QML read). See docs/architecture.md.
+    Q_PROPERTY(QVariantList items READ items NOTIFY itemsChanged)
+    Q_PROPERTY(QVariantList queueItems READ queueItems NOTIFY queueItemsChanged)
+    Q_PROPERTY(int itemCount READ itemCount NOTIFY itemsChanged)
+    Q_PROPERTY(int queueCount READ queueCount NOTIFY queueItemsChanged)
+    Q_PROPERTY(int cacheRevision READ cacheRevision NOTIFY cacheRevisionChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(bool loadingMore READ loadingMore NOTIFY loadingMoreChanged)
     Q_PROPERTY(QAbstractItemModel *itemsModel READ itemsModel CONSTANT)
@@ -40,6 +48,16 @@ public:
     ~Backend() override;
     QVariantMap state() const {return m_state;}
     QVariantMap cache() const {return m_cache;}
+    QVariantList items() const {return m_items.entries();}
+    QVariantList queueItems() const {return m_queue.entries();}
+    int itemCount() const {return m_items.rowCount();}
+    int queueCount() const {return m_queue.rowCount();}
+    int cacheRevision() const {return m_cacheRevision;}
+    // Cache key sets. Bindings reference `cacheRevision` for dependency.
+    Q_INVOKABLE bool isReady(const QString &key) const {return m_ready.contains(key);}
+    Q_INVOKABLE bool isGone(const QString &key) const {return m_gone.contains(key);}
+    Q_INVOKABLE bool isPinned(const QString &key) const {return m_pinned.contains(key);}
+    Q_INVOKABLE bool isPinnedGroup(const QString &key) const {return m_pinnedGroups.contains(key);}
     bool busy() const {return m_busy;}
     bool loadingMore() const {return m_more;}
     QAbstractItemModel *itemsModel(){return &m_items;}
@@ -63,11 +81,11 @@ public:
     Q_INVOKABLE void seek(qint64 position){command("audio_seek",{{"position",position}});}
     Q_INVOKABLE void setVolume(double volume){command("audio_volume",{{"volume",volume}});}
 signals:
-    void stateChanged();void cacheChanged();void busyChanged();void loadingMoreChanged();void errorChanged();void playbackChanged();
+    void stateChanged();void cacheChanged();void cacheRevisionChanged();void itemsChanged();void queueItemsChanged();void busyChanged();void loadingMoreChanged();void errorChanged();void playbackChanged();
     void seeked(qint64 position);void raiseRequested();
     void completed(const QString &op,bool ok,const QVariantMap &data);
 private:
-    void poll();void handle(const QVariantMap &event);void status(const QVariantMap &value);
+    void poll();void handle(const QVariantMap &event);void applyCache(QVariantMap cache);void status(const QVariantMap &value);
     void reportError(const QString &text,bool radio=false);
     Runtime *m_runtime=nullptr;
 public:
@@ -75,6 +93,8 @@ public:
     ArtworkSource *artworkSource() const {return m_runtime ? pf_runtime_artwork(m_runtime) : nullptr;}
 private:
     QVariantMap m_state,m_cache,m_playback;
+    QSet<QString> m_ready,m_gone,m_pinned,m_pinnedGroups;
+    int m_cacheRevision=0;
     QString m_error;bool m_busy=false,m_more=false;
     EntryModel m_items,m_queue;
 };

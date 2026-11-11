@@ -10,6 +10,8 @@
 <file>qml/shared/AlphabetRail.qml</file>
 <file>qml/shared/ItemActions.qml</file>
 <file>qml/shared/GridPosition.qml</file>
+<file>qml/shared/WindowedGrid.qml</file>
+<file>qml/shared/GridSpacer.qml</file>
 <file>qml/desktop/ItemMenu.qml</file>
 <file>qml/desktop/RadioAction.qml</file>
 <file>qml/desktop/DetailHeader.qml</file>

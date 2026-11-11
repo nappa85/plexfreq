@@ -87,7 +87,7 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Obnovit ekvalizér</translation>
+      <translation>Resetovat ekvalizér</translation>
     </message>
   </context>
   <context>
@@ -174,7 +174,7 @@
     </message>
     <message>
       <source>Reset equalizer</source>
-      <translation>Obnovit ekvalizér</translation>
+      <translation>Resetovat ekvalizér</translation>
     </message>
   </context>
   <context>
@@ -1625,7 +1625,7 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Opakovat jednu</translation>
+      <translation>Opakovat skladbu</translation>
     </message>
     <message>
       <source>Repeat all</source>

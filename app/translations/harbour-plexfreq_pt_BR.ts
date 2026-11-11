@@ -957,7 +957,7 @@
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Histórico pendente: %1</translation>
+      <translation>Histórico de reprodução pendente: %1</translation>
     </message>
     <message>
       <source>Sync history</source>
@@ -1024,7 +1024,7 @@
     </message>
     <message>
       <source>Pending listening history: %1</source>
-      <translation>Histórico pendente: %1</translation>
+      <translation>Histórico de reprodução pendente: %1</translation>
     </message>
     <message>
       <source>Sync listening history</source>
@@ -1339,7 +1339,7 @@
     </message>
     <message>
       <source>Play next</source>
-      <translation>Tocar em seguida</translation>
+      <translation>Reproduzir em seguida</translation>
     </message>
     <message>
       <source>Add to queue</source>
@@ -1625,7 +1625,7 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Repetir uma</translation>
+      <translation>Repetir uma faixa</translation>
     </message>
     <message>
       <source>Repeat all</source>

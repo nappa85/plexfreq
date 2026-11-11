@@ -15,7 +15,7 @@
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Qualità audio</translation>
+      <translation>Qualità dello streaming</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
@@ -98,7 +98,7 @@
     </message>
     <message>
       <source>Streaming quality</source>
-      <translation>Qualità audio</translation>
+      <translation>Qualità dello streaming</translation>
     </message>
     <message>
       <source>Wi-Fi audio</source>
@@ -473,7 +473,7 @@
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Posizione di ricerca non valida</translation>
+      <translation>Posizione di spostamento non valida</translation>
     </message>
     <message>
       <source>Invalid server index</source>

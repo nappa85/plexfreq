@@ -30,9 +30,9 @@ void EntryModel::replace(const QVariantList &entries) {
 void EntryModel::append(const QVariantList &entries){if(entries.isEmpty())return;const int first=m_entries.size();beginInsertRows(QModelIndex(),first,first+entries.size()-1);m_entries.append(entries);endInsertRows();emit entriesChanged();}
 static QVariantMap decoded(char *text){if(!text)return {{"accepted",false},{"error","Backend unavailable"}};QJsonParseError parseError;const auto doc=QJsonDocument::fromJson(QByteArray(text),&parseError);pf_string_free(text);if(parseError.error!=QJsonParseError::NoError || !doc.isObject())return {{"accepted",false},{"error","Backend unavailable"}};return doc.toVariant().toMap();}
 Backend::Backend(const QString &directory,QObject *parent):QObject(parent),m_items(this),m_queue(this) {
-    m_state={{"items",QVariantList()},{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"items",QVariantList()},{"repeat","off"},{"shuffled",false}}}};
+    m_state={{"libraries",QVariantList()},{"servers",QVariantList()},{"queue",QVariantMap{{"repeat","off"},{"shuffled",false}}}};
     m_state.insert("networkOnline",false);m_state.insert("networkWifi",false);m_state.insert("networkCellular",false);
-    m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"readyKeys",QVariantList()},{"jobs",QVariantList()},{"pinnedKeys",QVariantList()},{"pinnedGroups",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"held",false},{"goneKeys",QVariantList()},{"error",""}};
+    m_cache={{"enabled",true},{"limitMb",512},{"ahead",5},{"tracks",0},{"bytes",0},{"jobs",QVariantList()},{"paused",false},{"wifiOnly",false},{"waitingForWifi",false},{"held",false},{"error",""}};
     const auto directoryBytes=directory.toUtf8();m_runtime=pf_runtime_new(directoryBytes.constData());
     auto *timer=new QTimer(this);timer->setInterval(100);connect(timer,&QTimer::timeout,this,&Backend::poll);timer->start();
     if(m_runtime)command("status");
@@ -51,7 +51,7 @@ void Backend::command(const QString &op,const QVariantMap &args) {
     auto input=args;input.insert("op",op);const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);const auto accepted=decoded(pf_runtime_submit(m_runtime,bytes.constData()));
     if(accepted.value("accepted").toBool())status(accepted);
     if(accepted.value("clearError").toBool() && !m_error.isEmpty()){m_error.clear();emit errorChanged();}
-    if(accepted.value("resetItems").toBool()){m_items.replace(QVariantList());m_state.insert("items",QVariantList());emit stateChanged();}
+    if(accepted.value("resetItems").toBool() && m_items.rowCount()>0){m_items.replace(QVariantList());emit itemsChanged();}
     if(!accepted.value("accepted").toBool()){reportError(translatedError(accepted));}
 }
 void Backend::poll() {
@@ -62,6 +62,15 @@ void Backend::poll() {
     if(value.contains("playback")){const auto playback=value.value("playback").toMap();if(playback!=m_playback){m_playback=playback;emit playbackChanged();}}
     for(const auto &event:value.value("events").toList())handle(event.toMap());
 }
+void Backend::applyCache(QVariantMap cache) {
+    // Key lists scale with the library: kept as sets behind isReady() & co.
+    auto keys=[&cache](const char *name)->QSet<QString>{QSet<QString> set;for(const auto &key:cache.take(name).toList())set.insert(key.toString());return set;};
+    const auto ready=keys("readyKeys"),gone=keys("goneKeys"),pinned=keys("pinnedKeys"),groups=keys("pinnedGroups");
+    cache.remove("readyBytes");cache.remove("errors");
+    const bool sets=ready!=m_ready || gone!=m_gone || pinned!=m_pinned || groups!=m_pinnedGroups;
+    if(sets){m_ready=ready;m_gone=gone;m_pinned=pinned;m_pinnedGroups=groups;++m_cacheRevision;emit cacheRevisionChanged();}
+    if(cache!=m_cache){m_cache=cache;emit cacheChanged();}
+}
 void Backend::handle(const QVariantMap &event) {
     if(event.value("kind")=="radio_warning"){reportError(QCoreApplication::translate("Core","Radio could not refresh. Downloaded tracks may repeat."),true);return;}
     if(event.value("kind")=="raise"){emit raiseRequested();return;}if(event.value("kind")=="seeked"){emit seeked(event.value("position").toLongLong());return;}
@@ -69,11 +78,25 @@ void Backend::handle(const QVariantMap &event) {
     if(data.value("_discarded").toBool()){emit completed(op,ok,data);return;}
     if(!ok){if(op!="lyrics" && op!="similar_artists"){reportError(translatedError(response));}emit completed(op,false,data);return;}
     translateErrorFields(data);
-    bool changed=false;
-    if(data.contains("cache")){const auto cache=data.take("cache").toMap();if(cache!=m_cache){m_cache=cache;emit cacheChanged();}}
-    if(data.contains("items")){auto items=data.value("items").toList();if(data.value("_listAction")=="append"){m_items.append(items);auto previous=m_state.value("items").toList();previous.append(items);items=previous;data.insert("items",items);}else m_items.replace(items);}
-    if(data.contains("queue"))m_queue.replace(data.value("queue").toMap().value("items").toList());
-    for(auto i=data.constBegin();i!=data.constEnd();++i){if(i.key().startsWith('_') || op=="lyrics" || op=="similar_artists")continue;if(m_state.value(i.key())!=i.value()){m_state.insert(i.key(),i.value());changed=true;}}
+    bool changed=false,itemsDirty=false,queueDirty=false;
+    if(data.contains("cache"))applyCache(data.take("cache").toMap());
+    if(data.contains("items")){
+        auto items=data.take("items").toList();
+        if(data.value("_listAction")=="append"){if(!items.isEmpty()){m_items.append(items);itemsDirty=true;}}
+        else if(m_items.entries()!=items){m_items.replace(items);itemsDirty=true;}
+    }
+    if(data.contains("queue")){
+        auto queue=data.value("queue").toMap();
+        if(queue.contains("items")){const auto items=queue.take("items").toList();if(m_queue.entries()!=items){m_queue.replace(items);queueDirty=true;}}
+        const auto &scalars=queue;
+        if(scalars!=m_state.value("queue").toMap()){m_state.insert("queue",scalars);changed=true;}
+        // The completed payload carries the scalars and the count, never the (up to 10 000) rows.
+        data.insert("queue",scalars);data.insert("queueCount",m_queue.rowCount());
+    }
+    data.insert("itemCount",m_items.rowCount());
+    for(auto i=data.constBegin();i!=data.constEnd();++i){if(i.key().startsWith('_') || i.key()=="items" || i.key()=="queue" || i.key()=="itemCount" || i.key()=="queueCount" || op=="lyrics" || op=="similar_artists")continue;if(m_state.value(i.key())!=i.value()){m_state.insert(i.key(),i.value());changed=true;}}
+    if(itemsDirty)emit itemsChanged();
+    if(queueDirty)emit queueItemsChanged();
     if(changed)emit stateChanged();
     emit completed(op,true,data);
 }

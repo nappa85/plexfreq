@@ -20,7 +20,7 @@ Item {
         "downloadRadio", "mixSeed", "favorite"]
 
     function pinned(item) {
-        return !!item && backend.cache.pinnedGroups.indexOf(item.type+":"+item.ratingKey)>=0
+        return !!item && backend.cacheRevision>=0 && backend.isPinnedGroup(item.type+":"+item.ratingKey)
     }
     function definition(id, item, index) {
         var action={id:id,text:"",visible:false,enabled:true}
@@ -50,7 +50,7 @@ Item {
         case "favorite": action.text=item.userRating>=10 ? qsTr("Remove favorite") : qsTr("Add to favorites"); action.visible=type==="track"; break
         case "pin": action.text=pinned(item) ? qsTr("Unpin download") : qsTr("Pin for offline listening"); action.visible=!item.station && (queueable || type==="playlist"); break
         case "queueUp": action.text=qsTr("Move up"); action.visible=music.showQueue; action.enabled=index>0; break
-        case "queueDown": action.text=qsTr("Move down"); action.visible=music.showQueue; action.enabled=index+1<backend.state.queue.items.length; break
+        case "queueDown": action.text=qsTr("Move down"); action.visible=music.showQueue; action.enabled=index+1<backend.queueCount; break
         case "queueRemove": action.text=qsTr("Remove from queue"); action.visible=music.showQueue; break
         default: console.warn("unknown item action: " + id)
         }

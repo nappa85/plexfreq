@@ -95,7 +95,7 @@ Item {
     function playlistEditor(action,item) {
         editorAction=action;editorTarget=action==="rename" ? item : null
         editorItems=item && item.type!=="playlist" ? [item] : items.filter(function(i){return i.type==="track"})
-        if(action==="create" && editorItems.length===0)editorItems=(backend.state.queue || {}).items || []
+        if(action==="create" && editorItems.length===0)editorItems=backend.queueItems || []
         if(action==="add")backend.command("playlist_choices")
         editPlaylistRequested()
     }
@@ -139,7 +139,7 @@ Item {
     function favorite(item) {if (!item || !item.ratingKey || backend.busy) return;backend.command("favorite",{key:item.ratingKey,enabled:!(item.userRating>=10)})}
     function discovery(view) {if (backend.busy || !section) return;query="";load("collection",{section:section,view:view,start:0},view==="favorites" ? qsTr("Favorites · 5 stars") : view==="added" ? qsTr("Recently added") : qsTr("Recently played"),true)}
     property var similarArtists: detail && detail.type === "artist" && detail.ratingKey === similarKey ? similarData : []
-    property var items: (showQueue ? (backend.state.queue || {}).items : backend.state.items) || []
+    property var items: (showQueue ? backend.queueItems : backend.items) || []
     property bool canGoBack: history.length > 0
     property var detail: !showQueue && route && (route.op === "detail" || route.op === "artist_albums") ?
         (detailData && detailData.ratingKey === route.args.key ? detailData : route.seed) : null
@@ -168,13 +168,16 @@ Item {
         if (op !== "browse") { searchTimer.stop(); searchPending = false }
         else if (args.query !== undefined) query = args.query
         if (remember && route) history = history.concat([route])
+        // Submit first: a replacing listing clears the stale rows synchronously, and that
+        // must happen before the route switches the list away from the grid, because Qt 5.6
+        // instantiates every delegate for a stale model synchronously.
+        backend.command(op, args)
         showQueue = false
         heading = title
         route = { op: op, args: args, title: title, seed: seed || null }
         similarKey = ""; similarData = []
         similarState = op === "detail" && seed && seed.type === "artist" ? "loading" : ""
         failedPageStart = -1; requestedPageStart = -1
-        backend.command(op, args)
     }
     function browse() {browseLibrary(false)}
     function browseLibrary(remember) {
@@ -259,7 +262,7 @@ Item {
     // the user has not paused them).
     property bool downloadsHeld:!!backend.cache.held && !!backend.cache.enabled && !backend.cache.paused && (!!backend.cache.downloading || (backend.cache.pending || 0) > 0)
     // A track the server no longer has (recently checked).
-    function goneTrack(item) { return !!item && item.type === "track" && (backend.cache.goneKeys || []).indexOf(item.ratingKey) >= 0 }
+    function goneTrack(item) { return !!item && item.type === "track" && backend.cacheRevision >= 0 && backend.isGone(item.ratingKey) }
     function artist(item) { if(!item) return ""; return item.originalTitle || item.grandparentTitle || item.parentTitle || "" }
     function time(ms) { var s = Math.floor(ms / 1000); return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + s % 60 }
     function totalTime(ms) {var s=Math.floor(ms/1000);var h=Math.floor(s/3600);var m=Math.floor(s/60)%60;return h>0 ? h+":"+(m<10 ? "0" : "")+m+":"+(s%60<10 ? "0" : "")+s%60 : time(ms)}
@@ -349,7 +352,7 @@ Item {
             } else if (op === "libraries" && !ok && backend.cache.tracks > 0) {
                 session.downloads()
             } else if (op === "cached_tracks" && ok) {
-                session.catalogCount = data.items.length
+                session.catalogCount = data.itemCount
             } else if (op === "cache_status" && ok && !session.showQueue && session.route && session.route.op === "cached_tracks" && session.catalogCount !== backend.cache.tracks) {
                 backend.command("cached_tracks", {_background:true, _refresh:true})
             } else if ((op === "connect" || op === "select_server" || op === "libraries") && ok) {

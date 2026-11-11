@@ -55,7 +55,7 @@
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>音量標準化</translation>
+      <translation>響度標準化</translation>
     </message>
     <message>
       <source>Track gain</source>
@@ -138,7 +138,7 @@
     </message>
     <message>
       <source>Normalize loudness</source>
-      <translation>音量標準化</translation>
+      <translation>響度標準化</translation>
     </message>
     <message>
       <source>Normalization mode</source>
@@ -309,7 +309,7 @@
     </message>
     <message>
       <source>Choose 1–10 artists or albums for a mix</source>
-      <translation>為合輯選擇 1–10 個藝人或專輯</translation>
+      <translation>為 Mix 選擇 1–10 個藝人或專輯</translation>
     </message>
     <message>
       <source>Choose 2–8 tracks for a sonic journey</source>
@@ -497,7 +497,7 @@
     </message>
     <message>
       <source>Mix seeds must be artists or albums</source>
-      <translation>合輯種子必須是藝人或專輯</translation>
+      <translation>Mix 種子必須是藝人或專輯</translation>
     </message>
     <message>
       <source>Network request failed (check connection and server address)</source>
@@ -1099,7 +1099,7 @@
     </message>
     <message>
       <source>Genre</source>
-      <translation>類型</translation>
+      <translation>曲風</translation>
     </message>
     <message>
       <source>Mood</source>
@@ -1178,7 +1178,7 @@
     </message>
     <message>
       <source>Genre</source>
-      <translation>類型</translation>
+      <translation>曲風</translation>
     </message>
     <message>
       <source>Mood</source>
@@ -1355,7 +1355,7 @@
     </message>
     <message>
       <source>Add as mix seed</source>
-      <translation>加入為合輯種子</translation>
+      <translation>加入為 Mix 種子</translation>
     </message>
     <message>
       <source>Rename playlist</source>
@@ -1776,7 +1776,7 @@
     </message>
     <message>
       <source>Clear mix seeds</source>
-      <translation>清除合輯種子</translation>
+      <translation>清除 Mix 種子</translation>
     </message>
     <message>
       <source>Clear sonic waypoints</source>
@@ -1836,7 +1836,7 @@
     </message>
     <message>
       <source>Play mix (%1 seeds)</source>
-      <translation>播放合輯（%1 個種子）</translation>
+      <translation>播放 Mix（%1 個種子）</translation>
     </message>
     <message>
       <source>Sonic journey (%1 tracks)</source>

@@ -236,6 +236,8 @@ pub struct Core {
     cached_playback: bool,
     manual_cache: Vec<Item>,
     cache_suspended: bool,
+    /// Last cache scheduling outcome reported to diagnostics.
+    cache_schedule_seen: std::cell::RefCell<Option<CacheSchedule>>,
     artist_indexes: std::collections::BTreeMap<String, Value>,
     writable: bool,
     resume_position: u64,
@@ -252,6 +254,41 @@ pub struct Core {
     radio_warning: std::cell::Cell<bool>,
     cached_failures: std::cell::Cell<u64>,
     refill_epoch: uuid::Uuid,
+}
+
+/// What `schedule_cache` decided, for change-only diagnostics. Holds counts,
+/// fixed names and a rating key only.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum CacheSchedule {
+    Scheduled {
+        items: usize,
+        manual: usize,
+        quality_kbps: u32,
+        first: String,
+        cellular_cap: bool,
+    },
+    Skipped(&'static str),
+}
+impl CacheSchedule {
+    /// The line to log when `self` differs from the previously seen outcome.
+    fn changed(&self, seen: &mut Option<Self>) -> Option<String> {
+        if seen.as_ref() == Some(self) {
+            return None;
+        }
+        *seen = Some(self.clone());
+        Some(match self {
+            Self::Scheduled {
+                items,
+                manual,
+                quality_kbps,
+                first,
+                cellular_cap,
+            } => format!(
+                "cache schedule items={items} manual={manual} quality_kbps={quality_kbps} first={first} cellular_cap={cellular_cap}"
+            ),
+            Self::Skipped(reason) => format!("cache schedule skipped reason={reason}"),
+        })
+    }
 }
 
 /// Outcome of a planned automatic skip away from a failed current item.
@@ -545,6 +582,7 @@ impl Core {
             cached_playback: false,
             manual_cache,
             cache_suspended: !downloads,
+            cache_schedule_seen: std::cell::RefCell::new(None),
             artist_indexes: std::collections::BTreeMap::new(),
             writable: downloads,
             resume_position,
@@ -1090,17 +1128,34 @@ impl Core {
         value["offlineStore"] = self.library.store_status();
         value
     }
+    fn report_cache_schedule(&self, outcome: CacheSchedule) {
+        if let Some(line) = outcome.changed(&mut self.cache_schedule_seen.borrow_mut()) {
+            diagnostics::event(format_args!("{line}"));
+        }
+    }
+    /// Why the cache is not scheduled now (a fixed name), if it is not.
+    fn cache_block_reason(&self) -> Option<&'static str> {
+        if !self.settings.cache.enabled {
+            Some("disabled")
+        } else if self.cache_suspended {
+            Some("cache_suspended")
+        } else {
+            self.download_block_reason()
+        }
+    }
     fn schedule_cache(&self) {
         self.cache
             .protect(&self.cache_namespace(), &self.manual_cache);
-        if self.settings.cache.enabled && !self.cache_suspended && self.downloads_allowed() {
+        if let Some(reason) = self.cache_block_reason() {
+            self.report_cache_schedule(CacheSchedule::Skipped(reason));
+        } else {
             // Do not undermine a mobile bitrate cap with automatic original-file
             // prefetch. Explicit pins still follow the selected download policy.
             let ahead = self.settings.cache.ahead + 1;
             let mut skipped = false;
-            let mut items = if self.settings.quality.streaming(self.network_cellular) > 0
-                && self.settings.quality.download_kbps == 0
-            {
+            let cellular_cap = self.settings.quality.streaming(self.network_cellular) > 0
+                && self.settings.quality.download_kbps == 0;
+            let mut items = if cellular_cap {
                 Vec::new()
             } else {
                 // Gone items would fail again on every reschedule; look past
@@ -1119,16 +1174,37 @@ impl Core {
                     items.push(item.clone());
                 }
             }
+            self.report_cache_schedule(if items.is_empty() {
+                CacheSchedule::Skipped(if cellular_cap {
+                    "cellular_cap"
+                } else {
+                    "empty_window"
+                })
+            } else {
+                CacheSchedule::Scheduled {
+                    items: items.len(),
+                    manual: self.manual_cache.len(),
+                    quality_kbps: self.settings.quality.download_kbps,
+                    first: items[0].rating_key.clone(),
+                    cellular_cap,
+                }
+            });
             if items.is_empty() && skipped {
                 // Nothing left to fetch: stop a batch still retrying gone items.
                 self.cache.cancel();
             }
-            let _ = self.cache.schedule_with_quality(
-                &self.settings.server_url,
-                &self.settings.server_token,
-                items,
-                self.settings.quality.download_kbps,
-            );
+            if self
+                .cache
+                .schedule_with_quality(
+                    &self.settings.server_url,
+                    &self.settings.server_token,
+                    items,
+                    self.settings.quality.download_kbps,
+                )
+                .is_err()
+            {
+                diagnostics::event(format_args!("cache schedule rejected"));
+            }
         }
     }
 
@@ -3021,5 +3097,50 @@ impl Core {
                 )
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod cache_schedule_diagnostics_tests {
+    use super::CacheSchedule;
+
+    fn scheduled(first: &str, items: usize) -> CacheSchedule {
+        CacheSchedule::Scheduled {
+            items,
+            manual: 0,
+            quality_kbps: 0,
+            first: first.into(),
+            cellular_cap: false,
+        }
+    }
+
+    #[test]
+    fn schedule_outcome_is_reported_only_when_it_changes() {
+        let mut seen = None;
+        let line = scheduled("7", 3).changed(&mut seen).unwrap();
+        assert_eq!(
+            line,
+            "cache schedule items=3 manual=0 quality_kbps=0 first=7 cellular_cap=false"
+        );
+        assert!(scheduled("7", 3).changed(&mut seen).is_none());
+        // A different window logs again.
+        assert!(scheduled("8", 3).changed(&mut seen).is_some());
+        assert!(scheduled("8", 4).changed(&mut seen).is_some());
+        let skipped = CacheSchedule::Skipped("waiting_wifi");
+        assert_eq!(
+            skipped.changed(&mut seen).unwrap(),
+            "cache schedule skipped reason=waiting_wifi"
+        );
+        assert!(skipped.changed(&mut seen).is_none());
+        assert!(CacheSchedule::Skipped("cellular_cap")
+            .changed(&mut seen)
+            .is_some());
+        let empty = CacheSchedule::Skipped("empty_window");
+        assert_eq!(
+            empty.changed(&mut seen).unwrap(),
+            "cache schedule skipped reason=empty_window"
+        );
+        assert!(empty.changed(&mut seen).is_none());
+        assert!(scheduled("8", 4).changed(&mut seen).is_some());
     }
 }

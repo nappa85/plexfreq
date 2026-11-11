@@ -2,6 +2,7 @@
 mod notifications;
 mod platform;
 mod pulse;
+mod stall;
 use crate::{
     audio::{self, Engine, Event, Source},
     plex::Probe,
@@ -154,6 +155,8 @@ pub(crate) struct Shared {
     /// Whether downloads should yield to the live stream (see
     /// `yield_downloads`). Written, like the control, under `control`'s lock.
     cache_hold: Arc<AtomicBool>,
+    /// GUI poll heartbeat and the worker's current request (see `stall`).
+    gui: Arc<stall::Heartbeat>,
     /// Gapless transitions committed by the worker.
     #[cfg(test)]
     transitions: Arc<AtomicUsize>,
@@ -180,6 +183,7 @@ impl Shared {
             acted: Arc::new(AtomicU64::new(0)),
             queued_transport: Arc::new(AtomicUsize::new(0)),
             cache_hold: Arc::new(AtomicBool::new(false)),
+            gui: Arc::new(stall::Heartbeat::new()),
             #[cfg(test)]
             transitions: Arc::new(AtomicUsize::new(0)),
         }
@@ -487,6 +491,7 @@ pub struct Runtime {
     events: mpsc::Receiver<Outgoing>,
     worker: Option<thread::JoinHandle<()>>,
     notifications: notifications::Notifications,
+    watchdog: Option<stall::Watchdog>,
 }
 impl Runtime {
     pub fn new(directory: PathBuf) -> Result<Self> {
@@ -508,6 +513,7 @@ impl Runtime {
             json!({"queue":{"items":[],"repeat":"off","shuffled":false},"track":null}),
         );
         let state = shared.clone();
+        let watchdog = stall::Watchdog::start(shared.gui.clone(), None);
         let worker = thread::Builder::new()
             .name("plexfreq-core".into())
             .spawn(move || worker(directory, sink, observers, state, receiver, events))?;
@@ -516,6 +522,7 @@ impl Runtime {
             events: output,
             worker: Some(worker),
             notifications: notifications::Notifications::new(),
+            watchdog: Some(watchdog),
         })
     }
     pub fn submit(&self, request: Value) -> Result<Value> {
@@ -530,6 +537,8 @@ impl Runtime {
         self.shared.artwork.clone()
     }
     pub fn poll(&self) -> Value {
+        // Before the `presented` lock, so a stall inside poll itself counts.
+        self.shared.gui.polled();
         // Held while draining: an update the worker sends under this lock
         // (a radio refill) is delivered before any successor published below.
         let mut presented = crate::mutex_lock(&self.shared.presented);
@@ -581,6 +590,7 @@ impl Drop for Runtime {
             let _ = worker.join();
             crate::diagnostics::event(format_args!("shutdown core joined"));
         }
+        drop(self.watchdog.take());
     }
 }
 
@@ -1380,6 +1390,7 @@ fn worker(
                     let (keyed, tags) = correlation(&command);
                     let logout = matches!(command, Command::Logout);
                     crate::diagnostics::event(format_args!("core request begin op={op}"));
+                    let _gui_op = shared.gui.begin(op);
                     let request_started = Instant::now();
                     if class.transport {
                         crate::diagnostics::event(format_args!("core transport begin op={op}"));
@@ -1564,16 +1575,24 @@ fn worker(
                     }
                     // Before the reply: its artwork ids must resolve.
                     shared.artwork.set(core.artwork_snapshot());
-                    admitted.release();
                     crate::diagnostics::event(format_args!(
                         "core request complete op={op} success={} elapsed_ms={}",
                         response["ok"] == true,
                         request_started.elapsed().as_millis()
                     ));
-                    let _ = events.send(Outgoing {
-                        view,
-                        event: json!({"request":echo,"response":response}),
-                    });
+                    {
+                        // Release and send under the lock `poll` holds while it
+                        // drains events and reads `busy`: a poll sees either both
+                        // (not busy, with the reply) or neither, never "not busy"
+                        // without the reply. Released first so the reply's
+                        // handlers already see the request finished.
+                        let _presented = crate::mutex_lock(&shared.presented);
+                        admitted.release();
+                        let _ = events.send(Outgoing {
+                            view,
+                            event: json!({"request":echo,"response":response}),
+                        });
+                    }
                     if gone_notice && response["ok"] == true && !(cancelled || stale) {
                         audio_error(&events, GONE_MESSAGE);
                     }
@@ -1716,6 +1735,9 @@ fn worker(
         match message {
             WorkerMsg::Checkpoint(checkpoint) => queued.push(checkpoint),
             WorkerMsg::Request(request) => {
+                // Not under `presented`: `admission` is held here and `poll`
+                // takes `presented` before `admission`. At shutdown a poll that
+                // sees "not busy" just gets this reply on its next tick.
                 shared.release(request.foreground, request.page.is_some());
                 let _ = events.send(Outgoing {
                     view: request.view,
@@ -1856,6 +1878,11 @@ impl Drop for Admitted<'_> {
         if self.released {
             return;
         }
+        // As for a normal reply: release and send under the lock `poll` holds,
+        // so the GUI never sees "not busy" before the reply. Lock guards taken
+        // while handling the request live in inner scopes and are dropped
+        // before this guard when unwinding, so the lock is free here.
+        let _presented = crate::mutex_lock(&self.shared.presented);
         self.release();
         let _ = self.events.send(Outgoing {
             view: self.view,
@@ -1895,6 +1922,7 @@ fn abandon(
         let WorkerMsg::Request(request) = message else {
             continue;
         };
+        // Not under `presented`: lock order (see the worker-exit drain).
         shared.release(request.foreground, request.page.is_some());
         let _ = events.send(Outgoing {
             view: request.view,
@@ -2740,6 +2768,27 @@ mod tests {
     }
 
     #[test]
+    fn poll_records_the_gui_heartbeat() {
+        let (requests, _receiver) = mpsc::sync_channel(8);
+        let (_events, output) = mpsc::channel();
+        let runtime = Runtime {
+            shared: Shared::new(requests, json!({})),
+            events: output,
+            worker: None,
+            notifications: notifications::Notifications::new(),
+            watchdog: None,
+        };
+        runtime.shared.gui.polled();
+        runtime.shared.gui.pretend_stalled(5_000);
+        assert!(runtime.shared.gui.check_for_test().is_some());
+        // A poll ends the stall: the next one is reported again.
+        runtime.poll();
+        assert_eq!(runtime.shared.gui.check_for_test(), None);
+        runtime.shared.gui.pretend_stalled(5_000);
+        assert!(runtime.shared.gui.check_for_test().is_some());
+    }
+
+    #[test]
     fn navigation_discards_replies_that_finished_before_the_next_poll() {
         let (requests, _receiver) = mpsc::sync_channel(8);
         let (events, output) = mpsc::channel();
@@ -2748,6 +2797,7 @@ mod tests {
             events: output,
             worker: None,
             notifications: notifications::Notifications::new(),
+            watchdog: None,
         };
         runtime.shared.view.store(1, Ordering::SeqCst);
         events

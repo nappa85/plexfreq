@@ -27,7 +27,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ఆడియోను డౌన్‌లోడ్ చేయండి</translation>
+      <translation>డౌన్‌లోడ్ ఆడియో</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -110,7 +110,7 @@
     </message>
     <message>
       <source>Download audio</source>
-      <translation>ఆడియోను డౌన్‌లోడ్ చేయండి</translation>
+      <translation>డౌన్‌లోడ్ ఆడియో</translation>
     </message>
     <message>
       <source>Plex codec fallback</source>
@@ -697,7 +697,7 @@
     </message>
     <message>
       <source>album radio tracks</source>
-      <translation>ఆల్బమ్ రేడియో ట్రాక్‌ల పఠనం</translation>
+      <translation>ఆల్బమ్ రేడియో ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>artist alphabet index</source>
@@ -717,27 +717,27 @@
     </message>
     <message>
       <source>cache track metadata</source>
-      <translation>కాష్ ట్రాక్ మెటాడేటా పఠనం</translation>
+      <translation>కాష్ ట్రాక్ మెటాడేటా</translation>
     </message>
     <message>
       <source>created playlist</source>
-      <translation>సృష్టించిన ప్లేలిస్ట్ పఠనం</translation>
+      <translation>సృష్టించిన ప్లేలిస్ట్</translation>
     </message>
     <message>
       <source>lyric lines</source>
-      <translation>లిరిక్స్ పంక్తుల పఠనం</translation>
+      <translation>లిరిక్స్ పంక్తులు</translation>
     </message>
     <message>
       <source>lyric span text</source>
-      <translation>లిరిక్స్ భాగం పాఠ్యం పఠనం</translation>
+      <translation>లిరిక్స్ భాగం పాఠ్యం</translation>
     </message>
     <message>
       <source>lyric spans</source>
-      <translation>లిరిక్స్ భాగాల పఠనం</translation>
+      <translation>లిరిక్స్ భాగాలు</translation>
     </message>
     <message>
       <source>lyrics JSON</source>
-      <translation>లిరిక్స్ JSON పఠనం</translation>
+      <translation>లిరిక్స్ JSON</translation>
     </message>
     <message>
       <source>playlist creation</source>
@@ -745,15 +745,15 @@
     </message>
     <message>
       <source>playlist metadata</source>
-      <translation>ప్లేలిస్ట్ మెటాడేటా పఠనం</translation>
+      <translation>ప్లేలిస్ట్ మెటాడేటా</translation>
     </message>
     <message>
       <source>radio download tracks</source>
-      <translation>రేడియో డౌన్‌లోడ్ ట్రాక్‌ల పఠనం</translation>
+      <translation>రేడియో డౌన్‌లోడ్ ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>radio queue center</source>
-      <translation>రేడియో క్యూ స్థానం పఠనం</translation>
+      <translation>రేడియో క్యూ కేంద్రం</translation>
     </message>
     <message>
       <source>radio queue continuation</source>
@@ -765,15 +765,15 @@
     </message>
     <message>
       <source>radio queue identity</source>
-      <translation>రేడియో క్యూ గుర్తింపు పఠనం</translation>
+      <translation>రేడియో క్యూ గుర్తింపు</translation>
     </message>
     <message>
       <source>radio queue tracks</source>
-      <translation>రేడియో క్యూ ట్రాక్‌ల పఠనం</translation>
+      <translation>రేడియో క్యూ ట్రాక్‌లు</translation>
     </message>
     <message>
       <source>radio server identity</source>
-      <translation>రేడియో సర్వర్ గుర్తింపు పఠనం</translation>
+      <translation>రేడియో సర్వర్ గుర్తింపు</translation>
     </message>
     <message>
       <source>server discovery</source>
@@ -785,7 +785,7 @@
     </message>
     <message>
       <source>sonic adventure</source>
-      <translation>సోనిక్ సాహసయాత్ర సృష్టి</translation>
+      <translation>సోనిక్ సాహసయాత్ర</translation>
     </message>
   </context>
   <context>

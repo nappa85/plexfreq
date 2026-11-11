@@ -625,7 +625,7 @@
     </message>
     <message>
       <source>This artist or album has not been saved offline</source>
-      <translation>Цього виконавця або альбом не збережено офлайн</translation>
+      <translation>Цей виконавець або альбом не збережено офлайн</translation>
     </message>
     <message>
       <source>This library page has not been saved offline yet</source>
@@ -1311,7 +1311,7 @@
     <name>ItemActions</name>
     <message>
       <source>Add sonic waypoint</source>
-      <translation>Додати точку маршруту</translation>
+      <translation>Додати звукову точку маршруту</translation>
     </message>
     <message>
       <source>Edit smart filters</source>
@@ -1780,7 +1780,7 @@
     </message>
     <message>
       <source>Clear sonic waypoints</source>
-      <translation>Очистити точки маршруту</translation>
+      <translation>Очистити звукові точки маршруту</translation>
     </message>
     <message>
       <source>Stop radio</source>

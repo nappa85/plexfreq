@@ -67,10 +67,20 @@ pub fn album_type(item: &Item) -> AlbumType {
 }
 
 impl Core {
+    /// Why downloads are not allowed now (a fixed name), if they are not.
+    pub(crate) fn download_block_reason(&self) -> Option<&'static str> {
+        if self.offline_mode {
+            Some("offline_mode")
+        } else if self.settings.downloads_paused {
+            Some("downloads_paused")
+        } else if self.settings.wifi_only && !self.network_wifi {
+            Some("waiting_wifi")
+        } else {
+            None
+        }
+    }
     pub(crate) fn downloads_allowed(&self) -> bool {
-        !self.offline_mode
-            && !self.settings.downloads_paused
-            && (!self.settings.wifi_only || self.network_wifi)
+        self.download_block_reason().is_none()
     }
     pub(crate) fn online_edit(&self) -> Result<()> {
         if !self.writable {

@@ -257,7 +257,7 @@
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Iskanje po zvoku ni uspelo</translation>
+      <translation>Previjanje zvoka ni uspelo</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
@@ -473,7 +473,7 @@
     </message>
     <message>
       <source>Invalid seek position</source>
-      <translation>Neveljaven položaj iskanja</translation>
+      <translation>Neveljaven položaj previjanja</translation>
     </message>
     <message>
       <source>Invalid server index</source>
@@ -1625,7 +1625,7 @@
     </message>
     <message>
       <source>Repeat one</source>
-      <translation>Ponavljaj eno</translation>
+      <translation>Ponavljaj skladbo</translation>
     </message>
     <message>
       <source>Repeat all</source>

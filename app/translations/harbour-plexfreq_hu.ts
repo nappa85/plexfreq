@@ -1131,7 +1131,7 @@
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Csak nem játszottak</translation>
+      <translation>Csak lejátszatlanok</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1210,7 +1210,7 @@
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Csak nem játszottak</translation>
+      <translation>Csak lejátszatlanok</translation>
     </message>
     <message>
       <source>Sort</source>

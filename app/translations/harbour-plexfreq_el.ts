@@ -23,7 +23,7 @@
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Ήχος σε δίκτυο κινητής</translation>
+      <translation>Ήχος σε δεδομένα κινητής</translation>
     </message>
     <message>
       <source>Download audio</source>
@@ -106,7 +106,7 @@
     </message>
     <message>
       <source>Mobile audio</source>
-      <translation>Ήχος σε δίκτυο κινητής</translation>
+      <translation>Ήχος σε δεδομένα κινητής</translation>
     </message>
     <message>
       <source>Download audio</source>
@@ -257,7 +257,7 @@
     </message>
     <message>
       <source>Audio seeking failed</source>
-      <translation>Η μετακίνηση στη θέση του ήχου απέτυχε</translation>
+      <translation>Η μετάβαση σε άλλο σημείο του ήχου απέτυχε</translation>
     </message>
     <message>
       <source>Audio settings exceed the supported range</source>
@@ -281,7 +281,7 @@
     </message>
     <message>
       <source>Cache is full; increase its limit or clear cached audio</source>
-      <translation>Η κρυφή μνήμη είναι πλήρης· αυξήστε το όριο ή εκκαθαρίστε τον αποθηκευμένο ήχο</translation>
+      <translation>Η κρυφή μνήμη είναι πλήρης· αυξήστε το όριο ή εκκαθαρίστε τον ήχο της κρυφής μνήμης</translation>
     </message>
     <message>
       <source>Cache limit must be 64–8192 MiB and look-ahead 0–20 tracks</source>
@@ -441,7 +441,7 @@
     </message>
     <message>
       <source>Invalid cached audio path</source>
-      <translation>Μη έγκυρη διαδρομή αποθηκευμένου ήχου</translation>
+      <translation>Μη έγκυρη διαδρομή ήχου κρυφής μνήμης</translation>
     </message>
     <message>
       <source>Invalid client identifier</source>
@@ -792,7 +792,7 @@
     <name>DetailHeader</name>
     <message>
       <source>Swipe for more photos</source>
-      <translation>Σαρώστε για περισσότερες φωτογραφίες</translation>
+      <translation>Σύρετε για περισσότερες φωτογραφίες</translation>
     </message>
     <message>
       <source>Radio</source>

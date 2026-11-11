@@ -51,7 +51,7 @@
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Fundido</translation>
+      <translation>Fundido cruzado</translation>
     </message>
     <message>
       <source>Normalize loudness</source>
@@ -79,7 +79,7 @@
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido.</translation>
+      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido cruzado.</translation>
     </message>
     <message>
       <source>Equalizer</source>
@@ -126,7 +126,7 @@
     </message>
     <message>
       <source>Crossfade</source>
-      <translation>Fundido</translation>
+      <translation>Fundido cruzado</translation>
     </message>
     <message>
       <source>%1 seconds</source>
@@ -166,7 +166,7 @@
     </message>
     <message>
       <source>Uses Plex gain metadata when available. Tracks within the same album keep gapless transitions without crossfade.</source>
-      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido.</translation>
+      <translation>Usa los metadatos de ganancia de Plex si están disponibles. Las canciones del mismo álbum se reproducen sin pausas y sin fundido cruzado.</translation>
     </message>
     <message>
       <source>Equalizer</source>

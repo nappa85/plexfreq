@@ -645,7 +645,7 @@
     </message>
     <message>
       <source>This track is not fully cached yet; downloaded tracks remain available</source>
-      <translation>Šis takelis dar ne visas podėlyje; atsisiųsti takeliai lieka pasiekiami</translation>
+      <translation>Šis takelis dar ne visiškai įkeltas į podėlį; atsisiųsti takeliai lieka pasiekiami</translation>
     </message>
     <message>
       <source>Track duration is needed for a timed download</source>
@@ -1131,7 +1131,7 @@
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Tik negrotieji</translation>
+      <translation>Tik neklausyti</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1210,7 +1210,7 @@
     </message>
     <message>
       <source>Unplayed only</source>
-      <translation>Tik negrotieji</translation>
+      <translation>Tik neklausyti</translation>
     </message>
     <message>
       <source>Sort</source>
@@ -1812,7 +1812,7 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Neseniai grotieji</translation>
+      <translation>Neseniai klausyti</translation>
     </message>
     <message>
       <source>Download manager</source>
@@ -2002,7 +2002,7 @@
     </message>
     <message>
       <source>Recently played</source>
-      <translation>Neseniai grotieji</translation>
+      <translation>Neseniai klausyti</translation>
     </message>
     <message>
       <source>Most played</source>
@@ -2185,7 +2185,7 @@
     </message>
     <message>
       <source>The current track and next %1 queued tracks are cached. Download an album before travelling; only completed downloads work offline.</source>
-      <translation>Dabartinis takelis ir kiti eilės takeliai (%1) talpinami į podėlį. Prieš kelionę atsisiųskite albumą; neprisijungus veikia tik baigti atsisiuntimai.</translation>
+      <translation>Dabartinis takelis ir kiti %1 eilės takeliai talpinami į podėlį. Prieš kelionę atsisiųskite albumą; neprisijungus veikia tik baigti atsisiuntimai.</translation>
     </message>
     <message>
       <source>Clear cache and stop playback</source>
@@ -2193,7 +2193,7 @@
     </message>
     <message>
       <source>PlexFreq %1 · Direct-stream music player</source>
-      <translation>PlexFreq %1 · Tiesioginės transliacijos muzikos grotuvas</translation>
+      <translation>PlexFreq %1 · Tiesioginio transliavimo muzikos grotuvas</translation>
     </message>
   </context>
   <context>

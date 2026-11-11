@@ -108,16 +108,17 @@ ApplicationWindow {
         }
         RowLayout {
         Layout.fillWidth:true; Layout.fillHeight:true
+        GridSpacer {id:gridSpacer}
         ListView {
             id:list;objectName:"libraryList";Layout.fillWidth:true;Layout.fillHeight:true;clip:true;spacing:5
-            model: session.gridBrowse ? null : session.rows
+            model: session.gridBrowse ? gridSpacer : session.rows
             function checkMore() { session.maybeMore(visibleArea.yPosition+visibleArea.heightRatio) }
             onContentYChanged:{moreTimer.restart();gridPosition.updateArtistLetter()}
             onContentHeightChanged:gridPosition.schedulePosition()
             onCountChanged:moreTimer.restart()
             onHeightChanged:moreTimer.restart()
             Timer { id:moreTimer; interval:100; onTriggered:list.checkMore() }
-            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) {if(session.gridBrowse)gridPosition.rememberGridPosition();moreTimer.restart()} }
+            Connections { target:backend; onLoadingMoreChanged:if (!backend.loadingMore) moreTimer.restart() }
             ScrollBar.vertical: ScrollBar {}
             section.property:session.homeView ? "groupTitle" : session.route && session.route.op==="artist_albums" ? "albumGroup" : ""
             section.delegate:RowLayout {
@@ -132,10 +133,11 @@ ApplicationWindow {
             }
             delegate: ItemDelegate {
                 property var itemData:entry
+                property bool spacer:itemData.type==="spacer"
                 property bool discoveryGridItem:session.homeView && !!itemData.discoveryGrid
                 property var discoveryCards:discoveryGridItem ? session.discoveryGridItems(session.items,index) : []
                 objectName:discoveryCards.length ? "discoverySectionHost" : ""
-                width:list.width;height:discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+12 : 0) : 76;enabled:!discoveryGridItem && !backend.busy;clip:discoveryGridItem
+                visible:!spacer;width:list.width;height:spacer ? 0 : discoveryGridItem ? (discoveryCards.length ? discoveryGrid.height+12 : 0) : 76;enabled:!spacer && !discoveryGridItem && !backend.busy;clip:discoveryGridItem
                 onClicked:if(!discoveryGridItem)session.activate(itemData,index)
                 contentItem:Item {
                 RowLayout {anchors.fill:parent;visible:!discoveryGridItem
@@ -151,7 +153,7 @@ ApplicationWindow {
                         Label { objectName:"rowSubtitle"; text: (itemData.type === "artist" ? qsTr("Open artist") : itemData.type === "album" ? (itemData.year > 0 ? itemData.year : qsTr("Open album")) : itemData.type === "playlist" ? session.playlistSummary(itemData) : session.artist(itemData)) + (session.goneTrack(itemData) ? " · " + qsTr("No longer on the server") : ""); color: "#9eaabd"; elide: Text.ElideRight; Layout.fillWidth: true }
                     }
                     Label { text: itemData.type === "track" ? session.time(itemData.duration) : "›"; color: "#9eaabd" }
-                    Label { text:qsTr("Downloaded"); visible:itemData.type === "track" && backend.cache.readyKeys.indexOf(itemData.ratingKey) >= 0; color:"#ebad3d" }
+                    Label { text:qsTr("Downloaded"); visible:itemData.type === "track" && backend.cacheRevision >= 0 && backend.isReady(itemData.ratingKey); color:"#ebad3d" }
                     RadioAction { actionName: session.radioActionText(itemData); visible: !session.artistBrowse && session.canRadio(itemData); enabled: !backend.busy; onClicked: session.startRadio(itemData) }
                     Button {text:"⋮";onClicked:entryMenu.open()
                         ItemMenu {id:entryMenu;actions:itemActions;actionIds:itemActions.rowActions;item:itemData;itemIndex:index}
@@ -181,25 +183,27 @@ ApplicationWindow {
                 property int gridCount:artistGrid.count
                 property int pagingHeight:!session.showQueue && backend.state.hasMore ? 44 : 0
                 height:artistGrid.height+pagingHeight
-                GridView {
-                    id:artistGrid;objectName:"routeGrid";width:parent.width;height:visible ? Math.ceil(count/columns)*cellHeight : 0
-                    visible:session.gridBrowse;model:visible ? session.rows : null;interactive:false
-                    onCountChanged:{gridPosition.retainGridPosition();gridPosition.relayout()}
+                WindowedGrid {
+                    id:artistGrid;objectName:"routeGrid";listView:list;width:parent.width
+                    visible:session.gridBrowse;model:visible ? session.rows : null
+                    onCountChanged:gridPosition.relayout()
                     onColumnsChanged:gridPosition.relayout()
                     onHeightChanged:gridPosition.relayout()
-                    property int columns:Math.max(1,Math.floor(width/170))
+                    columns:Math.max(1,Math.floor(width/170))
                     cellWidth:width/columns;cellHeight:180
                     delegate:ItemDelegate {
                         property var itemData:entry
                         width:artistGrid.cellWidth;height:artistGrid.cellHeight;enabled:!backend.busy
                         onClicked:session.activate(itemData,index)
+                        // A menu destroyed with its delegate must not leave the window held.
+                        Component.onDestruction:if(artistMenu.visible && artistGrid)artistGrid.holdWindow=false
                         contentItem:Column {
                             spacing:8
                             Image {sourceSize.width:Math.max(width,height);sourceSize.height:Math.max(width,height);x:8;width:parent.width-16;height:136;source:itemData.artwork || "";asynchronous:true;fillMode:Image.PreserveAspectCrop}
                             Label {x:8;width:parent.width-16;text:itemData.title;maximumLineCount:2;wrapMode:Text.Wrap;elide:Text.ElideRight;color:"#ebad3d";horizontalAlignment:Text.AlignHCenter}
                         }
                         Button {anchors.right:parent.right;anchors.top:parent.top;text:"⋮";onClicked:artistMenu.open()
-                            ItemMenu {id:artistMenu;actions:itemActions;actionIds:itemActions.gridActions;item:itemData;itemIndex:index}
+                            ItemMenu {id:artistMenu;actions:itemActions;actionIds:itemActions.gridActions;item:itemData;itemIndex:index;onOpened:artistGrid.holdWindow=true;onClosed:artistGrid.holdWindow=false}
                         }
                     }
                 }

@@ -549,11 +549,11 @@
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this album. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex neatgrieza šim albumam skaņas ieteikumus. Pārbaudiet mūzikas bibliotēkas skaņas analīzes iestatījumu un tās pabeigtību vai izmantojiet izpildītāja radio.</translation>
+      <translation>Plex neatgrieza šim albumam skaņas ieteikumu. Pārbaudiet mūzikas bibliotēkas skaņas analīzes iestatījumu un tās pabeigtību vai izmantojiet izpildītāja radio.</translation>
     </message>
     <message>
       <source>Plex returned no sonic recommendations for this track. Check the music library's Sonic Analysis setting and completion, or use Artist Radio.</source>
-      <translation>Plex neatgrieza šai dziesmai skaņas ieteikumus. Pārbaudiet mūzikas bibliotēkas skaņas analīzes iestatījumu un tās pabeigtību vai izmantojiet izpildītāja radio.</translation>
+      <translation>Plex neatgrieza šai dziesmai skaņas ieteikumu. Pārbaudiet mūzikas bibliotēkas skaņas analīzes iestatījumu un tās pabeigtību vai izmantojiet izpildītāja radio.</translation>
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
@@ -577,7 +577,7 @@
     </message>
     <message>
       <source>Radio returned no playable tracks</source>
-      <translation>Radio neatgrieza atskaņojamas dziesmas</translation>
+      <translation>Radio neatgrieza atskaņojamu dziesmu</translation>
     </message>
     <message>
       <source>Radio seed does not match the selected music type</source>
@@ -808,7 +808,7 @@
     </message>
     <message>
       <source>No description provided by Plex.</source>
-      <translation>Plex nesniedza aprakstu.</translation>
+      <translation>Plex nesniedza apraksta.</translation>
     </message>
     <message>
       <source>Read less</source>
@@ -832,7 +832,7 @@
     </message>
     <message>
       <source>No similar artists returned by Plex.</source>
-      <translation>Plex neatgrieza līdzīgus izpildītājus.</translation>
+      <translation>Plex neatgrieza līdzīgu izpildītāju.</translation>
     </message>
     <message>
       <source>Albums</source>
@@ -1875,7 +1875,7 @@
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Plex nesniedza dziesmu vārdus.</translation>
+      <translation>Plex nesniedza dziesmu vārdu.</translation>
     </message>
     <message>
       <source>Reload lyrics</source>
@@ -1918,7 +1918,7 @@
     </message>
     <message>
       <source>No lyrics provided by Plex.</source>
-      <translation>Plex nesniedza dziesmu vārdus.</translation>
+      <translation>Plex nesniedza dziesmu vārdu.</translation>
     </message>
   </context>
   <context>

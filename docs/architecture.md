@@ -33,6 +33,31 @@ the user types for a manual connection, which it forwards to Rust (§11).
 QtQuick 2.6-compatible code used by both shells. `app/qml/pages` is Silica and
 `app/qml/desktop` is Controls 2. Shared QML never imports either toolkit.
 
+The artist grid in the library list footer is `shared/WindowedGrid.qml`: an item
+of the full grid height (so the list, its scroll bar and `GridPosition` see every
+row) containing a non-interactive GridView one list viewport tall plus a one-row
+margin, moved along the list. Only the delegates near the viewport exist, so
+browsing thousands of artists does not instantiate thousands of delegates. While
+a Silica context menu is open the window stays put. When the columns or cell size
+change, the inner GridView is reset (model re-assigned, item height held) so it lays out for the new
+geometry; on Qt 6.11 a GridView resized far from its start otherwise kept
+delegates of an unrelated range (not checked on Qt 5.6).
+
+While the library shows the grid, the list's model is `GridSpacer`: one row
+(`type: "spacer"`) that the list delegates render with height 0, invisible and
+disabled, so it is neither clickable nor given a context menu. The list needs it
+because a `ListView` without rows resets its position to the start whenever the
+footer grows: `QQuickItemViewPrivate::layout()` (qtdeclarative
+`src/quick/items/qquickitemview.cpp`, Qt 5.6 and 6.x) returns early with
+`setPosition(contentStartOffset())` when `!isValid() && !visibleItems.count()`,
+and `isValid()` requires a model with rows. Verified on Qt 5.6.3 and Qt 6 that a
+single zero-height row prevents the reset for plain and grid footers, while
+scrolled, at the end and during a flick. Placeholder logic reads the footer's
+`gridCount` in grid mode, not the list's `count`. `GridPosition` only reacts to
+what the grid and the list report (jumps, active letter); it does not store or
+restore positions. Pages append to the grid in place, and a fresh listing
+(`resetView`) calls `positionViewAtBeginning()`.
+
 ### Threads
 
 | Thread | Role |
@@ -46,6 +71,7 @@ QtQuick 2.6-compatible code used by both shells. `app/qml/pages` is Silica and
 | `plexfreq-recording` | libpulse recording subscription, which uses a blocking mainloop. |
 | `plexfreq-plan-refresh` | Serialized refresh of download plans against a read-only `Core::inspect`. |
 | `plexfreq-log` | Captures stdout/stderr into the dated log (Sailfish only). |
+| `plexfreq-gui-watch` | Watchdog logging GUI poll stalls (see Logs). Stopped and joined with the `Runtime`. |
 
 The runtime on `plexfreq-rt` runs the D-Bus observers, MPRIS, the diagnostic
 heartbeat, cache and artwork downloads, audio HTTP readers, health probes and
@@ -649,6 +675,24 @@ A batch makes up to 4 passes, waiting 30 s after a pass that left transient
 failures (interrupted, incomplete, network, 5xx). Cancellation and holds are not
 failures.
 
+**Cache diagnostics.** With diagnostics enabled the worker logs `cache batch
+start` (epoch, items, quality_kbps), `cache item done` (key, bytes, ms,
+resumed; only for real downloads), `cache item failed` (key, class, retryable,
+pass), `cache item skipped` (key, class=cooldown) and `cache batch end` (epoch,
+completed, cached, failed, skipped, pass, reason). Items that already had a
+complete copy are only counted (`cached`). The reason is `done` (no retryable
+failure remains; non-retryable failures can still be counted in `failed`),
+`superseded`, `gate_closed` or `retries_exhausted`. `ms` measures the final
+transfer, not hold waits. Failure classes derive from the failure
+variant, never from message text: `interrupted`, `incomplete`, `restart`,
+`http_<status>`, `network`, `cache_full`, `too_large`, `io`, `other`. `Core`
+logs `cache schedule` (item count, manual count, quality, first key, cellular
+cap) or `cache schedule skipped reason=` (`disabled`, `cache_suspended`,
+`offline_mode`, `downloads_paused`, `waiting_wifi`, `cellular_cap`,
+`empty_window`) only when the outcome differs from the previous one, and
+`cache schedule rejected` when the cache refuses the request. No URL,
+path, token or error text is logged.
+
 **Refusal cooldown.** Refusals that would only repeat on retry (HTTP 4xx except
 401, 404, 408 and 429; non-audio or content-encoded responses) are remembered for 30 min per item and quality. Later batches skip them
 and show the stored error. The cooldown is cleared by any explicit download
@@ -922,9 +966,38 @@ when its wrapper is destroyed. PlexFreq uses `harbour-plexfreq` for that hint.
 **Backend** (`app/src/backend.*`) creates the runtime with the state directory
 (`QStandardPaths::AppDataLocation`, or `PLEXFREQ_STATE_DIR` for isolated tests)
 and polls it every 100 ms. It exposes the merged reply state, cache status,
-busy/error flags, playback fields and two list models, notifying only on
-change. Lyric and similar-artist replies never enter the shared state, and
-their failures never set the global error.
+busy/error flags, playback fields, the browse and queue lists and two list
+models, notifying only on change. Lyric and similar-artist replies never enter
+the shared state, and their failures never set the global error.
+
+*Reader contract.* Qt 5.6 converts the whole value of a `QVariantMap` or
+`QVariantList` property to JavaScript on every QML read, so a scalar read from
+a map that also holds rows costs as much as the rows. So:
+
+- `state` and `cache` hold scalars and small maps only (the track, queue
+  scalars `current`/`repeat`/`shuffled`, settings, one `jobs` row per download
+  group). The browse rows and the queue rows never live in them, and the cache
+  key lists and per-key maps (`readyKeys`, `goneKeys`, `pinnedKeys`,
+  `pinnedGroups`, `readyBytes`, `errors`) are removed from `cache`.
+- The rows live in the two `EntryModel`s, the single source of truth, exposed as
+  `items`/`queueItems` (`QVariantList`, notified by `itemsChanged` /
+  `queueItemsChanged`) and the scalars `itemCount`/`queueCount`. Only
+  `Session.qml` reads `items`/`queueItems`, into its cached `items` property
+  and the playlist editor default; delegates, actions and bindings use
+  `music.items`, `itemCount` or `queueCount`. `tools/test_qml_readers.py`
+  enforces this.
+- Cache keys are `QSet`s behind `isReady`, `isGone`, `isPinned` and
+  `isPinnedGroup`. Bindings that call them also read `cacheRevision` (bumped
+  only when a set changes) so they re-evaluate.
+- A reply is applied in this order: `itemsChanged`/`queueItemsChanged`, then
+  `stateChanged`, then `completed`. A browse append adds to the model once. The
+  `completed` payload never carries `items`; it carries `itemCount` (and queue
+  replies the scalars and `queueCount`), so handlers do not convert rows. Equal
+  lists and unchanged scalars emit nothing.
+- Silica pages: every page keeps one stable `EntryModel` fed from `view.items`
+  (Session's cached array while live, the snapshot taken at freeze afterwards),
+  so a page's list is never rebuilt by a model switch. The conversion happens
+  once per items change on live pages, never per state change.
 
 **EntryModel** reconciles immutable lists by identity (type, ratingKey, key,
 `playQueueItemID`, `playlistItemID`), so existing rows survive updates.
@@ -965,6 +1038,15 @@ The log directory is `~/Documents/PlexFreq` if it can be created, otherwise
 `<AppDataLocation>/logs`. There is one file per local date
 (`plexfreq-YYYY-MM-DD.log`), each at most 8 MiB with one backup, and 7 dates are
 kept. On the desktop, output goes to the terminal.
+
+**GUI stall log.** `Runtime::poll` records the time of each poll. A watchdog
+thread owned by the `Runtime` (not the worker and not the shared tokio runtime,
+so a busy or blocked worker cannot hide a stall) checks once a second and, when
+the gap since the last poll exceeds 2 s, logs once per stall
+`gui poll stalled ms=<n> worker_op=<op|idle>`, naming the request the worker is
+running (set where `core request begin` is logged). Nothing is logged before
+the first poll. When polling resumes, `poll` logs `gui poll resumed gap_ms=<n>`.
+Only timings and fixed operation names are logged.
 
 Redaction removes full URLs and the rest of any line carrying a token-like
 value. It is best effort: framework output may still carry media URLs, so log

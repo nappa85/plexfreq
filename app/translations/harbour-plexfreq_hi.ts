@@ -909,7 +909,7 @@
     </message>
     <message>
       <source>Waiting for confirmed Wi-Fi; streaming remains available.</source>
-      <translation>पुष्ट वाई-फ़ाई की प्रतीक्षा; स्ट्रीमिंग उपलब्ध रहती है।</translation>
+      <translation>वाई-फ़ाई कनेक्शन की पुष्टि की प्रतीक्षा; स्ट्रीमिंग उपलब्ध रहती है।</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
@@ -1008,7 +1008,7 @@
     </message>
     <message>
       <source>Waiting for a confirmed Wi-Fi connection. Streaming remains available.</source>
-      <translation>पुष्ट वाई-फ़ाई कनेक्शन की प्रतीक्षा। स्ट्रीमिंग उपलब्ध रहती है।</translation>
+      <translation>वाई-फ़ाई कनेक्शन की पुष्टि की प्रतीक्षा। स्ट्रीमिंग उपलब्ध रहती है।</translation>
     </message>
     <message>
       <source>Downloads wait while the stream catches up</source>
