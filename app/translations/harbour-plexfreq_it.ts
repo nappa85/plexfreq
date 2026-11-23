@@ -184,12 +184,12 @@
       <translation>Impossibile aggiornare la radio. I brani scaricati potrebbero ripetersi.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex ha restituito HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Il server ha restituito HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Risposta Plex inattesa (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Risposta del server inattesa (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Streaming audio non riuscito</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Autorizzazione non riuscita: accedi di nuovo o verifica il token del server</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Scegli al massimo 1000 brani validi da scaricare</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Prima connettiti a un server Plex</translation>
+      <source>Connect to a server first</source>
+      <translation>Prima connettiti a un server</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Percorso Plex di un'altra origine rifiutato</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Percorso di un'altra origine rifiutato</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Era previsto un identificatore Plex numerico</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Era previsto un percorso Plex relativo al server</translation>
+      <source>Expected a server identifier</source>
+      <translation>Era previsto un identificatore del server</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Era previsto un percorso relativo al server</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Vai online</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Vai online per modificare le playlist Plex</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Vai online per modificare le playlist</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Indice del server non valido</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>È richiesto Jellyfin 10.9 o successivo</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Prima di registrare altri ascolti è necessario sincronizzare la cronologia</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Le modifiche alle playlist sono disattivate nell'ispezione in sola lettura</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Autorizzazione Plex non riuscita: accedi di nuovo o verifica il token del server</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex non offre una radio per questo artista</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>La coda richiede dei brani e un indice di partenza valido</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect non è attivo su questo server</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>La coda salvata non è valida</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>L'URL del server deve essere un indirizzo HTTP(S), eventualmente con un percorso come /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>L'URL del server deve essere un'origine HTTP(S), ad es. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Prima avvia l'accesso</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Voce della playlist non trovata</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Il server non ha spostato la voce della playlist</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Questo album non contiene brani riproducibili</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Questo artista o album non è stato salvato offline</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Questo non è un server Jellyfin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Questa pagina della libreria non è ancora stata salvata offline</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Questo server non supporta questa funzione</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Questo brano non è stato scaricato</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Questo brano è nella playlist più di una volta e il server non riesce a distinguere le copie</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Il brano non ha una parte multimediale scaricabile</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Risposta Plex inattesa</translation>
+      <source>Unexpected server response</source>
+      <translation>Risposta del server inattesa</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Aggiunti di recente</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Riprodotti di recente</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Preferiti</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Più ascoltati</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Nessuna musica trovata</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Connetti a Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Connetti a un server</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Nessuna musica trovata.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Connettiti al server musicale per iniziare l’ascolto.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Connettiti al server musicale Plex per iniziare l’ascolto.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Ripeti: disattivato</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Connetti a Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Connetti a un server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Tipo di server</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Connetti direttamente</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>URL del server</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Nome utente</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Password</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Accedi a Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Usa Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Inserisci questo codice in Jellyfin, in Quick Connect, poi attendi qui.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Annulla</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Statistiche di ascolto</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Preferiti</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Somiglianze sonore</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Preferiti</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Preferiti · 5 stelle</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Connetti a Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Connetti a un server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Tipo di server</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Connetti</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Nome utente</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Password</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Accedi a Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Usa Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Inserisci questo codice in Jellyfin, in Quick Connect, poi attendi qui.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Annulla</translation>
     </message>
     <message>
       <source>Sign out</source>

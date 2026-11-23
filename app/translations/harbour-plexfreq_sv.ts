@@ -184,12 +184,12 @@
       <translation>Det gick inte att uppdatera radion. Nedladdade låtar kan upprepas.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex returnerade HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Servern returnerade HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Oväntat svar från Plex (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Oväntat svar från servern (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Ljudströmningen misslyckades</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Auktoriseringen misslyckades; logga in igen eller kontrollera serverns token</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Välj högst 1000 giltiga låtar att ladda ned</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Anslut till en Plex-server först</translation>
+      <source>Connect to a server first</source>
+      <translation>Anslut till en server först</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Plex-sökväg från annat ursprung avvisades</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Sökväg från annat ursprung avvisades</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>En numerisk Plex-identifierare förväntades</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>En serverrelativ Plex-sökväg förväntades</translation>
+      <source>Expected a server identifier</source>
+      <translation>En serveridentifierare förväntades</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>En serverrelativ sökväg förväntades</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Gå online</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Gå online för att redigera Plex-spellistor</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Gå online för att redigera spellistor</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Ogiltigt serverindex</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 eller senare krävs</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Lyssningshistoriken måste synkroniseras innan fler spelningar kan registreras</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Ändringar av spellistor är inaktiverade i skrivskyddat granskningsläge</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex-auktoriseringen misslyckades; logga in igen eller kontrollera serverns token</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex har ingen artistradiostation för den här artisten</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Kön kräver låtar och ett giltigt startindex</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect är inte aktiverat på den här servern</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Den sparade kön är ogiltig</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>Server-URL:en måste vara en HTTP(S)-adress, eventuellt med en sökväg som /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>Server-URL:en måste vara ett HTTP(S)-ursprung, t.ex. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Starta inloggningen först</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Spellistans post hittades inte</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Servern flyttade inte spellistans post</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Det här albumet innehåller inga spelbara låtar</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Den här artisten eller albumet har inte sparats offline</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Detta är inte en Jellyfin-server</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Den här bibliotekssidan har inte sparats offline än</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Den här servern stöder inte den här funktionen</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Den här låten har inte laddats ned</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Det här spåret finns flera gånger i spellistan och servern kan inte skilja kopiorna åt</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Låten saknar en nedladdningsbar mediedel</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Oväntat svar från Plex</translation>
+      <source>Unexpected server response</source>
+      <translation>Oväntat svar från servern</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Nyligen tillagda</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nyligen spelade</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Favoriter</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Mest spelade</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Ingen musik hittades</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Anslut till Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Anslut till en server</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Ingen musik hittades.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Anslut till din musikserver för att börja lyssna.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Anslut till din Plex-musikserver för att börja lyssna.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Upprepa av</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Anslut till Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Anslut till en server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servertyp</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Anslut direkt</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Server-URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Användarnamn</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Lösenord</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Logga in på Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Använd Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Ange den här koden i Jellyfin under Quick Connect och vänta här.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Avbryt</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Lyssningsstatistik</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Favoriter</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Liknande ljudbild</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Favoriter</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favoriter · 5 stjärnor</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Anslut till Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Anslut till en server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servertyp</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Anslut</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Användarnamn</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Lösenord</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Logga in på Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Använd Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Ange den här koden i Jellyfin under Quick Connect och vänta här.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Avbryt</translation>
     </message>
     <message>
       <source>Sign out</source>

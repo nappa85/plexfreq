@@ -14,7 +14,7 @@ Dialog {
             ComboBox {width:parent.width;label:qsTr("Browse");visible:music.filterAction==="browse";value:music.filterKind==="artist" ? qsTr("Artists") : music.filterKind==="album" ? qsTr("Albums") : qsTr("Tracks")
                 menu:ContextMenu {Repeater {model:["artist","album","track"];MenuItem {text:modelData==="artist" ? qsTr("Artists") : modelData==="album" ? qsTr("Albums") : qsTr("Tracks");onClicked:{music.filterKind=modelData;music.requestFilterChoices()}}}}
             }
-            Repeater {model:[{field:"genre",label:qsTr("Genre")},{field:"mood",label:qsTr("Mood")},{field:"style",label:qsTr("Style")}]
+            Repeater {model:[{field:"genre",label:qsTr("Genre"),cap:""},{field:"mood",label:qsTr("Mood"),cap:"moodFilter"},{field:"style",label:qsTr("Style"),cap:"styleFilter"}].filter(function(f){return !f.cap || music.can(f.cap)})
                 ComboBox {id:picker;property string field:modelData.field;property var choices:[{key:"",title:qsTr("Any")}].concat(music.filterChoices[field] || []);width:body.width;label:modelData.label;currentIndex:music.filterChoiceIndex(choices,music.filterValues[field]);enabled:choices.length>1
                     // Selecting a menu entry assigns currentIndex and drops the binding.
                     function sync() {currentIndex=music.filterChoiceIndex(choices,music.filterValues[field])}
@@ -28,7 +28,7 @@ Dialog {
                 onTextChanged:music.filterValue("yearFrom",text.length ? Number(text) : null)}
             TextField {id:to;width:parent.width;enabled:music.filterKind!=="artist";label:qsTr("Year to");text:music.filterText("yearTo");inputMethodHints:Qt.ImhDigitsOnly;validator:IntValidator {bottom:1;top:9999}
                 onTextChanged:music.filterValue("yearTo",text.length ? Number(text) : null)}
-            ComboBox {width:parent.width;label:qsTr("Minimum rating");value:music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10"
+            ComboBox {width:parent.width;visible:music.can("ratingFilter");label:qsTr("Minimum rating");value:music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10"
                 menu:ContextMenu {Repeater {model:[0,5,8,10];MenuItem {text:modelData ? modelData+"/10" : qsTr("Any");onClicked:music.filterValue("minRating",modelData || null)}}}
             }
             TextSwitch {id:unplayed;text:qsTr("Unplayed only");checked:!!music.filterValues.unplayed;onClicked:music.filterValue("unplayed",checked)

@@ -1,7 +1,8 @@
 [package]
 name = "plexfreq-core"
-version = "0.1.11"
+version = "0.2.0"
 edition = "2021"
+rust-version = "1.89"
 license = "GPL-3.0-or-later"
 
 [lib]
@@ -9,23 +10,30 @@ name = "plexfreq_core"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "form", "rustls-no-provider"] }
+# TLS for reqwest: ring provider and compiled-in Mozilla roots (see plex::client_builder).
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-strum = { version = "0.27", features = ["derive"] }
+strum = { version = "0.28", features = ["derive"] }
 url = "2"
 uuid = { version = "1", features = ["v4"] }
-rand = "0.8"
+rand = "0.10"
 thiserror = "2"
-sha2 = "0.10"
+sha2 = "0.11"
 tokio = { version = "1", features = ["rt", "time", "sync", "macros"] }
 fs2 = "0.4"
 libc = "0.2"
 futures-util = "0.3"
 symphonia = { version = "0.6.1", default-features = false, features = ["flac", "mp3", "aac", "alac", "isomp4", "ogg", "vorbis", "wav", "pcm"] }
-rubato = { version = "5.0.1", default-features = false }
-zbus = { version = "4", default-features = false, features = ["tokio", "blocking"] }
+rubato = { version = "5.1.0", default-features = false }
+zbus = { version = "6", default-features = false, features = ["tokio", "proxy", "service"] }
 libpulse-sys = { version = "1.23", default-features = false, features = ["pa_v12"] }
+
+[features]
+# In-memory MediaServer for tests. Never enabled by the build scripts that ship.
+mock-backend = []
 
 [dev-dependencies]
 tempfile = "3"

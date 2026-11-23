@@ -45,7 +45,7 @@ impl Config {
     }
 }
 pub fn transcode_url(base: &Url, key: &str, kbps: u32, session: &str) -> Result<Url> {
-    crate::numeric(key)?;
+    crate::plex::valid_id(key)?;
     if !BITRATES.contains(&kbps) || uuid::Uuid::parse_str(session).is_err() {
         return Err(Error::Input("Invalid audio source"));
     }
@@ -95,48 +95,45 @@ pub(crate) fn stop_url(url: &Url) -> Option<Url> {
     stop.query_pairs_mut().append_pair("session", &session);
     Some(stop)
 }
-pub(crate) fn with_offset(uri: &str, milliseconds: u64) -> Result<(String, bool)> {
-    let mut url = Url::parse(uri)?;
-    let transcode = is_transcode(&url);
-    if transcode {
-        let pairs: Vec<_> = url
-            .query_pairs()
-            .filter(|(k, _)| k != "offset" && k != "session")
-            .map(|(k, v)| (k.into_owned(), v.into_owned()))
-            .collect();
-        url.set_query(None);
-        url.query_pairs_mut()
-            .extend_pairs(pairs)
-            // Teardown is asynchronous. A seek must not reuse the session
-            // whose stop request may still be in the cleanup worker's queue.
-            .append_pair("session", &uuid::Uuid::new_v4().to_string())
-            .append_pair("offset", &format!("{:.3}", milliseconds as f64 / 1000.));
-    }
-    Ok((url.into(), transcode))
+/// A Plex transcode `url` restarted at `milliseconds`: the session and
+/// offset parameters are replaced, the others keep their order.
+pub(crate) fn seek(url: &Url, milliseconds: u64) -> Url {
+    let mut url = url.clone();
+    let pairs: Vec<_> = url
+        .query_pairs()
+        .filter(|(k, _)| k != "offset" && k != "session")
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect();
+    url.set_query(None);
+    url.query_pairs_mut()
+        .extend_pairs(pairs)
+        // Teardown is asynchronous. A seek must not reuse the session
+        // whose stop request may still be in the cleanup worker's queue.
+        .append_pair("session", &uuid::Uuid::new_v4().to_string())
+        .append_pair("offset", &format!("{:.3}", milliseconds as f64 / 1000.));
+    url
 }
 #[cfg(test)]
 mod tests {
+    use super::seek as seek_to;
     use super::*;
     #[test]
     fn progressive_seek_uses_time_and_cleanup_never_contains_credentials() {
         let session = uuid::Uuid::new_v4().to_string();
-        let mut uri = transcode_url(
+        let uri = transcode_url(
             &Url::parse("https://fixture.invalid/").unwrap(),
             "1",
             160,
             &session,
         )
         .unwrap();
-        uri.query_pairs_mut().append_pair("X-Plex-Token", "fixture");
-        let (seek, transcode) = with_offset(uri.as_str(), 12345).unwrap();
-        assert!(transcode);
-        let seek = Url::parse(&seek).unwrap();
+        assert!(is_transcode(&uri));
+        let seek = seek_to(&uri, 12345);
         assert!(seek
             .query_pairs()
             .any(|(k, v)| k == "offset" && v == "12.345"));
         let stop = stop_url(&seek).unwrap();
-        let (next_seek, _) = with_offset(uri.as_str(), 20000).unwrap();
-        let next_stop = stop_url(&Url::parse(&next_seek).unwrap()).unwrap();
+        let next_stop = stop_url(&seek_to(&uri, 20000)).unwrap();
         assert_ne!(
             stop.query(),
             next_stop.query(),
@@ -144,6 +141,6 @@ mod tests {
         );
         assert_eq!(stop.origin(), uri.origin());
         assert_eq!(stop.query_pairs().count(), 1);
-        assert!(!stop.as_str().contains("fixture&"));
+        assert!(!stop.as_str().contains("Token"));
     }
 }

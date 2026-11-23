@@ -1,8 +1,8 @@
 # PlexFreq
 
-PlexFreq is a music player for your own Plex Media Server. It brings artist-first
-browsing, radio, sonic discovery, lyrics and offline listening to **SailfishOS**
-phones and to the **Linux desktop**.
+PlexFreq is a music player for your own Plex Media Server or Jellyfin server
+(10.9 or newer). It brings artist-first browsing, radio, discovery, lyrics and
+offline listening to **SailfishOS** phones and to the **Linux desktop**.
 
 On SailfishOS it uses the native Silica interface, the app cover and the system
 media controls. On the desktop it is a regular Qt 6 window. Both versions share
@@ -47,12 +47,14 @@ The archive uses libraries already on your system, so you need:
   Templates and WorkerScript QML modules, plus an X11 or Wayland platform plugin;
 - PulseAudio, or PipeWire with its PulseAudio service, for sound output.
 
-PlexFreq decodes MP3, FLAC, AAC/ALAC, Ogg Vorbis and WAV itself. The Plex server
-converts other formats on the fly. Package names differ between distributions;
+PlexFreq decodes MP3, FLAC, AAC/ALAC, Ogg Vorbis and WAV itself. The server converts
+other formats on the fly. Package names differ between distributions;
 the standard Qt 6 and PulseAudio packages are usually enough. Your settings and
 cached music are stored in your user data folder, wherever you extract the archive.
 
 ## Getting started
+
+### Plex
 
 1. Open PlexFreq and choose **Sign in with Plex**. A browser page opens. Sign in
    there, then go back to the app.
@@ -61,6 +63,23 @@ cached music are stored in your user data folder, wherever you extract the archi
 
 If you can't sign in through the browser, choose **Connect directly** and enter
 the server address (for example `http://192.168.1.10:32400`) with a Plex token.
+
+### Jellyfin
+
+1. In the connection settings, set **Server type** to **Jellyfin**.
+2. Enter the server address, including any path your server is published under,
+   for example `http://192.168.1.10:8096` or `https://example.org/jellyfin`.
+3. Enter your user name and password and choose **Sign in to Jellyfin**. Or choose
+   **Use Quick Connect**: PlexFreq shows a code. In a Jellyfin app where you are
+   already signed in, open **Quick Connect** in the user settings and enter the
+   code. PlexFreq signs in when you approve it.
+4. Pick a music library, then browse and play as with Plex.
+
+The password is used only to sign in; PlexFreq does not keep it. Jellyfin lacks
+some Plex features, listed in [PlexFreq and Plexamp](#plexfreq-and-plexamp). If a
+track is in a Jellyfin playlist more than once and the server gives the copies
+the same entry id, PlexFreq refuses to move or remove it rather than risk
+changing the wrong copy.
 
 **Sign out** removes your saved login, together with the cached music.
 
@@ -71,20 +90,32 @@ the server address (for example `http://192.168.1.10:32400`) with a Plex token.
 - Album pages with cover art, description and track list.
 - Search across artists, albums and tracks, an alphabet bar for quick jumps, and
   sorting.
-- Favorites (five-star tracks), recently added and recently played music.
-- Library filters by genre, mood, style, year, rating and unplayed content.
+- Favorites (five-star tracks on Plex, favorite items on Jellyfin), recently added
+  and recently played music.
+- Library filters by genre, mood, style, year, rating and unplayed content (genre,
+  year and unplayed on Jellyfin).
 
 **Playback**
 - Play, pause, seek, previous/next, shuffle, and repeat one or all.
 - An editable queue: play next, add to queue, move and remove entries.
 - The queue and position are restored when you reopen the app.
-- Lyrics, including synced lyrics that scroll with the song, when Plex has them.
+- Lyrics, including synced lyrics that scroll with the song, when the server has
+  them.
 - Gapless playback, crossfade, loudness normalization and a 10-band equalizer.
 
 **Radio and discovery**
-- Artist radio, plus album and track radio based on Plex sonic analysis.
-- A discovery home with the mixes and stations your server offers. You can
-  reorder or hide its sections.
+- Artist radio, plus album and track radio based on Plex sonic analysis. On
+  Jellyfin, artist, album and track radio use the server's instant mix, which
+  picks random songs sharing a genre with the seed. For radio based on how the
+  music sounds, install an instant mix plugin on the Jellyfin server; PlexFreq
+  uses it automatically. [BetterMix](https://github.com/StergiosBinopoulos/jellyfin-plugin-bettermix)
+  runs inside Jellyfin with no other service (Linux or Windows x64, Jellyfin
+  10.11 or newer). [Harmonie](https://github.com/mxschll/jellyfin-harmonie) needs
+  one extra container and [AudioMuse-AI](https://github.com/NeptuneHub/audiomuse-ai-plugin)
+  several, including a database; both have releases for Jellyfin 10.10 and newer.
+- A discovery home with the mixes and stations your server offers (on Jellyfin:
+  recently added, recently played, favorites and most played). You can reorder or
+  hide its sections.
 - **Sonically similar** music for any track, album or artist.
 - **Sonic Adventure**: a musical path from one track to another, or a journey
   through several waypoints.
@@ -103,7 +134,7 @@ the server address (for example `http://192.168.1.10:32400`) with a Plex token.
 - Download a set length of radio, a station or a playlist (30 minutes to 8 hours),
   and refresh it later for new music.
 - Browse and search your saved library without a connection.
-- Plays made offline are sent to Plex when you reconnect.
+- Plays made offline are sent to the server when you reconnect.
 
 **Phone and desktop integration**
 - System media controls (MPRIS) on the lock screen, in the desktop panel and on
@@ -118,8 +149,9 @@ the server address (for example `http://192.168.1.10:32400`) with a Plex token.
 - Available in 39 languages, following your system language. Translations other than
   English are machine-written; corrections are welcome.
 
-Sonic radio, Sonic Adventure and sonically similar music need a server with Sonic
-Analysis enabled. That requires Plex Pass on the server owner's account. Lyrics,
+Sonic radio, Sonic Adventure and sonically similar music need a Plex server with
+Sonic Analysis enabled. That requires Plex Pass on the server owner's account.
+Jellyfin has no sonic analysis. Lyrics,
 artwork and biographies depend on the metadata your server provides.
 
 ## Settings that matter
@@ -136,7 +168,7 @@ limit from 64 to 320 kbps.
 - Changes apply from the next track or download. Music already on the device always
   plays from local storage first.
 
-When a limit is set, Plex converts the music to MP3 while it plays. If the server
+When a limit is set, the server converts the music to MP3 while it plays. If the server
 stops a converted stream early, PlexFreq continues it from where it stopped.
 
 ### Downloads and offline
@@ -157,7 +189,7 @@ stops a converted stream early, PlexFreq continues it from where it stopped.
 
 - **Crossfade**: off, or 1 to 12 seconds. Tracks from the same album always play
   gaplessly, without crossfade.
-- **Normalize loudness**: evens out volume using Plex loudness data, by track, by
+- **Normalize loudness**: evens out volume using the loudness data of your server, by track, by
   album or automatically. **Headroom** lowers the overall level to avoid clipping.
 - **Equalizer**: ten bands from −12 to +12 dB, with a reset button.
 
@@ -173,29 +205,33 @@ PLEXFREQ_LANGUAGE=it_IT ./bin/plexfreq
 ## PlexFreq and Plexamp
 
 PlexFreq is inspired by Plexamp, Plex's own music player, which is not available
-for SailfishOS. The table compares their main features.
+for SailfishOS. The table compares their main features. The PlexFreq column is for
+a Plex server; the last column shows where a Jellyfin server differs.
 
-| Feature | PlexFreq | Plexamp |
-|---|:---:|:---:|
-| SailfishOS app | ✓ | ✗ |
-| Linux desktop app | ✓ | ✓ |
-| Android / iOS apps | ✗ | ✓ |
-| Browse, search, favorites, library filters | ✓ | ✓ |
-| Gapless playback, crossfade, loudness leveling, EQ | ✓ | ✓ |
-| Synced lyrics | ✓ | ✓ |
-| Artist, album and track radio | ✓ | ✓ |
-| Sonically similar music, Sonic Adventure | ✓ | ✓ |
-| Server mixes and stations | partial (those the server lists) | ✓ |
-| Playlist creation and editing | ✓ | ✓ |
-| Smart playlist rule editing | partial (basic rules) | ✓ |
-| Offline downloads of albums, playlists and radio | ✓ | ✓ |
-| Offline play history sent to Plex later | ✓ | ✓ |
-| Streaming quality per network type | ✓ | ✓ |
-| Guest DJ | ✗ | ✓ |
-| Sonic Sage (AI-generated playlists) | ✗ | ✓ |
-| Plex Home managed users and PIN switching | ✗ | ✓ |
-| Casting to other players and speakers | ✗ | ✓ |
-| Android Auto / CarPlay | ✗ | ✓ |
+| Feature | PlexFreq (Plex) | Plexamp | PlexFreq with Jellyfin |
+|---|:---:|:---:|:---:|
+| SailfishOS app | ✓ | ✗ | ✓ |
+| Linux desktop app | ✓ | ✓ | ✓ |
+| Android / iOS apps | ✗ | ✓ | ✗ |
+| Browse, search, library filters | ✓ | ✓ | ✓ (genre, year, unplayed only) |
+| Favorites | ✓ (five-star tracks) | ✓ | ✓ (favorite items) |
+| Star ratings | ✓ | ✓ | ✗ |
+| Alphabet bar for artists | ✓ | ✓ | ✗ |
+| Gapless playback, crossfade, loudness leveling, EQ | ✓ | ✓ | ✓ |
+| Synced lyrics | ✓ | ✓ | ✓ |
+| Artist, album and track radio | ✓ | ✓ | ✓ (server instant mix) |
+| Sonically similar music, Sonic Adventure | ✓ | ✓ | ✗ |
+| Server mixes and stations | partial (those the server lists) | ✓ | ✗ (home lists instead) |
+| Playlist creation and editing | ✓ | ✓ | ✓ (a track listed twice under one entry id can't be moved or removed) |
+| Smart playlist rule editing | partial (basic rules) | ✓ | ✗ |
+| Offline downloads of albums, playlists and radio | ✓ | ✓ | ✓ (not stations) |
+| Offline play history sent to the server later | ✓ | ✓ | ✓ |
+| Streaming quality per network type | ✓ | ✓ | ✓ |
+| Guest DJ | ✗ | ✓ | ✗ |
+| Sonic Sage (AI-generated playlists) | ✗ | ✓ | ✗ |
+| Plex Home managed users and PIN switching | ✗ | ✓ | ✗ |
+| Casting to other players and speakers | ✗ | ✓ | ✗ |
+| Android Auto / CarPlay | ✗ | ✓ | ✗ |
 
 ## Troubleshooting
 
@@ -218,11 +254,26 @@ reconnect it in the Bluetooth settings, then press Play.
 - an item failed. Failed downloads and offline saves are listed with the reason,
   and you can retry them.
 
-**A track is dimmed with "No longer on the server".** It was removed from your Plex
-library. Any copy already on your device stays playable.
+**A track is dimmed with "No longer on the server".** It was removed from your
+server's library. Any copy already on your device stays playable.
 
 **Sonic radio or Sonic Adventure is unavailable.** The server needs Sonic Analysis
-and Plex Pass, and the music must have been analyzed.
+and Plex Pass, and the music must have been analyzed. Jellyfin servers do not
+offer these.
+
+**Jellyfin: the sign-in fails.** Check that the address is reachable from the
+device and includes the path if your server sits behind a reverse proxy at one
+(`https://example.org/jellyfin`, not `https://example.org`). PlexFreq needs
+Jellyfin 10.9 or newer. A "not a Jellyfin server" message usually means the
+address, port or path is wrong.
+
+**Jellyfin: Quick Connect says it is not enabled.** An administrator has to turn
+on **Quick Connect** in the Jellyfin dashboard. Use your password
+otherwise. A code that is not approved within a few minutes expires; start again.
+
+**Jellyfin: the app asks me to sign in again.** The server rejected the saved
+session (error 401), for example because it expired or was revoked on the
+server. Sign in again. Downloads and play history stay.
 
 **Radio repeats the same songs.** If the connection drops or the server cannot
 refresh the radio, PlexFreq keeps playing downloaded tracks and may cycle through
@@ -240,7 +291,7 @@ remain visible in the app when the notification service is unavailable.
 **Logs.** On SailfishOS, PlexFreq keeps a daily log for the last seven days in
 `~/Documents/PlexFreq`. If that folder cannot be created, it uses
 `~/.local/share/org.plexfreq/harbour-plexfreq/logs` instead. On the desktop it
-writes its log to the terminal it was started from. PlexFreq tries to remove Plex
+writes its log to the terminal it was started from. PlexFreq tries to remove
 tokens from the logs, but this is best effort, and logs may also contain server
 addresses, media URLs and track names. Check them before sharing.
 
@@ -252,7 +303,7 @@ and the relevant part of the log.
 
 ## For developers
 
-PlexFreq has a Rust core for Plex access, playback, audio processing and offline
+PlexFreq has a Rust core for Plex and Jellyfin access, playback, audio processing and offline
 storage, with thin Qt/QML interfaces: Silica on SailfishOS and Qt Quick Controls 2
 on the desktop. See [docs/development.md](docs/development.md) to build, test and
 package it, and [docs/architecture.md](docs/architecture.md) to learn how it is

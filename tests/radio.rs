@@ -1,3 +1,4 @@
+mod support;
 use plexfreq_core::{model::Item, radio::RadioKind, Command, Core};
 use serde_json::{json, Value};
 use std::{
@@ -5,6 +6,7 @@ use std::{
     net::TcpListener,
     thread,
 };
+use support::plex_schedule;
 
 fn track(key: &str, queue_id: Option<u64>) -> Value {
     json!({"ratingKey":key,"key":format!("/library/metadata/{key}"),"type":"track","title":"Fixture track","duration":10000,"musicAnalysisVersion":1,"playQueueItemID":queue_id,"Media":[{"audioCodec":"flac","container":"flac","Part":[{"key":format!("/library/parts/{key}/audio.flac")}]}]})
@@ -396,13 +398,13 @@ fn disconnected_radio_skips_missing_audio_and_cycles_completed_cache_after_resta
         .map(|id| serde_json::from_value(track(&id.to_string(), Some(id))).unwrap())
         .collect();
     let cache = Cache::new(dir.path().join("audio-cache"), Config::default(), "fixture").unwrap();
-    cache
-        .schedule(
-            &origin,
-            "fixture-token",
-            vec![items[0].clone(), items[2].clone()],
-        )
-        .unwrap();
+    plex_schedule(
+        &cache,
+        &origin,
+        "fixture-token",
+        vec![items[0].clone(), items[2].clone()],
+    )
+    .unwrap();
     let deadline = Instant::now() + Duration::from_secs(8);
     while cache.items(&namespace(&origin, "fixture-token")).len() != 2 {
         assert!(Instant::now() < deadline);

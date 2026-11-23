@@ -38,7 +38,7 @@ jobs:
           df -h
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
           targets: aarch64-unknown-linux-gnu
@@ -98,7 +98,7 @@ jobs:
         run: python3 tools/release-version.py --tag "$RELEASE_TAG"
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
       - uses: actions/setup-python@v7
@@ -108,7 +108,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build pkg-config file dbus-daemon libpulse-dev qt6-base-dev qt6-declarative-dev qt6-qpa-plugins qt6-wayland qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-templates qml6-module-qtqml-workerscript
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -150,16 +150,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sailfish-${{ needs.build.outputs.version }}
           path: packages
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: desktop-${{ needs.build.outputs.version }}
           path: packages/desktop
-      # softprops/action-gh-release v2.6.2
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
+      # softprops/action-gh-release v3.0.4
+      - uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
         with:
           files: |
             packages/sailfish/RPMS/*.rpm

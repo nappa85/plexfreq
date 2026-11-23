@@ -26,6 +26,7 @@ fn play(i: usize, delivered: bool) -> Play {
         occurrence: format!("00000000-0000-4000-8000-{i:012}"),
         played_at: 1_700_000_000 + i as u64,
         delivered,
+        start_reported: false,
     }
 }
 

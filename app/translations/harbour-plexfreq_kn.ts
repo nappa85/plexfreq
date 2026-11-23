@@ -184,12 +184,12 @@
       <translation>ರೇಡಿಯೋ ರಿಫ್ರೆಶ್ ಆಗಲಿಲ್ಲ. ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಟ್ರ್ಯಾಕ್‌ಗಳು ಪುನರಾವರ್ತನೆಯಾಗಬಹುದು.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex HTTP %1 ಹಿಂತಿರುಗಿಸಿದೆ</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>ಸರ್ವರ್ HTTP %1 ಹಿಂತಿರುಗಿಸಿದೆ</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>ಅನಿರೀಕ್ಷಿತ Plex ಪ್ರತಿಕ್ರಿಯೆ (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>ಅನಿರೀಕ್ಷಿತ ಸರ್ವರ್ ಪ್ರತಿಕ್ರಿಯೆ (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>ಆಡಿಯೋ ಸ್ಟ್ರೀಮಿಂಗ್ ವಿಫಲವಾಗಿದೆ</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>ಅಧಿಕೃತಗೊಳಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ; ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಅಥವಾ ಸರ್ವರ್ ಟೋಕನ್ ಪರಿಶೀಲಿಸಿ</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಗರಿಷ್ಠ 1000 ಮಾನ್ಯ ಟ್ರ್ಯಾಕ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>ಮೊದಲು Plex ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+      <source>Connect to a server first</source>
+      <translation>ಮೊದಲು ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>ಬೇರೆ ಮೂಲದ Plex ಮಾರ್ಗವನ್ನು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>ಬೇರೆ ಮೂಲದ ಮಾರ್ಗವನ್ನು ತಿರಸ್ಕರಿಸಲಾಗಿದೆ</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>ಸಂಖ್ಯಾತ್ಮಕ Plex ಗುರುತಿಸುವಿಕೆ ನಿರೀಕ್ಷಿಸಲಾಗಿತ್ತು</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>ಸರ್ವರ್-ಸಾಪೇಕ್ಷ Plex ಮಾರ್ಗ ನಿರೀಕ್ಷಿಸಲಾಗಿತ್ತು</translation>
+      <source>Expected a server identifier</source>
+      <translation>ಸರ್ವರ್ ಗುರುತಿಸುವಿಕೆ ನಿರೀಕ್ಷಿಸಲಾಗಿತ್ತು</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>ಸರ್ವರ್-ಸಾಪೇಕ್ಷ ಮಾರ್ಗ ನಿರೀಕ್ಷಿಸಲಾಗಿತ್ತು</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>ಆನ್‌ಲೈನ್‌ಗೆ ಹೋಗಿ</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Plex ಪ್ಲೇಲಿಸ್ಟ್‌ಗಳನ್ನು ಸಂಪಾದಿಸಲು ಆನ್‌ಲೈನ್‌ಗೆ ಹೋಗಿ</translation>
+      <source>Go online to edit playlists</source>
+      <translation>ಪ್ಲೇಲಿಸ್ಟ್‌ಗಳನ್ನು ಸಂಪಾದಿಸಲು ಆನ್‌ಲೈನ್‌ಗೆ ಹೋಗಿ</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>ಅಮಾನ್ಯ ಸರ್ವರ್ ಸೂಚ್ಯಂಕ</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 ಅಥವಾ ಹೊಸ ಆವೃತ್ತಿ ಅಗತ್ಯ</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>ಹೆಚ್ಚಿನ ಪ್ಲೇಗಳನ್ನು ದಾಖಲಿಸುವ ಮೊದಲು ಆಲಿಸುವಿಕೆಯ ಇತಿಹಾಸವನ್ನು ಸಿಂಕ್ ಮಾಡಬೇಕು</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>ಓದಲು-ಮಾತ್ರ ಪರಿಶೀಲನೆಯಲ್ಲಿ ಪ್ಲೇಲಿಸ್ಟ್ ಸಂಪಾದನೆಗಳನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex ಅಧಿಕೃತಗೊಳಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ; ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಅಥವಾ ಸರ್ವರ್ ಟೋಕನ್ ಪರಿಶೀಲಿಸಿ</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>ಈ ಕಲಾವಿದರಿಗೆ Plex ಕಲಾವಿದ ರೇಡಿಯೋ ಸ್ಟೇಷನ್ ಒದಗಿಸುವುದಿಲ್ಲ</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>ಕ್ಯೂಗೆ ಟ್ರ್ಯಾಕ್‌ಗಳು ಮತ್ತು ಮಾನ್ಯ ಆರಂಭಿಕ ಸೂಚ್ಯಂಕ ಬೇಕು</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>ಈ ಸರ್ವರ್‌ನಲ್ಲಿ Quick Connect ಆನ್ ಆಗಿಲ್ಲ</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>ಉಳಿಸಿದ ಕ್ಯೂ ಅಮಾನ್ಯವಾಗಿದೆ</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>ಸರ್ವರ್ URL HTTP(S) ವಿಳಾಸವಾಗಿರಬೇಕು, ಐಚ್ಛಿಕವಾಗಿ /jellyfin ನಂತಹ ಮಾರ್ಗದೊಂದಿಗೆ</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>ಸರ್ವರ್ URL HTTP(S) ಮೂಲವಾಗಿರಬೇಕು, ಉದಾ. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>ಮೊದಲು ಸೈನ್ ಇನ್ ಪ್ರಾರಂಭಿಸಿ</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>ಪ್ಲೇಲಿಸ್ಟ್ ನಮೂದು ಕಂಡುಬಂದಿಲ್ಲ</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>ಸರ್ವರ್ ಪ್ಲೇಪಟ್ಟಿಯ ನಮೂದನ್ನು ಸರಿಸಿಲ್ಲ</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>ಈ ಆಲ್ಬಮ್‌ನಲ್ಲಿ ಪ್ಲೇ ಮಾಡಬಹುದಾದ ಟ್ರ್ಯಾಕ್‌ಗಳಿಲ್ಲ</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>ಈ ಕಲಾವಿದ ಅಥವಾ ಆಲ್ಬಮ್ ಅನ್ನು ಆಫ್‌ಲೈನ್‌ಗಾಗಿ ಉಳಿಸಲಾಗಿಲ್ಲ</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>ಇದು Jellyfin ಸರ್ವರ್ ಅಲ್ಲ</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>ಈ ಲೈಬ್ರರಿ ಪುಟವನ್ನು ಇನ್ನೂ ಆಫ್‌ಲೈನ್‌ಗಾಗಿ ಉಳಿಸಲಾಗಿಲ್ಲ</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>ಈ ಸರ್ವರ್ ಈ ವೈಶಿಷ್ಟ್ಯವನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>ಈ ಟ್ರ್ಯಾಕ್ ಡೌನ್‌ಲೋಡ್ ಆಗಿಲ್ಲ</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>ಈ ಟ್ರ್ಯಾಕ್ ಪ್ಲೇಲಿಸ್ಟ್‌ನಲ್ಲಿ ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚು ಬಾರಿ ಇದೆ ಮತ್ತು ಸರ್ವರ್ ಪ್ರತಿಗಳನ್ನು ಬೇರ್ಪಡಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>ಟ್ರ್ಯಾಕ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದಾದ ಮೀಡಿಯಾ ಭಾಗವಿಲ್ಲ</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>ಅನಿರೀಕ್ಷಿತ Plex ಪ್ರತಿಕ್ರಿಯೆ</translation>
+      <source>Unexpected server response</source>
+      <translation>ಅನಿರೀಕ್ಷಿತ ಸರ್ವರ್ ಪ್ರತಿಕ್ರಿಯೆ</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಸೇರಿಸಿದವು</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>ಇತ್ತೀಚೆಗೆ ಪ್ಲೇ ಮಾಡಿದವು</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>ಮೆಚ್ಚಿನವುಗಳು</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>ಹೆಚ್ಚು ಪ್ಲೇ ಮಾಡಿದವು</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>ಯಾವುದೇ ಸಂಗೀತ ಕಂಡುಬಂದಿಲ್ಲ</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+      <source>Connect to a server</source>
+      <translation>ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>ಯಾವುದೇ ಸಂಗೀತ ಕಂಡುಬಂದಿಲ್ಲ.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>ಆಲಿಸಲು ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಸಂಗೀತ ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>ಆಲಿಸಲು ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ Plex ಸಂಗೀತ ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>ಪುನರಾವರ್ತನೆ: ಆಫ್</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+      <source>Connect to a server</source>
+      <translation>ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>ಸರ್ವರ್ ಪ್ರಕಾರ</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>ನೇರವಾಗಿ ಸಂಪರ್ಕಿಸಿ</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>ಸರ್ವರ್ URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>ಬಳಕೆದಾರ ಹೆಸರು</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>ಪಾಸ್‌ವರ್ಡ್</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect ಬಳಸಿ</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin ನಲ್ಲಿ Quick Connect ಅಡಿಯಲ್ಲಿ ಈ ಕೋಡ್ ನಮೂದಿಸಿ, ನಂತರ ಇಲ್ಲಿ ಕಾಯಿರಿ.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>ರದ್ದುಮಾಡಿ</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>ಆಲಿಸುವಿಕೆಯ ಒಳನೋಟಗಳು</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>ಮೆಚ್ಚಿನವುಗಳು</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>ಧ್ವನಿಯಲ್ಲಿ ಹೋಲುವವು</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>ಮೆಚ್ಚಿನವುಗಳು</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>ಮೆಚ್ಚಿನವು · 5 ನಕ್ಷತ್ರಗಳು</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+      <source>Connect to a server</source>
+      <translation>ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>ಸರ್ವರ್ ಪ್ರಕಾರ</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>ಸಂಪರ್ಕಿಸಿ</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>ಬಳಕೆದಾರ ಹೆಸರು</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>ಪಾಸ್‌ವರ್ಡ್</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect ಬಳಸಿ</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin ನಲ್ಲಿ Quick Connect ಅಡಿಯಲ್ಲಿ ಈ ಕೋಡ್ ನಮೂದಿಸಿ, ನಂತರ ಇಲ್ಲಿ ಕಾಯಿರಿ.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>ರದ್ದುಮಾಡಿ</translation>
     </message>
     <message>
       <source>Sign out</source>

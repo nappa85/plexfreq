@@ -348,12 +348,7 @@ fn sonic_cached_response_and_nested_album_fallback_warn_only_during_refill() {
             items: vec![next],
             ..Default::default()
         };
-        core.library.save(
-            &core.cache_namespace(),
-            &request.path,
-            &request.params,
-            &neighbors,
-        );
+        core.save_snapshot(&request.query, None, &neighbors);
         if album {
             // The nearest request succeeds, but expansion fails and uses cache.
             let children = Container {
@@ -370,7 +365,7 @@ fn sonic_cached_response_and_nested_album_fallback_warn_only_during_refill() {
                 &children,
             );
         }
-        core.cached_response(&request.path, &request.params, Err(Error::Network))
+        core.cached_response(&request.query, None, Err(Error::Network))
             .unwrap();
         assert!(
             !core.take_radio_warning(),

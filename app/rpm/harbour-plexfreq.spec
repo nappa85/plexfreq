@@ -1,5 +1,5 @@
 Name: harbour-plexfreq
-Version: 0.1.11
+Version: 0.2.0
 Release: 1
 Summary: Plex music player for Sailfish OS
 License: GPLv3+
@@ -34,6 +34,10 @@ strip --strip-unneeded harbour-plexfreq
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 
 %changelog
+* Mon Nov 23 2026 PlexFreq contributors - 0.2.0-1
+- Jellyfin servers (10.9 or newer) are supported next to Plex: sign in with a password or Quick Connect
+- Browsing, search, home sections, genre and year filters, playback, transcoding, downloads, lyrics, favourites, playlists, play history and radio work on Jellyfin
+- Features a Jellyfin server does not offer, such as sonic radio, stations and smart playlists, are hidden
 * Wed Nov 11 2026 PlexFreq contributors - 0.1.11-1
 - No more freezes when browsing a large library, opening artists or switching to Discover
 - The log records why queued tracks are not cached ahead (cache full, track too large, downloads off)

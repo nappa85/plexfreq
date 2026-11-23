@@ -14,6 +14,7 @@ mod health;
 #[cfg(test)]
 mod health_tests;
 pub mod history;
+pub mod jellyfin;
 pub mod lyrics;
 pub mod model;
 #[cfg(test)]
@@ -33,15 +34,17 @@ mod radio_refill_tests;
 mod refresh;
 mod rt;
 pub mod runtime;
+pub mod server;
 pub mod store;
 
 pub use command::{CollectionView, Command, DownloadAction, PlaylistAction, SmartAction};
 pub use daily::{DownloadKind, GroupId};
 use model::{Item, ItemKind, Pin, Resource};
-use plex::{authenticated_url, server_url, Plex};
+use plex::Plex;
 use queue::{Queue, Repeat};
 use radio::{Radio, RadioKind, Source};
 use serde_json::{json, Value};
+use server::{Action, Backend, BrowseSpec, Conn, MediaServer, Page, Query, Sort};
 use std::{
     path::PathBuf,
     time::{Duration, Instant},
@@ -53,13 +56,13 @@ pub enum Error {
     Input(&'static str),
     #[error("Network request failed (check connection and server address)")]
     Network,
-    #[error("Plex authorization failed; sign in again or check server token")]
+    #[error("Authorization failed; sign in again or check server token")]
     Unauthorized,
-    #[error("Unexpected Plex response")]
+    #[error("Unexpected server response")]
     Protocol,
-    #[error("Unexpected Plex response ({0})")]
+    #[error("Unexpected server response ({0})")]
     ProtocolAt(&'static str),
-    #[error("Plex returned HTTP {0}")]
+    #[error("Server returned HTTP {0}")]
     Http(u16),
     #[error("Invalid URL")]
     Url(#[from] url::ParseError),
@@ -80,7 +83,13 @@ pub(crate) fn unix_seconds() -> u64 {
 /// Lowercase hex SHA-256 of `value`: cache keys, namespaces, file names.
 pub(crate) fn sha256_hex(value: &str) -> String {
     use sha2::Digest;
-    format!("{:x}", sha2::Sha256::digest(value.as_bytes()))
+    use std::fmt::Write;
+    let digest = sha2::Sha256::digest(value.as_bytes());
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest.iter() {
+        let _ = write!(hex, "{byte:02x}");
+    }
+    hex
 }
 
 /// Saved items per offline browse page.
@@ -183,13 +192,60 @@ pub(crate) fn quarantine_corrupt(path: &std::path::Path, bytes: &[u8]) -> Result
 /// translation extractor finds it (pinned by a test).
 pub(crate) const GONE_TRACK: &str = "This track is no longer on the server";
 
-pub(crate) fn numeric(value: &str) -> Result<&str> {
-    // Plex identifiers fit in u64 (max 20 decimal digits). Reject unbounded
-    // digit strings before they become huge URL paths or overflow parsers.
-    if value.is_empty() || value.len() > 20 || !value.bytes().all(|c| c.is_ascii_digit()) {
-        Err(Error::Input("Expected a numeric Plex identifier"))
-    } else {
-        Ok(value)
+/// Tracks asked of the server's instant mix per radio batch.
+const MIX_BATCH: u32 = 50;
+/// Instant-mix requests per refill: the radio's seed, then queued tracks as
+/// seeds while the mix brings nothing new.
+const MIX_ATTEMPTS: usize = 3;
+/// Rotation seeds a mix radio remembers.
+const MIX_USED_SEEDS: usize = 64;
+
+/// The reply of a Quick Connect request that ran out: nothing is pending and
+/// the user is told why (the message is translated by the adapter).
+fn quick_connect_expired() -> Value {
+    json!({"quickConnect":null,"notice":"Login expired; start again"})
+}
+/// The backend `settings` are signed in to.
+fn make_backend(settings: &store::Settings, account_url: &url::Url) -> Result<Backend> {
+    Ok(match settings.server_kind {
+        store::ServerKind::Plex => {
+            Backend::Plex(Plex::new(&settings.client_identifier, account_url.clone())?)
+        }
+        store::ServerKind::Jellyfin => Backend::Jellyfin(jellyfin::Jellyfin::new(
+            &settings.client_identifier,
+            &settings.server_id,
+        )),
+    })
+}
+
+/// A Quick Connect request: where it was made, the secret that proves it is
+/// ours (never shown or logged) and the code the user approves elsewhere.
+struct QuickConnectPending {
+    base: url::Url,
+    secret: String,
+    code: String,
+    started: Instant,
+}
+
+/// The server connection of `settings` for `backend`: base URL, credential
+/// and signed-in user.
+fn connection(backend: &Backend, settings: &store::Settings) -> Result<Conn> {
+    if settings.server_url.is_empty() {
+        return Err(Error::Input("Connect to a server first"));
+    }
+    Ok(Conn {
+        base: backend.parse_url(&settings.server_url)?,
+        token: settings.server_token.clone(),
+        user_id: Some(settings.server_user_id.clone()).filter(|id| !id.is_empty()),
+    })
+}
+
+/// The account/server scope of everything saved on disk for `settings`. A
+/// signed-out or unparsable address keeps the plain URL-and-token hash.
+fn settings_namespace(backend: &Backend, settings: &store::Settings) -> String {
+    match connection(backend, settings) {
+        Ok(conn) => backend.namespace(&conn),
+        Err(_) => cache::namespace(&settings.server_url, &settings.server_token),
     }
 }
 
@@ -224,16 +280,26 @@ pub struct Core {
     planning_guard: Option<(std::sync::Arc<std::sync::atomic::AtomicU64>, u64)>,
     offline_index: std::cell::RefCell<Option<catalogue::Index>>,
     filter_schemas: std::cell::RefCell<std::collections::BTreeMap<String, Value>>,
+    /// The artist/album kind of each detail key seen on a first page, so a
+    /// later page lists the children of the right kind without refetching.
+    detail_kinds: std::cell::RefCell<std::collections::BTreeMap<String, ItemKind>>,
     catalogue_epoch: u64,
     dir: PathBuf,
     settings: store::Settings,
-    plex: Plex,
+    backend: Backend,
+    /// Where Plex sign-in lives, to build a Plex backend after a Jellyfin one.
+    account_url: url::Url,
     pin: Option<(Pin, Instant)>,
+    /// A Jellyfin Quick Connect request waiting for the user's approval.
+    quick_connect: Option<QuickConnectPending>,
     servers: Vec<Resource>,
     queue: Queue,
     radio: Option<Radio>,
     cache: cache::Cache,
     cached_playback: bool,
+    /// The current track plays from a server transcode (reported as the play
+    /// method, see [`server::Reporting`]).
+    transcoding: bool,
     manual_cache: Vec<Item>,
     cache_suspended: bool,
     /// Last cache scheduling outcome reported to diagnostics.
@@ -313,11 +379,67 @@ pub(crate) struct Prepared {
 /// A radio refill to fetch off the Core worker. The token lives only in
 /// memory and is sent as a header; this type is deliberately not `Debug`.
 pub(crate) struct RefillRequest {
-    base: url::Url,
-    token: String,
-    path: String,
-    params: Vec<(&'static str, String)>,
+    conn: Conn,
+    query: Query,
     identity: RefillIdentity,
+    /// Mix radio only: the queued tracks to ask next, as (track key, query),
+    /// when `query` returns nothing unseen, and the keys queued then.
+    mix_fallbacks: Vec<(String, Query)>,
+    mix_queued: std::collections::BTreeSet<String>,
+    /// Mix radio only: the fallback seeds asked by [`RefillRequest::fetch`].
+    mix_attempted: Vec<String>,
+}
+impl RefillRequest {
+    /// Fetch `query`; a mix that holds no unseen playable track is asked
+    /// again from the next fallback seed (at most [`MIX_ATTEMPTS`] requests
+    /// in all). `query` becomes the one whose reply is returned.
+    fn fetch(&mut self, backend: &Backend) -> Result<model::Container> {
+        let mut result = backend.fetch(&self.conn, &self.query, None)?;
+        let fallbacks = std::mem::take(&mut self.mix_fallbacks);
+        for (key, query) in fallbacks.into_iter().take(MIX_ATTEMPTS - 1) {
+            if has_unseen_mix(backend, &result, &self.mix_queued) {
+                break;
+            }
+            match backend.fetch(&self.conn, &query, None) {
+                Ok(reply) => {
+                    self.mix_attempted.push(key);
+                    // `query` stays the one whose reply is kept, for its snapshot.
+                    result = reply;
+                    self.query = query;
+                }
+                Err(error @ Error::Unauthorized) => return Err(error),
+                // A connection or server failure says nothing about the seed:
+                // stop rotating and keep it for a later refill.
+                Err(error @ (Error::Network | Error::Http(500..=599))) => {
+                    crate::diagnostics::event(format_args!(
+                        "radio mix fallback seed failed: {error}"
+                    ));
+                    break;
+                }
+                // The seed itself failed (gone, refused): it is not asked
+                // again, and the reply and query kept so far stand.
+                Err(error) => {
+                    self.mix_attempted.push(key);
+                    crate::diagnostics::event(format_args!(
+                        "radio mix fallback seed failed: {error}"
+                    ));
+                }
+            }
+        }
+        Ok(result)
+    }
+}
+/// Whether an instant-mix reply holds a playable track not in `seen`.
+fn has_unseen_mix(
+    backend: &Backend,
+    c: &model::Container,
+    seen: &std::collections::BTreeSet<String>,
+) -> bool {
+    c.items.iter().any(|i| {
+        i.kind == crate::model::ItemKind::Track
+            && backend.is_id(&i.rating_key)
+            && !seen.contains(&i.rating_key)
+    })
 }
 #[derive(Clone, PartialEq)]
 struct RefillIdentity {
@@ -329,7 +451,7 @@ struct RefillIdentity {
 }
 pub(crate) struct RefillJob {
     request: RefillRequest,
-    plex: Plex,
+    backend: Backend,
 }
 pub(crate) struct RefillFetched {
     request: RefillRequest,
@@ -338,13 +460,9 @@ pub(crate) struct RefillFetched {
 impl RefillJob {
     /// Blocking fetch; never call it on the shared runtime thread.
     pub(crate) fn fetch(self) -> RefillFetched {
-        let RefillJob { request, plex } = self;
-        let result = plex.container(
-            &request.base,
-            &request.token,
-            &request.path,
-            &request.params,
-        );
+        let RefillJob { request, backend } = self;
+        let mut request = request;
+        let result = request.fetch(&backend);
         RefillFetched { request, result }
     }
 }
@@ -378,6 +496,7 @@ impl Core {
         let old = self.queue.clone();
         let radio = self.radio.clone();
         let cached = self.cached_playback;
+        let transcoding = self.transcoding;
         let notice = self.health.take_notice();
         let result = self.advance_next(true, false);
         // Speculation never reports: the real transition will.
@@ -388,6 +507,7 @@ impl Core {
         let queue = std::mem::replace(&mut self.queue, old);
         let next_radio = std::mem::replace(&mut self.radio, radio);
         let next_cached = std::mem::replace(&mut self.cached_playback, cached);
+        self.transcoding = transcoding;
         let prepared = match result {
             Ok(mut plan) if queue.track().is_some() => {
                 plan["queue"] = self.queue_json(&queue);
@@ -408,6 +528,7 @@ impl Core {
         self.queue = prepared.queue;
         self.radio = prepared.radio;
         self.cached_playback = prepared.cached;
+        self.transcoding = prepared.plan["playbackSource"] == json!(PlaybackSource::Transcode);
         self.resume_position = 0;
         self.playback_generation = self.playback_generation.wrapping_add(1);
         self.settings.playback = store::Playback {
@@ -417,6 +538,7 @@ impl Core {
             generation: self.playback_generation,
             occurrence: uuid::Uuid::new_v4().to_string(),
             listened: 0,
+            start_reported: String::new(),
         };
         store::save(&self.dir, &self.settings)?;
         let mut plan = prepared.plan;
@@ -440,12 +562,33 @@ impl Core {
         Self::with_account_url(dir, url::Url::parse("https://plex.tv/")?)
     }
     pub fn with_account_url(dir: PathBuf, account_url: url::Url) -> Result<Self> {
-        Self::build(dir, account_url, true)
+        Self::build(dir, account_url, true, None)
+    }
+    /// Test constructor: Core over an injected backend (e.g. the mock).
+    #[cfg(any(test, feature = "mock-backend"))]
+    pub fn with_backend(dir: PathBuf, backend: Backend) -> Result<Self> {
+        Self::build(
+            dir,
+            url::Url::parse("https://plex.tv/")?,
+            true,
+            Some(backend),
+        )
+    }
+    /// Test accessor: how many artist/album kinds Core remembers for later
+    /// detail pages.
+    #[cfg(any(test, feature = "mock-backend"))]
+    pub fn remembered_detail_kinds(&self) -> usize {
+        self.detail_kinds.borrow().len()
     }
     pub fn inspect(dir: PathBuf) -> Result<Self> {
-        Self::build(dir, url::Url::parse("https://plex.tv/")?, false)
+        Self::build(dir, url::Url::parse("https://plex.tv/")?, false, None)
     }
-    fn build(dir: PathBuf, account_url: url::Url, downloads: bool) -> Result<Self> {
+    fn build(
+        dir: PathBuf,
+        account_url: url::Url,
+        downloads: bool,
+        injected: Option<Backend>,
+    ) -> Result<Self> {
         if downloads {
             store::remove_stale_temps(&dir);
         }
@@ -460,11 +603,14 @@ impl Core {
         }
         // Legacy station download groups were keyed by station path only;
         // scope them to this server/account at startup (owner only).
-        let namespace = cache::namespace(&settings.server_url, &settings.server_token);
+        let plex = match injected {
+            Some(backend) => backend,
+            None => make_backend(&settings, &account_url)?,
+        };
+        let namespace = settings_namespace(&plex, &settings);
         if downloads && daily::migrate_station_groups(&mut settings, &namespace) {
             store::save(&dir, &settings)?;
         }
-        let plex = Plex::new(&settings.client_identifier, account_url)?;
         if settings.playback.queue.validate().is_err() {
             settings.playback = store::Playback::default();
         }
@@ -483,7 +629,7 @@ impl Core {
             .cloned()
             .collect();
         for group in legacy {
-            if numeric(&group.key).is_ok() {
+            if plex.is_id(&group.key) {
                 let plan = daily::DownloadPlan {
                     kind: group.kind,
                     key: group.key.clone(),
@@ -558,6 +704,7 @@ impl Core {
             planning_guard: None,
             offline_index: std::cell::RefCell::new(None),
             filter_schemas: std::cell::RefCell::new(std::collections::BTreeMap::new()),
+            detail_kinds: std::cell::RefCell::new(std::collections::BTreeMap::new()),
             catalogue_epoch: 0,
             network_wifi: false,
             network_cellular: false,
@@ -573,13 +720,16 @@ impl Core {
             offline_mode: false,
             dir,
             settings,
-            plex,
+            backend: plex,
+            account_url,
             pin: None,
+            quick_connect: None,
             servers: vec![],
             queue,
             radio,
             cache,
             cached_playback: false,
+            transcoding: false,
             manual_cache,
             cache_suspended: !downloads,
             cache_schedule_seen: std::cell::RefCell::new(None),
@@ -596,37 +746,55 @@ impl Core {
         {
             let pending = core.cache.pending_items(&core.cache_namespace());
             if !pending.is_empty() {
-                let _ = core.cache.schedule_with_quality(
-                    &core.settings.server_url,
-                    &core.settings.server_token,
-                    pending,
-                    core.settings.quality.download_kbps,
-                );
+                if let Ok(conn) = core.conn() {
+                    let _ = core.cache.schedule_for(
+                        &core.backend.namespace(&conn),
+                        core.backend.stream_policy(&conn),
+                        pending,
+                        core.settings.quality.download_kbps,
+                    );
+                }
             }
         }
         Ok(core)
     }
     fn base(&self) -> Result<url::Url> {
-        if self.settings.server_url.is_empty() {
-            return Err(Error::Input("Connect to a Plex server first"));
+        Ok(self.conn()?.base)
+    }
+    /// Server address, credential and user for one request.
+    fn conn(&self) -> Result<Conn> {
+        connection(&self.backend, &self.settings)
+    }
+    /// How the audio engine, downloaders and artwork loader reach the server
+    /// (default, credential-free Plex rules while signed out).
+    pub(crate) fn stream_policy(&self) -> server::StreamPolicy {
+        self.conn()
+            .map(|conn| self.backend.stream_policy(&conn))
+            .unwrap_or_default()
+    }
+    /// Whether the server already counted the play of `occurrence` when its
+    /// start was reported (only for servers that count at the start).
+    pub(crate) fn start_reported(&self, occurrence: &str) -> bool {
+        self.backend.reports_start() && self.settings.playback.start_reported == occurrence
+    }
+    /// An identifier fit for a request path, by the backend's rule.
+    fn id<'a>(&self, value: &'a str) -> Result<&'a str> {
+        self.backend.valid_id(value)
+    }
+    /// Refuse a command the server cannot serve.
+    fn require(&self, needed: Option<server::Capability>) -> Result<()> {
+        match needed {
+            Some(needed) if !self.backend.capabilities().allows(needed) => {
+                Err(server::unsupported())
+            }
+            _ => Ok(()),
         }
-        server_url(&self.settings.server_url)
     }
-    fn page(&self, path: &str, params: Vec<(&str, String)>, start: usize) -> Result<Value> {
-        self.page_sized(path, params, start, 100)
+    fn page(&self, query: &Query, start: usize) -> Result<Value> {
+        self.page_sized(query, start, 100)
     }
-    fn page_sized(
-        &self,
-        path: &str,
-        mut params: Vec<(&str, String)>,
-        start: usize,
-        size: usize,
-    ) -> Result<Value> {
-        params.extend([
-            ("X-Plex-Container-Start", start.to_string()),
-            ("X-Plex-Container-Size", size.to_string()),
-        ]);
-        let (c, offline) = self.container_cached(path, &params)?;
+    fn page_sized(&self, query: &Query, start: usize, size: usize) -> Result<Value> {
+        let (c, offline) = self.container_cached(query, Some(Page { start, size }))?;
         let items: Vec<Value> = c
             .items
             .iter()
@@ -650,61 +818,75 @@ impl Core {
             offline,
         ))
     }
+    /// Saved copy of a read, keyed by the server's request identity.
+    fn load_saved(&self, query: &Query, page: Option<Page>) -> Option<model::Container> {
+        let (path, params) = self.backend.offline_key(query, page).ok()?;
+        self.library.load(
+            &self.cache_namespace(),
+            &path,
+            &filters::param_refs(&params),
+        )
+    }
+    fn save_snapshot(&self, query: &Query, page: Option<Page>, c: &model::Container) {
+        if let Ok((path, params)) = self.backend.offline_key(query, page) {
+            self.library.save(
+                &self.cache_namespace(),
+                &path,
+                &filters::param_refs(&params),
+                c,
+            );
+        }
+    }
     fn container_cached(
         &self,
-        path: &str,
-        params: &[(&str, String)],
+        query: &Query,
+        page: Option<Page>,
     ) -> Result<(model::Container, bool)> {
         self.check_planning()?;
-        let ns = self.cache_namespace();
         if self.offline_mode {
             return self
-                .library
-                .load(&ns, path, params)
+                .load_saved(query, page)
                 .map(|c| (c, true))
                 .ok_or(Error::Input(
                     "This library page has not been saved offline yet",
                 ));
         }
-        let fetched = self
-            .plex
-            .container(&self.base()?, &self.settings.server_token, path, params);
-        self.cached_response(path, params, fetched)
+        let fetched = self.backend.fetch(&self.conn()?, query, page);
+        self.cached_response(query, page, fetched)
     }
     /// Save a fetched library page for offline use, or fall back to the saved
     /// copy when the server is unreachable. Returns whether it is the copy.
     fn cached_response(
         &self,
-        path: &str,
-        params: &[(&str, String)],
+        query: &Query,
+        page: Option<Page>,
         fetched: Result<model::Container>,
     ) -> Result<(model::Container, bool)> {
         if fetched.is_err() {
             self.cached_failures
                 .set(self.cached_failures.get().wrapping_add(1));
         }
-        let ns = self.cache_namespace();
         match fetched {
             Ok(c) => {
-                self.library.save(&ns, path, params, &c);
+                self.save_snapshot(query, page, &c);
                 Ok((c, false))
             }
-            Err(error @ (Error::Network | Error::Http(500..=599))) => self
-                .library
-                .load(&ns, path, params)
-                .map(|c| (c, true))
-                .ok_or(error),
+            Err(error @ (Error::Network | Error::Http(500..=599))) => {
+                self.load_saved(query, page).map(|c| (c, true)).ok_or(error)
+            }
             Err(error) => Err(error),
         }
     }
     fn alphabet(&mut self, section: &str) -> Result<Value> {
-        numeric(section)?;
+        self.id(section)?;
         if let Some(index) = self.artist_indexes.get(section) {
             return Ok(index.clone());
         }
         let (c, offline) = self.container_cached(
-            &format!("/library/sections/{section}/firstCharacter"),
-            &[("type", "8".into()), ("sort", "titleSort:asc".into())],
+            &Query::FirstCharacter {
+                section: section.into(),
+            },
+            None,
         )?;
         let mut offset = 0usize;
         let mut groups = Vec::new();
@@ -741,8 +923,7 @@ impl Core {
         if self.offline_mode || self.settings.server_token.is_empty() {
             return None;
         }
-        let base = self.base().ok()?;
-        plex::advertised_path(&base, path).ok()?;
+        self.stream_policy().artwork_url(path).ok()?;
         Some(artwork::id(&namespace, path))
     }
     /// The artwork source for the image provider; None while it cannot fetch.
@@ -754,8 +935,10 @@ impl Core {
             return None;
         }
         Some(artwork::Snapshot {
-            server: self.settings.server_url.clone(),
-            token: self.settings.server_token.clone(),
+            policy: self
+                .conn()
+                .ok()
+                .map(|conn| self.backend.stream_policy(&conn))?,
             namespace: self.cache_namespace(),
             store: self.artwork.store().clone(),
         })
@@ -818,14 +1001,51 @@ impl Core {
         value
     }
 
-    fn detail(&self, key: &str, start: usize) -> Result<Value> {
-        let id = numeric(key)?;
+    /// Remember the kind of detail item `id` for its later pages (bounded).
+    fn remember_detail_kind(&self, id: &str, kind: &ItemKind) {
+        let mut kinds = self.detail_kinds.borrow_mut();
+        if kinds.len() >= 512 && !kinds.contains_key(id) {
+            kinds.clear();
+        }
+        kinds.insert(id.to_owned(), kind.clone());
+    }
+    /// The artist or album metadata record of a detail page (with stations).
+    fn detail_item(&self, id: &str) -> Result<Item> {
+        let (c, _) = self.container_cached(
+            &Query::Item {
+                id: id.into(),
+                stations: true,
+            },
+            None,
+        )?;
+        c.items
+            .into_iter()
+            .find(|i| {
+                i.rating_key == id
+                    && matches!(
+                        i.kind,
+                        crate::model::ItemKind::Artist | crate::model::ItemKind::Album
+                    )
+            })
+            .ok_or(Error::Input("Artist or album details are unavailable"))
+    }
+    /// An artist or album page: its metadata on the first page plus a page of
+    /// its children. `kind` is what the caller knows about the item; pages
+    /// after the first fall back to the kind remembered for `key`, then (for
+    /// backends that list children by kind) to the (cached) metadata record,
+    /// so those always get the real one. Other backends list a later page of
+    /// an unknown kind directly.
+    fn detail(&self, key: &str, kind: Option<ItemKind>, start: usize) -> Result<Value> {
+        let id = self.id(key)?;
+        let kind = kind.filter(|k| matches!(k, ItemKind::Artist | ItemKind::Album));
         if self.offline_mode {
             let known = self.offline_catalogue();
-            let saved = self.library.load(
-                &self.cache_namespace(),
-                &format!("/library/metadata/{id}"),
-                &[("includeStations", "1".into())],
+            let saved = self.load_saved(
+                &Query::Item {
+                    id: id.into(),
+                    stations: true,
+                },
+                None,
             );
             let item = saved
                 .as_ref()
@@ -870,6 +1090,7 @@ impl Core {
                 .ok_or(Error::Input(
                     "This artist or album has not been saved offline",
                 ))?;
+            self.remember_detail_kind(id, &item.kind);
             let mut children: Vec<_> = known
                 .iter()
                 .filter(|i| {
@@ -882,14 +1103,12 @@ impl Core {
                 .cloned()
                 .collect();
             // Saved children pages preserve ordering and contain full album lists.
-            let params = [
-                ("X-Plex-Container-Start", start.to_string()),
-                ("X-Plex-Container-Size", "100".into()),
-            ];
-            if let Some(c) = self.library.load(
-                &self.cache_namespace(),
-                &format!("/library/metadata/{id}/children"),
-                &params,
+            if let Some(c) = self.load_saved(
+                &Query::Children {
+                    id: id.into(),
+                    kind: item.kind.clone(),
+                },
+                Some(Page { start, size: 100 }),
             ) {
                 let mut value = pagination::page(
                     c.items.iter().map(|i| self.display_item(i)).collect(),
@@ -922,40 +1141,51 @@ impl Core {
             return Ok(value);
         }
         let mut metadata = None;
-        if start == 0 {
-            let (c, _) = self.container_cached(
-                &format!("/library/metadata/{id}"),
-                &[("includeStations", "1".into())],
-            )?;
-            let item = c
-                .items
-                .iter()
-                .find(|i| {
-                    i.rating_key == id
-                        && matches!(
-                            i.kind,
-                            crate::model::ItemKind::Artist | crate::model::ItemKind::Album
-                        )
-                })
-                .ok_or(Error::Input("Artist or album details are unavailable"))?;
-            metadata = Some(self.display_item(item));
-        }
-        let mut result = self.page(&format!("/library/metadata/{id}/children"), vec![], start)?;
+        let remembered = || self.detail_kinds.borrow().get(id).cloned();
+        let kind = match kind.or_else(remembered) {
+            Some(kind) if start > 0 => kind,
+            None if start > 0 && !self.backend.children_need_kind() => {
+                return self.page(
+                    &Query::Children {
+                        id: id.into(),
+                        kind: ItemKind::default(),
+                    },
+                    start,
+                );
+            }
+            _ => {
+                let item = self.detail_item(id)?;
+                if start == 0 {
+                    metadata = Some(self.display_item(&item));
+                }
+                item.kind
+            }
+        };
+        self.remember_detail_kind(id, &kind);
+        let mut result = self.page(
+            &Query::Children {
+                id: id.into(),
+                kind,
+            },
+            start,
+        )?;
         if let Some(item) = metadata {
             result["detail"] = item;
         }
         Ok(result)
     }
     fn similar_artists(&self, key: &str) -> Result<Value> {
-        let id = numeric(key)?;
+        let id = self.id(key)?;
         if self.offline_mode {
             return Ok(json!({"similarKey":id,"similarArtists":[],"similarAvailable":false}));
         }
-        let c = match self.plex.container(
-            &self.base()?,
-            &self.settings.server_token,
-            &format!("/library/metadata/{id}/similar"),
-            &[("count", "12".into())],
+        let c = match self.backend.fetch(
+            &self.conn()?,
+            &Query::Similar {
+                id: id.into(),
+                count: 12,
+            },
+            None,
         ) {
             Ok(c) => c,
             Err(Error::Http(400 | 404)) => {
@@ -970,7 +1200,7 @@ impl Core {
             .filter(|i| {
                 i.kind == crate::model::ItemKind::Artist
                     && i.rating_key != id
-                    && numeric(&i.rating_key).is_ok()
+                    && self.id(&i.rating_key).is_ok()
                     && seen.insert(i.rating_key.clone())
             })
             .take(12)
@@ -1014,6 +1244,7 @@ impl Core {
             cached.play_queue_item_id = track.play_queue_item_id;
             self.queue.replace_track(cached.clone());
             self.cached_playback = true;
+            self.transcoding = false;
             if schedule {
                 self.schedule_cache();
             }
@@ -1031,14 +1262,16 @@ impl Core {
             return Err(Error::Input("This track has not been downloaded"));
         }
         if track.media.first().and_then(|m| m.parts.first()).is_none() {
-            let key = numeric(&track.rating_key)?;
+            let key = self.id(&track.rating_key)?;
             let c = self
-                .plex
-                .container(
-                    &self.base()?,
-                    &self.settings.server_token,
-                    &format!("/library/metadata/{key}"),
-                    &[],
+                .backend
+                .fetch(
+                    &self.conn()?,
+                    &Query::Item {
+                        id: key.into(),
+                        stations: false,
+                    },
+                    None,
                 )
                 .inspect_err(|error| {
                     // Have the runtime confirm whether the item is gone, so
@@ -1063,23 +1296,21 @@ impl Core {
             || kbps > 0
             || (self.settings.quality.codec_fallback && !audio::formats::item_supported(&track));
         let stream = if transcode {
-            let mut url = quality::transcode_url(
-                &self.base()?,
+            self.backend.transcode_stream(
+                &self.conn()?,
                 &track.rating_key,
                 if kbps > 0 { kbps } else { 192 },
                 &uuid::Uuid::new_v4().to_string(),
-            )?;
-            url.query_pairs_mut()
-                .append_pair("X-Plex-Token", &self.settings.server_token);
-            url.into()
+            )?
         } else {
-            authenticated_url(&self.base()?, &part.key, &self.settings.server_token)?
+            self.backend.stream_url(&self.conn()?, &part.key)?
         };
         if let Some(current) = self.queue.track() {
             track.play_queue_item_id = current.play_queue_item_id;
             self.queue.replace_track(track.clone());
         }
         self.cached_playback = false;
+        self.transcoding = transcode;
         if schedule {
             self.schedule_cache();
         }
@@ -1095,19 +1326,17 @@ impl Core {
             .map(|i| i.parent_rating_key.as_str())
             .unwrap_or("");
         !album.is_empty()
-            && (self
-                .radio
-                .as_ref()
-                .is_some_and(|r| r.kind == RadioKind::Album)
-                || self
-                    .queue
-                    .items()
-                    .iter()
-                    .all(|i| i.parent_rating_key == album))
+            && (self.radio.as_ref().is_some_and(|r| {
+                r.kind == RadioKind::Album && !matches!(r.source, Source::Mix { .. })
+            }) || self
+                .queue
+                .items()
+                .iter()
+                .all(|i| i.parent_rating_key == album))
     }
 
     fn cache_namespace(&self) -> String {
-        cache::namespace(&self.settings.server_url, &self.settings.server_token)
+        settings_namespace(&self.backend, &self.settings)
     }
     fn cache_status(&self) -> Value {
         let mut value = self.cache.status(&self.cache_namespace());
@@ -1193,16 +1422,18 @@ impl Core {
                 // Nothing left to fetch: stop a batch still retrying gone items.
                 self.cache.cancel();
             }
-            if self
-                .cache
-                .schedule_with_quality(
-                    &self.settings.server_url,
-                    &self.settings.server_token,
+            let scheduled = match self.conn() {
+                Ok(conn) => self.cache.schedule_for(
+                    &self.backend.namespace(&conn),
+                    self.backend.stream_policy(&conn),
                     items,
                     self.settings.quality.download_kbps,
-                )
-                .is_err()
-            {
+                ),
+                // Nothing to fetch needs no server.
+                Err(_) if items.is_empty() => Ok(()),
+                Err(error) => Err(error),
+            };
+            if scheduled.is_err() {
                 diagnostics::event(format_args!("cache schedule rejected"));
             }
         }
@@ -1224,10 +1455,24 @@ impl Core {
         )
     }
 
+    /// Whether the radio is fed by the server's instant mix.
+    pub(crate) fn mix_radio_active(&self) -> bool {
+        matches!(
+            &self.radio,
+            Some(Radio {
+                source: Source::Mix { .. },
+                ..
+            })
+        )
+    }
+
     fn album_tracks(&self, album: &Item) -> Result<Vec<Item>> {
-        let id = numeric(&album.rating_key)?;
+        let id = self.id(&album.rating_key)?;
         let items = self.paged_tracks(
-            &format!("/library/metadata/{id}/children"),
+            &Query::Children {
+                id: id.into(),
+                kind: ItemKind::Album,
+            },
             0,
             daily::Paging::Album,
         )?;
@@ -1238,10 +1483,14 @@ impl Core {
     }
 
     fn nearest(&self, item: &Item) -> Result<Vec<Item>> {
-        let id = numeric(&item.rating_key)?;
+        self.require(Some(server::Capability::Sonic))?;
+        let id = self.id(&item.rating_key)?;
         let (c, _) = self.container_cached(
-            &format!("/library/metadata/{id}/nearest"),
-            &[("limit", "50".into())],
+            &Query::Nearest {
+                id: id.into(),
+                limit: 50,
+            },
+            None,
         )?;
         Ok(c.items
             .into_iter()
@@ -1253,13 +1502,15 @@ impl Core {
         if self.offline_mode {
             return Err(Error::Input("Radio playback requires a connection"));
         }
-        let id = numeric(&key)?;
+        let id = self.id(&key)?;
         let base = self.base()?;
-        let c = self.plex.container(
-            &base,
-            &self.settings.server_token,
-            &format!("/library/metadata/{id}"),
-            &[("includeStations", "1".into())],
+        let c = self.backend.fetch(
+            &self.conn()?,
+            &Query::Item {
+                id: id.into(),
+                stations: true,
+            },
+            None,
         )?;
         let seed = c
             .items
@@ -1269,14 +1520,28 @@ impl Core {
                 "Radio seed does not match the selected music type",
             ))?;
         let title = seed.title.clone();
-        let (items, start, source) = if let Some(station) = radio::station_key(&seed, &base)? {
-            let identity =
-                self.plex
-                    .container(&base, &self.settings.server_token, "/identity", &[])?;
-            let uri = radio::station_uri(&identity.machine_identifier, &station)?;
-            let queue = self
-                .plex
-                .create_radio_queue(&base, &self.settings.server_token, &uri)?;
+        let (items, start, source) = if let Some(query) =
+            self.backend.mix_query(&seed.rating_key, kind, MIX_BATCH)
+        {
+            let source = Source::Mix {
+                seed: seed.rating_key.clone(),
+                kind,
+                used: Vec::new(),
+            };
+            let batch = self.backend.fetch(&self.conn()?, &query, None)?;
+            // A new radio replaces the queue: nothing in it counts as seen.
+            let mut items = self.unseen_mix(batch, &mut std::collections::BTreeSet::new());
+            if kind == RadioKind::Track {
+                // A track radio starts with its seed.
+                items.retain(|i| i.rating_key != seed.rating_key);
+                items.insert(0, seed.clone());
+            }
+            if items.is_empty() {
+                return Err(Error::Input("Radio returned no playable tracks"));
+            }
+            (items, 0, source)
+        } else if let Some(station) = radio::station_key(&seed, &base)? {
+            let queue = self.backend.create_radio(&self.conn()?, &station)?;
             let queue_id = queue
                 .play_queue_id
                 .ok_or(Error::ProtocolAt("radio queue identity"))?;
@@ -1339,44 +1604,86 @@ impl Core {
         result
     }
 
+    /// The playable tracks of an instant-mix reply that are not queued yet,
+    /// at most [`MIX_BATCH`].
+    fn unseen_mix(
+        &self,
+        c: model::Container,
+        seen: &mut std::collections::BTreeSet<String>,
+    ) -> Vec<Item> {
+        c.items
+            .into_iter()
+            .filter(|i| {
+                i.kind == crate::model::ItemKind::Track
+                    && self.backend.is_id(&i.rating_key)
+                    && seen.insert(i.rating_key.clone())
+            })
+            .take(MIX_BATCH as usize)
+            .collect()
+    }
+
     fn extend_radio(&mut self) -> Result<()> {
         let request = self.refill_request().inspect_err(|_| self.warn_radio())?;
-        let fetched = self.plex.container(
-            &request.base,
-            &request.token,
-            &request.path,
-            &request.params,
-        );
+        let mut request = request;
+        let fetched = request.fetch(&self.backend);
         self.refill_apply(&request, fetched).map(|_| ())
     }
     /// What replenishing the radio by one step asks the server.
     fn refill_request(&self) -> Result<RefillRequest> {
         let radio = self.radio.as_ref().ok_or(Error::Input("No active radio"))?;
-        let (path, params) = match &radio.source {
+        let mut mix_fallbacks = Vec::new();
+        let mut mix_queued = std::collections::BTreeSet::new();
+        let query = match &radio.source {
             Source::Station { queue_id } => {
                 let center = self
                     .station_center()
                     .ok_or(Error::ProtocolAt("radio queue center"))?;
-                (
-                    format!("/playQueues/{queue_id}"),
-                    vec![
-                        ("center", center.to_string()),
-                        ("window", "50".into()),
-                        ("includeBefore", "0".into()),
-                        ("includeAfter", "1".into()),
-                    ],
-                )
+                Query::PlayQueueWindow {
+                    id: *queue_id,
+                    center,
+                }
             }
-            Source::Sonic { seed, .. } => (
-                format!("/library/metadata/{}/nearest", numeric(&seed.rating_key)?),
-                vec![("limit", "50".into())],
-            ),
+            Source::Sonic { seed, .. } => Query::Nearest {
+                id: self.id(&seed.rating_key)?.to_owned(),
+                limit: 50,
+            },
+            Source::Mix { seed, kind, used } => {
+                // Seeds for a mix that brings nothing new: the most recently
+                // queued tracks not asked yet.
+                let items = self.queue.items();
+                mix_queued = items.iter().map(|i| i.rating_key.clone()).collect();
+                for item in items.iter().rev() {
+                    if mix_fallbacks.len() + 1 >= MIX_ATTEMPTS {
+                        break;
+                    }
+                    let key = &item.rating_key;
+                    if item.kind != ItemKind::Track
+                        || key == seed
+                        || used.contains(key)
+                        || self.health.is_gone(key)
+                        || mix_fallbacks.iter().any(|(k, _)| k == key)
+                    {
+                        continue;
+                    }
+                    if let Some(query) = self
+                        .id(key)
+                        .ok()
+                        .and_then(|id| self.backend.mix_query(id, RadioKind::Track, MIX_BATCH))
+                    {
+                        mix_fallbacks.push((key.clone(), query));
+                    }
+                }
+                self.backend
+                    .mix_query(self.id(seed)?, *kind, MIX_BATCH)
+                    .ok_or_else(server::unsupported)?
+            }
         };
         Ok(RefillRequest {
-            base: self.base()?,
-            token: self.settings.server_token.clone(),
-            path,
-            params,
+            conn: self.conn()?,
+            query,
+            mix_fallbacks,
+            mix_queued,
+            mix_attempted: Vec::new(),
             identity: self
                 .refill_identity()
                 .ok_or(Error::Input("No active radio"))?,
@@ -1443,8 +1750,35 @@ impl Core {
                     .take(1)
                     .collect()
             }
+            Source::Mix { used, .. } => {
+                let reply = self.cached_response(&request.query, None, fetched);
+                // The seeds asked count as used whatever the reply held, so
+                // the next refill moves on to others.
+                used.extend(request.mix_attempted.iter().cloned());
+                let excess = used.len().saturating_sub(MIX_USED_SEEDS);
+                used.drain(..excess);
+                let (c, _) = match reply {
+                    Ok(reply) => reply,
+                    Err(error) => {
+                        self.radio = Some(radio);
+                        return Err(error);
+                    }
+                };
+                let mut queued = self
+                    .queue
+                    .items()
+                    .iter()
+                    .map(|i| i.rating_key.clone())
+                    .collect();
+                let items = self.unseen_mix(c, &mut queued);
+                if items.is_empty() {
+                    self.radio = Some(radio);
+                    return Err(Error::Input("Radio returned no playable tracks"));
+                }
+                items
+            }
             Source::Sonic { seed, recent } => {
-                let (c, _) = self.cached_response(&request.path, &request.params, fetched)?;
+                let (c, _) = self.cached_response(&request.query, None, fetched)?;
                 let neighbors: Vec<Item> = c
                     .items
                     .into_iter()
@@ -1480,11 +1814,11 @@ impl Core {
     /// of upcoming items, track radio adds one per move, and every radio
     /// refills at its end.
     fn refill_wanted(&self) -> bool {
-        (self.station_radio_active() && self.queue.upcoming(12).len() <= 11)
-            || self
-                .radio
-                .as_ref()
-                .is_some_and(|radio| radio.kind == RadioKind::Track)
+        ((self.station_radio_active() || self.mix_radio_active())
+            && self.queue.upcoming(12).len() <= 11)
+            || self.radio.as_ref().is_some_and(|radio| {
+                radio.kind == RadioKind::Track && !matches!(radio.source, Source::Mix { .. })
+            })
             || self.queue.at_end()
     }
     /// A move can leave the refill to the background when it does not need
@@ -1505,10 +1839,9 @@ impl Core {
         if pending == 0 || self.offline_mode || (self.network_known && !self.network_online) {
             return None;
         }
-        let album = self
-            .radio
-            .as_ref()
-            .is_some_and(|radio| radio.kind == RadioKind::Album);
+        let album = self.radio.as_ref().is_some_and(|radio| {
+            radio.kind == RadioKind::Album && !matches!(radio.source, Source::Mix { .. })
+        });
         let request = if album || !self.refill_wanted() {
             None
         } else {
@@ -1522,13 +1855,9 @@ impl Core {
             }
             return None;
         };
-        let plex = Plex::new(
-            &self.settings.client_identifier,
-            self.plex.account_url.clone(),
-        )
-        .inspect_err(|_| self.warn_radio())
-        .ok()?;
-        Some(RefillJob { request, plex })
+        // A clone has its own view scope: navigation on Core never cancels it.
+        let backend = self.backend.clone();
+        Some(RefillJob { request, backend })
     }
     /// Give up an owed refill that could not be fetched, also in a prepared
     /// successor of the same radio, whose commit would otherwise restore it.
@@ -1597,12 +1926,19 @@ impl Core {
         match self.refill_apply(&request, result) {
             Err(error) => {
                 crate::diagnostics::event(format_args!("radio refill failed: {error}"));
+                // A failed mix refill still remembers the seeds it asked.
+                let source = self.radio.as_ref().map(|radio| radio.source.clone());
                 for radio in [Some(&mut self.radio), prepared.map(|p| &mut p.radio)]
                     .into_iter()
                     .flatten()
                     .flatten()
                 {
                     radio.refill.pending = 0;
+                    if let (Source::Mix { used, .. }, Some(Source::Mix { used: asked, .. })) =
+                        (&mut radio.source, &source)
+                    {
+                        used.clone_from(asked);
+                    }
                 }
                 None
             }
@@ -1660,7 +1996,7 @@ impl Core {
         let previous_queue = self.queue.clone();
         let previous_radio = self.radio.clone();
         let result = (|| {
-            if automatic && self.station_radio_active() {
+            if automatic && self.reports_stop_on_transition() {
                 let duration = self.queue.track().map(|track| track.duration).unwrap_or(0);
                 // Reporting must not prevent local continuation (connection
                 // loss, a station emptied on the server); only a rejected
@@ -1677,8 +2013,24 @@ impl Core {
             self.advance_next(automatic, true)
         })();
         if result.is_err() {
+            // The seeds a failed mix refill asked stay remembered, so a retry
+            // moves on to others.
+            let asked = match self.radio.as_ref().map(|radio| &radio.source) {
+                Some(Source::Mix { used, .. }) => Some(used.clone()),
+                _ => None,
+            };
             self.queue = previous_queue;
             self.radio = previous_radio;
+            if let (
+                Some(asked),
+                Some(Radio {
+                    source: Source::Mix { used, .. },
+                    ..
+                }),
+            ) = (asked, self.radio.as_mut())
+            {
+                *used = asked;
+            }
         }
         result
     }
@@ -1833,41 +2185,56 @@ impl Core {
             return Err(Error::Input("Unknown playback state"));
         }
         if let Some(track) = self.queue.track() {
-            let mut params = vec![
-                (
-                    "key",
-                    format!("/library/metadata/{}", crate::numeric(&track.rating_key)?),
-                ),
-                ("ratingKey", track.rating_key.clone()),
-            ];
-            if let Some(Radio {
+            let id = self.id(&track.rating_key)?.to_owned();
+            let queue = if let Some(Radio {
                 source: Source::Station { queue_id },
                 ..
             }) = &self.radio
             {
-                params.extend([
-                    ("playQueueID", queue_id.to_string()),
-                    (
-                        "playQueueItemID",
-                        track.play_queue_item_id.ok_or(Error::Protocol)?.to_string(),
-                    ),
-                ]);
-            }
-            params.extend([
-                ("state", state),
-                ("time", position.to_string()),
-                ("duration", duration.to_string()),
-                ("continuing", u8::from(continuing).to_string()),
-            ]);
-            self.plex
-                .timeline(&self.base()?, &self.settings.server_token, &params)?;
+                Some((*queue_id, track.play_queue_item_id.ok_or(Error::Protocol)?))
+            } else {
+                None
+            };
+            let occurrence = self.settings.playback.occurrence.clone();
+            // A server that counts a play at its start hears the first
+            // `playing` report of each occurrence once, also across restarts
+            // that restore the queue.
+            let counts_start = self.backend.reports_start();
+            let start = counts_start
+                && state == "playing"
+                && self.settings.playback.start_reported != occurrence;
+            self.backend.act(
+                &self.conn()?,
+                &Action::Timeline {
+                    id,
+                    state,
+                    position,
+                    duration,
+                    continuing,
+                    queue,
+                    reporting: server::Reporting {
+                        play_session: occurrence.clone(),
+                        occurrence: occurrence.clone(),
+                        start,
+                        transcode: self.transcoding,
+                    },
+                },
+            )?;
             if self.writable {
+                if start {
+                    self.settings.playback.start_reported = occurrence.clone();
+                }
                 for play in &mut self.settings.history {
-                    if play.occurrence == self.settings.playback.occurrence {
+                    if play.occurrence == occurrence && (!counts_start || start) {
                         play.delivered = true;
+                        play.start_reported |= counts_start;
                     }
                 }
                 store::save_journals(&self.dir, &self.settings)?;
+                if start {
+                    // The session file carries the occurrence that was told.
+                    self.save_session();
+                }
             }
         }
         Ok(json!({}))
@@ -2020,11 +2387,8 @@ impl Core {
     pub(crate) fn probe(
         &self,
         key: &str,
-    ) -> Option<impl std::future::Future<Output = plex::Probe> + Send + 'static> {
-        let base = self.base().ok()?;
-        self.plex
-            .probe_metadata(&base, &self.settings.server_token, key)
-            .ok()
+    ) -> Option<impl std::future::Future<Output = plex::Probe> + Send + 'static + use<>> {
+        self.backend.probe(&self.conn().ok()?, key).ok()
     }
     pub(crate) fn record_probe(&mut self, key: &str, outcome: plex::Probe) {
         match outcome {
@@ -2051,18 +2415,58 @@ impl Core {
         }
         result
     }
+    /// Run an account-level (Plex sign-in, discovery) call. While a Jellyfin
+    /// session is active a temporary Plex client serves it, so the account can
+    /// be signed in without leaving the session.
+    fn with_account<T>(&self, call: impl FnOnce(&dyn server::Account) -> Result<T>) -> Result<T> {
+        match &self.backend {
+            Backend::Jellyfin(_) => {
+                let plex = Plex::new(&self.settings.client_identifier, self.account_url.clone())?;
+                call(&plex)
+            }
+            other => call(other.account()?),
+        }
+    }
     fn connect(&mut self, url: String, token: String) -> Result<Value> {
-        let base = server_url(url.trim())?;
-        let c = self
-            .plex
-            .container(&base, &token, "/library/sections", &[])?;
+        // A Plex connection replaces a Jellyfin backend; every other backend
+        // (Plex, an injected test server) stays.
+        let replacement = match &self.backend {
+            Backend::Jellyfin(_) => Some(Backend::Plex(Plex::new(
+                &self.settings.client_identifier,
+                self.account_url.clone(),
+            )?)),
+            _ => None,
+        };
+        let base = replacement
+            .as_ref()
+            .unwrap_or(&self.backend)
+            .parse_url(url.trim())?;
         let mut settings = self.settings.clone();
+        settings.server_kind = store::ServerKind::Plex;
+        settings.server_id.clear();
         settings.server_url = base.to_string();
         settings.server_token = token;
-        // Same URL and token address the same cache namespace: its pins,
+        // The user id belongs to the previous sign-in; a backend that needs
+        // one stores it after its own login.
+        settings.server_user_id.clear();
+        self.quick_connect = None;
+        self.establish(replacement, settings)
+    }
+    /// Make `settings` (signed in to `backend`, or to the current backend)
+    /// the session: prove the connection with the library listing first, keep
+    /// the pins, downloads and queue when the server scope is unchanged and
+    /// drop them when it is another one, then save once.
+    fn establish(
+        &mut self,
+        backend: Option<Backend>,
+        mut settings: store::Settings,
+    ) -> Result<Value> {
+        let target = backend.as_ref().unwrap_or(&self.backend);
+        let conn = connection(target, &settings)?;
+        let c = target.fetch(&conn, &Query::Sections, None)?;
+        // Same server scope addresses the same cache namespace: its pins,
         // downloaded audio and queue remain valid and are kept.
-        let switched = cache::namespace(&settings.server_url, &settings.server_token)
-            != self.cache_namespace();
+        let switched = target.namespace(&conn) != self.cache_namespace();
         if switched {
             settings.playback = store::Playback::default();
             settings.download_groups.clear();
@@ -2072,8 +2476,10 @@ impl Core {
         }
         store::save(&self.dir, &settings)?;
         self.settings = settings;
-        self.library
-            .save(&self.cache_namespace(), "/library/sections", &[], &c);
+        if let Some(backend) = backend {
+            self.backend = backend;
+        }
+        self.save_snapshot(&Query::Sections, None, &c);
         if switched {
             self.refresh.reset();
             self.queue = Queue::default();
@@ -2087,10 +2493,115 @@ impl Core {
             self.schedule_cache();
         }
         self.artist_indexes.clear();
+        self.detail_kinds.borrow_mut().clear();
         self.offline_mode = false;
         Ok(
-            json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(), "serverUrl": self.settings.server_url,"radio":self.radio_summary(),"cache":self.cache_status(),"offlineMode":false,"offline":false}),
+            json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(), "serverUrl": self.settings.server_url,"serverKind":self.settings.server_kind.as_str(),"capabilities":self.backend.capabilities(),"radio":self.radio_summary(),"cache":self.cache_status(),"offlineMode":false,"offline":false}),
         )
+    }
+    /// The Jellyfin sign-in client: no server identity yet.
+    fn jellyfin_client(&self) -> jellyfin::Jellyfin {
+        jellyfin::Jellyfin::new(&self.settings.client_identifier, "")
+    }
+    /// Sign in to Jellyfin with a name and password.
+    fn jellyfin_login(&mut self, url: &str, username: &str, password: String) -> Result<Value> {
+        if username.trim().is_empty() || username.len() > 256 || password.len() > 1024 {
+            return Err(Error::Input("Invalid request data"));
+        }
+        let client = self.jellyfin_client();
+        let base = client.parse_url(url.trim())?;
+        // The password lives in this call only.
+        let login = client.login(&base, username.trim(), &password);
+        drop(password);
+        self.adopt_jellyfin(&base, login?)
+    }
+    /// Make a completed Jellyfin sign-in the session (one save).
+    fn adopt_jellyfin(&mut self, base: &url::Url, login: jellyfin::Login) -> Result<Value> {
+        let backend = Backend::Jellyfin(jellyfin::Jellyfin::new(
+            &self.settings.client_identifier,
+            &login.server_id,
+        ));
+        let mut settings = self.settings.clone();
+        settings.server_kind = store::ServerKind::Jellyfin;
+        settings.server_url = base.to_string();
+        settings.server_token = login.token;
+        settings.server_user_id = login.user_id;
+        settings.server_id = login.server_id;
+        let result = self.establish(Some(backend), settings);
+        if result.is_ok() {
+            self.quick_connect = None;
+        }
+        result
+    }
+    fn jellyfin_quick_connect(&mut self, url: &str) -> Result<Value> {
+        let client = self.jellyfin_client();
+        let base = client.parse_url(url.trim())?;
+        let request = client.quick_connect_start(&base)?;
+        let code = request.code.clone();
+        self.quick_connect = Some(QuickConnectPending {
+            base,
+            secret: request.secret,
+            code: code.clone(),
+            started: Instant::now(),
+        });
+        Ok(
+            json!({"quickConnect":{"code":code,"expiresIn":jellyfin::QUICK_CONNECT_LIFETIME.as_secs()}}),
+        )
+    }
+    fn jellyfin_quick_connect_poll(&mut self) -> Result<Value> {
+        // A poll that crosses a cancellation finds nothing pending: that is
+        // the login having ended, not an error.
+        let Some(pending) = self.quick_connect.as_ref() else {
+            return Ok(json!({"quickConnect":null}));
+        };
+        let (base, secret, code) = (
+            pending.base.clone(),
+            pending.secret.clone(),
+            pending.code.clone(),
+        );
+        if pending.started.elapsed() >= jellyfin::QUICK_CONNECT_LIFETIME {
+            self.quick_connect = None;
+            return Ok(quick_connect_expired());
+        }
+        let client = self.jellyfin_client();
+        match client.quick_connect_approved(&base, &secret) {
+            // The server forgot the secret: it expired.
+            Err(Error::Http(404)) => {
+                self.quick_connect = None;
+                Ok(quick_connect_expired())
+            }
+            // A transient failure keeps the request pending; the next poll retries.
+            Err(error) => Err(error),
+            Ok(false) => Ok(json!({"quickConnect":{"code":code}})),
+            Ok(true) => {
+                let login = client.quick_connect_login(&base, &secret)?;
+                let mut reply = self.adopt_jellyfin(&base, login)?;
+                // A new session: stale health marks mean nothing, and the
+                // runtime stops the audio of the previous one.
+                let saved = self.health.set_aside();
+                self.health.commit(saved);
+                self.catalogue_epoch = self.catalogue_epoch.wrapping_add(1);
+                reply["signedIn"] = json!(true);
+                reply["sessionReset"] = json!(true);
+                reply["quickConnect"] = Value::Null;
+                Ok(reply)
+            }
+        }
+    }
+    /// The pending Quick Connect request as the status presents it.
+    fn quick_connect_status(&self) -> Value {
+        match &self.quick_connect {
+            Some(pending) if pending.started.elapsed() < jellyfin::QUICK_CONNECT_LIFETIME => {
+                json!({"code":pending.code,"expiresIn":(jellyfin::QUICK_CONNECT_LIFETIME - pending.started.elapsed()).as_secs()})
+            }
+            _ => Value::Null,
+        }
+    }
+    /// Whether the audible track's end is reported to the server when the
+    /// next one starts without a command (a station's play queue, or a
+    /// server that counts plays as they start).
+    pub(crate) fn reports_stop_on_transition(&self) -> bool {
+        self.station_radio_active() || self.backend.reports_start()
     }
     pub fn execute(&mut self, command: Command) -> Result<Value> {
         let catalogue_change = matches!(
@@ -2101,6 +2612,7 @@ impl Core {
                 | Command::ClearCache
                 | Command::Connect { .. }
                 | Command::SelectServer { .. }
+                | Command::JellyfinLogin { .. }
                 | Command::Logout
         );
         let persist = matches!(
@@ -2167,6 +2679,7 @@ impl Core {
                 | Command::Station { .. }
                 | Command::Connect { .. }
                 | Command::SelectServer { .. }
+                | Command::JellyfinLogin { .. }
                 | Command::Logout
         );
         let set_aside = replacing.then(|| self.health.set_aside());
@@ -2230,6 +2743,7 @@ impl Core {
             generation: self.playback_generation,
             occurrence: self.settings.playback.occurrence.clone(),
             listened: self.settings.playback.listened,
+            start_reported: self.settings.playback.start_reported.clone(),
         };
         self.settings.downloads = self.manual_cache.clone();
         // Failing the change now would hide a plan the UI must follow; keep
@@ -2247,6 +2761,7 @@ impl Core {
         self.cache.control(self.artwork.generation())
     }
     fn execute_inner(&mut self, command: Command) -> Result<Value> {
+        self.require(command.requires())?;
         match command {
             Command::ProbePlayback { key, kbps } => self.probe_playback(&key, kbps),
             Command::SmartRules { key } => self.smart_rules(&key),
@@ -2342,7 +2857,15 @@ impl Core {
                 items,
                 item_id,
                 after,
-            } => self.edit_playlist(action, &key, &title, items, item_id, after),
+                index,
+            } => {
+                let entry = features::Entry {
+                    item: item_id,
+                    after,
+                    index,
+                };
+                self.edit_playlist(action, &key, &title, items, entry)
+            }
             Command::PlaylistItems { key, start } => self.playlist_items(&key, start),
             Command::LibraryBrowse {
                 section,
@@ -2413,7 +2936,7 @@ impl Core {
             } => self.record_play(&key, &occurrence, listened, duration),
             Command::SyncHistory => self.sync_history(),
             Command::Pin { key, kind, enabled } => {
-                numeric(&key)?;
+                self.id(&key)?;
                 let Some(pinned) = DownloadKind::pinned(&kind) else {
                     return Err(Error::Input("Choose a track, album or playlist to pin"));
                 };
@@ -2431,11 +2954,16 @@ impl Core {
                             ..Default::default()
                         })?,
                         ItemKind::Playlist => {
-                            self.bounded_tracks(&format!("/playlists/{key}/items"), 0)?
+                            self.bounded_tracks(&Query::PlaylistItems { id: key.clone() }, 0)?
                         }
                         _ => {
-                            let (c, _) =
-                                self.container_cached(&format!("/library/metadata/{key}"), &[])?;
+                            let (c, _) = self.container_cached(
+                                &Query::Item {
+                                    id: key.clone(),
+                                    stations: false,
+                                },
+                                None,
+                            )?;
                             c.items
                                 .into_iter()
                                 .filter(|i| i.kind == crate::model::ItemKind::Track)
@@ -2504,11 +3032,13 @@ impl Core {
                             .chain(i.images.iter().map(|image| &image.url))
                             .filter(|s| !s.is_empty())
                         {
-                            self.artwork.schedule(
-                                &self.settings.server_url,
-                                &self.settings.server_token,
-                                path,
-                            );
+                            if let Ok(conn) = self.conn() {
+                                self.artwork.schedule_with(
+                                    &self.backend.namespace(&conn),
+                                    &self.backend.stream_policy(&conn),
+                                    path,
+                                );
+                            }
                         }
                     }
                 }
@@ -2553,7 +3083,7 @@ impl Core {
                 ))
             }
             Command::Lyrics { key } => {
-                let id = numeric(&key)?;
+                let id = self.id(&key)?;
                 if self.offline_mode {
                     let lines = self
                         .library
@@ -2564,7 +3094,13 @@ impl Core {
                         .save_lyrics(&self.cache_namespace(), id, &lines);
                     return Ok(json!({"lyricsKey":id,"lyrics":lines}));
                 }
-                let (c, _) = self.container_cached(&format!("/library/metadata/{id}"), &[])?;
+                let (c, _) = self.container_cached(
+                    &Query::Item {
+                        id: id.into(),
+                        stations: false,
+                    },
+                    None,
+                )?;
                 let stream = c
                     .items
                     .iter()
@@ -2574,11 +3110,7 @@ impl Core {
                     .flat_map(|p| &p.streams)
                     .find(|s| s.stream_type == 4 && !s.key.is_empty());
                 let lines = if let Some(stream) = stream {
-                    lyrics::decode(&self.plex.text(
-                        &self.base()?,
-                        &self.settings.server_token,
-                        &stream.key,
-                    )?)?
+                    self.backend.lyrics(&self.conn()?, &stream.key)?
                 } else {
                     vec![]
                 };
@@ -2594,8 +3126,11 @@ impl Core {
                     return self.offline_search(&query, &ItemKind::default(), 0);
                 }
                 let (c, _) = match self.container_cached(
-                    "/hubs/search",
-                    &[("query", query.clone()), ("limit", "100".into())],
+                    &Query::Search {
+                        query: query.clone(),
+                        limit: 100,
+                    },
+                    None,
                 ) {
                     // An unreachable server searches the saved library instead.
                     Err(Error::Network | Error::Http(500..=599)) => {
@@ -2619,7 +3154,7 @@ impl Core {
                             crate::model::ItemKind::Artist
                                 | crate::model::ItemKind::Album
                                 | crate::model::ItemKind::Track
-                        ) && numeric(&i.rating_key).is_ok()
+                        ) && self.id(&i.rating_key).is_ok()
                             && seen.insert((i.kind.clone(), i.rating_key.clone()))
                     })
                     .map(|i| self.display_item(i))
@@ -2631,33 +3166,30 @@ impl Core {
                 view,
                 start,
             } => {
-                let section = numeric(&section)?;
-                let params = match view {
-                    CollectionView::Favorites => vec![
-                        ("type", "10".into()),
-                        ("userRating", "10".into()),
-                        ("sort", "titleSort:asc".into()),
-                    ],
-                    CollectionView::Added => {
-                        vec![("type", "9".into()), ("sort", "addedAt:desc".into())]
-                    }
-                    CollectionView::Played => vec![
-                        ("type", "10".into()),
-                        ("sort", "lastViewedAt:desc".into()),
-                        ("viewCount>>", "0".into()),
-                    ],
+                let section = self.id(&section)?;
+                let spec = match view {
+                    CollectionView::Favorites => BrowseSpec {
+                        favourite: true,
+                        ..BrowseSpec::new(ItemKind::Track, Sort::Title)
+                    },
+                    CollectionView::Added => BrowseSpec::new(ItemKind::Album, Sort::Added),
+                    CollectionView::Played => BrowseSpec {
+                        played: true,
+                        ..BrowseSpec::new(ItemKind::Track, Sort::LastPlayed)
+                    },
                 };
-                self.page(&format!("/library/sections/{section}/all"), params, start)
+                self.page(&Query::browse(section, spec), start)
             }
             Command::Favorite { key, enabled } => {
                 if self.offline_mode {
                     return Err(Error::Input("Go online"));
                 }
-                self.plex.rate(
-                    &self.base()?,
-                    &self.settings.server_token,
-                    numeric(&key)?,
-                    if enabled { 10 } else { 0 },
+                self.backend.act(
+                    &self.conn()?,
+                    &Action::Rate {
+                        id: self.id(&key)?.to_owned(),
+                        rating: if enabled { 10 } else { 0 },
+                    },
                 )?;
                 self.library.rate(
                     &self.cache_namespace(),
@@ -2674,7 +3206,7 @@ impl Core {
                 )
             }
             Command::Status => Ok(
-                json!({"signedIn": !self.settings.account_token.is_empty(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio,"qualityConfig":self.settings.quality}),
+                json!({"signedIn": !self.settings.account_token.is_empty() || self.settings.server_kind == store::ServerKind::Jellyfin && !self.settings.server_token.is_empty(), "serverKind": self.settings.server_kind.as_str(), "quickConnect": self.quick_connect_status(), "serverUrl": self.settings.server_url, "queue": self.queue,"radio":self.radio_summary(),"cache":self.cache_status(),"track":self.queue.track().map(|i|self.display_item(i)),"resumePosition":self.resume_position,"playbackGeneration":self.playback_generation,"playbackOccurrence":self.settings.playback.occurrence,"resumeListened":self.settings.playback.listened,"autoplay":self.settings.autoplay,"history":self.history_status(),"audioConfig":self.settings.audio,"qualityConfig":self.settings.quality,"capabilities":self.backend.capabilities()}),
             ),
             Command::Resume => {
                 // An explicit play retries an item marked gone.
@@ -2800,7 +3332,7 @@ impl Core {
                 if items.is_empty()
                     || items.len() > 1000
                     || items.iter().any(|i| {
-                        i.kind != crate::model::ItemKind::Track || numeric(&i.rating_key).is_err()
+                        i.kind != crate::model::ItemKind::Track || self.id(&i.rating_key).is_err()
                     })
                 {
                     return Err(Error::Input("Choose up to 1000 valid tracks to download"));
@@ -2876,13 +3408,13 @@ impl Core {
                 )
             }
             Command::Login => {
-                let pin = self.plex.pin()?;
-                let query = url::form_urlencoded::Serializer::new(String::new())
-                    .append_pair("clientID", &self.settings.client_identifier)
-                    .append_pair("code", &pin.code)
-                    .append_pair("context[device][product]", "PlexFreq")
-                    .finish();
-                let result = json!({"url": format!("https://app.plex.tv/auth#?{query}"), "expiresIn": pin.expires_in});
+                let identifier = self.settings.client_identifier.clone();
+                let (pin, url) = self.with_account(|account| {
+                    let pin = account.pin()?;
+                    let url = account.login_url(&identifier, &pin);
+                    Ok((pin, url))
+                })?;
+                let result = json!({"url": url, "expiresIn": pin.expires_in});
                 self.pin = Some((pin, Instant::now()));
                 Ok(result)
             }
@@ -2892,7 +3424,8 @@ impl Core {
                     self.pin = None;
                     return Err(Error::Input("Login expired; start again"));
                 }
-                let pin = self.plex.poll(pin.id, &pin.code)?;
+                let (id, code) = (pin.id, pin.code.clone());
+                let pin = self.with_account(|account| account.poll(id, &code))?;
                 if let Some(token) = pin.auth_token.filter(|s| !s.is_empty()) {
                     let mut settings = self.settings.clone();
                     settings.account_token = token;
@@ -2908,12 +3441,24 @@ impl Core {
                 if self.settings.account_token.is_empty() {
                     return Err(Error::Input("Sign in first"));
                 }
-                self.servers = self.plex.resources(&self.settings.account_token)?;
+                let token = self.settings.account_token.clone();
+                self.servers = self.with_account(|account| account.resources(&token))?;
                 Ok(
                     json!({"servers": self.servers.iter().map(|s| json!({"name": s.name, "id": s.client_identifier})).collect::<Vec<_>>()}),
                 )
             }
             Command::Connect { url, token } => self.connect(url, token),
+            Command::JellyfinLogin {
+                url,
+                username,
+                password,
+            } => self.jellyfin_login(&url, &username, password),
+            Command::JellyfinQuickConnect { url } => self.jellyfin_quick_connect(&url),
+            Command::JellyfinQuickConnectPoll => self.jellyfin_quick_connect_poll(),
+            Command::JellyfinQuickConnectCancel => {
+                self.quick_connect = None;
+                Ok(json!({"quickConnect":null}))
+            }
             Command::SelectServer { index } => {
                 let resource = self
                     .servers
@@ -2934,7 +3479,7 @@ impl Core {
             Command::Libraries => {
                 // A saved copy only flags this reply: explicit offline mode stays the
                 // user's choice, so the next request contacts the server again.
-                let (c, offline) = self.container_cached("/library/sections", &[])?;
+                let (c, offline) = self.container_cached(&Query::Sections, None)?;
                 Ok(
                     json!({"libraries": c.sections.into_iter().filter(|s| s.kind == crate::model::ItemKind::Artist).collect::<Vec<_>>(),"offline":offline,"offlineMode":self.offline_mode}),
                 )
@@ -2945,13 +3490,13 @@ impl Core {
                 query,
                 start,
             } => {
-                let section = numeric(&section)?;
-                let kind = model::music_kind_code(&kind)?;
-                let mut params = vec![("type", kind.into()), ("sort", "titleSort:asc".into())];
-                if !query.is_empty() {
-                    params.push(("title", query));
-                }
-                self.page(&format!("/library/sections/{section}/all"), params, start)
+                let section = self.id(&section)?;
+                filters::music_kind(&kind)?;
+                let spec = BrowseSpec {
+                    search: (!query.is_empty()).then_some(query),
+                    ..BrowseSpec::new(kind, Sort::Title)
+                };
+                self.page(&Query::browse(section, spec), start)
             }
             Command::Alphabet { section } => self.alphabet(&section),
             Command::JumpArtist { section, letter } => {
@@ -2970,8 +3515,10 @@ impl Core {
                     .checked_add(100)
                     .ok_or(Error::ProtocolAt("artist alphabet index"))?;
                 let mut page = self.page_sized(
-                    &format!("/library/sections/{}/all", numeric(&section)?),
-                    vec![("type", "8".into()), ("sort", "titleSort:asc".into())],
+                    &Query::browse(
+                        self.id(&section)?,
+                        BrowseSpec::new(ItemKind::Artist, Sort::Title),
+                    ),
                     0,
                     size,
                 )?;
@@ -2980,25 +3527,13 @@ impl Core {
                 page["selectedIndex"] = json!(start);
                 Ok(page)
             }
-            Command::Children { key, start } => {
-                // Item keys vary: playlists use /playlists/N/items; artists/albums use metadata children.
-                let path = if let Some(id) = key
-                    .strip_prefix("/playlists/")
-                    .and_then(|rest| rest.strip_suffix("/items"))
-                {
-                    format!("/playlists/{}/items", numeric(id)?)
-                } else {
-                    let id = key.strip_prefix("/library/metadata/").unwrap_or(&key);
-                    let id = id.strip_suffix("/children").unwrap_or(id);
-                    format!("/library/metadata/{}/children", numeric(id)?)
-                };
-                self.page(&path, vec![], start)
+            Command::Children { key, kind, start } => {
+                let query = self.backend.children_query(&key, kind.as_ref())?;
+                self.page(&query, start)
             }
-            Command::Detail { key, start } => self.detail(&key, start),
+            Command::Detail { key, kind, start } => self.detail(&key, kind, start),
             Command::SimilarArtists { key } => self.similar_artists(&key),
-            Command::Playlists { start } => {
-                self.page("/playlists", vec![("playlistType", "audio".into())], start)
-            }
+            Command::Playlists { start } => self.page(&Query::Playlists, start),
             Command::Play { items, index } => {
                 let mut queue = Queue::default();
                 queue.replace(items, index)?;
@@ -3076,13 +3611,22 @@ impl Core {
             | Command::AudioToggle => Err(Error::Input("Unknown audio command")),
             Command::Logout => {
                 self.refresh.reset();
+                // Sign-out must not fail or wait on the server: ending a
+                // Jellyfin session is best effort.
+                if let (Backend::Jellyfin(client), Ok(conn)) = (&self.backend, self.conn()) {
+                    client.logout(&conn);
+                }
                 let settings = store::Settings {
                     client_identifier: self.settings.client_identifier.clone(),
                     ..Default::default()
                 };
                 store::save(&self.dir, &settings)?;
                 self.settings = settings;
+                if matches!(self.backend, Backend::Jellyfin(_)) {
+                    self.backend = make_backend(&self.settings, &self.account_url)?;
+                }
                 self.pin = None;
+                self.quick_connect = None;
                 self.servers.clear();
                 self.queue = Queue::default();
                 self.radio = None;
@@ -3090,10 +3634,11 @@ impl Core {
                 self.cache.clear()?;
                 self.manual_cache.clear();
                 self.artist_indexes.clear();
+                self.detail_kinds.borrow_mut().clear();
                 self.library.clear()?;
                 self.artwork.clear()?;
                 Ok(
-                    json!({"signedIn": false, "serverUrl": "", "queue": self.queue, "radio":null, "track": null, "stream": "","history":self.history_status(),"cache":self.cache_status(),"autoplay":false}),
+                    json!({"signedIn": false, "serverUrl": "", "serverKind": self.settings.server_kind.as_str(), "capabilities": self.backend.capabilities(), "quickConnect": null, "queue": self.queue, "radio":null, "track": null, "stream": "","history":self.history_status(),"cache":self.cache_status(),"autoplay":false}),
                 )
             }
         }

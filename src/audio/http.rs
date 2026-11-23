@@ -32,23 +32,26 @@ const FORWARD_WAIT: u64 = 64 * 1024;
 /// Upper bound of one blocking wait before cancellation is re-checked.
 const WAIT_SLICE: Duration = Duration::from_millis(100);
 
+/// One session teardown: the stop request and the credential headers.
+type StopJob = (reqwest::Method, url::Url, reqwest::header::HeaderMap);
+
 #[derive(Clone)]
 pub(super) struct SessionCloser(Arc<CloseWorker>);
 struct CloseWorker {
-    jobs: Option<tokio::sync::mpsc::Sender<(url::Url, String)>>,
+    jobs: Option<tokio::sync::mpsc::Sender<StopJob>>,
     stopping: Arc<AtomicBool>,
     finished: std::sync::Mutex<mpsc::Receiver<()>>,
 }
 impl SessionCloser {
     pub(super) fn new() -> crate::Result<Self> {
-        let (jobs, mut receiver) = tokio::sync::mpsc::channel::<(url::Url, String)>(64);
+        let (jobs, mut receiver) = tokio::sync::mpsc::channel::<StopJob>(64);
         let (finished_tx, finished) = mpsc::channel::<()>();
         let stopping = Arc::new(AtomicBool::new(false));
         let stop = stopping.clone();
         // Detached task on the shared runtime: it is not joined, so a slow
         // server cannot delay the thread dropping the last closer. Dropping
         // `finished_tx` signals exit. Without a client the closer is inert.
-        if let Ok(client) = reqwest::Client::builder()
+        if let Ok(client) = crate::plex::client_builder()
             .timeout(Duration::from_secs(2))
             .redirect(reqwest::redirect::Policy::none())
             .build()
@@ -56,14 +59,14 @@ impl SessionCloser {
             crate::rt::handle().spawn(async move {
                 let _finished = finished_tx;
                 let mut shutdown_jobs = 0;
-                while let Some((uri, token)) = receiver.recv().await {
+                while let Some((method, uri, headers)) = receiver.recv().await {
                     if stop.load(Ordering::SeqCst) {
                         if shutdown_jobs >= 2 {
                             break;
                         }
                         shutdown_jobs += 1;
                     }
-                    let _ = client.get(uri).header("X-Plex-Token", token).send().await;
+                    let _ = client.request(method, uri).headers(headers).send().await;
                 }
             });
         }
@@ -73,10 +76,10 @@ impl SessionCloser {
             finished: std::sync::Mutex::new(finished),
         })))
     }
-    fn close(&self, uri: url::Url, token: String) {
+    fn close(&self, stop: StopJob) {
         // Cleanup cannot block transport; the server also expires idle sessions.
         if let Some(jobs) = &self.0.jobs {
-            let _ = jobs.try_send((uri, token));
+            let _ = jobs.try_send(stop);
         }
     }
 }
@@ -254,7 +257,9 @@ type Request = Option<(u64, u64)>;
 struct Stream {
     client: reqwest::Client,
     uri: String,
-    token: String,
+    /// The policy's headers for `uri`: the credential only when `uri` is on
+    /// the policy's server (see `StreamPolicy::headers_for`).
+    headers: reqwest::header::HeaderMap,
     progressive: bool,
     buffer: Arc<Buffer>,
     changed: watch::Receiver<Request>,
@@ -351,9 +356,7 @@ impl Stream {
         if let Some(validator) = self.representation.validator.as_deref() {
             request = request.header("If-Range", validator);
         }
-        if !self.token.is_empty() {
-            request = request.header("X-Plex-Token", &self.token);
-        }
+        request = request.headers(self.headers.clone());
         let response = tokio::select! {
             _ = self.changed.changed() => return Attempt::Superseded,
             response = request.send() => response,
@@ -523,14 +526,14 @@ impl Reader {
     /// `progressive` (server transcodes) cannot seek by byte offset.
     pub fn new(
         uri: String,
-        token: String,
+        policy: crate::server::StreamPolicy,
         closer: SessionCloser,
         occurrence: u64,
         capacity: usize,
     ) -> crate::Result<(Self, Source)> {
         let progressive = url::Url::parse(&uri)
             .ok()
-            .is_some_and(|url| crate::quality::is_transcode(&url));
+            .is_some_and(|url| policy.is_transcode(&url));
         let (stop, changed) = watch::channel(Some((0u64, 0u64)));
         let buffer = Arc::new(Buffer {
             window: Mutex::new(Window {
@@ -556,15 +559,22 @@ impl Reader {
         // cannot starve the decoder; the task only awaits sockets/timers and
         // takes the window lock for short copies, never a blocking wait.
         let worker = crate::rt::spawn(async move {
-            let stop_uri = url::Url::parse(&uri)
-                .ok()
-                .and_then(|url| crate::quality::stop_url(&url));
-            let stop_token = token.clone();
-            // Redirects are disabled deliberately: the Plex token travels as
+            let parsed = url::Url::parse(&uri).ok();
+            let headers = parsed
+                .as_ref()
+                .map(|url| policy.headers_for(url))
+                .unwrap_or_default();
+            let stop = parsed
+                .and_then(|url| policy.stop(&url))
+                .map(|(method, url)| {
+                    let headers = policy.headers_for(&url);
+                    (method, url, headers)
+                });
+            // Redirects are disabled deliberately: the credential travels as
             // a header, and an open redirect could leak it to an arbitrary
             // origin. Plex serves media directly; a 3xx surfaces as a
             // streaming failure instead of silently following.
-            let client = reqwest::Client::builder()
+            let client = crate::plex::client_builder()
                 .connect_timeout(Duration::from_secs(5))
                 .read_timeout(Duration::from_secs(10))
                 .redirect(reqwest::redirect::Policy::none())
@@ -572,7 +582,7 @@ impl Reader {
             let stream = client.map(|client| Stream {
                 client,
                 uri,
-                token,
+                headers,
                 progressive,
                 buffer: shared.clone(),
                 changed,
@@ -593,8 +603,8 @@ impl Reader {
             // The reader owns the server session, including predecoded
             // successors. Finish/cancel/error and decoder teardown all
             // take this path.
-            if let Some(stop_uri) = stop_uri {
-                closer.close(stop_uri, stop_token);
+            if let Some(stop) = stop {
+                closer.close(stop);
             }
         });
         let source = Source {
@@ -837,7 +847,7 @@ mod tests {
     fn reader_with(address: std::net::SocketAddr, capacity: usize) -> (Reader, Source) {
         Reader::new(
             format!("http://{address}/audio"),
-            String::new(),
+            crate::server::StreamPolicy::default(),
             SessionCloser::new().unwrap(),
             0,
             capacity,
@@ -1007,7 +1017,7 @@ mod tests {
         });
         let (reader, mut source) = Reader::new(
             format!("http://{address}/music/:/transcode/universal/start.m3u8?session=fixture"),
-            String::new(),
+            crate::server::StreamPolicy::default(),
             SessionCloser::new().unwrap(),
             0,
             CAPACITY,
@@ -1169,7 +1179,7 @@ mod tests {
         .unwrap();
         let (reader, mut source) = Reader::new(
             uri.into(),
-            String::new(),
+            crate::server::StreamPolicy::default(),
             SessionCloser::new().unwrap(),
             0,
             CAPACITY,
@@ -1253,6 +1263,47 @@ mod tests {
         assert_eq!(server.join().unwrap(), 1 + UNPROVEN_RETRIES as usize);
     }
 
+    /// The reader sends the policy's credential to the policy's server only:
+    /// a URI on another origin is fetched without it.
+    #[test]
+    fn the_credential_goes_only_to_the_policys_server() {
+        for own in [true, false] {
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap();
+                let request = read_request(&mut stream);
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 200 OK\r\nContent-Length: 1\r\nConnection: close\r\n\r\n1"
+                );
+                request
+            });
+            let base = if own {
+                format!("http://{address}/")
+            } else {
+                "http://127.0.0.2:9/".to_owned()
+            };
+            let policy =
+                crate::server::StreamPolicy::plex(&url::Url::parse(&base).unwrap(), "secret");
+            let (reader, _source) = Reader::new(
+                format!("http://{address}/library/parts/1/a.flac"),
+                policy,
+                SessionCloser::new().unwrap(),
+                0,
+                CAPACITY,
+            )
+            .unwrap();
+            let request = server.join().unwrap();
+            drop(reader);
+            assert_eq!(
+                request.contains("x-plex-token: secret"),
+                own,
+                "{own}: {request}"
+            );
+        }
+    }
+
     #[test]
     fn dropping_the_closer_does_not_wait_for_a_silent_server() {
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
@@ -1260,7 +1311,7 @@ mod tests {
         let closer = SessionCloser::new().unwrap();
         let uri = url::Url::parse(&format!("http://{address}/stop")).unwrap();
         for _ in 0..3 {
-            closer.close(uri.clone(), String::new());
+            closer.close((reqwest::Method::GET, uri.clone(), Default::default()));
         }
         // Let the worker block on the accepted-but-unanswered first request.
         thread::sleep(Duration::from_millis(100));

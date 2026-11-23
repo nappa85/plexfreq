@@ -186,10 +186,10 @@ fn cache_single_bad_entry_does_not_brick_index() {
     });
     let bad = json!({"namespace": "ns", "item": {}, "file": "bad.wav"});
     use sha2::{Digest, Sha256};
-    let good_key = format!(
-        "{:x}",
-        Sha256::digest(format!("{ns}\0{}\0", item.rating_key))
-    );
+    let good_key: String = Sha256::digest(format!("{ns}\0{}\0", item.rating_key))
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
     std::fs::write(
         dir.path().join("index.json"),
         json!({"entries": {good_key: good, "bad": bad,

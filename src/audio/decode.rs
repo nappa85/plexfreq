@@ -123,7 +123,13 @@ impl Decoder {
             source.duration
         ));
         let (uri, token) = safe_uri(&source.url)?;
-        let (uri, transcoded) = crate::quality::with_offset(&uri, source.resume)?;
+        // A credential still in the URL (legacy callers) becomes a header;
+        // the policy's own credential takes precedence.
+        let policy = source
+            .policy
+            .clone()
+            .with_legacy_token(&url::Url::parse(&uri)?, &token);
+        let (uri, transcoded) = policy.seek(&uri, source.resume)?;
         let parsed = url::Url::parse(&uri)?;
         let mut hint = Hint::new();
         if let Some(extension) = parsed
@@ -142,7 +148,7 @@ impl Decoder {
             (Input::File(path), None)
         } else {
             let (reader, stream) =
-                http::Reader::new(uri, token, closer.clone(), source.id, capacity)?;
+                http::Reader::new(uri, policy, closer.clone(), source.id, capacity)?;
             (Input::Http(stream), Some(reader))
         };
         let seek = (source.resume > 0 && !transcoded).then_some(source.resume);

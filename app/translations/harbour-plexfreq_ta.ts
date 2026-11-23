@@ -184,12 +184,12 @@
       <translation>ரேடியோவைப் புதுப்பிக்க முடியவில்லை. பதிவிறக்கிய பாடல்கள் மீண்டும் வரக்கூடும்.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex HTTP %1 ஐ அனுப்பியது</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>சர்வர் HTTP %1 ஐ அனுப்பியது</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>எதிர்பாராத Plex பதில் (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>எதிர்பாராத சர்வர் பதில் (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>ஆடியோ ஸ்ட்ரீமிங் தோல்வியடைந்தது</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>அங்கீகாரம் தோல்வியடைந்தது; மீண்டும் உள்நுழையவும் அல்லது சர்வர் டோக்கனைச் சரிபார்க்கவும்</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>பதிவிறக்க அதிகபட்சம் 1000 சரியான பாடல்களைத் தேர்ந்தெடுக்கவும்</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>முதலில் Plex சர்வருடன் இணைக்கவும்</translation>
+      <source>Connect to a server first</source>
+      <translation>முதலில் சர்வருடன் இணைக்கவும்</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>வேறு மூலத்தின் Plex பாதை நிராகரிக்கப்பட்டது</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>வேறு மூலத்தின் பாதை நிராகரிக்கப்பட்டது</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>எண் வடிவ Plex அடையாளங்காட்டி எதிர்பார்க்கப்பட்டது</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>சர்வர் சார்ந்த Plex பாதை எதிர்பார்க்கப்பட்டது</translation>
+      <source>Expected a server identifier</source>
+      <translation>சேவையக அடையாளங்காட்டி எதிர்பார்க்கப்பட்டது</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>சர்வர் சார்ந்த பாதை எதிர்பார்க்கப்பட்டது</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>ஆன்லைனுக்குச் செல்</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Plex பிளேலிஸ்ட்களைத் திருத்த ஆன்லைனுக்குச் செல்லவும்</translation>
+      <source>Go online to edit playlists</source>
+      <translation>பிளேலிஸ்ட்களைத் திருத்த ஆன்லைனுக்குச் செல்லவும்</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>தவறான சர்வர் எண்</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 அல்லது புதியது தேவை</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>மேலும் இயக்கங்களைப் பதிவுசெய்யும் முன் கேட்டல் வரலாற்றை ஒத்திசைக்க வேண்டும்</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>படிக்க மட்டுமான ஆய்வில் பிளேலிஸ்ட் திருத்தங்கள் முடக்கப்பட்டுள்ளன</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex அங்கீகாரம் தோல்வியடைந்தது; மீண்டும் உள்நுழையவும் அல்லது சர்வர் டோக்கனைச் சரிபார்க்கவும்</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>இந்தக் கலைஞருக்கு Plex கலைஞர் ரேடியோ ஸ்டேஷனை வழங்கவில்லை</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>வரிசைக்குப் பாடல்களும் சரியான தொடக்க எண்ணும் தேவை</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>இந்த சேவையகத்தில் Quick Connect இயக்கப்படவில்லை</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>சேமித்த வரிசை தவறானது</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>சர்வர் URL ஒரு HTTP(S) முகவரியாக இருக்க வேண்டும், விருப்பமாக /jellyfin போன்ற பாதையுடன்</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>சர்வர் URL ஒரு HTTP(S) மூலமாக இருக்க வேண்டும், எ.கா. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>முதலில் உள்நுழைவைத் தொடங்கவும்</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>பிளேலிஸ்ட் உள்ளீடு கிடைக்கவில்லை</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>சேவையகம் பிளேலிஸ்ட் உள்ளீட்டை நகர்த்தவில்லை</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>இந்த ஆல்பத்தில் இயக்கக்கூடிய பாடல்கள் இல்லை</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>இந்தக் கலைஞர் அல்லது ஆல்பம் ஆஃப்லைனில் சேமிக்கப்படவில்லை</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>இது Jellyfin சேவையகம் அல்ல</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>இந்த லைப்ரரி பக்கம் இன்னும் ஆஃப்லைனில் சேமிக்கப்படவில்லை</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>இந்த சர்வர் இந்த அம்சத்தை ஆதரிக்கவில்லை</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>இந்தப் பாடல் பதிவிறக்கப்படவில்லை</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>இந்தப் பாடல் பிளேலிஸ்ட்டில் ஒன்றுக்கு மேற்பட்ட முறை உள்ளது; நகல்களை சர்வரால் வேறுபடுத்த முடியாது</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>பாடலில் பதிவிறக்கக்கூடிய மீடியா பகுதி இல்லை</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>எதிர்பாராத Plex பதில்</translation>
+      <source>Unexpected server response</source>
+      <translation>எதிர்பாராத சர்வர் பதில்</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>சமீபத்தில் சேர்த்தவை</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>சமீபத்தில் இயக்கியவை</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>பிடித்தவை</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>அதிகம் இயக்கியவை</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>இசை எதுவும் கிடைக்கவில்லை</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex உடன் இணை</translation>
+      <source>Connect to a server</source>
+      <translation>சேவையகத்துடன் இணை</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>இசை எதுவும் கிடைக்கவில்லை.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>கேட்கத் தொடங்க உங்கள் இசை சர்வருடன் இணைக்கவும்.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>கேட்கத் தொடங்க உங்கள் Plex இசை சர்வருடன் இணைக்கவும்.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>மீண்டும்: முடக்கம்</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex உடன் இணை</translation>
+      <source>Connect to a server</source>
+      <translation>சேவையகத்துடன் இணை</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>சேவையக வகை</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>நேரடியாக இணை</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>சர்வர் URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>பயனர் பெயர்</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>கடவுச்சொல்</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin-இல் உள்நுழை</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect-ஐப் பயன்படுத்து</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin-இல் Quick Connect பகுதியில் இந்தக் குறியீட்டை உள்ளிட்டு, இங்கே காத்திருக்கவும்.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>ரத்துசெய்</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>கேட்டல் புள்ளிவிவரங்கள்</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>பிடித்தவை</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>சோனிக் ரீதியாக ஒத்தவை</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>பிடித்தவை</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>பிடித்தவை · 5 நட்சத்திரங்கள்</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex உடன் இணை</translation>
+      <source>Connect to a server</source>
+      <translation>சேவையகத்துடன் இணை</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>சேவையக வகை</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>இணை</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>பயனர் பெயர்</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>கடவுச்சொல்</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin-இல் உள்நுழை</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect-ஐப் பயன்படுத்து</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin-இல் Quick Connect பகுதியில் இந்தக் குறியீட்டை உள்ளிட்டு, இங்கே காத்திருக்கவும்.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>ரத்துசெய்</translation>
     </message>
     <message>
       <source>Sign out</source>

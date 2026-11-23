@@ -1,7 +1,9 @@
 //! Daily-use discovery and durable bounded offline plans. No presentation policy.
 use crate::{
     model::{Container, Item},
-    radio, Command, Core, Error, Result,
+    radio,
+    server::{MediaServer, Page, Query},
+    Command, Core, Error, Result,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -249,14 +251,8 @@ impl Core {
                 "Track duration is needed for a timed download",
             ));
         }
-        let mut uri = crate::quality::transcode_url(
-            &self.base()?,
-            key,
-            kbps,
-            &uuid::Uuid::new_v4().to_string(),
-        )?;
-        uri.query_pairs_mut()
-            .append_pair("X-Plex-Token", &self.settings.server_token);
+        let policy = self.stream_policy();
+        let uri = policy.transcode_url(key, kbps, &uuid::Uuid::new_v4().to_string())?;
         let engine = crate::audio::Engine::new(crate::audio::Sink::Fake)?;
         engine.handle.load(
             crate::audio::Source {
@@ -264,6 +260,7 @@ impl Core {
                 url: uri.into(),
                 duration: track.duration,
                 album: track.parent_rating_key,
+                policy,
                 ..Default::default()
             },
             false,
@@ -374,44 +371,23 @@ impl Core {
                 "Track duration is needed for a timed download",
             ));
         }
-        let base = self.base()?;
-        let uri =
-            crate::quality::transcode_url(&base, key, kbps, &uuid::Uuid::new_v4().to_string())?;
-        let result = self
-            .plex
-            .probe_audio(uri.clone(), &self.settings.server_token);
-        let stopped = crate::quality::stop_url(&uri).is_some_and(|stop| {
-            let params: Vec<_> = stop
-                .query_pairs()
-                .map(|(k, v)| (k.into_owned(), v.into_owned()))
-                .collect();
-            let refs: Vec<_> = params
-                .iter()
-                .map(|(k, v)| (k.as_str(), v.clone()))
-                .collect();
-            self.plex
-                .mutate(
-                    &base,
-                    &self.settings.server_token,
-                    reqwest::Method::GET,
-                    stop.path(),
-                    &refs,
-                )
-                .is_ok()
-        });
-        let (bytes, mime) = result?;
+        let (bytes, mime, stopped) = self.backend.transcode_probe(
+            &self.conn()?,
+            key,
+            kbps,
+            &uuid::Uuid::new_v4().to_string(),
+        )?;
         Ok(json!({"transcodeProbe":{"bytes":bytes,"mime":mime,"stopped":stopped}}))
     }
     fn fresh_metadata_item(&self, key: &str, kind: &crate::model::ItemKind) -> Result<Item> {
         self.check_planning()?;
-        crate::numeric(key)?;
-        let path = format!("/library/metadata/{key}");
-        let params = [("includeStations", "1".into())];
-        let container =
-            self.plex
-                .container(&self.base()?, &self.settings.server_token, &path, &params)?;
-        self.library
-            .save(&self.cache_namespace(), &path, &params, &container);
+        self.id(key)?;
+        let query = Query::Item {
+            id: key.into(),
+            stations: true,
+        };
+        let container = self.backend.fetch(&self.conn()?, &query, None)?;
+        self.save_snapshot(&query, None, &container);
         container
             .items
             .into_iter()
@@ -419,10 +395,13 @@ impl Core {
             .ok_or(Error::Input("Choose a music item"))
     }
     fn metadata_item(&self, key: &str, kind: &crate::model::ItemKind) -> Result<Item> {
-        crate::numeric(key)?;
+        self.id(key)?;
         self.container_cached(
-            &format!("/library/metadata/{key}"),
-            &[("includeStations", "1".into())],
+            &Query::Item {
+                id: key.into(),
+                stations: true,
+            },
+            None,
         )?
         .0
         .items
@@ -431,15 +410,15 @@ impl Core {
         .ok_or(Error::Input("Choose a music item"))
     }
     /// Download recipes page fresh server data only; never a stale offline page.
-    pub(crate) fn bounded_tracks(&self, path: &str, minutes: u32) -> Result<Vec<Item>> {
-        self.paged_tracks(path, minutes, Paging::Download)
+    pub(crate) fn bounded_tracks(&self, query: &Query, minutes: u32) -> Result<Vec<Item>> {
+        self.paged_tracks(query, minutes, Paging::Download)
     }
     /// The one bounded track pager: 100-row pages, at most 1000 tracks. Stops
     /// on an empty page, a short page without `totalSize`, the advertised total
     /// or, for timed plans, once `minutes` of audio are collected.
     pub(crate) fn paged_tracks(
         &self,
-        path: &str,
+        query: &Query,
         minutes: u32,
         paging: Paging,
     ) -> Result<Vec<Item>> {
@@ -448,20 +427,13 @@ impl Core {
         let mut duration = 0u64;
         // 10 full pages reach the limit; the 11th confirms an unknown total ended.
         for _ in 0..11 {
-            let (page, offline) = self.container_cached(
-                path,
-                &[
-                    ("X-Plex-Container-Start", start.to_string()),
-                    ("X-Plex-Container-Size", "100".into()),
-                ],
-            )?;
+            let (page, offline) = self.container_cached(query, Some(Page { start, size: 100 }))?;
             if offline && paging == Paging::Download {
                 return Err(Error::Input("Go online to refresh downloads"));
             }
             let count = page.items.len();
             for item in page.items {
-                if item.kind != crate::model::ItemKind::Track
-                    || crate::numeric(&item.rating_key).is_err()
+                if item.kind != crate::model::ItemKind::Track || self.id(&item.rating_key).is_err()
                 {
                     return Err(paging.not_track());
                 }
@@ -494,8 +466,7 @@ impl Core {
         let mut add = |items: Vec<Item>| -> Result<bool> {
             let before = tracks.len();
             for mut item in items {
-                if item.kind != crate::model::ItemKind::Track
-                    || crate::numeric(&item.rating_key).is_err()
+                if item.kind != crate::model::ItemKind::Track || self.id(&item.rating_key).is_err()
                 {
                     return Err(Error::ProtocolAt("radio download tracks"));
                 }
@@ -519,13 +490,7 @@ impl Core {
         };
         if let Some(key) = radio::station_key(&seed, &base)? {
             self.check_planning()?;
-            let identity =
-                self.plex
-                    .container(&base, &self.settings.server_token, "/identity", &[])?;
-            let uri = radio::station_uri(&identity.machine_identifier, &key)?;
-            let mut page =
-                self.plex
-                    .create_radio_queue(&base, &self.settings.server_token, &uri)?;
+            let mut page = self.backend.create_radio(&self.conn()?, &key)?;
             let id = page
                 .play_queue_id
                 .ok_or(Error::ProtocolAt("radio queue identity"))?;
@@ -539,16 +504,10 @@ impl Core {
                 let Some(center) = center.filter(|center| centers.insert(*center)) else {
                     break;
                 };
-                page = self.plex.container(
-                    &base,
-                    &self.settings.server_token,
-                    &format!("/playQueues/{id}"),
-                    &[
-                        ("center", center.to_string()),
-                        ("window", "50".into()),
-                        ("includeBefore", "0".into()),
-                        ("includeAfter", "1".into()),
-                    ],
+                page = self.backend.fetch(
+                    &self.conn()?,
+                    &Query::PlayQueueWindow { id, center },
+                    None,
                 )?;
             }
         } else {
@@ -592,15 +551,14 @@ impl Core {
         minutes: u32,
     ) -> Result<Value> {
         if kind == DownloadKind::Station {
-            if !key.starts_with("/library/")
-                || !crate::plex::advertised_path(&self.base()?, key)?
-                    .path()
-                    .starts_with("/library/")
+            if !self
+                .backend
+                .is_library_key(&self.backend.advertised_key(key)?.0)
             {
                 return Err(Error::Input("Choose a music item"));
             }
         } else {
-            crate::numeric(key)?;
+            self.id(key)?;
         }
         if !self.writable || self.offline_mode {
             return Err(Error::Input("Go online to refresh downloads"));
@@ -644,14 +602,20 @@ impl Core {
                 let item = self.playlist_metadata(key)?;
                 (
                     item.title,
-                    self.bounded_tracks(&format!("/playlists/{key}/items"), minutes)?,
+                    self.bounded_tracks(&Query::PlaylistItems { id: key.into() }, minutes)?,
                 )
             }
             DownloadKind::Album => {
                 let seed = self.fresh_metadata_item(key, &crate::model::ItemKind::Album)?;
                 (
                     seed.title.clone(),
-                    self.bounded_tracks(&format!("/library/metadata/{key}/children"), 0)?,
+                    self.bounded_tracks(
+                        &Query::Children {
+                            id: key.into(),
+                            kind: crate::model::ItemKind::Album,
+                        },
+                        0,
+                    )?,
                 )
             }
             DownloadKind::ArtistRadio | DownloadKind::AlbumRadio | DownloadKind::TrackRadio => {
@@ -720,6 +684,8 @@ impl Core {
         );
         self.manual_cache = plan.into_values().collect();
         self.catalogue_epoch = self.catalogue_epoch.wrapping_add(1);
+        // A client-side catalogue snapshot under a path PlexFreq invents; it
+        // is not a server request and no backend interprets it.
         self.library.save(
             &self.cache_namespace(),
             &format!("/plexfreq/downloads/{group}"),
@@ -871,14 +837,12 @@ impl Core {
         Ok(value)
     }
     pub(crate) fn discovery_home(&self, section: &str) -> Result<Value> {
-        crate::numeric(section)?;
+        self.id(section)?;
         let (container, offline) = self.container_cached(
-            &format!("/hubs/sections/{section}"),
-            &[
-                ("count", "12".into()),
-                ("includeStations", "1".into()),
-                ("includeMyMixes", "1".into()),
-            ],
+            &Query::Hubs {
+                section: section.into(),
+            },
+            None,
         )?;
         let layout = self.discovery_layout(section);
         let mut hubs = container.hubs;
@@ -900,7 +864,7 @@ impl Core {
                 .hub_identifier
                 .strip_prefix("music.recent.added.")
                 .or_else(|| hub.hub_identifier.strip_prefix("music.recent.played."));
-            let grid = recent.is_some_and(|section| crate::numeric(section).is_ok())
+            let grid = recent.is_some_and(|section| self.id(section).is_ok())
                 || matches!(
                     hub.hub_identifier.as_str(),
                     "music.recentlyAdded"
@@ -914,10 +878,12 @@ impl Core {
             for item in hub.items.into_iter().take(12) {
                 let station = item.kind == crate::model::ItemKind::Playlist
                     && item.radio
-                    && item.key.starts_with("/library/")
-                    && crate::plex::advertised_path(&self.base()?, &item.key).is_ok();
+                    && self
+                        .backend
+                        .advertised_key(&item.key)
+                        .is_ok_and(|(path, _)| self.backend.is_library_key(&path));
                 if !(item.kind.is_music() || item.kind == crate::model::ItemKind::Playlist)
-                    || (!station && crate::numeric(&item.rating_key).is_err())
+                    || (!station && self.id(&item.rating_key).is_err())
                 {
                     continue;
                 }
@@ -953,18 +919,14 @@ impl Core {
         Ok(json!({"items":items,"start":0,"next":0,"hasMore":false}))
     }
     pub(crate) fn start_station(&mut self, key: &str, title: &str) -> Result<Value> {
-        if self.offline_mode || !key.starts_with("/library/") {
+        if self.offline_mode
+            || !self
+                .backend
+                .is_library_key(&self.backend.advertised_key(key)?.0)
+        {
             return Err(Error::Input("Choose a music item"));
         }
-        let base = self.base()?;
-        crate::plex::advertised_path(&base, key)?;
-        let identity = self
-            .plex
-            .container(&base, &self.settings.server_token, "/identity", &[])?;
-        let uri = radio::station_uri(&identity.machine_identifier, key)?;
-        let page = self
-            .plex
-            .create_radio_queue(&base, &self.settings.server_token, &uri)?;
+        let page = self.backend.create_radio(&self.conn()?, key)?;
         let id = page
             .play_queue_id
             .ok_or(Error::ProtocolAt("radio queue identity"))?;
@@ -997,22 +959,25 @@ impl Core {
     }
     pub(crate) fn sonic_adventure(&self, section: &str, start: &str, end: &str) -> Result<Value> {
         for key in [section, start, end] {
-            crate::numeric(key)?;
+            self.id(key)?;
         }
         let (container, offline) = self.container_cached(
-            &format!("/library/sections/{section}/computePath"),
-            &[
-                ("startID", start.into()),
-                ("endID", end.into()),
-                ("X-Plex-Container-Start", "0".into()),
-                ("X-Plex-Container-Size", "100".into()),
-            ],
+            &Query::ComputePath {
+                section: section.into(),
+                start: start.into(),
+                end: end.into(),
+            },
+            Some(Page {
+                start: 0,
+                size: 100,
+            }),
         )?;
         if container.items.len() > 100
             || container.total_size.is_some_and(|n| n > 100)
-            || container.items.iter().any(|i| {
-                i.kind != crate::model::ItemKind::Track || crate::numeric(&i.rating_key).is_err()
-            })
+            || container
+                .items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track || self.id(&i.rating_key).is_err())
         {
             return Err(Error::ProtocolAt("sonic adventure"));
         }

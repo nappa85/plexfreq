@@ -1,5 +1,5 @@
 Name: plexfreq-backend-test
-Version: 0.1.11
+Version: 0.2.0
 Release: 1
 Summary: Local PlexFreq native audio integration fixture
 License: GPLv3+
@@ -33,6 +33,8 @@ strip --strip-unneeded plexfreq-backend-test
 %{_bindir}/%{name}
 
 %changelog
+* Mon Nov 23 2026 PlexFreq contributors - 0.2.0-1
+- Server capability gating, filter choices and Jellyfin sign-in form coverage
 * Wed Nov 11 2026 PlexFreq contributors - 0.1.11-1
 - Large-collection QML readers, windowed artist grid and view-switch ordering regression coverage
 * Sat Nov 07 2026 PlexFreq contributors - 0.1.10-1

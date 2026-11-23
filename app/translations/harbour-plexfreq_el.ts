@@ -184,12 +184,12 @@
       <translation>Δεν ήταν δυνατή η ανανέωση του ραδιοφώνου. Τα ληφθέντα κομμάτια ενδέχεται να επαναληφθούν.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Το Plex επέστρεψε HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Ο διακομιστής επέστρεψε HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Μη αναμενόμενη απόκριση Plex (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Μη αναμενόμενη απόκριση διακομιστή (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Η ροή ήχου απέτυχε</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Η εξουσιοδότηση απέτυχε· συνδεθείτε ξανά ή ελέγξτε το διακριτικό του διακομιστή</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Επιλέξτε έως 1000 έγκυρα κομμάτια για λήψη</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Συνδεθείτε πρώτα σε διακομιστή Plex</translation>
+      <source>Connect to a server first</source>
+      <translation>Συνδεθείτε πρώτα σε διακομιστή</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Η διαδρομή Plex άλλης προέλευσης απορρίφθηκε</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Η διαδρομή άλλης προέλευσης απορρίφθηκε</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Αναμενόταν αριθμητικό αναγνωριστικό Plex</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Αναμενόταν διαδρομή Plex σχετική με τον διακομιστή</translation>
+      <source>Expected a server identifier</source>
+      <translation>Αναμενόταν αναγνωριστικό διακομιστή</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Αναμενόταν διαδρομή σχετική με τον διακομιστή</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Σύνδεση στο διαδίκτυο</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Συνδεθείτε στο διαδίκτυο για να επεξεργαστείτε λίστες αναπαραγωγής Plex</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Συνδεθείτε στο διαδίκτυο για να επεξεργαστείτε λίστες αναπαραγωγής</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Μη έγκυρος δείκτης διακομιστή</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Απαιτείται Jellyfin 10.9 ή νεότερο</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Απαιτείται συγχρονισμός ιστορικού ακρόασης πριν από την καταγραφή νέων αναπαραγωγών</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Η επεξεργασία λιστών αναπαραγωγής είναι απενεργοποιημένη σε λειτουργία μόνο ανάγνωσης</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Η εξουσιοδότηση Plex απέτυχε· συνδεθείτε ξανά ή ελέγξτε το διακριτικό του διακομιστή</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Το Plex δεν παρέχει ραδιοφωνικό σταθμό για αυτόν τον καλλιτέχνη</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Η ουρά απαιτεί κομμάτια και έγκυρη θέση έναρξης</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Το Quick Connect δεν είναι ενεργοποιημένο σε αυτόν τον διακομιστή</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Η αποθηκευμένη ουρά δεν είναι έγκυρη</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>Το URL του διακομιστή πρέπει να είναι διεύθυνση HTTP(S), προαιρετικά με διαδρομή όπως /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>Το URL του διακομιστή πρέπει να είναι προέλευση HTTP(S), π.χ. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Ξεκινήστε πρώτα τη σύνδεση</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Η καταχώριση της λίστας αναπαραγωγής δεν βρέθηκε</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Ο διακομιστής δεν μετακίνησε την καταχώριση της λίστας αναπαραγωγής</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Αυτό το άλμπουμ δεν περιέχει κομμάτια προς αναπαραγωγή</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Αυτός ο καλλιτέχνης ή το άλμπουμ δεν έχει αποθηκευτεί για χρήση εκτός σύνδεσης</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Αυτός δεν είναι διακομιστής Jellyfin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Αυτή η σελίδα βιβλιοθήκης δεν έχει αποθηκευτεί ακόμη για χρήση εκτός σύνδεσης</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Αυτός ο διακομιστής δεν υποστηρίζει αυτή τη λειτουργία</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Αυτό το κομμάτι δεν έχει ληφθεί</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Αυτό το κομμάτι υπάρχει στη λίστα αναπαραγωγής περισσότερες από μία φορές και ο διακομιστής δεν μπορεί να ξεχωρίσει τα αντίγραφα</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Το κομμάτι δεν έχει τμήμα πολυμέσων προς λήψη</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Μη αναμενόμενη απόκριση Plex</translation>
+      <source>Unexpected server response</source>
+      <translation>Μη αναμενόμενη απόκριση διακομιστή</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Προστέθηκαν πρόσφατα</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Παίχτηκαν πρόσφατα</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Αγαπημένα</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Πιο πολυπαιγμένα</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Δεν βρέθηκε μουσική</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Σύνδεση στο Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Σύνδεση με διακομιστή</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Δεν βρέθηκε μουσική.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Συνδεθείτε στον μουσικό διακομιστή για να ξεκινήσετε την ακρόαση.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Συνδεθείτε στον μουσικό διακομιστή Plex για να ξεκινήσετε την ακρόαση.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Χωρίς επανάληψη</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Σύνδεση στο Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Σύνδεση με διακομιστή</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Τύπος διακομιστή</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Απευθείας σύνδεση</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>URL διακομιστή</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Όνομα χρήστη</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Κωδικός πρόσβασης</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Σύνδεση στο Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Χρήση του Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Εισαγάγετε αυτόν τον κωδικό στο Jellyfin, στην ενότητα Quick Connect, και περιμένετε εδώ.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Ακύρωση</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Στατιστικά ακρόασης</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Αγαπημένα</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Ηχητικά παρόμοια</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Αγαπημένα</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Αγαπημένα · 5 αστέρια</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Σύνδεση στο Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Σύνδεση με διακομιστή</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Τύπος διακομιστή</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Σύνδεση</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Όνομα χρήστη</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Κωδικός πρόσβασης</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Σύνδεση στο Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Χρήση του Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Εισαγάγετε αυτόν τον κωδικό στο Jellyfin, στην ενότητα Quick Connect, και περιμένετε εδώ.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Ακύρωση</translation>
     </message>
     <message>
       <source>Sign out</source>

@@ -62,8 +62,8 @@ impl StalledConnman {
     async fn get_services(
         &self,
     ) -> Vec<(
-        zbus::zvariant::OwnedObjectPath,
-        std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
+        zbus::OwnedObjectPath,
+        std::collections::HashMap<String, zbus::OwnedVariant>,
     )> {
         self.calls.fetch_add(1, Ordering::SeqCst);
         futures_util::future::pending::<()>().await;
@@ -71,9 +71,9 @@ impl StalledConnman {
     }
 }
 
-// Review: the network observer (runtime/platform.rs `facts`) uses blocking
-// zbus calls with no method timeout (zbus 4.4 has none by default), unlike the
-// BlueZ observer which bounds every RPC to 2 s. A ConnMan that accepts the
+// Review: the network observer (runtime/platform.rs `facts`) uses zbus
+// calls with no method timeout (zbus has none by default), unlike the BlueZ
+// observer which bounds every RPC to 2 s. A ConnMan that accepts the
 // call but never replies (daemon restart/hang) blocks plexfreq-network
 // forever, so Platform::drop -> Runtime::drop -> pf_runtime_free never returns
 // and the GUI freezes on exit.
@@ -83,19 +83,18 @@ fn stalled_connman_reply_does_not_block_runtime_shutdown() {
     let bus = private_bus();
     let calls = Arc::new(AtomicUsize::new(0));
     drive_blocking_zbus();
-    let _service = zbus::blocking::ConnectionBuilder::address(bus.address.as_str())
-        .unwrap()
-        .name("net.connman")
-        .unwrap()
-        .serve_at(
-            "/",
-            StalledConnman {
-                calls: calls.clone(),
-            },
-        )
-        .unwrap()
-        .build()
-        .unwrap();
+    let _service = zbus::block_on(
+        zbus::connection::Builder::address(bus.address.as_str())
+            .name("net.connman")
+            .serve_at(
+                "/",
+                StalledConnman {
+                    calls: calls.clone(),
+                },
+            )
+            .build(),
+    )
+    .unwrap();
     let dir = tempfile::tempdir().unwrap();
     let runtime = Runtime::new(dir.path().into()).unwrap();
     let end = Instant::now() + Duration::from_secs(10);
@@ -181,9 +180,10 @@ fn startup_failure_does_not_leave_runtime_busy_forever() {
     drop(runtime);
 }
 
-/// zbus (tokio feature) runs its blocking API on a private current-thread
-/// runtime that only progresses while some thread blocks on it, so blocking
-/// fixture services would never answer between calls. Keep it driven.
+/// With zbus's `tokio` feature, `zbus::block_on` runs its connections on a
+/// private current-thread runtime that only progresses while some thread is
+/// inside `block_on`, so fixture services would never answer between calls.
+/// Keep it driven.
 fn drive_blocking_zbus() {
     static DRIVER: std::sync::Once = std::sync::Once::new();
     DRIVER.call_once(|| {

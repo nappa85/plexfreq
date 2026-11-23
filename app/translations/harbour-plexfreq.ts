@@ -184,11 +184,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
+      <source>Server returned HTTP %1</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
+      <source>Unexpected server response (%1)</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -265,6 +265,10 @@
     </message>
     <message>
       <source>Audio streaming failed</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -360,11 +364,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
+      <source>Connect to a server first</source>
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
+      <source>Cross-origin path rejected</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -400,7 +404,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
+      <source>Expected a server identifier</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -408,7 +416,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
+      <source>Go online to edit playlists</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -480,6 +488,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation type="unfinished" />
     </message>
@@ -540,10 +552,6 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation type="unfinished" />
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation type="unfinished" />
     </message>
@@ -557,6 +565,10 @@
     </message>
     <message>
       <source>Queue requires tracks and a valid start index</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -596,6 +608,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation type="unfinished" />
     </message>
@@ -620,6 +636,14 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation type="unfinished" />
     </message>
@@ -628,7 +652,15 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -637,6 +669,10 @@
     </message>
     <message>
       <source>This track has not been downloaded</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -656,7 +692,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Unexpected Plex response</source>
+      <source>Unexpected server response</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,7 +1560,7 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Connect to Plex</source>
+      <source>Connect to a server</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1608,6 +1663,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation type="unfinished" />
     </message>
@@ -1636,7 +1695,11 @@
       <translation type="unfinished" />
     </message>
     <message>
-      <source>Connect to Plex</source>
+      <source>Connect to a server</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Server type</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1685,6 +1748,34 @@
     </message>
     <message>
       <source>Connect directly</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Username</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Password</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Cancel</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -1800,6 +1891,10 @@
     </message>
     <message>
       <source>Listening insights</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Favorites</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -2037,6 +2132,10 @@
       <translation type="unfinished" />
     </message>
     <message>
+      <source>Favorites</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation type="unfinished" />
     </message>
@@ -2096,7 +2195,11 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
+      <source>Connect to a server</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Server type</source>
       <translation type="unfinished" />
     </message>
     <message>
@@ -2145,6 +2248,30 @@
     </message>
     <message>
       <source>Connect</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Username</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Password</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <source>Cancel</source>
       <translation type="unfinished" />
     </message>
     <message>

@@ -184,12 +184,12 @@
       <translation>Radiota ei voitu päivittää. Ladatut kappaleet voivat toistua.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex palautti HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Palvelin palautti HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Odottamaton Plex-vastaus (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Odottamaton palvelimen vastaus (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Äänen suoratoisto epäonnistui</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Valtuutus epäonnistui; kirjaudu uudelleen tai tarkista palvelimen tunnus</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Valitse ladattavaksi enintään 1000 kelvollista kappaletta</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Yhdistä ensin Plex-palvelimeen</translation>
+      <source>Connect to a server first</source>
+      <translation>Yhdistä ensin palvelimeen</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Toisen alkuperän Plex-polku hylättiin</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Toisen alkuperän polku hylättiin</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Odotettiin numeerista Plex-tunnistetta</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Odotettiin palvelimeen suhteutettua Plex-polkua</translation>
+      <source>Expected a server identifier</source>
+      <translation>Odotettiin palvelimen tunnistetta</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Odotettiin palvelimeen suhteutettua polkua</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Siirry online-tilaan</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Siirry online-tilaan muokataksesi Plex-soittolistoja</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Siirry online-tilaan muokataksesi soittolistoja</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Virheellinen palvelimen indeksi</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 tai uudempi vaaditaan</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Kuunteluhistoria on synkronoitava ennen uusien kuuntelujen tallentamista</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Soittolistojen muokkaus on poistettu käytöstä vain luku -tarkastelussa</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex-valtuutus epäonnistui; kirjaudu uudelleen tai tarkista palvelimen tunnus</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex ei tarjoa tälle artistille artistiradioasemaa</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Jono vaatii kappaleita ja kelvollisen aloitusindeksin</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect ei ole käytössä tällä palvelimella</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Tallennettu jono on virheellinen</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>Palvelimen URL-osoitteen on oltava HTTP(S)-osoite, valinnaisesti polulla kuten /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>Palvelimen URL-osoitteen on oltava HTTP(S)-alkuperä, esim. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Aloita kirjautuminen ensin</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Soittolistan kohdetta ei löytynyt</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Palvelin ei siirtänyt soittolistan kohdetta</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Tällä albumilla ei ole toistettavia kappaleita</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Tätä artistia tai albumia ei ole tallennettu offline-käyttöön</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Tämä ei ole Jellyfin-palvelin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Tätä kirjaston sivua ei ole vielä tallennettu offline-käyttöön</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Tämä palvelin ei tue tätä ominaisuutta</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Tätä kappaletta ei ole ladattu</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Tämä kappale on soittolistalla useammin kuin kerran, eikä palvelin pysty erottamaan kopioita toisistaan</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Kappaleella ei ole ladattavaa mediaosaa</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Odottamaton Plex-vastaus</translation>
+      <source>Unexpected server response</source>
+      <translation>Odottamaton palvelimen vastaus</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Äskettäin lisätyt</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Äskettäin soitetut</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Suosikit</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Eniten soitetut</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Musiikkia ei löytynyt</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Yhdistä Plexiin</translation>
+      <source>Connect to a server</source>
+      <translation>Yhdistä palvelimeen</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Musiikkia ei löytynyt.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Yhdistä musiikkipalvelimeesi aloittaaksesi kuuntelun.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Yhdistä Plex-musiikkipalvelimeesi aloittaaksesi kuuntelun.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Uudelleentoisto pois</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Yhdistä Plexiin</translation>
+      <source>Connect to a server</source>
+      <translation>Yhdistä palvelimeen</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Palvelimen tyyppi</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Yhdistä suoraan</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Palvelimen URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Käyttäjätunnus</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Salasana</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Kirjaudu Jellyfiniin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Käytä Quick Connectia</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Anna tämä koodi Jellyfinin Quick Connect -kohdassa ja odota tässä.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Peruuta</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Kuuntelutilastot</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Suosikit</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Samankaltainen soundi</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Suosikit</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Suosikit · 5 tähteä</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Yhdistä Plexiin</translation>
+      <source>Connect to a server</source>
+      <translation>Yhdistä palvelimeen</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Palvelimen tyyppi</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Yhdistä</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Käyttäjätunnus</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Salasana</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Kirjaudu Jellyfiniin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Käytä Quick Connectia</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Anna tämä koodi Jellyfinin Quick Connect -kohdassa ja odota tässä.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Peruuta</translation>
     </message>
     <message>
       <source>Sign out</source>

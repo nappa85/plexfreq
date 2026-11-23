@@ -184,12 +184,12 @@
       <translation>Rádio se nepodařilo obnovit. Stažené skladby se mohou opakovat.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex vrátil HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Server vrátil HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Neočekávaná odpověď Plex (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Neočekávaná odpověď serveru (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Streamování zvuku selhalo</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Autorizace selhala; přihlaste se znovu nebo zkontrolujte token serveru</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Zvolte nejvýše 1000 platných skladeb ke stažení</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Nejprve se připojte k serveru Plex</translation>
+      <source>Connect to a server first</source>
+      <translation>Nejprve se připojte k serveru</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Cesta Plex z jiného původu byla odmítnuta</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Cesta z jiného původu byla odmítnuta</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Byl očekáván číselný identifikátor Plex</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Byla očekávána cesta Plex relativní k serveru</translation>
+      <source>Expected a server identifier</source>
+      <translation>Očekává se identifikátor serveru</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Byla očekávána cesta relativní k serveru</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Přejít online</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Pro úpravu playlistů Plex přejděte online</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Pro úpravu playlistů přejděte online</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Neplatný index serveru</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Je vyžadován Jellyfin 10.9 nebo novější</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Před zaznamenáním dalších přehrání je nutné synchronizovat historii poslechu</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Úpravy playlistů jsou v režimu jen pro čtení vypnuty</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Autorizace Plex selhala; přihlaste se znovu nebo zkontrolujte token serveru</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex pro tohoto interpreta nenabízí rozhlasovou stanici</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Fronta vyžaduje skladby a platný počáteční index</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect není na tomto serveru zapnuto</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Uložená fronta je neplatná</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>URL serveru musí být adresa HTTP(S), volitelně s cestou, např. /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>URL serveru musí být původ HTTP(S), např. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Nejprve zahajte přihlášení</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Položka playlistu nebyla nalezena</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Server nepřesunul položku seznamu skladeb</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Toto album neobsahuje žádné přehratelné skladby</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Tento interpret nebo album nebyl uložen offline</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Toto není server Jellyfin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Tato stránka knihovny ještě nebyla uložena offline</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Tento server tuto funkci nepodporuje</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Tato skladba nebyla stažena</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Tato skladba je v playlistu vícekrát a server nedokáže kopie rozlišit</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Skladba nemá mediální část ke stažení</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Neočekávaná odpověď Plex</translation>
+      <source>Unexpected server response</source>
+      <translation>Neočekávaná odpověď serveru</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedávno přidané</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedávno přehrávané</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Oblíbené</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Nejpřehrávanější</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Nebyla nalezena žádná hudba</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Připojit k Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Připojit k serveru</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Nebyla nalezena žádná hudba.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Připojte se k hudebnímu serveru a začněte poslouchat.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Připojte se k hudebnímu serveru Plex a začněte poslouchat.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Neopakovat</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Připojit k Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Připojit k serveru</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Typ serveru</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Připojit přímo</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>URL serveru</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Uživatelské jméno</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Heslo</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Přihlásit se k Jellyfinu</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Použít Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Zadejte tento kód v Jellyfinu v části Quick Connect a počkejte zde.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Zrušit</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Statistiky poslechu</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Oblíbené</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Zvukově podobné</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Oblíbené</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Oblíbené · 5 hvězdiček</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Připojit k Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Připojit k serveru</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Typ serveru</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Připojit</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Uživatelské jméno</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Heslo</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Přihlásit se k Jellyfinu</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Použít Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Zadejte tento kód v Jellyfinu v části Quick Connect a počkejte zde.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Zrušit</translation>
     </message>
     <message>
       <source>Sign out</source>

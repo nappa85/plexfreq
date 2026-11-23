@@ -59,9 +59,10 @@ class NavigationBackend : public QObject {
     Q_PROPERTY(qint64 duration READ duration CONSTANT)
     Q_PROPERTY(bool playing READ playing CONSTANT)
     Q_PROPERTY(bool buffering READ buffering NOTIFY playbackChanged)
-    Q_PROPERTY(QString error READ error CONSTANT)
+    Q_PROPERTY(QString error READ error NOTIFY errorChanged)
 public:
     QString operation;
+    QList<QPair<QString,QVariantMap>> log;
     int commandCount=0;
     QVariantMap arguments;
     QVariantMap data{{"detail", QVariantMap()}, {"items", QVariantList()}, {"servers", QVariantList()}, {"queue", QVariantMap{{"repeat","off"},{"shuffled",false}}}};
@@ -79,7 +80,8 @@ public:
     bool playing() const {return false;}
     bool buffering() const {return bufferingValue;}
     bool bufferingValue=false;
-    QString error() const {return QString();}
+    QString errorText;
+    QString error() const {return errorText;}
     QVariantMap state() const { return data; }
     QVariantMap cache() const { return cacheData; }
     QVariantList items() {++itemReads;return itemModel.entries();}
@@ -96,10 +98,11 @@ public:
     void setKeys(const QSet<QString> &readyKeys,const QSet<QString> &goneKeys,const QSet<QString> &groups){ready=readyKeys;gone=goneKeys;pinnedGroups=groups;++revision;emit cacheRevisionChanged();}
     QAbstractItemModel *itemsModel() {return &itemModel;}
     QAbstractItemModel *queueModel() {return &queuedModel;}
-    Q_INVOKABLE void command(const QString &op, const QVariantMap &args = QVariantMap()) { ++commandCount; operation = op; arguments = args; if(resetOnCommand && itemModel.rowCount()>0)setItems({}); }
+    Q_INVOKABLE bool command(const QString &op, const QVariantMap &args = QVariantMap()) { ++commandCount; operation = op; arguments = args; log.append({op,args}); if(resetOnCommand && itemModel.rowCount()>0)setItems({}); return true; }
 signals:
     void completed(const QString &op, bool ok, const QVariantMap &data);
     void stateChanged();
+    void errorChanged();
     void cacheChanged();
     void cacheRevisionChanged();
     void itemsChanged();
@@ -405,7 +408,7 @@ ApplicationWindow {
         const auto languages=QString("bg bn cs da de el es et fi fr gu hi hu it kn lt lv ml mr nb nl pa pl pt pt_BR ro ru sk sl sv ta te tr tt uk vi zh_CN zh_HK zh_TW").split(' ');
         for(const auto &language:languages){QTranslator translator;QVERIFY(translator.load(":/translations/harbour-plexfreq_"+language+".qm"));QCoreApplication::installTranslator(&translator);
             const auto text=QCoreApplication::translate("Session","%1 tracks");QVERIFY(text.contains("%1"));QVERIFY(!text.isEmpty());
-            const auto error=translatedMessage("Plex returned HTTP 404");QVERIFY(error.contains("404"));QVERIFY(!error.contains("%1"));
+            const auto error=translatedMessage("Server returned HTTP 404");QVERIFY(error.contains("404"));QVERIFY(!error.contains("%1"));
             if(language=="it")QCOMPARE(QCoreApplication::translate("LibraryPage","Search artists, albums and tracks"),QString::fromUtf8("Cerca artisti, album e brani"));
             QCoreApplication::removeTranslator(&translator);
         }
@@ -963,6 +966,149 @@ ApplicationWindow {
         QQuickItem *view=nullptr;for(auto *child:h.grid->childItems())if(child->metaObject()->indexOfProperty("cellHeight")>=0 && child->metaObject()->indexOfProperty("contentItem")>=0)view=child;
         QVERIFY(view);const auto offset=h.grid->property("windowOffset").toReal();QVERIFY(offset>0);QCOMPARE(view->property("contentY").toReal(),offset);
         view->setProperty("contentY",0.0);QTRY_COMPARE(view->property("contentY").toReal(),offset);QCOMPARE(view->y(),offset);
+    }
+    void capabilitiesGateServerSpecificActions() {
+        NavigationBackend backend;backend.data.insert("serverUrl","http://fixture.invalid");
+        QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine);component.setData(R"(import QtQuick 2.6
+import "qrc:/qml/shared" as Shared
+Item {
+    property alias music:session
+    property alias actions:actions
+    property alias catalogue:navigation
+    Shared.Session {id:session}
+    Shared.ItemActions {id:actions;music:session}
+    Shared.Navigation {id:navigation;music:session}
+})",QUrl("qrc:/tests/Capabilities.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> scene(component.create());QVERIFY(scene.get());
+        auto *music=scene->property("music").value<QObject *>();auto *actions=scene->property("actions").value<QObject *>();auto *navigation=scene->property("catalogue").value<QObject *>();QVERIFY(music && actions && navigation);
+        music->setProperty("section","1");music->setProperty("route",QVariantMap{{"op","browse"},{"args",QVariantMap()},{"title","Artists"}});QVERIFY(music->property("artistBrowse").toBool());
+        auto visible=[&](const QString &id,const QString &type,bool smart=false){QQmlExpression expression(engine.rootContext(),actions,QString("definition('%1',{type:'%2',ratingKey:'7',smart:%3,station:false},0).visible").arg(id,type,smart?"true":"false"));return expression.evaluate().toBool();};
+        auto navigationVisible=[&](const QString &id){QQmlExpression expression(engine.rootContext(),navigation,QString("definition('%1').visible").arg(id));return expression.evaluate().toBool();};
+        // No capabilities reported (Plex, or not yet known): everything is offered.
+        QVERIFY(visible("similar","track"));QVERIFY(visible("waypoint","track"));QVERIFY(visible("adventureStart","track"));QVERIFY(visible("editSmart","playlist",true));QVERIFY(navigationVisible("createSmart"));
+        const QVariantMap jellyfin{{"sonic",false},{"sonicAdventure",false},{"serverStations",false},{"smartPlaylists",false},{"firstCharacter",false},{"moodFilter",false},{"styleFilter",false},{"ratingFilter",false},{"starRating",false},{"serverHubs",true}};
+        backend.data.insert("serverKind","jellyfin");backend.data.insert("capabilities",jellyfin);emit backend.stateChanged();
+        QVERIFY(music->property("jellyfin").toBool());
+        QVERIFY(!visible("similar","track"));QVERIFY(!visible("waypoint","track"));QVERIFY(!visible("adventureStart","track"));QVERIFY(!visible("adventureEnd","track"));QVERIFY(!visible("editSmart","playlist",true));QVERIFY(!navigationVisible("createSmart"));
+        QVERIFY(visible("addQueue","track"));
+        // Core would refuse these; the UI does not even send them.
+        const auto commands=backend.commandCount;
+        QVERIFY(QMetaObject::invokeMethod(music,"sonicNeighbors",Q_ARG(QVariant,QVariant(QVariantMap{{"ratingKey","7"},{"type","track"}}))));
+        QVERIFY(QMetaObject::invokeMethod(music,"jump",Q_ARG(QVariant,QVariant("B"))));
+        QCOMPARE(backend.commandCount,commands);
+        // The alphabet follows firstCharacter.
+        backend.data.insert("alphabetSection","1");backend.data.insert("alphabet",QVariantList{QVariantMap{{"letter","A"},{"offset",0}}});emit backend.stateChanged();
+        QVERIFY(music->property("alphabet").toList().isEmpty());
+        // Synthesised hub titles are translated by identifier, for Jellyfin only.
+        QVariantMap hubs{{"discoveryHome",true},{"items",QVariantList{QVariantMap{{"hubIdentifier","music.favorites.1"},{"discoveryGroup","Favorites"}}}}};
+        translateHubTitles(hubs,"jellyfin");QCOMPARE(hubs.value("items").toList().first().toMap().value("discoveryGroup").toString(),QCoreApplication::translate("Hub","Favorites"));
+        QVariantMap plexHubs{{"discoveryHome",true},{"items",QVariantList{QVariantMap{{"hubIdentifier","music.recent.added.1"},{"discoveryGroup","Server title"}}}}};
+        translateHubTitles(plexHubs,"plex");QCOMPARE(plexHubs.value("items").toList().first().toMap().value("discoveryGroup").toString(),QString("Server title"));
+        backend.data.insert("serverKind","plex");backend.data.insert("capabilities",QVariantMap{{"sonic",true},{"sonicAdventure",true},{"serverStations",true},{"smartPlaylists",true},{"firstCharacter",true}});emit backend.stateChanged();
+        QVERIFY(visible("similar","track"));QVERIFY(visible("editSmart","playlist",true));QVERIFY(navigationVisible("createSmart"));QVERIFY(!music->property("alphabet").toList().isEmpty());
+    }
+    void capabilitiesFollowTheServerAcrossSwitchesDrivenByReplies() {
+        QTemporaryDir directory;Backend backend(directory.path());
+        QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> music(component.create());QVERIFY(music.get());
+        auto can=[&](const char *name){QVariant out;QMetaObject::invokeMethod(music.get(),"can",Q_RETURN_ARG(QVariant,out),Q_ARG(QVariant,QVariant(name)));return out.toBool();};
+        auto reply=[&](const char *op,const QVariantMap &data){backend.handle({{"request",QVariantMap{{"op",op}}},{"response",QVariantMap{{"ok",true},{"data",data}}}});};
+        const QVariantMap plex{{"sonic",true},{"sonicAdventure",true},{"serverStations",true},{"smartPlaylists",true},{"firstCharacter",true},{"moodFilter",true},{"styleFilter",true}};
+        const QVariantMap jellyfin{{"sonic",false},{"sonicAdventure",false},{"serverStations",false},{"smartPlaylists",false},{"firstCharacter",false},{"moodFilter",false},{"styleFilter",false}};
+        // Plex connection.
+        reply("connect",{{"serverKind","plex"},{"capabilities",plex},{"libraries",QVariantList()}});
+        QVERIFY(!music->property("jellyfin").toBool());QVERIFY(can("sonic"));QVERIFY(can("moodFilter"));
+        // Jellyfin sign-in replaces the capabilities: no sonic, no mood filter.
+        reply("jellyfin_login",{{"serverKind","jellyfin"},{"capabilities",jellyfin},{"libraries",QVariantList()}});
+        QVERIFY(music->property("jellyfin").toBool());QVERIFY(!can("sonic"));QVERIFY(!can("moodFilter"));QVERIFY(!can("firstCharacter"));
+        // A pending Quick Connect request is shown, then sign-out clears it and restores Plex.
+        reply("jellyfin_quick_connect",{{"quickConnect",QVariantMap{{"code","123456"}}}});QVERIFY(music->property("quickConnectPending").toBool());
+        reply("logout",{{"signedIn",false},{"serverKind","plex"},{"capabilities",plex},{"quickConnect",QVariant()}});
+        QVERIFY(!music->property("jellyfin").toBool());QVERIFY(can("sonic"));QVERIFY(can("moodFilter"));QVERIFY(!music->property("quickConnectPending").toBool());
+        // The expiry notice is a message to the user, not state.
+        QSignalSpy errors(&backend,&Backend::errorChanged);
+        reply("jellyfin_quick_connect_poll",{{"quickConnect",QVariant()},{"notice","Login expired; start again"}});
+        QVERIFY(errors.count()>0);QVERIFY(!backend.error().isEmpty());QVERIFY(!backend.state().contains("notice"));
+    }
+    void filterChoicesAreRequestedOnlyForSupportedFields() {
+        NavigationBackend backend;QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/tests/Session.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> music(component.create());QVERIFY(music.get());music->setProperty("section","1");
+        auto fields=[&]{QStringList out;for(const auto &entry:backend.log)if(entry.first=="filter_options")out<<entry.second.value("field").toString();backend.log.clear();return out;};
+        backend.log.clear();
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"editFilters",Q_ARG(QVariant,QVariant("browse")),Q_ARG(QVariant,QVariant())));
+        QCOMPARE(fields(),QStringList({"genre","mood","style"}));
+        backend.data.insert("serverKind","jellyfin");backend.data.insert("capabilities",QVariantMap{{"moodFilter",false},{"styleFilter",false}});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"editFilters",Q_ARG(QVariant,QVariant("browse")),Q_ARG(QVariant,QVariant())));
+        QCOMPARE(fields(),QStringList({"genre"}));
+        backend.data.insert("capabilities",QVariantMap{{"moodFilter",true},{"styleFilter",false}});emit backend.stateChanged();
+        QVERIFY(QMetaObject::invokeMethod(music.get(),"editFilters",Q_ARG(QVariant,QVariant("browse")),Q_ARG(QVariant,QVariant())));
+        QCOMPARE(fields(),QStringList({"genre","mood"}));
+    }
+    void desktopJellyfinSignInFormSendsLoginAndClearsPassword() {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        QSKIP("Desktop Controls2 adapter is checked with Qt6");
+#else
+        NavigationBackend backend;
+        QQmlEngine engine;engine.rootContext()->setContextProperty("backend",&backend);
+        QQmlComponent component(&engine,QUrl("qrc:/qml/desktop/Main.qml"));QVERIFY2(component.isReady(),qPrintable(component.errorString()));
+        std::unique_ptr<QObject> window(component.create());QVERIFY(window.get());
+        auto *music=window->findChild<QObject *>("musicSession");QVERIFY(music);
+        auto *url=window->findChild<QObject *>("jellyfinUrl");auto *user=window->findChild<QObject *>("jellyfinUser");auto *password=window->findChild<QObject *>("jellyfinPassword");
+        auto *signIn=window->findChild<QObject *>("jellyfinSignInButton");auto *quick=window->findChild<QObject *>("jellyfinQuickConnectButton");auto *cancel=window->findChild<QObject *>("quickConnectCancel");auto *code=window->findChild<QObject *>("quickConnectCode");
+        QVERIFY(url && user && password && signIn && quick && cancel && code);
+        QCOMPARE(password->property("echoMode").toInt(),2);
+        // Plex stays the default; Jellyfin is a deliberate choice.
+        QCOMPARE(music->property("signInKind").toString(),QString("plex"));
+        music->setProperty("signInChoice","jellyfin");QCOMPARE(music->property("signInKind").toString(),QString("jellyfin"));
+        QVERIFY(!signIn->property("enabled").toBool());
+        // Enter does not bypass the disabled button.
+        const auto before=backend.commandCount;QVERIFY(QMetaObject::invokeMethod(password,"accepted"));QCOMPARE(backend.commandCount,before);
+        // Sign-in errors are shown inside the modal dialog.
+        auto *settingsError=window->findChild<QObject *>("settingsError");auto *dialog=window->findChild<QObject *>("connectionDialog");QVERIFY(settingsError && dialog);
+        QVERIFY(QMetaObject::invokeMethod(dialog,"open"));QTRY_VERIFY(dialog->property("visible").toBool());QVERIFY(!settingsError->property("visible").toBool());
+        backend.errorText="Bad credentials";emit backend.errorChanged();QTRY_VERIFY(settingsError->property("visible").toBool());QCOMPARE(settingsError->property("text").toString(),QString("Bad credentials"));
+        // Typed text (an edit, which keeps a QML binding on `text`) survives
+        // status updates; a binding to the saved server would reset it.
+        QVERIFY(QMetaObject::invokeMethod(url,"insert",Q_ARG(int,0),Q_ARG(QString,"http://typed.invalid:8096")));
+        auto *address=window->findChild<QObject *>("plexAddress");QVERIFY(address);
+        QVERIFY(QMetaObject::invokeMethod(address,"insert",Q_ARG(int,0),Q_ARG(QString,"http://plex.invalid:32400")));
+        for(const auto &kind:QStringList{"plex","jellyfin"}) {
+            backend.data.insert("serverKind",kind);backend.data.insert("serverUrl","https://saved.invalid");emit backend.stateChanged();
+            QCOMPARE(url->property("text").toString(),QString("http://typed.invalid:8096"));
+            QCOMPARE(address->property("text").toString(),QString("http://plex.invalid:32400"));
+        }
+        backend.data.remove("serverKind");backend.data.remove("serverUrl");emit backend.stateChanged();
+        url->setProperty("text","https://media.invalid/jellyfin");user->setProperty("text","alice");password->setProperty("text","fixture-password");
+        QTRY_VERIFY(signIn->property("enabled").toBool());
+        QVERIFY(QMetaObject::invokeMethod(signIn,"clicked"));
+        QCOMPARE(backend.operation,QString("jellyfin_login"));
+        QCOMPARE(backend.arguments.value("url").toString(),QString("https://media.invalid/jellyfin"));QCOMPARE(backend.arguments.value("username").toString(),QString("alice"));QCOMPARE(backend.arguments.value("password").toString(),QString("fixture-password"));
+        QVERIFY(password->property("text").toString().isEmpty());
+        // The password does not survive the dialog closing.
+        password->setProperty("text","typed-again");QVERIFY(QMetaObject::invokeMethod(dialog,"close"));QTRY_VERIFY(password->property("text").toString().isEmpty());
+        QVERIFY(QMetaObject::invokeMethod(dialog,"open"));QTRY_VERIFY(dialog->property("visible").toBool());
+        // Quick Connect: the code from the status, polling while pending, Cancel.
+        QVERIFY(QMetaObject::invokeMethod(quick,"clicked"));QCOMPARE(backend.operation,QString("jellyfin_quick_connect"));QCOMPARE(backend.arguments.value("url").toString(),QString("https://media.invalid/jellyfin"));
+        backend.data.insert("quickConnect",QVariantMap{{"code","123456"},{"expiresIn",300}});emit backend.stateChanged();
+        QCOMPARE(code->property("text").toString(),QString("123456"));QVERIFY(music->property("quickConnectPending").toBool());
+        QTRY_COMPARE_WITH_TIMEOUT(backend.operation,QString("jellyfin_quick_connect_poll"),4000);
+        // The poll is a background request, and only one is in flight at a time.
+        QVERIFY(backend.arguments.value("_background").toBool());
+        int polls=0;for(const auto &entry:backend.log)if(entry.first=="jellyfin_quick_connect_poll")++polls;
+        QTest::qWait(2300);int later=0;for(const auto &entry:backend.log)if(entry.first=="jellyfin_quick_connect_poll")++later;QCOMPARE(later,polls);
+        // A pending reply keeps the request; the next poll goes out.
+        emit backend.completed("jellyfin_quick_connect_poll",true,QVariantMap{{"quickConnect",QVariantMap{{"code","123456"}}}});
+        QTRY_VERIFY_WITH_TIMEOUT([&]{int n=0;for(const auto &entry:backend.log)if(entry.first=="jellyfin_quick_connect_poll")++n;return n>polls;}(),4000);
+        QVERIFY(QMetaObject::invokeMethod(cancel,"clicked"));QCOMPARE(backend.operation,QString("jellyfin_quick_connect_cancel"));QVERIFY(backend.arguments.value("_background").toBool());
+        // An expired request replies ok with quickConnect null: the form returns and polling stops.
+        backend.data.insert("quickConnect",QVariantMap{{"code","654321"}});emit backend.stateChanged();QVERIFY(music->property("quickConnectPending").toBool());
+        backend.data.insert("quickConnect",QVariant());emit backend.stateChanged();emit backend.completed("jellyfin_quick_connect_poll",true,QVariantMap{{"quickConnect",QVariant()}});
+        QVERIFY(!music->property("quickConnectPending").toBool());QVERIFY(!code->property("visible").toBool());QVERIFY(quick->property("visible").toBool());
+        const auto stopped=backend.commandCount;QTest::qWait(2300);QCOMPARE(backend.commandCount,stopped);
+#endif
     }
     void desktopArtistGridIsWindowed() {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

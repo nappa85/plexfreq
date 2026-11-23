@@ -286,7 +286,7 @@ Page {
                 Button { anchors.centerIn:parent; text:qsTr("Retry loading"); visible:pageView.failedPageStart>=0; enabled:!backend.busy && !backend.loadingMore; onClicked:music.retryMore() }
             }
         }
-        ViewPlaceholder { enabled: (pageView.gridBrowse ? (!list.footerItem || list.footerItem.gridCount===0) : list.count===0) && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to Plex"); hintText: qsTr("Use the pull-up menu for connection settings") }
+        ViewPlaceholder { enabled: (pageView.gridBrowse ? (!list.footerItem || list.footerItem.gridCount===0) : list.count===0) && !pageView.busy; text: backend.state.serverUrl ? qsTr("No music found") : qsTr("Connect to a server"); hintText: qsTr("Use the pull-up menu for connection settings") }
         VerticalScrollDecorator {}
     AlphabetRail {
         id:alphabet; objectName:"libraryAlphabet"; parent:list; groups:pageView.alphabet

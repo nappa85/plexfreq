@@ -184,12 +184,12 @@
       <translation>Radio neizdevās atjaunināt. Lejupielādētās dziesmas var atkārtoties.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex atgrieza HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Serveris atgrieza HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Negaidīta Plex atbilde (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Negaidīta servera atbilde (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Audio straumēšana neizdevās</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Autorizācija neizdevās; pierakstieties vēlreiz vai pārbaudiet servera marķieri</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Izvēlieties lejupielādei ne vairāk kā 1000 derīgas dziesmas</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Vispirms izveidojiet savienojumu ar Plex serveri</translation>
+      <source>Connect to a server first</source>
+      <translation>Vispirms izveidojiet savienojumu ar serveri</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Citas izcelsmes Plex ceļš noraidīts</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Citas izcelsmes ceļš noraidīts</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Tika gaidīts skaitlisks Plex identifikators</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Tika gaidīts servera relatīvs Plex ceļš</translation>
+      <source>Expected a server identifier</source>
+      <translation>Tika gaidīts servera identifikators</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Tika gaidīts servera relatīvs ceļš</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Pāriet tiešsaistē</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Lai rediģētu Plex atskaņošanas sarakstus, pārejiet tiešsaistē</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Lai rediģētu atskaņošanas sarakstus, pārejiet tiešsaistē</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Nederīgs servera indekss</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Nepieciešams Jellyfin 10.9 vai jaunāks</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Pirms jaunu atskaņojumu reģistrēšanas jāsinhronizē klausīšanās vēsture</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Tikai lasīšanas pārbaudes režīmā atskaņošanas sarakstu rediģēšana ir atspējota</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex autorizācija neizdevās; pierakstieties vēlreiz vai pārbaudiet servera marķieri</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex nepiedāvā radio staciju šim izpildītājam</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Rindai nepieciešamas dziesmas un derīgs sākuma indekss</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect šajā serverī nav ieslēgts</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Saglabātā rinda nav derīga</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>Servera URL jābūt HTTP(S) adresei, pēc izvēles ar ceļu, piem., /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>Servera URL jābūt HTTP(S) izcelsmei, piem., http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Vispirms sāciet pierakstīšanos</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Atskaņošanas saraksta ieraksts nav atrasts</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Serveris nepārvietoja atskaņošanas saraksta ierakstu</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Šajā albumā nav atskaņojamu dziesmu</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Šis izpildītājs vai albums nav saglabāts bezsaistei</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Šis nav Jellyfin serveris</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Šī bibliotēkas lapa vēl nav saglabāta bezsaistei</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Šis serveris neatbalsta šo funkciju</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Šī dziesma nav lejupielādēta</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Šis ieraksts atskaņošanas sarakstā ir vairākas reizes, un serveris nevar atšķirt kopijas</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Dziesmai nav lejupielādējamas multivides daļas</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Negaidīta Plex atbilde</translation>
+      <source>Unexpected server response</source>
+      <translation>Negaidīta servera atbilde</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Nesen pievienotie</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nesen atskaņotie</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Izlase</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Visvairāk atskaņotie</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Mūzika nav atrasta</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Savienot ar Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Pieslēgties serverim</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Mūzika nav atrasta.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Lai sāktu klausīties, izveidojiet savienojumu ar savu mūzikas serveri.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Lai sāktu klausīties, izveidojiet savienojumu ar savu Plex mūzikas serveri.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Atkārtošana izslēgta</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Savienot ar Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Pieslēgties serverim</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servera veids</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Savienot tieši</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Servera URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Lietotājvārds</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Parole</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Pierakstīties Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Izmantot Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Ievadiet šo kodu Jellyfin sadaļā Quick Connect un uzgaidiet šeit.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Atcelt</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Klausīšanās statistika</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Izlase</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Līdzīgs skanējums</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Izlase</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Izlase · 5 zvaigznes</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Savienot ar Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Pieslēgties serverim</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servera veids</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Savienot</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Lietotājvārds</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Parole</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Pierakstīties Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Izmantot Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Ievadiet šo kodu Jellyfin sadaļā Quick Connect un uzgaidiet šeit.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Atcelt</translation>
     </message>
     <message>
       <source>Sign out</source>

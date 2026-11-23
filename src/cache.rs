@@ -1,8 +1,4 @@
-use crate::{
-    model::{Envelope, Item},
-    plex::{server_path, server_url},
-    Error, Result,
-};
+use crate::{model::Item, server::StreamPolicy, Error, Result};
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -19,7 +15,6 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tokio::sync::watch;
-use url::Url;
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -417,8 +412,8 @@ impl DownloadControl {
 struct Batch {
     quality_kbps: u32,
     epoch: u64,
-    base: Url,
-    token: String,
+    /// Server address, credential headers and the backend's rules.
+    policy: StreamPolicy,
     namespace: String,
     items: Vec<Item>,
 }
@@ -1260,13 +1255,12 @@ impl Cache {
         }
         commit(&self.root, &self.state)
     }
-    pub fn schedule(&self, server: &str, token: &str, items: Vec<Item>) -> Result<()> {
-        self.schedule_with_quality(server, token, items, 0)
-    }
-    pub fn schedule_with_quality(
+    /// Schedule against any backend: `namespace` scopes the downloads, the
+    /// `policy` carries the server address, credential headers and rules.
+    pub fn schedule_for(
         &self,
-        server: &str,
-        token: &str,
+        namespace: &str,
+        policy: StreamPolicy,
         items: Vec<Item>,
         quality_kbps: u32,
     ) -> Result<()> {
@@ -1279,16 +1273,16 @@ impl Cache {
             return Ok(());
         }
         if items.len() > 1000
-            || items.iter().any(|i| {
-                i.kind != crate::model::ItemKind::Track || crate::numeric(&i.rating_key).is_err()
-            })
+            || items
+                .iter()
+                .any(|i| i.kind != crate::model::ItemKind::Track || !policy.valid_id(&i.rating_key))
         {
             return Err(Error::Input(
                 "Cache requests require up to 1000 valid music tracks",
             ));
         }
-        let base = server_url(server)?;
-        let ns = namespace(server, token);
+        policy.base()?;
+        let ns = namespace.to_owned();
         let epoch = self.epoch.fetch_add(1, Ordering::SeqCst) + 1;
         let _ = self.cancel.send(epoch);
         {
@@ -1304,8 +1298,7 @@ impl Cache {
         let batch = Batch {
             quality_kbps,
             epoch,
-            base,
-            token: token.into(),
+            policy,
             namespace: ns,
             items,
         };
@@ -1510,7 +1503,7 @@ async fn worker(
 ) {
     let Shared { state, epoch, .. } = &shared;
     let gate = crate::mutex_lock(state).gate.clone();
-    let client = match reqwest::Client::builder()
+    let client = match crate::plex::client_builder()
         .connect_timeout(Duration::from_secs(5))
         .read_timeout(Duration::from_secs(10))
         .redirect(reqwest::redirect::Policy::none())
@@ -1624,16 +1617,16 @@ async fn worker(
                     unresumable.insert(item.rating_key.clone());
                 }
                 if transcoded > 0 {
-                    if let Ok(uri) = crate::quality::transcode_url(
-                        &batch.base,
-                        &item.rating_key,
-                        transcoded,
-                        &session,
-                    ) {
-                        if let Some(stop) = crate::quality::stop_url(&uri) {
+                    if let Ok(uri) =
+                        batch
+                            .policy
+                            .transcode_url(&item.rating_key, transcoded, &session)
+                    {
+                        if let Some((method, stop)) = batch.policy.stop(&uri) {
+                            let headers = batch.policy.headers_for(&stop);
                             let _ = client
-                                .get(stop)
-                                .header("X-Plex-Token", &batch.token)
+                                .request(method, stop)
+                                .headers(headers)
                                 .timeout(Duration::from_secs(2))
                                 .send()
                                 .await;
@@ -1998,17 +1991,19 @@ async fn download(
         return Ok(Outcome::Present);
     }
     if part_key(&item).is_none() {
-        let url = server_path(
-            &batch.base,
-            &format!("/library/metadata/{}", item.rating_key),
-        )?;
-        let response = cancellable(
+        // The downloader runs on the async runtime with its own per-batch
+        // client, so it builds the request from the policy (URL, credential
+        // headers, client identification) instead of calling the blocking
+        // backend; the policy also decodes the reply.
+        let url = batch.policy.metadata_url(&item.rating_key)?;
+        let headers = batch.policy.headers_for(&url);
+        let mut response = cancellable(
             changed,
             client
                 .get(url)
                 .header("Accept", "application/json")
-                .header("X-Plex-Token", &batch.token)
-                .header("X-Plex-Client-Identifier", client_id)
+                .headers(headers)
+                .headers(batch.policy.client_headers(client_id))
                 .send(),
         )
         .await?
@@ -2016,13 +2011,14 @@ async fn download(
         if !response.status().is_success() {
             return Err(Error::Http(response.status().as_u16()).into());
         }
-        let envelope: Envelope = cancellable(
+        let body = cancellable(
             changed,
-            crate::plex::bounded_json(response, "cache track metadata"),
+            crate::plex::bounded_body(&mut response, crate::plex::JSON_LIMIT),
         )
-        .await??;
-        item = envelope
-            .container
+        .await?
+        .map_err(|error| error.unwrap_or(Error::ProtocolAt("cache track metadata")))?;
+        let container = batch.policy.parse_metadata(&body)?;
+        item = container
             .items
             .into_iter()
             .find(|i| i.kind == crate::model::ItemKind::Track && i.rating_key == item.rating_key)
@@ -2036,9 +2032,11 @@ async fn download(
     }
     *transcoded = quality;
     let url = if quality > 0 {
-        crate::quality::transcode_url(&batch.base, &item.rating_key, quality, session)?
+        batch
+            .policy
+            .transcode_url(&item.rating_key, quality, session)?
     } else {
-        server_path(&batch.base, part)?
+        batch.policy.download_url(part)?
     };
     let id = download_id(&batch.namespace, &item, quality);
     let partial_path = root.join(format!("{id}.part"));
@@ -2093,8 +2091,8 @@ async fn download(
             .get(url.clone())
             .header("Accept", "*/*")
             .header("Accept-Encoding", "identity")
-            .header("X-Plex-Token", &batch.token)
-            .header("X-Plex-Client-Identifier", client_id);
+            .headers(batch.policy.headers_for(&url))
+            .headers(batch.policy.client_headers(client_id));
         if offset > 0 {
             // offset>0 implies old.validator.is_some() via the reset above, but
             // don't panic the worker if that invariant ever breaks: fall back to
@@ -2417,6 +2415,13 @@ fn extension(part: &str, mime: &str) -> String {
         "audio"
     }
     .into()
+}
+
+/// Plex downloads through the backend-neutral scheduling API (tests).
+#[cfg(test)]
+fn plex_schedule(cache: &Cache, server: &str, token: &str, items: Vec<Item>) -> Result<()> {
+    let policy = StreamPolicy::plex(&crate::plex::server_url(server)?, token);
+    cache.schedule_for(&namespace(server, token), policy, items, 0)
 }
 
 #[cfg(test)]
@@ -2793,7 +2798,7 @@ mod hold_tests {
             ..Default::default()
         };
         let received = || crate::mutex_lock(&cache.state).received;
-        cache.schedule(&url, "token", vec![item.clone()]).unwrap();
+        plex_schedule(&cache, &url, "token", vec![item.clone()]).unwrap();
         let head = "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\n";
         let mut first = accept(&listener);
         first
@@ -2898,9 +2903,13 @@ mod batch_summary_tests {
             ahead: 5,
         };
         let cache = Cache::new(dir.path().into(), config, "fixture").unwrap();
-        cache
-            .schedule(&url, "token", vec![track("1"), track("2"), track("3")])
-            .unwrap();
+        plex_schedule(
+            &cache,
+            &url,
+            "token",
+            vec![track("1"), track("2"), track("3")],
+        )
+        .unwrap();
         wait(|| crate::mutex_lock(&cache.state).last_batch.is_some());
         let summary = crate::mutex_lock(&cache.state).last_batch.clone().unwrap();
         assert_eq!(summary.reason, BatchEnd::Done);
@@ -3167,13 +3176,12 @@ mod recovery_tests {
     #[test]
     fn schedule_bursts_coalesce_into_one_waiting_batch() {
         let jobs = Jobs::default();
-        let base = Url::parse("http://127.0.0.1:9/").unwrap();
+        let policy = StreamPolicy::plex(&url::Url::parse("http://127.0.0.1:9/").unwrap(), "");
         for epoch in 1..=1000 {
             assert!(jobs.submit(Batch {
                 quality_kbps: 0,
                 epoch,
-                base: base.clone(),
-                token: String::new(),
+                policy: policy.clone(),
                 namespace: "scope".into(),
                 items: vec![track(&epoch.to_string())],
             }));
@@ -3197,9 +3205,7 @@ mod recovery_tests {
         let dir = tempfile::tempdir().unwrap();
         let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
         for id in 1..=500 {
-            cache
-                .schedule(&url, "fixture-token", vec![track(&id.to_string())])
-                .unwrap();
+            plex_schedule(&cache, &url, "fixture-token", vec![track(&id.to_string())]).unwrap();
             assert!(cache.jobs.queued() <= 1);
         }
         let pinned = crate::mutex_lock(&cache.state).pinned.clone();
@@ -3292,5 +3298,97 @@ mod recovery_tests {
         let status = cache.status("scope");
         assert_eq!(status["orphans"]["count"], 0);
         assert_eq!(status["orphans"]["reclaimed"], 1);
+    }
+}
+
+#[cfg(test)]
+mod policy_tests {
+    use super::*;
+    use crate::server::{Conn, MediaServer, MockIds, MockServer};
+    use std::{
+        io::{Read, Write},
+        net::TcpListener,
+    };
+
+    /// The downloader takes the metadata URL, credential headers, client
+    /// headers and download URL from the backend's policy, under its base path.
+    #[test]
+    fn a_downloader_follows_the_backends_policy_not_plex_vocabulary() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let base = format!("http://{}/jf/", listener.local_addr().unwrap());
+        let heads = std::sync::Arc::new(Mutex::new(Vec::<String>::new()));
+        let seen = heads.clone();
+        std::thread::spawn(move || {
+            for _ in 0..2 {
+                let (mut socket, _) = listener.accept().unwrap();
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .unwrap();
+                let mut bytes = Vec::new();
+                let mut byte = [0];
+                while !bytes.ends_with(b"\r\n\r\n") && socket.read_exact(&mut byte).is_ok() {
+                    bytes.push(byte[0]);
+                }
+                let head = String::from_utf8_lossy(&bytes).to_lowercase();
+                let reply = if head.starts_with("get /jf/mock/items/") {
+                    let body = br#"{"Metadata":[{"ratingKey":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","type":"track","Media":[{"audioCodec":"pcm","container":"wav","Part":[{"key":"/Audio/a/stream"}]}]}]}"#;
+                    format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                        body.len(),
+                        String::from_utf8_lossy(body)
+                    )
+                } else {
+                    "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 4\r\nConnection: close\r\n\r\nabcd".into()
+                };
+                crate::mutex_lock(&seen).push(head);
+                let _ = socket.write_all(reply.as_bytes());
+            }
+        });
+        let mock = MockServer::default();
+        mock.script_ids(MockIds::Guid);
+        let conn = Conn {
+            base: url::Url::parse(&base).unwrap(),
+            token: "tok".into(),
+            user_id: Some("u".into()),
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::new(dir.path().into(), Config::default(), "client-1").unwrap();
+        let id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        let item = Item {
+            rating_key: id.into(),
+            kind: crate::model::ItemKind::Track,
+            ..Default::default()
+        };
+        cache
+            .schedule_for("scope", mock.stream_policy(&conn), vec![item.clone()], 0)
+            .unwrap();
+        let until = Instant::now() + Duration::from_secs(8);
+        while crate::mutex_lock(&heads).len() < 2 {
+            assert!(Instant::now() < until, "{:?}", crate::mutex_lock(&heads));
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let heads = crate::mutex_lock(&heads).clone();
+        assert!(
+            heads[0].starts_with(&format!("get /jf/mock/items/{id} ")),
+            "{}",
+            heads[0]
+        );
+        assert!(
+            heads[1].starts_with("get /jf/audio/a/stream "),
+            "{}",
+            heads[1]
+        );
+        for head in &heads {
+            assert!(head.contains("x-mock-token: tok"), "{head}");
+            assert!(!head.contains("x-plex"), "{head}");
+        }
+        // Ids the backend rejects are refused at admission.
+        let numeric = Item {
+            rating_key: "7".into(),
+            ..item
+        };
+        assert!(cache
+            .schedule_for("scope", mock.stream_policy(&conn), vec![numeric], 0)
+            .is_err());
     }
 }

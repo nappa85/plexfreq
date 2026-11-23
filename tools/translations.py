@@ -83,13 +83,14 @@ def balanced(code, i, close):
     return i
 
 def without_tests(code):
-    """Drop `#[cfg(test)] mod … { … }` blocks."""
-    while match := re.search(r"#\[cfg\((?:test|all\(test\b[^\]]*\))\)\]\s*(?:#\[[^\]]*\]\s*)*(?:pub(?:\([^)]*\))?\s+)?mod\s+\w+\s*\{", code):
+    """Drop `#[cfg(test)] mod … { … }` blocks, including the in-memory test backend
+    (`#[cfg(any(test, feature = "mock-backend"))]`), which release builds never contain."""
+    while match := re.search(r"#\[cfg\((?:test|all\(test\b[^\]]*\)|any\(test,\s*feature\s*=\s*\"mock-backend\"\))\)\]\s*(?:#\[[^\]]*\]\s*)*(?:pub(?:\([^)]*\))?\s+)?mod\s+\w+\s*\{", code):
         code = code[:match.start()]+code[balanced(code, match.end(), "}"):]
     return code
 
 # Functions that turn their last argument into Error::ProtocolAt, shown as
-# "Unexpected Plex response (%1)" with %1 translated in the Core context.
+# "Unexpected server response (%1)" with %1 translated in the Core context.
 CONTEXT_FUNCTIONS = ("self.request", "bounded_json", "plex_json")
 
 def protocol_contexts(code):
@@ -167,7 +168,7 @@ def extract():
         template = ET.parse(path).getroot()
     template.set("sourcelanguage", "en")
     core = core_messages({path: path.read_text() for path in (ROOT/"src").rglob("*.rs") if not path.name.endswith("_tests.rs")})
-    core.update(["Backend unavailable", "Backend panic", "Network request failed (check connection and server address)", "Plex authorization failed; sign in again or check server token", "Unexpected Plex response", "Unexpected Plex response (%1)", "Plex returned HTTP %1", "Invalid URL", "Invalid request data", "Cannot read or write application state", "Audio playback failed", "Audio streaming failed", "Next track decoding failed", "Invalid audio representation", "Cache requires an unencoded audio response", "Server returned non-audio content for this track"])
+    core.update(["Backend unavailable", "Backend panic", "Network request failed (check connection and server address)", "Authorization failed; sign in again or check server token", "Unexpected server response", "Unexpected server response (%1)", "Server returned HTTP %1", "Invalid URL", "Invalid request data", "Cannot read or write application state", "Audio playback failed", "Audio streaming failed", "Next track decoding failed", "Invalid audio representation", "Cache requires an unencoded audio response", "Server returned non-audio content for this track"])
     for name, sources in [("Core",sorted(core)), ("AlbumType",["Albums","EPs","Singles","Live","Compilations"])]:
         context=next((c for c in template.findall("context") if c.findtext("name")==name),None)
         if context is None:context=ET.SubElement(template,"context");ET.SubElement(context,"name").text=name

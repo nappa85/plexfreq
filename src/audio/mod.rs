@@ -87,6 +87,10 @@ pub struct Source {
     pub album_gain: Option<f32>,
     pub album_normalization: bool,
     pub album: String,
+    /// How to reach the server for a remote `url`: credential headers and the
+    /// backend's transcode, seek and stop rules (the default suits `file:`
+    /// URLs and tests).
+    pub policy: crate::server::StreamPolicy,
 }
 impl Source {
     fn normalization_gain(&self, mode: dsp::NormalizationMode) -> f32 {

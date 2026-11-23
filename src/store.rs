@@ -52,6 +52,19 @@ pub struct Settings {
     pub account_token: String,
     pub server_url: String,
     pub server_token: String,
+    /// The signed-in user of a server whose credential does not identify one
+    /// (empty for Plex).
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub server_user_id: String,
+    /// Which media server the session talks to. Sessions saved before other
+    /// servers existed have none and are Plex; Plex sessions omit it, so
+    /// their file is unchanged.
+    #[serde(skip_serializing_if = "ServerKind::is_plex")]
+    pub server_kind: ServerKind,
+    /// The server's own identity (Jellyfin `ServerId`), which with the user
+    /// scopes downloads and history across address changes (empty for Plex).
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub server_id: String,
     pub cache: crate::cache::Config,
     pub playback: Playback,
     pub downloads: Vec<crate::model::Item>,
@@ -80,6 +93,27 @@ pub struct Settings {
     pub journal: Journal,
 }
 
+/// The kind of media server a session is signed in to.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ServerKind {
+    #[default]
+    Plex,
+    Jellyfin,
+}
+impl ServerKind {
+    fn is_plex(&self) -> bool {
+        *self == Self::Plex
+    }
+    /// The status JSON spelling.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Plex => "plex",
+            Self::Jellyfin => "jellyfin",
+        }
+    }
+}
+
 #[derive(Clone, Default, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Playback {
@@ -93,6 +127,11 @@ pub struct Playback {
     pub generation: u64,
     pub occurrence: String,
     pub listened: u64,
+    /// The occurrence whose start the server was told about (a server that
+    /// counts a play when it starts must hear it once per occurrence, also
+    /// after a restart that restores the queue). Empty for Plex.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub start_reported: String,
 }
 
 /// Opaque record of the persisted state used to skip unchanged writes.

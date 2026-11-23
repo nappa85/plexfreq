@@ -1,7 +1,7 @@
 //! Private, credential-scoped raw metadata snapshots and bounded artwork storage.
 use crate::{
     model::{Container, Item},
-    plex::{advertised_path, server_url},
+    server::StreamPolicy,
     Error, Result,
 };
 use std::{
@@ -234,21 +234,30 @@ impl Library {
         }
         Ok(())
     }
-    pub fn invalidate_playlist(&self, namespace: &str, key: &str) {
+    pub fn invalidate_playlist(
+        &self,
+        server: &impl crate::server::MediaServer,
+        namespace: &str,
+        key: &str,
+    ) {
+        use crate::server::{Page, Query};
         if !self.writable {
             return;
         }
-        let _ = fs::remove_file(self.path(namespace, &format!("/playlists/{key}"), &[]));
+        let forget = |query: &Query, page: Option<Page>| {
+            if let Ok((path, params)) = server.offline_key(query, page) {
+                let _ = fs::remove_file(self.path(
+                    namespace,
+                    &path,
+                    &crate::filters::param_refs(&params),
+                ));
+            }
+        };
+        forget(&Query::Playlist { id: key.into() }, None);
         for start in (0..10000).step_by(100) {
-            let page = [
-                ("X-Plex-Container-Start", start.to_string()),
-                ("X-Plex-Container-Size", "100".into()),
-            ];
-            let _ =
-                fs::remove_file(self.path(namespace, &format!("/playlists/{key}/items"), &page));
-            let mut list = vec![("playlistType", "audio".into())];
-            list.extend(page);
-            let _ = fs::remove_file(self.path(namespace, "/playlists", &list));
+            let page = Some(Page { start, size: 100 });
+            forget(&Query::PlaylistItems { id: key.into() }, page);
+            forget(&Query::Playlists, page);
         }
     }
     pub fn rate(&self, namespace: &str, key: &str, rating: f64) {
@@ -315,8 +324,7 @@ impl Library {
 
 struct Job {
     epoch: u64,
-    server: String,
-    token: String,
+    policy: StreamPolicy,
     namespace: String,
     path: String,
 }
@@ -349,8 +357,7 @@ impl Artwork {
                     if job.epoch == generation.load(Ordering::SeqCst) {
                         queue
                             .load(
-                                &job.server,
-                                &job.token,
+                                &job.policy,
                                 &job.namespace,
                                 &job.path,
                                 crate::artwork::Party::Prefetch(job.epoch),
@@ -383,17 +390,15 @@ impl Artwork {
     pub(crate) fn store(&self) -> &Arc<crate::artwork::Store> {
         &self.store
     }
-    pub fn schedule(&self, server: &str, token: &str, path: &str) {
+    /// Queue an image of any backend: `namespace` scopes the saved copy.
+    pub fn schedule_with(&self, namespace: &str, policy: &StreamPolicy, path: &str) {
         if self.gate.as_ref().is_some_and(|gate| !gate.allowed()) {
             return;
         }
-        if server_url(server)
-            .and_then(|base| advertised_path(&base, path))
-            .is_err()
-        {
+        if policy.artwork_url(path).is_err() {
             return;
         }
-        let namespace = crate::cache::namespace(server, token);
+        let namespace = namespace.to_owned();
         // A browsed copy is still queued: the job moves it into the offline
         // budget without downloading it again.
         if self.store.offline(&namespace, path) {
@@ -413,8 +418,7 @@ impl Artwork {
         }
         let job = Job {
             epoch,
-            server: server.into(),
-            token: token.into(),
+            policy: policy.clone(),
             namespace,
             path: path.into(),
         };

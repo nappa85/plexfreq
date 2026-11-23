@@ -184,12 +184,12 @@
       <translation>Radia ni bilo mogoče osvežiti. Prenesene skladbe se lahko ponavljajo.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex je vrnil HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Strežnik je vrnil HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Nepričakovan odziv Plex (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Nepričakovan odziv strežnika (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Pretakanje zvoka ni uspelo</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Avtorizacija ni uspela; znova se prijavite ali preverite žeton strežnika</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Za prenos izberite največ 1000 veljavnih skladb</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Najprej se povežite s strežnikom Plex</translation>
+      <source>Connect to a server first</source>
+      <translation>Najprej se povežite s strežnikom</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Pot Plex z drugega izvora je zavrnjena</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Pot z drugega izvora je zavrnjena</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Pričakovan je številski identifikator Plex</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Pričakovana je pot Plex, relativna glede na strežnik</translation>
+      <source>Expected a server identifier</source>
+      <translation>Pričakovan je bil identifikator strežnika</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Pričakovana je pot, relativna glede na strežnik</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Poveži se</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Za urejanje seznamov predvajanja Plex se povežite</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Za urejanje seznamov predvajanja se povežite</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Neveljaven indeks strežnika</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Potreben je Jellyfin 10.9 ali novejši</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Pred beleženjem novih predvajanj je treba sinhronizirati zgodovino poslušanja</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Urejanje seznamov predvajanja je v načinu samo za branje onemogočeno</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Avtorizacija Plex ni uspela; znova se prijavite ali preverite žeton strežnika</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex za tega izvajalca ne ponuja radijske postaje</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Čakalna vrsta zahteva skladbe in veljaven začetni indeks</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect na tem strežniku ni vklopljen</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Shranjena čakalna vrsta ni veljavna</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>URL strežnika mora biti naslov HTTP(S), po želji s potjo, kot je /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>URL strežnika mora biti izvor HTTP(S), npr. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Najprej začnite prijavo</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Vnos seznama predvajanja ni bil najden</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Strežnik ni premaknil vnosa seznama predvajanja</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Ta album nima predvajljivih skladb</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Ta izvajalec ali album ni shranjen za uporabo brez povezave</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>To ni strežnik Jellyfin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Ta stran knjižnice še ni shranjena za uporabo brez povezave</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Ta strežnik ne podpira te funkcije</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Ta skladba ni prenesena</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Ta skladba je na seznamu predvajanja večkrat in strežnik ne more razlikovati kopij</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Skladba nima predstavnostnega dela za prenos</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Nepričakovan odziv Plex</translation>
+      <source>Unexpected server response</source>
+      <translation>Nepričakovan odziv strežnika</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Nedavno dodano</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nedavno predvajano</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Priljubljene</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Najbolj predvajano</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Ni najdene glasbe</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Poveži s Plexom</translation>
+      <source>Connect to a server</source>
+      <translation>Poveži s strežnikom</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Ni najdene glasbe.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Za začetek poslušanja se povežite s svojim glasbenim strežnikom.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Za začetek poslušanja se povežite s svojim glasbenim strežnikom Plex.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Ponavljanje izklopljeno</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Poveži s Plexom</translation>
+      <source>Connect to a server</source>
+      <translation>Poveži s strežnikom</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Vrsta strežnika</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Poveži neposredno</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>URL strežnika</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Uporabniško ime</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Geslo</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Prijava v Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Uporabi Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Vnesite to kodo v Jellyfinu pod Quick Connect in počakajte tukaj.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Prekliči</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Statistika poslušanja</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Priljubljene</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Zvočno podobno</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Priljubljene</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Priljubljene · 5 zvezdic</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Poveži s Plexom</translation>
+      <source>Connect to a server</source>
+      <translation>Poveži s strežnikom</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Vrsta strežnika</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Poveži</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Uporabniško ime</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Geslo</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Prijava v Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Uporabi Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Vnesite to kodo v Jellyfinu pod Quick Connect in počakajte tukaj.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Prekliči</translation>
     </message>
     <message>
       <source>Sign out</source>

@@ -1,4 +1,6 @@
+mod support;
 use plexfreq_core::{model::Item, queue::Queue};
+use support::plex_schedule;
 
 fn track(id: &str) -> Item {
     Item {
@@ -178,7 +180,7 @@ fn cache_schedule_rejects_over_1000_tracks_consistently() {
     )
     .unwrap();
     let items: Vec<Item> = (0..1001).map(|i| track(&i.to_string())).collect();
-    let result = cache.schedule("http://127.0.0.1:32400/", "token", items);
+    let result = plex_schedule(&cache, "http://127.0.0.1:32400/", "token", items);
     assert!(
         result.is_err(),
         "schedule of 1001 tracks must be rejected to match documented 1000-track limit"

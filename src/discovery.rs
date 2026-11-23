@@ -1,5 +1,5 @@
 //! Local presentation preferences and measured, credential-scoped listening insights.
-use crate::{Core, Error, Result};
+use crate::{server::MediaServer, Core, Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
@@ -37,7 +37,7 @@ impl Core {
         hidden: Vec<String>,
         order: Vec<String>,
     ) -> Result<Value> {
-        crate::numeric(section)?;
+        self.id(section)?;
         if hidden.len() > 64
             || order.len() > 64
             || hidden
@@ -60,18 +60,15 @@ impl Core {
     pub(crate) fn hub_items(&self, key: &str, start: usize) -> Result<Value> {
         // Hub keys carry their filter as a query, e.g.
         // /library/sections/3/all?type=9&sort=addedAt:desc.
-        let url = crate::plex::advertised_path(&self.base()?, key)?;
-        if !["/hubs/", "/library/", "/playlists/"]
+        let (path, params) = self.backend.advertised_key(key)?;
+        if !["/hubs/", "/playlists/"]
             .iter()
-            .any(|prefix| key.starts_with(prefix) && url.path().starts_with(prefix))
+            .any(|prefix| path.starts_with(prefix))
+            && !self.backend.is_library_key(&path)
         {
-            return Err(Error::Input("Expected a server-relative Plex path"));
+            return Err(Error::Input("Expected a server-relative path"));
         }
-        let params: Vec<_> = url
-            .query_pairs()
-            .map(|(k, v)| (k.into_owned(), v.into_owned()))
-            .collect();
-        self.page(url.path(), crate::filters::param_refs(&params), start)
+        self.page(&crate::server::Query::advertised(&path, params), start)
     }
     pub(crate) fn listening_insights(&self, days: u32) -> Result<Value> {
         if ![0, 7, 30, 90].contains(&days) {

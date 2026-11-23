@@ -35,6 +35,12 @@ class ContextExtractionTests(unittest.TestCase):
             mod tests { fn t() { plex_json(b"{}", "test"); let s = "}"; } }
             fn after() { plex_json(&bytes, "real") }'''
         self.assertEqual(contexts(code), {"real"})
+        mock = '''
+            #[cfg(any(test, feature = "mock-backend"))]
+            mod mock { fn f() { plex_json(b"{}", "mock"); } }
+            #[cfg(feature = "other")]
+            mod shipped { fn f() { plex_json(b"{}", "shipped"); } }'''
+        self.assertEqual(contexts(mock), {"shipped"})
 
     def test_a_new_context_wrapper_must_be_registered(self):
         code = """
@@ -113,7 +119,7 @@ class ValidationTests(unittest.TestCase):
         validate("bg", "%1/%2 tracks · %3 MiB", "%1/%2 песни · %3 MiB")
         validate("el", "Session expired; start again", "Η σύνδεση έληξε· ξεκινήστε ξανά")
         validate("pl", "The next %1 tracks", "Następne utwory (%1)")
-        validate("it", "Unexpected Plex response (%1)", "Risposta Plex inattesa (%1)")
+        validate("it", "Unexpected server response (%1)", "Risposta del server inattesa (%1)")
         validate("es", "Show all", "Mostrar todo")
         validate("bg", "Choose tracks for the queue (maximum 10000)", "Изберете песни за опашката (максимум 10000)")
 

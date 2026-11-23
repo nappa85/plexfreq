@@ -184,12 +184,12 @@
       <translation>Не вдалося оновити радіо. Завантажені треки можуть повторюватися.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex повернув HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Сервер повернув HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Неочікувана відповідь Plex (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Неочікувана відповідь сервера (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Помилка потокового передавання аудіо</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Помилка авторизації; увійдіть знову або перевірте токен сервера</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Виберіть не більше 1000 дійсних треків для завантаження</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Спершу підключіться до сервера Plex</translation>
+      <source>Connect to a server first</source>
+      <translation>Спершу підключіться до сервера</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Шлях Plex з іншого джерела відхилено</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Шлях з іншого джерела відхилено</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Очікувався числовий ідентифікатор Plex</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Очікувався шлях Plex відносно сервера</translation>
+      <source>Expected a server identifier</source>
+      <translation>Очікувався ідентифікатор сервера</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Очікувався шлях відносно сервера</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Перейти в онлайн</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Перейдіть в онлайн, щоб змінювати плейлисти Plex</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Перейдіть в онлайн, щоб змінювати плейлисти</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Недійсний індекс сервера</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Потрібен Jellyfin 10.9 або новіший</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Перед записом нових прослуховувань потрібно синхронізувати історію</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Редагування плейлистів вимкнено в режимі лише для читання</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Помилка авторизації Plex; увійдіть знову або перевірте токен сервера</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex не має радіостанції для цього виконавця</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Для черги потрібні треки та дійсний початковий індекс</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect не ввімкнено на цьому сервері</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Збережена черга недійсна</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>URL сервера має бути адресою HTTP(S), за потреби зі шляхом, наприклад /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>URL сервера має бути джерелом HTTP(S), наприклад http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Спершу почніть вхід</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Запис плейлиста не знайдено</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Сервер не перемістив елемент плейлиста</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>У цьому альбомі немає треків для відтворення</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Цей виконавець або альбом не збережено офлайн</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Це не сервер Jellyfin</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Цю сторінку медіатеки ще не збережено офлайн</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Цей сервер не підтримує цю функцію</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Цей трек не завантажено</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Цей трек є в плейлисті кілька разів, і сервер не може розрізнити копії</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Трек не має медіачастини для завантаження</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Неочікувана відповідь Plex</translation>
+      <source>Unexpected server response</source>
+      <translation>Неочікувана відповідь сервера</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Нещодавно додані</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Нещодавно прослухані</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Вибране</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Найчастіше прослухані</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Музику не знайдено</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Підключитися до Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Підключення до сервера</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Музику не знайдено.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Підключіться до музичного сервера, щоб почати слухати.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Підключіться до музичного сервера Plex, щоб почати слухати.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Повтор: вимк.</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Підключитися до Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Підключення до сервера</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Тип сервера</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Підключитися напряму</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>URL сервера</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Ім'я користувача</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Пароль</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Увійти в Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Використати Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Введіть цей код у Jellyfin в розділі Quick Connect і зачекайте тут.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Скасувати</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Статистика прослуховувань</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Вибране</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Схоже за звучанням</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Вибране</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Вибране · 5 зірок</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Підключитися до Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Підключення до сервера</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Тип сервера</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Підключитися</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Ім'я користувача</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Пароль</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Увійти в Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Використати Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Введіть цей код у Jellyfin в розділі Quick Connect і зачекайте тут.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Скасувати</translation>
     </message>
     <message>
       <source>Sign out</source>

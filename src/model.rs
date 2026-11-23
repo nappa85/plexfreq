@@ -1,14 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-pub(crate) fn music_kind_code(kind: &ItemKind) -> crate::Result<&'static str> {
-    match kind {
-        ItemKind::Artist => Ok("8"),
-        ItemKind::Album => Ok("9"),
-        ItemKind::Track => Ok("10"),
-        ItemKind::Playlist | ItemKind::Other(_) => Err(crate::Error::Input("Unknown music type")),
-    }
-}
-
 /// Plex metadata `type` (also a library section's top-level type). Unknown
 /// types keep their exact spelling so items round-trip unchanged through
 /// session files, caches and the Qt model; the default is the empty type.
@@ -137,9 +128,9 @@ pub struct Item {
     #[serde(
         rename = "playlistItemID",
         alias = "playlistItemId",
-        deserialize_with = "optional"
+        deserialize_with = "entry_id"
     )]
-    pub playlist_item_id: Option<u64>,
+    pub playlist_item_id: Option<EntryId>,
     #[serde(deserialize_with = "radio_flag")]
     pub smart: bool,
     #[serde(deserialize_with = "radio_flag")]
@@ -224,6 +215,68 @@ fn lenient_text<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Str
         serde_json::Value::String(text) => text.trim().to_ascii_lowercase(),
         _ => String::new(),
     })
+}
+
+/// Server-assigned id of one playlist occurrence. Plex uses integers and
+/// Jellyfin GUID strings; the string form is the canonical one. It serialises
+/// as a JSON number when it is the decimal spelling of a `u64`, so Plex rows
+/// keep the exact output they had when the field was an integer, and
+/// deserialises from either a number or a string.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct EntryId(String);
+
+impl EntryId {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+    fn number(&self) -> Option<u64> {
+        self.0
+            .parse::<u64>()
+            .ok()
+            .filter(|number| number.to_string() == self.0)
+    }
+    /// An id from untrusted JSON: an integer (or numeric string), else a
+    /// short printable string. Anything else is absent.
+    fn from_value(value: &serde_json::Value) -> Option<Self> {
+        if let Some(number) = lenient_integer::<u64>(value) {
+            return Some(Self(number.to_string()));
+        }
+        let text = value.as_str()?.trim();
+        (!text.is_empty() && text.len() <= 128 && !text.chars().any(char::is_control))
+            .then(|| Self(text.to_owned()))
+    }
+}
+impl From<u64> for EntryId {
+    fn from(number: u64) -> Self {
+        Self(number.to_string())
+    }
+}
+impl From<&str> for EntryId {
+    fn from(text: &str) -> Self {
+        Self(text.to_owned())
+    }
+}
+impl Serialize for EntryId {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self.number() {
+            Some(number) => serializer.serialize_u64(number),
+            None => serializer.serialize_str(&self.0),
+        }
+    }
+}
+impl<'de> Deserialize<'de> for EntryId {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Self::from_value(&serde_json::Value::deserialize(deserializer)?)
+            .ok_or_else(|| serde::de::Error::custom("invalid playlist entry id"))
+    }
+}
+
+fn entry_id<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<EntryId>, D::Error> {
+    Ok(EntryId::from_value(&serde_json::Value::deserialize(
+        deserializer,
+    )?))
 }
 
 fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
@@ -510,5 +563,91 @@ mod kind_tests {
         let item: Item = serde_json::from_value(serde_json::json!({"type":null})).unwrap();
         assert!(item.kind.is_empty());
         assert_eq!(serde_json::to_value(&item).unwrap()["type"], "");
+    }
+}
+
+#[cfg(test)]
+mod entry_id_tests {
+    use super::*;
+    use serde_json::json;
+
+    fn item(value: serde_json::Value) -> Item {
+        serde_json::from_value(value).unwrap()
+    }
+
+    #[test]
+    fn a_numeric_entry_id_round_trips_as_a_json_number() {
+        for source in [
+            json!({"playlistItemID": 101}),
+            json!({"playlistItemId": 101}),
+            json!({"playlistItemID": "101"}),
+            json!({"playlistItemID": 101.0}),
+        ] {
+            let parsed = item(source.clone());
+            assert_eq!(
+                parsed.playlist_item_id.as_ref().map(EntryId::as_str),
+                Some("101")
+            );
+            let out = serde_json::to_value(&parsed).unwrap();
+            assert_eq!(out["playlistItemID"], json!(101), "{source}");
+            assert!(out["playlistItemID"].is_u64());
+        }
+    }
+
+    #[test]
+    fn a_guid_entry_id_round_trips_as_a_string() {
+        let guid = "3f2a9c1e-0000-4000-8000-000000000001";
+        let parsed = item(json!({"playlistItemId": guid}));
+        assert_eq!(parsed.playlist_item_id, Some(EntryId::from(guid)));
+        let out = serde_json::to_value(&parsed).unwrap();
+        assert_eq!(out["playlistItemID"], json!(guid));
+        // And it survives a save/load of the serialized item.
+        let back: Item = serde_json::from_value(out).unwrap();
+        assert_eq!(back.playlist_item_id, parsed.playlist_item_id);
+    }
+
+    #[test]
+    fn unusable_entry_ids_are_absent_not_errors() {
+        for bad in [
+            json!(null),
+            json!(""),
+            json!("  "),
+            json!([1]),
+            json!({}),
+            json!(true),
+            json!("a\u{0}b"),
+        ] {
+            assert_eq!(
+                item(json!({"playlistItemID": bad})).playlist_item_id,
+                None,
+                "{bad}"
+            );
+        }
+        assert_eq!(item(json!({})).playlist_item_id, None);
+        // A digit string that is not a canonical u64 stays a string.
+        let big = "99999999999999999999999";
+        let parsed = item(json!({"playlistItemID": big}));
+        assert_eq!(
+            serde_json::to_value(&parsed).unwrap()["playlistItemID"],
+            json!(big)
+        );
+    }
+
+    #[test]
+    fn the_standalone_id_accepts_numbers_and_strings() {
+        assert_eq!(
+            serde_json::from_value::<EntryId>(json!(7))
+                .unwrap()
+                .as_str(),
+            "7"
+        );
+        assert_eq!(
+            serde_json::from_value::<EntryId>(json!("x-1"))
+                .unwrap()
+                .as_str(),
+            "x-1"
+        );
+        assert!(serde_json::from_value::<EntryId>(json!(null)).is_err());
+        assert_eq!(serde_json::to_string(&EntryId::from(42)).unwrap(), "42");
     }
 }

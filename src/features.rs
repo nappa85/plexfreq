@@ -1,9 +1,9 @@
 use crate::{
-    model::Item, store, Command, Core, DownloadAction, DownloadKind, Error, GroupId,
-    PlaylistAction, Result,
+    model::Item,
+    server::{Action, BrowseSpec, MediaServer, Page, PlaylistContent, Query},
+    store, Command, Core, DownloadAction, DownloadKind, Error, GroupId, PlaylistAction, Result,
 };
 use rand::seq::SliceRandom;
-use reqwest::Method;
 use serde_json::{json, Value};
 
 /// Mixes interleave seeds round-robin up to exactly this many tracks.
@@ -66,6 +66,14 @@ pub fn album_type(item: &Item) -> AlbumType {
     }
 }
 
+/// The playlist occurrence a remove or move acts on.
+pub(crate) struct Entry {
+    pub item: Option<crate::model::EntryId>,
+    pub after: Option<crate::model::EntryId>,
+    /// The 0-based target position, for servers that move by index.
+    pub index: Option<usize>,
+}
+
 impl Core {
     /// Why downloads are not allowed now (a fixed name), if they are not.
     pub(crate) fn download_block_reason(&self) -> Option<&'static str> {
@@ -89,14 +97,14 @@ impl Core {
             ));
         }
         if self.offline_mode {
-            Err(Error::Input("Go online to edit Plex playlists"))
+            Err(Error::Input("Go online to edit playlists"))
         } else {
             Ok(())
         }
     }
     pub(crate) fn playlist_metadata(&self, key: &str) -> Result<Item> {
-        crate::numeric(key)?;
-        let (c, _) = self.container_cached(&format!("/playlists/{key}"), &[])?;
+        self.id(key)?;
+        let (c, _) = self.container_cached(&Query::Playlist { id: key.into() }, None)?;
         c.items
             .into_iter()
             .find(|i| i.kind == crate::model::ItemKind::Playlist && i.rating_key == key)
@@ -104,7 +112,7 @@ impl Core {
     }
     pub(crate) fn playlist_items(&self, key: &str, start: usize) -> Result<Value> {
         let playlist = self.playlist_metadata(key)?;
-        let mut page = self.page(&format!("/playlists/{key}/items"), vec![], start)?;
+        let mut page = self.page(&Query::PlaylistItems { id: key.into() }, start)?;
         page["playlist"] = self.display_item(&playlist);
         Ok(page)
     }
@@ -112,7 +120,7 @@ impl Core {
         let mut items = Vec::new();
         let mut start = 0;
         loop {
-            let page = self.page("/playlists", vec![("playlistType", "audio".into())], start)?;
+            let page = self.page(&Query::Playlists, start)?;
             let count = page["items"].as_array().map_or(0, Vec::len);
             items.extend(page["items"].as_array().cloned().unwrap_or_default());
             if items.len() > 1000 {
@@ -127,7 +135,7 @@ impl Core {
         }
         Ok(json!({"playlistChoices":items}))
     }
-    fn playlist_uri(&self, items: Vec<Item>) -> Result<String> {
+    fn playlist_tracks(&self, items: Vec<Item>) -> Result<PlaylistContent> {
         let mut keys = Vec::new();
         for item in items {
             let tracks = if item.kind == crate::model::ItemKind::Album {
@@ -138,7 +146,7 @@ impl Core {
                 return Err(Error::Input("Add tracks or albums to a playlist"));
             };
             for track in tracks {
-                keys.push(crate::numeric(&track.rating_key)?.to_string());
+                keys.push(self.id(&track.rating_key)?.to_string());
             }
             if keys.len() > 1000 {
                 return Err(Error::Input("Add up to 1000 tracks at a time"));
@@ -147,13 +155,7 @@ impl Core {
         if keys.is_empty() {
             return Err(Error::Input("Choose tracks or an album for the playlist"));
         }
-        let identity =
-            self.plex
-                .container(&self.base()?, &self.settings.server_token, "/identity", &[])?;
-        crate::radio::station_uri(
-            &identity.machine_identifier,
-            &format!("/library/metadata/{}", keys.join(",")),
-        )
+        Ok(PlaylistContent::Tracks(keys))
     }
     pub(crate) fn edit_playlist(
         &mut self,
@@ -161,8 +163,7 @@ impl Core {
         key: &str,
         title: &str,
         items: Vec<Item>,
-        item_id: Option<u64>,
-        after: Option<u64>,
+        entry: Entry,
     ) -> Result<Value> {
         self.online_edit()?;
         let title = title.trim();
@@ -172,35 +173,34 @@ impl Core {
             return Err(Error::Input("Enter a playlist name (up to 512 bytes)"));
         }
         if action == PlaylistAction::Create {
-            let uri = self.playlist_uri(items)?;
-            let c = self.plex.create_playlist(
-                &self.base()?,
-                &self.settings.server_token,
-                &[
-                    ("title", title.into()),
-                    ("type", "audio".into()),
-                    ("smart", "0".into()),
-                    ("uri", uri),
-                ],
-            )?;
+            let content = self.playlist_tracks(items)?;
+            let c = self
+                .backend
+                .create_playlist(&self.conn()?, title, &content)?;
             let item = c
                 .items
                 .first()
                 .filter(|i| i.kind == crate::model::ItemKind::Playlist)
                 .ok_or(Error::ProtocolAt("created playlist"))?;
-            self.library
-                .invalidate_playlist(&self.cache_namespace(), &item.rating_key);
+            self.library.invalidate_playlist(
+                &self.backend,
+                &self.cache_namespace(),
+                &item.rating_key,
+            );
             return Ok(
                 json!({"playlistChanged":item.rating_key,"createdPlaylist":self.display_item(item)}),
             );
         }
         let metadata = self.playlist_metadata(key)?;
-        let path = format!("/playlists/{key}");
-        let (method, path, params) = match action {
+        let id = key.to_owned();
+        let write = match action {
             // Handled above; kept explicit so the match stays exhaustive.
             PlaylistAction::Create => return Err(Error::Input("Unknown playlist action")),
-            PlaylistAction::Rename => (Method::PUT, path, vec![("title", title.into())]),
-            PlaylistAction::Delete => (Method::DELETE, path, vec![]),
+            PlaylistAction::Rename => Action::PlaylistRename {
+                id,
+                title: title.into(),
+            },
+            PlaylistAction::Delete => Action::PlaylistDelete { id },
             PlaylistAction::Add | PlaylistAction::Remove | PlaylistAction::Move
                 if metadata.smart =>
             {
@@ -208,39 +208,32 @@ impl Core {
                     "Smart playlist contents are controlled by their Plex filters",
                 ))
             }
-            PlaylistAction::Add => (
-                Method::PUT,
-                format!("{path}/items"),
-                vec![("uri", self.playlist_uri(items)?)],
-            ),
-            PlaylistAction::Remove => (
-                Method::DELETE,
-                format!(
-                    "{path}/items/{}",
-                    item_id.ok_or(Error::Input("Choose a playlist occurrence"))?
-                ),
-                vec![],
-            ),
-            PlaylistAction::Move => (
-                Method::PUT,
-                format!(
-                    "{path}/items/{}/move",
-                    item_id.ok_or(Error::Input("Choose a playlist occurrence"))?
-                ),
-                after
-                    .map(|id| vec![("after", id.to_string())])
-                    .unwrap_or_default(),
-            ),
+            PlaylistAction::Add => Action::PlaylistAdd {
+                id,
+                content: self.playlist_tracks(items)?,
+            },
+            PlaylistAction::Remove => Action::PlaylistRemove {
+                id,
+                item: entry
+                    .item
+                    .ok_or(Error::Input("Choose a playlist occurrence"))?
+                    .as_str()
+                    .to_owned(),
+            },
+            PlaylistAction::Move => Action::PlaylistMove {
+                id,
+                item: entry
+                    .item
+                    .ok_or(Error::Input("Choose a playlist occurrence"))?
+                    .as_str()
+                    .to_owned(),
+                after: entry.after.map(|a| a.as_str().to_owned()),
+                index: entry.index,
+            },
         };
-        self.plex.mutate(
-            &self.base()?,
-            &self.settings.server_token,
-            method,
-            &path,
-            &params,
-        )?;
+        self.backend.act(&self.conn()?, &write)?;
         self.library
-            .invalidate_playlist(&self.cache_namespace(), key);
+            .invalidate_playlist(&self.backend, &self.cache_namespace(), key);
         Ok(json!({"playlistChanged":key,"playlistDeleted":action==PlaylistAction::Delete}))
     }
     pub(crate) fn library_browse(
@@ -250,17 +243,16 @@ impl Core {
         sort: &str,
         start: usize,
     ) -> Result<Value> {
-        crate::numeric(section)?;
-        let code = crate::model::music_kind_code(kind)?;
-        let sort = crate::filters::sort_key(sort, kind)?;
+        self.id(section)?;
+        crate::filters::music_kind(kind)?;
+        let sort = crate::filters::sort(sort, kind)?;
         self.page(
-            &format!("/library/sections/{section}/all"),
-            vec![("type", code.into()), ("sort", sort.into())],
+            &Query::browse(section, BrowseSpec::new(kind.clone(), sort)),
             start,
         )
     }
     pub(crate) fn artist_albums(&self, key: &str) -> Result<Value> {
-        let mut page = self.detail(key, 0)?;
+        let mut page = self.detail(key, Some(crate::model::ItemKind::Artist), 0)?;
         let mut items = page["items"].as_array().cloned().unwrap_or_default();
         loop {
             if items.len() > 1000 {
@@ -272,8 +264,10 @@ impl Core {
                 break;
             }
             page = self.page(
-                &format!("/library/metadata/{}/children", crate::numeric(key)?),
-                vec![],
+                &Query::Children {
+                    id: self.id(key)?.into(),
+                    kind: crate::model::ItemKind::Artist,
+                },
                 page["next"].as_u64().unwrap_or(0) as usize,
             )?;
             items.extend(page["items"].as_array().cloned().unwrap_or_default());
@@ -302,14 +296,10 @@ impl Core {
                     let mut all = Vec::new();
                     for start in [0, 100] {
                         let (c, _) = self.container_cached(
-                            &format!(
-                                "/library/metadata/{}/allLeaves",
-                                crate::numeric(&seed.rating_key)?
-                            ),
-                            &[
-                                ("X-Plex-Container-Start", start.to_string()),
-                                ("X-Plex-Container-Size", "100".into()),
-                            ],
+                            &Query::AllLeaves {
+                                id: self.id(&seed.rating_key)?.into(),
+                            },
+                            Some(Page { start, size: 100 }),
                         )?;
                         let size = c.items.len();
                         all.extend(
@@ -325,7 +315,7 @@ impl Core {
                 }
                 _ => return Err(Error::Input("Mix seeds must be artists or albums")),
             };
-            items.shuffle(&mut rand::thread_rng());
+            items.shuffle(&mut rand::rng());
             groups.push(items.into_iter());
         }
         let mut seen = std::collections::BTreeSet::new();
@@ -483,12 +473,16 @@ impl Core {
                     "Listening history sync is needed before recording more plays",
                 ));
             }
+            // A server that counts a play at its start already did, when the
+            // start of this occurrence was reported: nothing is left to deliver.
+            let reported = self.start_reported(occurrence);
             self.settings.history.push(crate::history::Play {
                 namespace,
-                key: crate::numeric(key)?.into(),
+                key: self.id(key)?.into(),
                 occurrence: occurrence.into(),
                 played_at: crate::unix_seconds(),
-                delivered: false,
+                delivered: reported,
+                start_reported: reported,
             });
         }
         // Only listens/history change here (one appended line); the playback
@@ -502,27 +496,31 @@ impl Core {
         }
         let ns = self.cache_namespace();
         let mut error = String::new();
-        let pending: Vec<_> = self
+        let mut pending: Vec<_> = self
             .settings
             .history
             .iter()
             .enumerate()
             .filter(|(_, e)| !e.delivered && e.namespace == ns)
             .map(|(i, _)| i)
-            .take(20)
             .collect();
+        // Oldest first, so a server that records when a play happened gets
+        // them in order.
+        pending.sort_by_key(|&i| self.settings.history[i].played_at);
+        pending.truncate(20);
         for index in pending {
-            let key = self.settings.history[index].key.clone();
-            match self.plex.mutate(
-                &self.base()?,
-                &self.settings.server_token,
-                Method::GET,
-                "/:/scrobble",
-                &[
-                    ("key", key),
-                    ("identifier", "com.plexapp.plugins.library".into()),
-                ],
-            ) {
+            let play = &self.settings.history[index];
+            if play.start_reported {
+                // The server counted it when playback started.
+                self.settings.history[index].delivered = true;
+                store::save_journals(&self.dir, &self.settings)?;
+                continue;
+            }
+            let (key, played_at) = (play.key.clone(), play.played_at);
+            match self
+                .backend
+                .act(&self.conn()?, &Action::Scrobble { id: key, played_at })
+            {
                 Ok(()) => {
                     self.settings.history[index].delivered = true;
                     store::save_journals(&self.dir, &self.settings)?;

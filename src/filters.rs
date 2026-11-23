@@ -1,24 +1,45 @@
 //! Validated music filters and server-owned smart playlist sources.
-use crate::{model::ItemKind, Core, Error, Result};
+use crate::{
+    model::ItemKind,
+    server::{
+        unsupported, Action, Backend, BrowseSpec, FilterField, MediaServer, Page, PlaylistContent,
+        Query, Sort,
+    },
+    Core, Error, Result,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-#[derive(Clone, Default, Deserialize, Serialize)]
+/// The user's music filter, as the UI sends it. Empty strings and `None`
+/// mean "any".
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(default, rename_all = "camelCase", deny_unknown_fields)]
 pub struct Music {
+    /// Genre id (a server identifier).
     pub genre: String,
+    /// Mood id.
     pub mood: String,
+    /// Style id.
     pub style: String,
+    /// Title contains.
     pub title: String,
     pub year_from: Option<i32>,
     pub year_to: Option<i32>,
+    /// Minimum user rating, 0-10.
     pub min_rating: Option<u8>,
     pub unplayed: bool,
 }
 impl Music {
-    fn params(&self, kind: &ItemKind) -> Result<Vec<(String, String)>> {
-        if !kind.is_music() {
-            return Err(Error::Input("Unknown music type"));
+    /// Refuse values out of range, filters the server cannot apply and ids
+    /// it would not accept, for a listing of `kind`.
+    fn validate(&self, kind: &ItemKind, server: &Backend) -> Result<()> {
+        music_kind(kind)?;
+        let caps = server.capabilities();
+        if !self.mood.is_empty() && !caps.mood_filter
+            || !self.style.is_empty() && !caps.style_filter
+            || self.min_rating.is_some() && !caps.rating_filter
+        {
+            return Err(unsupported());
         }
         if self.title.len() > 512
             || *kind == ItemKind::Artist && (self.year_from.is_some() || self.year_to.is_some())
@@ -29,58 +50,64 @@ impl Music {
         {
             return Err(Error::Input("Invalid music filter values"));
         }
-        let mut params = Vec::new();
-        for (name, value) in [
-            ("genre", &self.genre),
-            ("mood", &self.mood),
-            ("style", &self.style),
-        ] {
+        for value in [&self.genre, &self.mood, &self.style] {
             if !value.is_empty() {
-                crate::numeric(value)?;
-                params.push((format!("{kind}.{name}"), value.clone()));
+                server.valid_id(value)?;
             }
         }
-        if !self.title.trim().is_empty() {
-            params.push(("title".into(), self.title.trim().into()));
-        }
-        if let Some(year) = self.year_from {
-            params.push((format!("{kind}.year>="), year.to_string()));
-        }
-        if let Some(year) = self.year_to {
-            params.push((format!("{kind}.year<="), year.to_string()));
-        }
-        if let Some(rating) = self.min_rating {
-            params.push((format!("{kind}.userRating>="), rating.to_string()));
-        }
-        if self.unplayed {
-            params.push((format!("{kind}.viewCount"), "0".into()));
-        }
-        Ok(params)
+        Ok(())
+    }
+    /// Whether the filter restricts anything.
+    fn is_active(&self) -> bool {
+        !self.genre.is_empty()
+            || !self.mood.is_empty()
+            || !self.style.is_empty()
+            || !self.title.trim().is_empty()
+            || self.year_from.is_some()
+            || self.year_to.is_some()
+            || self.min_rating.is_some()
+            || self.unplayed
     }
 }
-use crate::model::music_kind_code as kind_code;
-/// UI sort names and their PMS `sort` values, shared by plain browsing,
-/// filtered browsing and smart playlist rules.
-const SORTS: [(&str, &str); 6] = [
-    ("title", "titleSort:asc"),
-    ("newest", "addedAt:desc"),
-    ("year", "year:desc"),
-    ("played", "lastViewedAt:desc"),
-    ("popular", "viewCount:desc"),
-    ("random", "random"),
+
+/// Refuse a listing kind that is not artist, album or track.
+pub(crate) fn music_kind(kind: &ItemKind) -> Result<()> {
+    if kind.is_music() {
+        Ok(())
+    } else {
+        Err(Error::Input("Unknown music type"))
+    }
+}
+
+/// UI sort names, shared by plain browsing, filtered browsing and smart
+/// playlist rules.
+const SORTS: [(&str, Sort); 6] = [
+    ("title", Sort::Title),
+    ("newest", Sort::Added),
+    ("year", Sort::Year),
+    ("played", Sort::LastPlayed),
+    ("popular", Sort::PlayCount),
+    ("random", Sort::Random),
 ];
 
-/// PMS sort value for a library listing of `kind`. Artists carry no year,
-/// so a year sort is rejected for them.
-pub(crate) fn sort_key(sort: &str, kind: &ItemKind) -> Result<&'static str> {
+/// The sort a UI name stands for, for a listing of `kind`. Artists carry no
+/// year, so a year sort is rejected for them.
+pub(crate) fn sort(name: &str, kind: &ItemKind) -> Result<Sort> {
     SORTS
         .iter()
-        .find(|(name, _)| *name == sort && !(sort == "year" && *kind == ItemKind::Artist))
-        .map(|(_, key)| *key)
+        .find(|(n, _)| *n == name && !(name == "year" && *kind == ItemKind::Artist))
+        .map(|(_, sort)| *sort)
         .ok_or(Error::Input("Unknown library sort"))
 }
 
-/// Borrowed view of owned query pairs for `Core::container_cached`.
+fn sort_name(sort: Sort) -> &'static str {
+    SORTS
+        .iter()
+        .find(|(_, s)| *s == sort)
+        .map_or("title", |(name, _)| name)
+}
+
+/// Borrowed view of owned query pairs for the offline library store.
 pub(crate) fn param_refs(params: &[(String, String)]) -> Vec<(&str, String)> {
     params
         .iter()
@@ -88,16 +115,6 @@ pub(crate) fn param_refs(params: &[(String, String)]) -> Vec<(&str, String)> {
         .collect()
 }
 
-/// Percent-decodes a whole string. form_urlencoded decodes `%XX`, but its
-/// form syntax (`+` as space, `&` as separator) is escaped first so those
-/// characters survive literally.
-fn percent_decode(text: &str) -> String {
-    let escaped = text.replace('+', "%2B").replace('&', "%26");
-    url::form_urlencoded::parse(format!("v={escaped}").as_bytes())
-        .next()
-        .map(|(_, v)| v.into_owned())
-        .unwrap_or_default()
-}
 impl Core {
     pub(crate) fn smart_rules(&self, key: &str) -> Result<Value> {
         let playlist = self.playlist_metadata(key)?;
@@ -106,139 +123,52 @@ impl Core {
                 "Smart playlist contents are controlled by their Plex filters",
             ));
         }
-        let content = if playlist.content.starts_with("server%")
-            || playlist.content.starts_with("library%")
-        {
-            percent_decode(&playlist.content)
-        } else {
-            playlist.content
-        };
-        let parsed = url::Url::parse(&content).ok();
-        let mut editable = true;
-        let mut filters = Music::default();
-        let mut section = String::new();
-        let mut sort = "title".to_string();
-        let mut limit = 100usize;
-        if let Some(uri) = parsed {
-            section = uri
-                .path()
-                .split("/library/sections/")
-                .nth(1)
-                .and_then(|path| path.split('/').next())
-                .unwrap_or("")
-                .into();
-            for (key, value) in uri.query_pairs() {
-                let field = key.split('.').next_back().unwrap_or(&key);
-                match field {
-                    "genre" => filters.genre = value.into_owned(),
-                    "mood" => filters.mood = value.into_owned(),
-                    "style" => filters.style = value.into_owned(),
-                    "title" => filters.title = value.into_owned(),
-                    "year>=" => {
-                        filters.year_from = value.parse().ok();
-                        editable &= filters.year_from.is_some();
-                    }
-                    "year<=" => {
-                        filters.year_to = value.parse().ok();
-                        editable &= filters.year_to.is_some();
-                    }
-                    "userRating>=" => {
-                        filters.min_rating = value.parse().ok();
-                        editable &= filters.min_rating.is_some();
-                    }
-                    "viewCount" if value == "0" => filters.unplayed = true,
-                    "limit" => match value.parse().ok().filter(|n| (1..=1000).contains(n)) {
-                        Some(parsed) => limit = parsed,
-                        None => {
-                            editable = false;
-                            limit = 100;
-                        }
-                    },
-                    "sort" => {
-                        sort = match SORTS.iter().find(|(_, key)| *key == value) {
-                            Some((name, _)) => name,
-                            None => {
-                                editable = false;
-                                "title"
-                            }
-                        }
-                        .into()
-                    }
-                    "type" if value == "10" => {}
-                    "includeGuids" => {}
-                    _ => editable = false,
-                }
-            }
-        } else {
-            editable = false;
-        }
-        editable &= crate::numeric(&section).is_ok()
-            && filters.params(&ItemKind::Track).is_ok()
-            && (1..=1000).contains(&limit);
+        let source = self.backend.smart_source(&playlist.content);
+        let editable = source.editable
+            && self.id(&source.section).is_ok()
+            && source
+                .filter
+                .validate(&ItemKind::Track, &self.backend)
+                .is_ok()
+            && (1..=1000).contains(&source.limit);
         Ok(
-            json!({"smartKey":key,"smartSection":section,"smartFilters":filters,"smartSort":sort,"smartLimit":limit,"smartEditable":editable}),
+            json!({"smartKey":key,"smartSection":source.section,"smartFilters":source.filter,"smartSort":sort_name(source.sort),"smartLimit":source.limit,"smartEditable":editable}),
         )
     }
-    fn filter_schema(&self, section: &str, kind: &ItemKind) -> Result<Value> {
-        crate::numeric(section)?;
+    /// The `meta` of the server's filter schema for listings of `kind`
+    /// (memoized per server), or None when the backend has no schema.
+    fn filter_schema(&self, section: &str, kind: &ItemKind) -> Result<Option<Value>> {
+        self.id(section)?;
+        let Some(query) = self.backend.filter_schema(section, kind) else {
+            return Ok(None);
+        };
         let key = format!("{}:{section}:{kind}", self.cache_namespace());
         if let Some(meta) = self.filter_schemas.borrow().get(&key) {
-            return Ok(meta.clone());
+            return Ok(Some(meta.clone()));
         }
-        let (container, _) = self.container_cached(
-            &format!("/library/sections/{section}/all"),
-            &[
-                ("type", kind_code(kind)?.into()),
-                ("includeMeta", "1".into()),
-                ("includeAdvanced", "1".into()),
-                ("X-Plex-Container-Start", "0".into()),
-                ("X-Plex-Container-Size", "0".into()),
-            ],
-        )?;
+        let (container, _) = self.container_cached(&query, Some(Page { start: 0, size: 0 }))?;
         self.filter_schemas
             .borrow_mut()
             .insert(key, container.meta.clone());
-        Ok(container.meta)
+        Ok(Some(container.meta))
     }
-    fn filter_params(
+    /// Validate `filters` for a listing of `kind` and learn the server's
+    /// spelling of the fields they use (one schema read per server, section
+    /// and kind; none for an inactive filter).
+    fn filter_fields(
         &self,
         section: &str,
         kind: &ItemKind,
         filters: &Music,
-    ) -> Result<Vec<(String, String)>> {
-        let mut params = filters.params(kind)?;
-        // Metadata exposes canonical field scopes (e.g. album.genre for tracks).
-        // Older servers can omit Meta; their documented type-scoped keys are used.
-        if !params.is_empty() {
-            let meta = self.filter_schema(section, kind)?;
-            if let Some(types) = meta["Type"].as_array() {
-                let mut scopes: Vec<_> = types.iter().collect();
-                scopes.sort_by_key(|scope| scope["type"] != kind.as_str());
-                let fields: Vec<_> = scopes
-                    .into_iter()
-                    .flat_map(|t| t["Field"].as_array().into_iter().flatten())
-                    .filter_map(|field| field["key"].as_str())
-                    .collect();
-                for (key, _) in &mut params {
-                    if key == "title" {
-                        continue;
-                    }
-                    let base = key.trim_end_matches(['>', '<', '=']);
-                    let operator = &key[base.len()..];
-                    let suffix = base.split('.').next_back().unwrap_or(base);
-                    if let Some(canonical) =
-                        fields.iter().find(|field| **field == base).or_else(|| {
-                            fields
-                                .iter()
-                                .find(|field| field.ends_with(&format!(".{suffix}")))
-                        })
-                    {
-                        *key = format!("{canonical}{operator}");
-                    }
-                }
-            }
+    ) -> Result<Vec<(FilterField, String)>> {
+        filters.validate(kind, &self.backend)?;
+        if !filters.is_active() {
+            return Ok(vec![]);
         }
-        Ok(params)
+        Ok(match self.filter_schema(section, kind)? {
+            Some(meta) => self.backend.filter_fields(&meta, kind),
+            None => vec![],
+        })
     }
     pub(crate) fn filter_options(
         &self,
@@ -246,58 +176,49 @@ impl Core {
         kind: &ItemKind,
         field: &str,
     ) -> Result<Value> {
-        if !matches!(field, "genre" | "mood" | "style") {
-            return Err(Error::Input("Invalid music filter values"));
-        }
+        music_kind(kind)?;
+        let caps = self.backend.capabilities();
+        let choice = match field {
+            "genre" => FilterField::Genre,
+            "mood" if caps.mood_filter => FilterField::Mood,
+            "style" if caps.style_filter => FilterField::Style,
+            "mood" | "style" => return Err(unsupported()),
+            _ => return Err(Error::Input("Invalid music filter values")),
+        };
         let meta = self.filter_schema(section, kind)?;
-        let key = meta["Type"]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter(|t| t["type"] == kind.as_str())
-            .flat_map(|t| t["Filter"].as_array().into_iter().flatten())
-            .find(|f| f["filter"] == field)
-            .and_then(|f| f["key"].as_str());
-        let Some(key) = key else {
+        let Some(query) = self
+            .backend
+            .filter_choices(section, kind, choice, meta.as_ref())?
+        else {
             return Ok(
                 json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":[],"filterAvailable":false}),
             );
         };
-        let url = crate::plex::advertised_path(&self.base()?, key)?;
-        if !url
-            .path()
-            .starts_with(&format!("/library/sections/{section}/"))
-        {
-            return Err(Error::Input("Expected a server-relative Plex path"));
-        }
-        let params: Vec<_> = url
-            .query_pairs()
-            .map(|(k, v)| (k.into_owned(), v.into_owned()))
-            .collect();
-        let (choices, _) = self.container_cached(url.path(), &param_refs(&params))?;
+        let (choices, _) = self.container_cached(&query, None)?;
         Ok(
-            json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":choices.sections.iter().filter(|c|crate::numeric(&c.key).is_ok()).take(1000).map(|c|json!({"key":c.key,"title":c.title})).collect::<Vec<_>>(),"filterAvailable":true}),
+            json!({"filterSection":section,"filterKind":kind,"filterField":field,"filterChoices":choices.sections.iter().filter(|c|self.id(&c.key).is_ok()).take(1000).map(|c|json!({"key":c.key,"title":c.title})).collect::<Vec<_>>(),"filterAvailable":true}),
         )
     }
     pub(crate) fn filtered_browse(
         &self,
         section: &str,
         kind: &ItemKind,
-        sort: &str,
+        sort_name: &str,
         filters: &Music,
         start: usize,
     ) -> Result<Value> {
-        crate::numeric(section)?;
-        let mut params = self.filter_params(section, kind, filters)?;
-        params.extend([
-            ("type".into(), kind_code(kind)?.into()),
-            ("sort".into(), sort_key(sort, kind)?.into()),
-            ("X-Plex-Container-Start".into(), start.to_string()),
-            ("X-Plex-Container-Size".into(), "100".into()),
-        ]);
+        self.id(section)?;
+        // Validation and the schema read come before the sort check, as
+        // they always have.
+        let fields = self.filter_fields(section, kind, filters)?;
+        let spec = BrowseSpec {
+            filter: filters.clone(),
+            fields,
+            ..BrowseSpec::new(kind.clone(), sort(sort_name, kind)?)
+        };
         let (container, offline) = self.container_cached(
-            &format!("/library/sections/{section}/all"),
-            &param_refs(&params),
+            &Query::browse(section, spec),
+            Some(Page { start, size: 100 }),
         )?;
         let items: Vec<_> = container
             .items
@@ -319,69 +240,62 @@ impl Core {
         action: crate::SmartAction,
         target: (&str, &str),
         title: &str,
-        sort: &str,
+        sort_name: &str,
         limit: usize,
         filters: &Music,
     ) -> Result<Value> {
         let (key, section) = target;
         self.online_edit()?;
-        crate::numeric(section)?;
+        self.id(section)?;
         if !(1..=1000).contains(&limit)
             || title.trim().len() > 512
             || action == crate::SmartAction::Create && title.trim().is_empty()
         {
             return Err(Error::Input("Enter a playlist name (up to 512 bytes)"));
         }
+        // Refuse what the server cannot apply before reading anything.
+        filters.validate(&ItemKind::Track, &self.backend)?;
         if action == crate::SmartAction::Update && !self.playlist_metadata(key)?.smart {
             return Err(Error::Input(
                 "Smart playlist contents are controlled by their Plex filters",
             ));
         }
-        let mut params = self.filter_params(section, &ItemKind::Track, filters)?;
-        params.extend([
-            ("type".into(), "10".into()),
-            ("sort".into(), sort_key(sort, &ItemKind::Track)?.into()),
-            ("limit".into(), limit.to_string()),
-        ]);
-        let encoded = url::form_urlencoded::Serializer::new(String::new())
-            .extend_pairs(params)
-            .finish();
-        let identity =
-            self.plex
-                .container(&self.base()?, &self.settings.server_token, "/identity", &[])?;
-        let uri = crate::radio::station_uri(
-            &identity.machine_identifier,
-            &format!("/library/sections/{section}/all?{encoded}"),
-        )?;
+        let fields = self.filter_fields(section, &ItemKind::Track, filters)?;
+        let spec = BrowseSpec {
+            filter: filters.clone(),
+            fields,
+            limit: Some(limit),
+            ..BrowseSpec::new(ItemKind::Track, sort(sort_name, &ItemKind::Track)?)
+        };
+        let content = PlaylistContent::Smart {
+            section: section.into(),
+            spec,
+        };
         if action == crate::SmartAction::Create {
-            let container = self.plex.create_playlist(
-                &self.base()?,
-                &self.settings.server_token,
-                &[
-                    ("title", title.trim().into()),
-                    ("type", "audio".into()),
-                    ("smart", "1".into()),
-                    ("uri", uri),
-                ],
-            )?;
+            let container = self
+                .backend
+                .create_playlist(&self.conn()?, title.trim(), &content)?;
             let item = container
                 .items
                 .first()
                 .filter(|i| i.kind == crate::model::ItemKind::Playlist && i.smart)
                 .ok_or(Error::ProtocolAt("created playlist"))?;
-            self.library
-                .invalidate_playlist(&self.cache_namespace(), &item.rating_key);
+            self.library.invalidate_playlist(
+                &self.backend,
+                &self.cache_namespace(),
+                &item.rating_key,
+            );
             Ok(json!({"createdPlaylist":self.display_item(item),"playlistChanged":item.rating_key}))
         } else {
-            self.plex.mutate(
-                &self.base()?,
-                &self.settings.server_token,
-                reqwest::Method::PUT,
-                &format!("/playlists/{key}/items"),
-                &[("uri", uri)],
+            self.backend.act(
+                &self.conn()?,
+                &Action::PlaylistAdd {
+                    id: key.into(),
+                    content,
+                },
             )?;
             self.library
-                .invalidate_playlist(&self.cache_namespace(), key);
+                .invalidate_playlist(&self.backend, &self.cache_namespace(), key);
             Ok(json!({"playlistChanged":key}))
         }
     }
@@ -392,20 +306,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn smart_content_percent_decoding_keeps_literal_plus_and_ampersand() {
-        assert_eq!(
-            percent_decode("server%3A%2F%2Fid%2Fall%3Ftitle%3Da+b&c%2Bd"),
-            "server://id/all?title=a+b&c+d"
-        );
-    }
-
-    #[test]
     fn sort_names_round_trip_and_artist_year_is_rejected() {
-        for (name, key) in SORTS {
-            assert_eq!(sort_key(name, &ItemKind::Album).unwrap(), key);
+        for (name, value) in SORTS {
+            assert_eq!(sort(name, &ItemKind::Album).unwrap(), value);
+            assert_eq!(sort_name(value), name);
         }
-        assert!(sort_key("year", &ItemKind::Artist).is_err());
-        assert!(sort_key("title", &ItemKind::Artist).is_ok());
-        assert!(sort_key("unknown", &ItemKind::Track).is_err());
+        for value in Sort::ALL {
+            assert!(SORTS.iter().any(|(_, s)| *s == value), "{value:?}");
+        }
+        assert!(sort("year", &ItemKind::Artist).is_err());
+        assert!(sort("title", &ItemKind::Artist).is_ok());
+        assert!(sort("unknown", &ItemKind::Track).is_err());
     }
 }

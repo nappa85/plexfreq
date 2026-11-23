@@ -1858,3 +1858,203 @@ fn a_transition_during_a_slow_refill_keeps_both() {
     assert!(has_track(&saved["queue"], "6"), "{saved}");
     assert_eq!(saved["track"]["ratingKey"], "3", "{saved}");
 }
+
+/// Media requests seen by [`credential_server`]: (request line, carried the
+/// fixture credential header).
+type Seen = Arc<Mutex<Vec<(String, bool)>>>;
+
+/// A server that, like PMS, refuses media part, transcode start and
+/// transcode stop requests without the `X-Plex-Token` header (401). Parts of
+/// the `gone` keys answer 404 as for a deleted item; the first `drops`
+/// transcodes end after `partial_ms` of audio and are then cut.
+fn credential_server(
+    milliseconds: u32,
+    gone: &'static [&'static str],
+    drops: usize,
+    partial_ms: u32,
+    seen: Seen,
+) -> String {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let origin = format!("http://{}/", listener.local_addr().unwrap());
+    let audio = Arc::new(wav(milliseconds));
+    let cut = wav(partial_ms).len();
+    let served = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+    thread::spawn(move || {
+        for mut stream in listener.incoming().flatten() {
+            let (audio, served, seen) = (audio.clone(), served.clone(), seen.clone());
+            thread::spawn(move || {
+                let mut request = Vec::new();
+                let mut byte = [0];
+                while !request.ends_with(b"\r\n\r\n") {
+                    if !matches!(stream.read(&mut byte), Ok(1)) {
+                        return;
+                    }
+                    request.push(byte[0]);
+                }
+                let text = String::from_utf8_lossy(&request).to_ascii_lowercase();
+                let line = text.lines().next().unwrap_or_default().to_owned();
+                let credential = text
+                    .lines()
+                    .any(|header| header.trim() == "x-plex-token: fixture-token");
+                let media = line.contains("/library/parts/") || line.contains("/transcode/");
+                if media {
+                    crate::mutex_lock(&seen).push((line.clone(), credential));
+                }
+                let mut body = audio.to_vec();
+                let mut length = body.len();
+                let (status, kind) = if media && !credential {
+                    body.clear();
+                    length = 0;
+                    ("401 Unauthorized", "text/html")
+                } else if line.contains("/transcode/universal/stop") {
+                    body.clear();
+                    length = 0;
+                    ("200 OK", "text/html")
+                } else if line.contains("/transcode/") {
+                    if served.fetch_add(1, Ordering::SeqCst) < drops {
+                        body.truncate(cut);
+                    }
+                    ("200 OK", "audio/wav")
+                } else if line.contains("/library/parts/")
+                    && gone
+                        .iter()
+                        .any(|key| line.contains(&format!("/library/parts/{key}/")))
+                {
+                    body.clear();
+                    length = 0;
+                    ("404 Not Found", "text/html")
+                } else if line.contains("/library/parts/") {
+                    ("200 OK", "audio/wav")
+                } else {
+                    body = json!({"MediaContainer":{"size":0}})
+                        .to_string()
+                        .into_bytes();
+                    length = body.len();
+                    ("200 OK", "application/json")
+                };
+                let _ = write!(
+                    stream,
+                    "HTTP/1.1 {status}\r\nX-Plex-Protocol: 1.0\r\nContent-Type: {kind}\r\nContent-Length: {length}\r\nConnection: close\r\n\r\n",
+                );
+                let _ = stream.write_all(&body);
+                if body.len() < length {
+                    // A mobile drop: the start plays, then the connection is cut.
+                    let _ = stream.flush();
+                    thread::sleep(Duration::from_millis(1500));
+                }
+            });
+        }
+    });
+    origin
+}
+
+fn credential_runtime(origin: String, kbps: u32) -> (tempfile::TempDir, Runtime) {
+    let dir = tempfile::tempdir().unwrap();
+    let mut settings = crate::store::Settings {
+        client_identifier: "fixture-client".into(),
+        server_url: origin,
+        server_token: "fixture-token".into(),
+        autoplay: false,
+        cache: crate::cache::Config {
+            enabled: false,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    settings.quality.wifi_kbps = kbps;
+    crate::store::save(dir.path(), &settings).unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    (dir, runtime)
+}
+
+fn refused(seen: &Seen) -> Vec<String> {
+    crate::mutex_lock(seen)
+        .iter()
+        .filter(|(_, credential)| !credential)
+        .map(|(line, _)| line.clone())
+        .collect()
+}
+
+fn requested(seen: &Seen, needle: &str) -> bool {
+    crate::mutex_lock(seen)
+        .iter()
+        .any(|(line, credential)| *credential && line.contains(needle))
+}
+
+/// Every place the worker builds an audio source from Core's stream policy
+/// must hand the engine the real credential: the play request, the gapless
+/// pre-load of the successor and the automatic next after a natural end
+/// (direct parts here), and the restart after a failure plus the transcode
+/// stop (below). A credential-free policy at any of them is refused by the
+/// server and fails the test.
+#[test]
+fn every_media_request_of_the_worker_carries_the_credential_header() {
+    let seen = Seen::default();
+    // Track 2 is gone: its pre-load fails, track 1 ends naturally and the
+    // automatic next skips to track 3.
+    let origin = credential_server(2500, &["2"], 0, 0, seen.clone());
+    let (_dir, runtime) = credential_runtime(origin, 0);
+    let items = vec![track(1, 2500), track(2, 2500), track(3, 2500)];
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let events = collect(&runtime, Duration::from_secs(20), |events| {
+        shown(events).last().map(String::as_str) == Some("3")
+            && requested(&seen, "/library/parts/3/")
+    });
+    assert_eq!(refused(&seen), Vec::<String>::new());
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+    for part in [
+        "/library/parts/1/",
+        "/library/parts/2/",
+        "/library/parts/3/",
+    ] {
+        assert!(requested(&seen, part), "{part}: {:?}", seen);
+    }
+}
+
+#[test]
+fn transcode_starts_restarts_and_stops_carry_the_credential_header() {
+    let seen = Seen::default();
+    // The first transcode drops after 6 s: the worker restarts it.
+    let origin = credential_server(60_000, &[], 1, 6000, seen.clone());
+    let (_dir, runtime) = credential_runtime(origin, 320);
+    let items: Vec<_> = (1..=2).map(|key| track(key, 60_000)).collect();
+    runtime
+        .submit(json!({"op":"play","items":serde_json::to_value(items).unwrap(),"index":0}))
+        .unwrap();
+    let starts = || {
+        crate::mutex_lock(&seen)
+            .iter()
+            .filter(|(line, _)| line.contains("/start") && line.contains("metadata%2f1&"))
+            .count()
+    };
+    let events = collect(&runtime, Duration::from_secs(20), |_| {
+        starts() >= 2
+            && requested(&seen, "/transcode/universal/stop")
+            && runtime.shared.playback().playing
+    });
+    assert_eq!(refused(&seen), Vec::<String>::new());
+    assert_eq!(banners(&events), Vec::<String>::new(), "{events:?}");
+}
+
+#[test]
+fn a_reply_never_echoes_a_password_back_to_the_adapter() {
+    let dir = tempfile::tempdir().unwrap();
+    let runtime = Runtime::spawn(dir.path().into(), audio::Sink::Fake, false).unwrap();
+    runtime
+        .submit(json!({"op":"jellyfin_login","url":"not a url","username":"alice","password":"fixture-password"}))
+        .unwrap();
+    let mut seen = Vec::new();
+    let event = reply(&runtime, "jellyfin_login", &mut seen);
+    assert_eq!(event["request"]["username"], "alice");
+    assert!(event["request"].get("password").is_none());
+    assert!(!event.to_string().contains("fixture-password"));
+    runtime
+        .submit(json!({"op":"connect","url":"not a url","token":"fixture-token"}))
+        .unwrap();
+    let event = reply(&runtime, "connect", &mut seen);
+    assert_eq!(event["request"]["op"], "connect");
+    assert!(event["request"].get("token").is_none());
+    assert!(!event.to_string().contains("fixture-token"));
+}

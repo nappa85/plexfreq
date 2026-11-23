@@ -184,12 +184,12 @@
       <translation>电台无法刷新。已下载的曲目可能会重复播放。</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex 返回了 HTTP %1</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>服务器返回了 HTTP %1</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Plex 响应异常（%1）</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>服务器响应异常（%1）</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>音频流式播放失败</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>授权失败。请重新登录或检查服务器令牌</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>最多选择 1000 首有效曲目进行下载</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>请先连接到 Plex 服务器</translation>
+      <source>Connect to a server first</source>
+      <translation>请先连接到服务器</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>已拒绝跨源 Plex 路径</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>已拒绝跨源路径</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>应为数字形式的 Plex 标识符</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>应为相对于服务器的 Plex 路径</translation>
+      <source>Expected a server identifier</source>
+      <translation>需要服务器标识符</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>应为相对于服务器的路径</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>转为在线</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>请转为在线以编辑 Plex 播放列表</translation>
+      <source>Go online to edit playlists</source>
+      <translation>请转为在线以编辑播放列表</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>服务器索引无效</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>需要 Jellyfin 10.9 或更高版本</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>需要先同步收听历史，才能记录更多播放</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>只读检查模式下无法编辑播放列表</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex 授权失败。请重新登录或检查服务器令牌</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex 未为此艺人提供艺人电台</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>队列需要曲目和有效的起始索引</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>此服务器未启用 Quick Connect</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>已保存的队列无效</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>服务器 URL 必须是 HTTP(S) 地址，可附带路径，例如 /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>服务器 URL 必须是 HTTP(S) 源，例如 http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>请先开始登录</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>未找到播放列表条目</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>服务器没有移动播放列表条目</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>此专辑没有可播放的曲目</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>此艺人或专辑尚未保存以供离线使用</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>这不是 Jellyfin 服务器</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>此资料库页面尚未保存以供离线使用</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>此服务器不支持此功能</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>此曲目尚未下载</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>此曲目在播放列表中出现多次，服务器无法区分这些副本</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>曲目没有可下载的媒体部分</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Plex 响应异常</translation>
+      <source>Unexpected server response</source>
+      <translation>服务器响应异常</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>最近添加</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>最近播放</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>收藏</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>最常播放</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>未找到音乐</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>连接到 Plex</translation>
+      <source>Connect to a server</source>
+      <translation>连接到服务器</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>未找到音乐。</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>连接到你的音乐服务器即可开始收听。</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>连接到你的 Plex 音乐服务器即可开始收听。</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>关闭循环</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>连接到 Plex</translation>
+      <source>Connect to a server</source>
+      <translation>连接到服务器</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>服务器类型</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>直接连接</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>服务器 URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>用户名</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>密码</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>登录 Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>使用 Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>在 Jellyfin 的 Quick Connect 中输入此代码，然后在此等待。</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>取消</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>收听统计</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>收藏</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>声波相似</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>收藏</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>收藏 · 5 星</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>连接到 Plex</translation>
+      <source>Connect to a server</source>
+      <translation>连接到服务器</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>服务器类型</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>连接</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>用户名</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>密码</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>登录 Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>使用 Quick Connect</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>在 Jellyfin 的 Quick Connect 中输入此代码，然后在此等待。</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>取消</translation>
     </message>
     <message>
       <source>Sign out</source>

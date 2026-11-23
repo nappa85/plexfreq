@@ -41,10 +41,10 @@ void installTranslations(QCoreApplication *app) {
 }
 QString translatedMessage(const QString &source) {
     if(source.isEmpty())return source;
-    const auto http=QRegularExpression("^Plex returned HTTP ([0-9]+)$").match(source);
-    if(http.hasMatch())return QCoreApplication::translate("Core","Plex returned HTTP %1").arg(http.captured(1));
-    const auto context=QRegularExpression("^Unexpected Plex response \\((.+)\\)$").match(source);
-    if(context.hasMatch())return QCoreApplication::translate("Core","Unexpected Plex response (%1)").arg(QCoreApplication::translate("Core",context.captured(1).toUtf8().constData()));
+    const auto http=QRegularExpression("^Server returned HTTP ([0-9]+)$").match(source);
+    if(http.hasMatch())return QCoreApplication::translate("Core","Server returned HTTP %1").arg(http.captured(1));
+    const auto context=QRegularExpression("^Unexpected server response \\((.+)\\)$").match(source);
+    if(context.hasMatch())return QCoreApplication::translate("Core","Unexpected server response (%1)").arg(QCoreApplication::translate("Core",context.captured(1).toUtf8().constData()));
     return QCoreApplication::translate("Core",source.toUtf8().constData());
 }
 QString translatedError(const QVariantMap &response) {
@@ -59,4 +59,25 @@ void translateErrorFields(QVariantMap &data) {
         else if(it.value().userType()==QMetaType::QVariantMap){auto map=it.value().toMap();translateErrorFields(map);it.value()=map;}
         else if(it.value().userType()==QMetaType::QVariantList){auto list=it.value().toList();for(auto &value:list)if(value.userType()==QMetaType::QVariantMap){auto map=value.toMap();translateErrorFields(map);value=map;}it.value()=list;}
     }
+}
+// Core's synthesised (Jellyfin) hubs carry English titles; Plex hubs keep the server's own titles.
+static QString hubTitle(const QString &identifier,const QString &title) {
+    if(identifier.startsWith(QLatin1String("music.recent.added.")))return QCoreApplication::translate("Hub","Recently added");
+    if(identifier.startsWith(QLatin1String("music.recent.played.")))return QCoreApplication::translate("Hub","Recently played");
+    if(identifier.startsWith(QLatin1String("music.favorites.")))return QCoreApplication::translate("Hub","Favorites");
+    if(identifier.startsWith(QLatin1String("music.most.played.")))return QCoreApplication::translate("Hub","Most played");
+    return title;
+}
+void translateHubTitles(QVariantMap &data,const QString &serverKind) {
+    if(serverKind!=QLatin1String("jellyfin"))return;
+    auto rewrite=[](const QVariant &list,const char *identifierKey,const char *titleKey)->QVariant {
+        auto entries=list.toList();bool changed=false;
+        for(auto &entry:entries){
+            auto map=entry.toMap();const auto title=hubTitle(map.value(identifierKey).toString(),map.value(titleKey).toString());
+            if(title!=map.value(titleKey).toString()){map.insert(titleKey,title);entry=map;changed=true;}
+        }
+        return changed?QVariant(entries):list;
+    };
+    if(data.contains("discoveryHubs"))data.insert("discoveryHubs",rewrite(data.value("discoveryHubs"),"identifier","title"));
+    if(data.value("discoveryHome").toBool() && data.contains("items"))data.insert("items",rewrite(data.value("items"),"hubIdentifier","discoveryGroup"));
 }

@@ -1,7 +1,8 @@
 use plexfreq_core::{
     model::Item,
-    plex::{authenticated_url, server_path, server_url},
+    plex::{server_path, server_url},
     queue::{Queue, Repeat},
+    server::StreamPolicy,
     Command, Core,
 };
 use serde_json::{json, Value};
@@ -94,12 +95,19 @@ fn shuffle_is_permutation_preserving_current_and_history() {
 #[test]
 fn tokens_encoded_and_paths_origin_confined() {
     let base = server_url("https://music.example:32400").unwrap();
-    let stream =
-        authenticated_url(&base, "/library/parts/42/file.flac?download=0", "a&b+/").unwrap();
-    let parsed = url::Url::parse(&stream).unwrap();
-    assert!(parsed
-        .query_pairs()
-        .any(|(k, v)| k == "X-Plex-Token" && v == "a&b+/"));
+    // The credential travels verbatim as a sensitive header, never in the URL.
+    let policy = StreamPolicy::plex(&base, "a&b+/");
+    let token = &policy.headers()["x-plex-token"];
+    assert_eq!(token, "a&b+/");
+    assert!(token.is_sensitive());
+    let stream = policy.download_url("/library/parts/42/file.flac").unwrap();
+    assert_eq!(
+        stream.as_str(),
+        "https://music.example:32400/library/parts/42/file.flac"
+    );
+    assert!(policy
+        .artwork_url("/library/parts/42/file.flac?X-Plex-Token=other")
+        .is_err());
     for path in [
         "https://evil.test/",
         "//evil.test/a",
@@ -157,10 +165,10 @@ fn music_browse_play_and_persistent_session() {
     assert_eq!(page["next"], 101);
     let items = serde_json::from_value(page["items"].clone()).unwrap();
     let play = core.execute(Command::Play { items, index: 0 }).unwrap();
-    assert!(play["stream"]
-        .as_str()
-        .unwrap()
-        .contains("/library/parts/42/file.flac?X-Plex-Token=secret"));
+    // The stream URL carries no credential; the engine sends it as a header.
+    let stream = play["stream"].as_str().unwrap();
+    assert!(stream.ends_with("/library/parts/42/file.flac"), "{stream}");
+    assert!(!stream.contains("secret") && !stream.contains("Token"));
     // Artwork reaches the UI as a credential-free provider id.
     let artwork = play["track"]["artwork"].as_str().unwrap();
     assert!(!artwork.contains("secret"));
@@ -287,7 +295,7 @@ fn discovery_validates_only_servers_and_reports_safe_context_for_invalid_servers
     assert_eq!(resources.len(), 1);
     assert_eq!(resources[0].client_identifier, "one");
     let error = plex.resources("account-secret").err().unwrap().to_string();
-    assert_eq!(error, "Unexpected Plex response (server discovery)");
+    assert_eq!(error, "Unexpected server response (server discovery)");
     assert!(!error.contains("secret"));
     task.join().unwrap();
 }
@@ -330,6 +338,7 @@ fn artist_album_details_include_descriptions_gallery_and_paged_children() {
     let artist = core
         .execute(Command::Detail {
             key: "10".into(),
+            kind: None,
             start: 0,
         })
         .unwrap();
@@ -343,6 +352,7 @@ fn artist_album_details_include_descriptions_gallery_and_paged_children() {
     let next = core
         .execute(Command::Detail {
             key: "10".into(),
+            kind: None,
             start: 1,
         })
         .unwrap();
@@ -351,6 +361,7 @@ fn artist_album_details_include_descriptions_gallery_and_paged_children() {
     let album = core
         .execute(Command::Detail {
             key: "20".into(),
+            kind: None,
             start: 0,
         })
         .unwrap();
@@ -361,6 +372,7 @@ fn artist_album_details_include_descriptions_gallery_and_paged_children() {
     assert!(core
         .execute(Command::Detail {
             key: "../20".into(),
+            kind: None,
             start: 0
         })
         .is_err());

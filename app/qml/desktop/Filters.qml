@@ -18,7 +18,7 @@ Dialog {
             Label {Layout.fillWidth:true;visible:!music.filterEditable;text:qsTr("These smart-playlist rules cannot be represented by this editor.");wrapMode:Text.Wrap}
             TextField {id:name;Layout.fillWidth:true;visible:music.filterAction!=="browse";placeholderText:qsTr("Playlist name");text:music.filterName;onTextChanged:{music.filterName=text;dialog.validate()}}
             ComboBox {Layout.fillWidth:true;visible:music.filterAction==="browse";model:[qsTr("Artists"),qsTr("Albums"),qsTr("Tracks")];currentIndex:music.filterKind==="artist" ? 0 : music.filterKind==="album" ? 1 : 2;onActivated:{music.filterKind=["artist","album","track"][currentIndex];music.requestFilterChoices()}}
-            Repeater {model:[{field:"genre",label:qsTr("Genre")},{field:"mood",label:qsTr("Mood")},{field:"style",label:qsTr("Style")}]
+            Repeater {model:[{field:"genre",label:qsTr("Genre"),cap:""},{field:"mood",label:qsTr("Mood"),cap:"moodFilter"},{field:"style",label:qsTr("Style"),cap:"styleFilter"}].filter(function(f){return !f.cap || music.can(f.cap)})
                 ComboBox {property string field:modelData.field;property string caption:modelData.label;Layout.fillWidth:true;model:[{key:"",title:qsTr("Any")}].concat(music.filterChoices[field] || []);textRole:"title";currentIndex:music.filterChoiceIndex(model,music.filterValues[field]);displayText:caption+": "+currentText;enabled:model.length>1;onActivated:music.filterValue(field,model[currentIndex].key)}
             }
             TextField {Layout.fillWidth:true;placeholderText:qsTr("Title contains");text:music.filterText("title");onTextChanged:music.filterValue("title",text)}
@@ -26,7 +26,7 @@ Dialog {
                 onTextChanged:{music.filterValue("yearFrom",text.length ? Number(text) : null);dialog.validate()}}
             TextField {id:to;Layout.fillWidth:true;enabled:music.filterKind!=="artist";placeholderText:qsTr("Year to");text:music.filterText("yearTo");validator:IntValidator {bottom:1;top:9999}
                 onTextChanged:{music.filterValue("yearTo",text.length ? Number(text) : null);dialog.validate()}}
-            ComboBox {Layout.fillWidth:true;textRole:"text";valueRole:"value"
+            ComboBox {Layout.fillWidth:true;visible:music.can("ratingFilter");textRole:"text";valueRole:"value"
                 model:[0,5,8,10].map(function(rating){return {value:rating,text:rating ? rating+"/10" : qsTr("Any")}})
                 currentIndex:count>0 ? indexOfValue(music.filterValues.minRating || 0) : -1;displayText:qsTr("Minimum rating")+": "+(music.filterValues.minRating===null ? qsTr("Any") : music.filterValues.minRating+"/10");onActivated:music.filterValue("minRating",currentValue || null)}
             Switch {text:qsTr("Unplayed only");checked:!!music.filterValues.unplayed;onClicked:music.filterValue("unplayed",checked)}

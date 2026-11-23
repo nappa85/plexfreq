@@ -1,5 +1,6 @@
 //! Review findings for the audio cache, offline snapshots and session storage.
 //! Each test fails against the current implementation and documents the defect.
+mod support;
 use plexfreq_core::{
     cache::{namespace, Cache, Config},
     lyrics::Line,
@@ -14,6 +15,7 @@ use std::{
     thread,
     time::{Duration, Instant, SystemTime},
 };
+use support::plex_schedule;
 
 fn item(id: &str) -> Item {
     Item {
@@ -44,10 +46,10 @@ fn wait(mut condition: impl FnMut() -> bool) {
 /// Same derivation as the private `cache::key` (namespace, ratingKey, part).
 fn cache_id(ns: &str, item: &Item) -> String {
     let part = &item.media[0].parts[0].key;
-    format!(
-        "{:x}",
-        Sha256::digest(format!("{ns}\0{}\0{part}", item.rating_key).as_bytes())
-    )
+    Sha256::digest(format!("{ns}\0{}\0{part}", item.rating_key).as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 fn seed_partial(dir: &std::path::Path, ns: &str, song: &Item, body: &[u8]) {
@@ -139,11 +141,11 @@ fn unsatisfiable_resume_range_restarts_instead_of_failing_forever() {
                 .as_object()
                 .is_some_and(|e| e.contains_key("1"))
     };
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| settled(&cache));
     if cache.lookup(&ns, &song, false).is_none() {
         // The user (or the next queue change) retries the download.
-        cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+        plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
         wait(|| settled(&cache));
     }
     let cached = cache.lookup(&ns, &song, false).is_some();

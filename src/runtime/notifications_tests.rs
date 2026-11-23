@@ -2,7 +2,7 @@ use super::*;
 use crate::mutex_lock;
 use std::io::{BufRead, BufReader};
 use std::sync::{Arc, Mutex};
-use zbus::zvariant::OwnedValue;
+use zbus::OwnedVariant as OwnedValue;
 
 static TEST_BUS: Mutex<()> = Mutex::new(());
 
@@ -88,7 +88,7 @@ impl TestBus {
         Notifications::start(move || {
             let address = address.clone();
             async move {
-                zbus::connection::Builder::address(address.as_str())?
+                zbus::connection::Builder::address(address.as_str())
                     .build()
                     .await
             }
@@ -104,7 +104,6 @@ fn activation_service_child() {
     let address = std::env::var("DBUS_STARTER_ADDRESS").unwrap();
     rt::block_on(async {
         let connection = zbus::connection::Builder::address(address.as_str())
-            .unwrap()
             .serve_at(
                 PATH,
                 Fake {
@@ -117,9 +116,7 @@ fn activation_service_child() {
                     apply_gate: Mutex::new(None),
                 },
             )
-            .unwrap()
             .name(SERVICE)
-            .unwrap()
             .build()
             .await
             .unwrap();
@@ -139,7 +136,6 @@ fn one_event_activates_service_and_delivers_once() {
     let bus = TestBus::activatable();
     rt::block_on(async {
         let connection = zbus::connection::Builder::address(bus.address.as_str())
-            .unwrap()
             .build()
             .await
             .unwrap();
@@ -324,9 +320,7 @@ async fn service(
     markup: bool,
 ) -> Connection {
     zbus::connection::Builder::address(bus.address.as_str())
-        .unwrap()
         .name(SERVICE)
-        .unwrap()
         .serve_at(
             PATH,
             Fake {
@@ -339,7 +333,6 @@ async fn service(
                 apply_gate: Mutex::new(None),
             },
         )
-        .unwrap()
         .build()
         .await
         .unwrap()
@@ -518,9 +511,7 @@ fn setup_timeout_is_definite_non_delivery_and_cancellable() {
         let setup_delay = Arc::new(std::sync::atomic::AtomicU64::new(2400));
         let (setup_started, mut started) = watch::channel(0);
         let service = zbus::connection::Builder::address(bus.address.as_str())
-            .unwrap()
             .name(SERVICE)
-            .unwrap()
             .serve_at(
                 PATH,
                 Fake {
@@ -533,7 +524,6 @@ fn setup_timeout_is_definite_non_delivery_and_cancellable() {
                     apply_gate: Mutex::new(None),
                 },
             )
-            .unwrap()
             .build()
             .await
             .unwrap();

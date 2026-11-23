@@ -47,15 +47,17 @@
   the gitignored `review-notes/` folder (and summarize them in the commit message
   when committing), never in `docs/`. Review findings are not proof of
   correctness.
-- Reviewer setup (adopted from ../mimik, user decisions 2026-10-16 and 2026-11-07):
+- Reviewer setup (adopted from ../mimik, user decisions 2026-10-16, 2026-11-07 and
+  2026-11-22):
   - External reviewers run through the `external-agents` skill
-    (https://github.com/nappa85/external-agents at commit f861139, cloned under
-    `/media/data/mimik/external-agents` and linked as `~/.claude/skills/external-agents`;
-    it installs its pinned opencode in `~/.opencode/bin`, which must come first on PATH) with
-    the panel `opencode:openai/gpt-6.1-sol; ? opencode:opencode/deepseek-v4.1-flash-free`
-    (`EXTERNAL_REVIEWERS` or `--reviewers`), next to a fresh Sonnet subagent, in
-    parallel. Sol is the main external reviewer; DeepSeek v4.1 Flash is the optional
-    third. If a slot has no available reviewer, proceed with the others and record it.
+    (https://github.com/nappa85/external-agents at commit 0778f04, a git clone in
+    `/media/data/mimik/external-agents-git` linked as `~/.claude/skills/external-agents`;
+    keep it updated from upstream. It installs its pinned opencode in `~/.opencode/bin`,
+    which must come first on PATH) with the panel
+    `? opencode:opencode/deepseek-v4.1-flash-free` (`EXTERNAL_REVIEWERS` or
+    `--reviewers`), next to a fresh Opus subagent (never Sonnet), in parallel. Opus is
+    the main reviewer; DeepSeek v4.1 Flash is the optional external one. If a slot has no
+    available reviewer, proceed with the others and record it.
   - The skill snapshots the tracked and untracked non-ignored files without VCS data.
     `.gitignore` keeps build output, packages, logs, Plex session/queue/resume/listen/
     history files and credentials out of it (`tools/test_review_snapshot.py`). Free

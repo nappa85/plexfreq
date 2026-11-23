@@ -184,12 +184,12 @@
       <translation>De radio kon niet worden vernieuwd. Gedownloade nummers kunnen zich herhalen.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex gaf HTTP %1 terug</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>De server gaf HTTP %1 terug</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Onverwachte Plex-respons (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Onverwachte serverrespons (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Audiostreaming mislukt</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Autorisatie mislukt; log opnieuw in of controleer het servertoken</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Kies maximaal 1000 geldige nummers om te downloaden</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Maak eerst verbinding met een Plex-server</translation>
+      <source>Connect to a server first</source>
+      <translation>Maak eerst verbinding met een server</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Plex-pad van andere oorsprong geweigerd</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Pad van andere oorsprong geweigerd</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Numerieke Plex-ID verwacht</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Serverrelatief Plex-pad verwacht</translation>
+      <source>Expected a server identifier</source>
+      <translation>Een server-ID werd verwacht</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Serverrelatief pad verwacht</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Online gaan</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Ga online om Plex-afspeellijsten te bewerken</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Ga online om afspeellijsten te bewerken</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Ongeldige serverindex</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 of nieuwer is vereist</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>De luistergeschiedenis moet worden gesynchroniseerd voordat meer afspeelbeurten worden vastgelegd</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Wijzigingen aan afspeellijsten zijn uitgeschakeld in de alleen-lezen inspectie</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex-autorisatie mislukt; log opnieuw in of controleer het servertoken</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex biedt geen artiestenradiozender voor deze artiest</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>De wachtrij vereist nummers en een geldige startindex</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Quick Connect is niet ingeschakeld op deze server</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>De opgeslagen wachtrij is ongeldig</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>De server-URL moet een HTTP(S)-adres zijn, eventueel met een pad zoals /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>De server-URL moet een HTTP(S)-oorsprong zijn, bijv. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Start eerst het inloggen</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Het item van de afspeellijst is niet gevonden</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>De server heeft het afspeellijstitem niet verplaatst</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Dit album bevat geen afspeelbare nummers</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Deze artiest of dit album is niet offline opgeslagen</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Dit is geen Jellyfin-server</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Deze bibliotheekpagina is nog niet offline opgeslagen</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Deze server ondersteunt deze functie niet</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Dit nummer is niet gedownload</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Dit nummer staat meerdere keren in de afspeellijst en de server kan de kopieën niet uit elkaar houden</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Het nummer heeft geen downloadbaar mediadeel</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Onverwachte Plex-respons</translation>
+      <source>Unexpected server response</source>
+      <translation>Onverwachte serverrespons</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Recent toegevoegd</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Recent afgespeeld</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Favorieten</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Meest afgespeeld</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Geen muziek gevonden</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Verbinden met Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Verbinden met een server</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Geen muziek gevonden.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Maak verbinding met je muziekserver om te beginnen met luisteren.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Maak verbinding met je Plex-muziekserver om te beginnen met luisteren.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Herhalen uit</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Verbinden met Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Verbinden met een server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servertype</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Direct verbinden</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Server-URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Gebruikersnaam</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Wachtwoord</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Inloggen bij Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect gebruiken</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Voer deze code in bij Jellyfin onder Quick Connect en wacht hier.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Annuleren</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Luisterstatistieken</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Favorieten</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Klankmatig vergelijkbaar</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Favorieten</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Favorieten · 5 sterren</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Verbinden met Plex</translation>
+      <source>Connect to a server</source>
+      <translation>Verbinden met een server</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Servertype</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Verbinden</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Gebruikersnaam</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Wachtwoord</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Inloggen bij Jellyfin</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect gebruiken</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Voer deze code in bij Jellyfin onder Quick Connect en wacht hier.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Annuleren</translation>
     </message>
     <message>
       <source>Sign out</source>

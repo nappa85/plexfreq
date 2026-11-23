@@ -184,12 +184,12 @@
       <translation>Радионы яңартып булмады. Йөкләнгән треклар кабатланырга мөмкин.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex HTTP %1 кайтарды</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>Сервер HTTP %1 кайтарды</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Көтелмәгән Plex җавабы (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Көтелмәгән сервер җавабы (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>Аудионы агымлы тапшыру барып чыкмады</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Авторизация барып чыкмады; яңадан керегез яки сервер токенын тикшерегез</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Йөкләү өчен 1000 гә кадәр дөрес трек сайлагыз</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Башта Plex серверы белән тоташыгыз</translation>
+      <source>Connect to a server first</source>
+      <translation>Башта сервер белән тоташыгыз</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Башка чыганактагы Plex юлы кире кагылды</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Башка чыганактагы юл кире кагылды</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Санлы Plex идентификаторы көтелә</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Серверга карата Plex юлы көтелә</translation>
+      <source>Expected a server identifier</source>
+      <translation>Сервер идентификаторы көтелә иде</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Серверга карата юл көтелә</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Онлайнга чыгу</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Plex плейлистларын үзгәртү өчен онлайнга чыгыгыз</translation>
+      <source>Go online to edit playlists</source>
+      <translation>Плейлистларны үзгәртү өчен онлайнга чыгыгыз</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Сервер индексы дөрес түгел</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 яки яңарак кирәк</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>Тагын тыңлаулар язу өчен башта тыңлау тарихын синхронларга кирәк</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Укып кына карау режимында плейлистларны үзгәртеп булмый</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex авторизациясе барып чыкмады; яңадан керегез яки сервер токенын тикшерегез</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex бу башкаручы өчен радиостанция тәкъдим итми</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>Чират өчен треклар һәм дөрес башлангыч индекс кирәк</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>Бу серверда Quick Connect кабызылмаган</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>Сакланган чират дөрес түгел</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>Сервер URL HTTP(S) адресы булырга тиеш, теләсәгез /jellyfin кебек юл белән</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>Сервер URL HTTP(S) чыганагы булырга тиеш, мәсәлән, http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Башта керүне башлагыз</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>Плейлист язмасы табылмады</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>Сервер плейлист элементын күчермәде</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Бу альбомда уйнатыла торган треклар юк</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Бу башкаручы яки альбом офлайн сакланмаган</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Бу Jellyfin серверы түгел</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Медиатеканың бу бите әле офлайн сакланмаган</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Бу сервер бу функцияне хупламый</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Бу трек йөкләнмәгән</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Бу трек плейлистта берничә тапкыр бар һәм сервер күчермәләрне аера алмый</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>Трекның йөкләнә торган медиа өлеше юк</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Көтелмәгән Plex җавабы</translation>
+      <source>Unexpected server response</source>
+      <translation>Көтелмәгән сервер җавабы</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Күптән түгел өстәлгән</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Күптән түгел тыңланган</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Сайланмалар</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Иң күп тыңланганнар</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Музыка табылмады</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex белән тоташу</translation>
+      <source>Connect to a server</source>
+      <translation>Серверга тоташу</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Музыка табылмады.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>Тыңлый башлау өчен музыка серверыгыз белән тоташыгыз.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>Тыңлый башлау өчен Plex музыка серверыгыз белән тоташыгыз.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Кабатлау сүндерелгән</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex белән тоташу</translation>
+      <source>Connect to a server</source>
+      <translation>Серверга тоташу</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Сервер төре</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Турыдан-туры тоташу</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Сервер URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Кулланучы исеме</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Серсүз</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin'га керү</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect куллану</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Бу кодны Jellyfin'да Quick Connect бүлегендә кертегез һәм монда көтегез.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Баш тарту</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Тыңлау статистикасы</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Сайланмалар</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Тавышы охшаш</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Сайланмалар</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Сайланмалар · 5 йолдыз</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex белән тоташу</translation>
+      <source>Connect to a server</source>
+      <translation>Серверга тоташу</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Сервер төре</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Тоташу</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Кулланучы исеме</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Серсүз</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin'га керү</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect куллану</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Бу кодны Jellyfin'да Quick Connect бүлегендә кертегез һәм монда көтегез.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Баш тарту</translation>
     </message>
     <message>
       <source>Sign out</source>

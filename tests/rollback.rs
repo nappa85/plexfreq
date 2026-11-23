@@ -89,7 +89,7 @@ fn failed_track_resolution_and_reconnect_preserve_current_session() {
             token: "wrong-token".into(),
         })
         .unwrap_err();
-    assert!(error.to_string().contains("authorization"));
+    assert!(error.to_string().contains("Authorization failed"));
     assert!(!error.to_string().contains("secret-token"));
     assert_eq!(core.execute(Command::Status).unwrap()["serverUrl"], origin);
     let saved = std::fs::read_to_string(dir.path().join("session.json")).unwrap();

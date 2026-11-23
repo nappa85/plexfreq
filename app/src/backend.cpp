@@ -44,15 +44,16 @@ void Backend::reportError(const QString &text,bool radio) {
     const auto bytes=text.toUtf8();pf_runtime_notify(m_runtime,radio,bytes.constData());
 }
 void Backend::status(const QVariantMap &value){const bool busy=value.value("busy").toBool(),more=value.value("loadingMore").toBool();if(busy!=m_busy){m_busy=busy;emit busyChanged();}if(more!=m_more){m_more=more;emit loadingMoreChanged();}}
-void Backend::command(const QString &op,const QVariantMap &args) {
-    if(!m_runtime){m_error=QStringLiteral("Backend unavailable");emit errorChanged();return;}
+bool Backend::command(const QString &op,const QVariantMap &args) {
+    if(!m_runtime){m_error=QStringLiteral("Backend unavailable");emit errorChanged();return false;}
     // Never let QML drive internal worker coordination.
-    if(op.startsWith(QStringLiteral("_"))){reportError(translatedError({{"error",QStringLiteral("Invalid request data")}}));return;}
+    if(op.startsWith(QStringLiteral("_"))){reportError(translatedError({{"error",QStringLiteral("Invalid request data")}}));return false;}
     auto input=args;input.insert("op",op);const auto bytes=QJsonDocument::fromVariant(input).toJson(QJsonDocument::Compact);const auto accepted=decoded(pf_runtime_submit(m_runtime,bytes.constData()));
     if(accepted.value("accepted").toBool())status(accepted);
     if(accepted.value("clearError").toBool() && !m_error.isEmpty()){m_error.clear();emit errorChanged();}
     if(accepted.value("resetItems").toBool() && m_items.rowCount()>0){m_items.replace(QVariantList());emit itemsChanged();}
-    if(!accepted.value("accepted").toBool()){reportError(translatedError(accepted));}
+    if(!accepted.value("accepted").toBool()){reportError(translatedError(accepted));return false;}
+    return true;
 }
 void Backend::poll() {
     if(!m_runtime)return;
@@ -77,7 +78,9 @@ void Backend::handle(const QVariantMap &event) {
     const auto input=event.value("request").toMap(),response=event.value("response").toMap();const auto op=input.value("op").toString();const bool ok=response.value("ok").toBool();auto data=response.value("data").toMap();
     if(data.value("_discarded").toBool()){emit completed(op,ok,data);return;}
     if(!ok){if(op!="lyrics" && op!="similar_artists"){reportError(translatedError(response));}emit completed(op,false,data);return;}
-    translateErrorFields(data);
+    // A completed reply may carry a message for the user (not state).
+    if(data.contains("notice"))reportError(translatedMessage(data.take("notice").toString()));
+    translateErrorFields(data);translateHubTitles(data,m_state.value("serverKind").toString());
     bool changed=false,itemsDirty=false,queueDirty=false;
     if(data.contains("cache"))applyCache(data.take("cache").toMap());
     if(data.contains("items")){

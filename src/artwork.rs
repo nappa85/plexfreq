@@ -13,10 +13,7 @@
 //! one image share a single download. Prefetched artwork lives in the store
 //! root; images fetched for the UI while browsing live in `browse/` with
 //! their own budget, so browsing never evicts artwork saved for offline use.
-use crate::{
-    plex::{advertised_path, server_url},
-    Error, Result,
-};
+use crate::{server::StreamPolicy, Error, Result};
 use std::{
     collections::HashMap,
     fs,
@@ -51,14 +48,14 @@ const TOUCH_INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 
 /// image content type only, at most [`ARTWORK_LIMIT`].
 pub(crate) async fn fetch_artwork(
     client: &reqwest::Client,
-    server: &str,
-    token: &str,
+    policy: &StreamPolicy,
     path: &str,
 ) -> Result<Vec<u8>> {
-    let url = advertised_path(&server_url(server)?, path)?;
+    let url = policy.artwork_url(path)?;
+    let headers = policy.headers_for(&url);
     let mut response = client
         .get(url)
-        .header("X-Plex-Token", token)
+        .headers(headers)
         .timeout(std::time::Duration::from_secs(5))
         .send()
         .await
@@ -263,17 +260,14 @@ impl Store {
     /// for it at the same time, then cached for the parties that wanted it.
     pub(crate) async fn load(
         self: &Arc<Self>,
-        server: &str,
-        token: &str,
+        policy: &StreamPolicy,
         namespace: &str,
         path: &str,
         party: Party,
     ) -> Option<Arc<Vec<u8>>> {
         let name = file_name(namespace, path);
         let cleared = self.directory.cleared.load(Ordering::SeqCst);
-        let bytes = self
-            .fetch(server, token, namespace, path, &name, &party)
-            .await;
+        let bytes = self.fetch(policy, namespace, path, &name, &party).await;
         // Wanted for offline use: a browsed copy moves into the offline budget.
         if let (Some(_), Party::Prefetch(epoch)) = (&bytes, &party) {
             let (store, name, epoch) = (self.clone(), name.clone(), *epoch);
@@ -283,8 +277,7 @@ impl Store {
     }
     async fn fetch(
         self: &Arc<Self>,
-        server: &str,
-        token: &str,
+        policy: &StreamPolicy,
         namespace: &str,
         path: &str,
         name: &str,
@@ -346,7 +339,7 @@ impl Store {
                 return None;
             }
             let cleared = self.directory.cleared.load(Ordering::SeqCst);
-            let bytes = fetch_artwork(crate::plex::client(), server, token, path)
+            let bytes = fetch_artwork(crate::plex::client(), policy, path)
                 .await
                 .ok()
                 .map(Arc::new);
@@ -444,12 +437,11 @@ impl Store {
     }
 }
 
-/// What a request needs: the server, its credential, the cache namespace and
-/// the store. Held in Rust only.
+/// What a request needs: the server address, credential and rules, the cache
+/// namespace and the store. Held in Rust only.
 #[derive(Clone)]
 pub(crate) struct Snapshot {
-    pub server: String,
-    pub token: String,
+    pub policy: StreamPolicy,
     pub namespace: String,
     pub store: Arc<Store>,
 }
@@ -570,8 +562,7 @@ impl Source {
             let bytes = snapshot
                 .store
                 .load(
-                    &snapshot.server,
-                    &snapshot.token,
+                    &snapshot.policy,
                     &snapshot.namespace,
                     &path,
                     Party::Browsing(interest),
@@ -655,8 +646,7 @@ mod tests {
     }
     fn snapshot(server: &str, token: &str, store: &Arc<Store>) -> Snapshot {
         Snapshot {
-            server: server.into(),
-            token: token.into(),
+            policy: StreamPolicy::plex(&url::Url::parse(server).unwrap(), token),
             namespace: crate::cache::namespace(server, token),
             store: store.clone(),
         }
@@ -820,8 +810,7 @@ mod tests {
             crate::rt::spawn(async move {
                 store
                     .load(
-                        &current.server,
-                        &current.token,
+                        &current.policy,
                         &current.namespace,
                         path,
                         Party::Prefetch(0),
@@ -1037,8 +1026,7 @@ mod tests {
             let store = store.clone();
             thread::spawn(move || {
                 crate::rt::block_on(store.load(
-                    &current.server,
-                    &current.token,
+                    &current.policy,
                     &current.namespace,
                     path,
                     Party::Prefetch(0),
@@ -1077,8 +1065,10 @@ mod tests {
         assert!(fs::metadata(&browsed).unwrap().modified().unwrap() > old);
         assert!(!store.offline(namespace, path));
         let loaded = crate::rt::block_on(store.load(
-            "http://127.0.0.1:9/",
-            "fixture-token",
+            &StreamPolicy::plex(
+                &url::Url::parse("http://127.0.0.1:9/").unwrap(),
+                "fixture-token",
+            ),
             namespace,
             path,
             Party::Prefetch(0),

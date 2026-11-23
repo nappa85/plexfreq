@@ -30,12 +30,12 @@ Item {
         var editablePlaylist=!!music.playlist && !music.playlist.smart
         var userPlaylist=type==="playlist" && !item.station
         switch (id) {
-        case "waypoint": action.text=qsTr("Add sonic waypoint"); action.visible=type==="track"; action.enabled=music.journeyTracks.length<8; break
-        case "editSmart": action.text=qsTr("Edit smart filters"); action.visible=userPlaylist && !!item.smart; action.enabled=!offline; break
-        case "similar": action.text=qsTr("Sonically similar"); action.visible=music.canRadio(item); break
-        case "adventureStart": action.text=qsTr("Start sonic adventure here"); action.visible=type==="track"; break
-        case "adventureEnd": action.text=qsTr("Sonic Adventure to this track"); action.visible=type==="track" && !!music.adventureStart; break
-        case "downloadRadio": action.text=qsTr("Download radio · %1 minutes").arg(music.downloadMinutes); action.visible=!!item.station || music.canRadio(item); action.enabled=!offline; break
+        case "waypoint": action.text=qsTr("Add sonic waypoint"); action.visible=type==="track" && music.can("sonicAdventure"); action.enabled=music.journeyTracks.length<8; break
+        case "editSmart": action.text=qsTr("Edit smart filters"); action.visible=userPlaylist && !!item.smart && music.can("smartPlaylists"); action.enabled=!offline; break
+        case "similar": action.text=qsTr("Sonically similar"); action.visible=music.canRadio(item) && music.can("sonic"); break
+        case "adventureStart": action.text=qsTr("Start sonic adventure here"); action.visible=type==="track" && music.can("sonicAdventure"); break
+        case "adventureEnd": action.text=qsTr("Sonic Adventure to this track"); action.visible=type==="track" && music.can("sonicAdventure") && !!music.adventureStart; break
+        case "downloadRadio": action.text=qsTr("Download radio · %1 minutes").arg(music.downloadMinutes); action.visible=(!!item.station && music.can("serverStations")) || music.canRadio(item); action.enabled=!offline; break
         case "downloadPlaylist": action.text=qsTr("Download %1 minutes").arg(music.downloadMinutes); action.visible=userPlaylist; action.enabled=!offline; break
         case "playNext": action.text=qsTr("Play next"); action.visible=!music.showQueue && queueable; break
         case "addQueue": action.text=qsTr("Add to queue"); action.visible=!music.showQueue && queueable; break

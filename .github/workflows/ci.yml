@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v7
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
           components: clippy, rustfmt
@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y dbus-daemon ffmpeg lame pkg-config libpulse-dev
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v7
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
       - name: Install PulseAudio daemon and client tools
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@v7
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
       - uses: actions/setup-python@v7
@@ -100,7 +100,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg lame cmake ninja-build pkg-config dbus-daemon libpulse-dev qt6-base-dev qt6-declarative-dev qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-templates qml6-module-qtqml-workerscript
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -166,7 +166,7 @@ jobs:
           df -h
       # dtolnay/rust-toolchain branch 'stable'; a SHA ref needs an explicit toolchain input.
       - id: toolchain
-        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
         with:
           toolchain: stable
           targets: aarch64-unknown-linux-gnu

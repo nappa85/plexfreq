@@ -33,7 +33,7 @@ Item {
         downloadTracks: qsTr("Download displayed tracks"), clearMix: qsTr("Clear mix seeds"),
         clearJourney: qsTr("Clear sonic waypoints"), stopRadio: qsTr("Stop radio"),
         queue: qsTr("Queue"), downloaded: qsTr("Downloaded music"), savedAlbums: qsTr("Saved albums"),
-        insights: qsTr("Listening insights"), favorites: qsTr("Favorites · 5 stars"),
+        insights: qsTr("Listening insights"), favorites: music && music.jellyfin ? qsTr("Favorites") : qsTr("Favorites · 5 stars"),
         added: qsTr("Recently added"), played: qsTr("Recently played"),
         downloads: qsTr("Download manager"), connection: qsTr("Connection"), back: qsTr("Back"),
         offline: offlineEnabled ? qsTr("Go online") : qsTr("Browse saved library offline"),
@@ -70,7 +70,7 @@ Item {
         case "customize": action.visible=!!view && !!view.homeView; break
         case "filters": action.visible=libraryView; action.enabled=ready && section; break
         case "groupAlbums": action.visible=!!detail && detail.type==="artist"; break
-        case "createSmart": action.enabled=ready && section && !offlineEnabled; break
+        case "createSmart": action.visible=!music || music.can("smartPlaylists"); action.enabled=ready && section && !offlineEnabled; break
         case "createPlaylist": action.enabled=ready && server && !offlineEnabled; break
         case "downloadTracks":
             var hasTrack=false
@@ -80,7 +80,7 @@ Item {
             break
         case "playMix": action.visible=!!music && music.mixSeeds.length>0; break
         case "clearMix": action.visible=!!music && music.mixSeeds.length>0; action.enabled=interactive && !!music; break
-        case "journey": action.visible=!!music && music.journeyTracks.length>=2; break
+        case "journey": action.visible=!!music && music.can("sonicAdventure") && music.journeyTracks.length>=2; break
         case "clearJourney": action.visible=!!music && music.journeyTracks.length>0; action.enabled=interactive && !!music; break
         case "stopRadio": action.visible=!!backend.state.radio; break
         case "queue": action.enabled=interactive && !!music; break

@@ -43,6 +43,18 @@ pub enum Source {
         seed: Box<Item>,
         recent: Vec<String>,
     },
+    /// A client-side radio fed by the server's instant mix of a seed: each
+    /// refill asks the mix again and appends the tracks not queued yet. A mix
+    /// that returns nothing new (a server whose mix is stable per seed) is
+    /// asked again for queued tracks as seeds, remembered in `used`.
+    /// Added after the others, so queues saved with them load unchanged;
+    /// `used` defaults to empty for queues saved before it existed.
+    Mix {
+        seed: String,
+        kind: RadioKind,
+        #[serde(default)]
+        used: Vec<String>,
+    },
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -97,7 +109,7 @@ impl Radio {
         }
     }
     pub fn summary(&self) -> Value {
-        serde_json::json!({"kind":self.kind,"title":self.title,"source":match self.source { Source::Station{..} => "station", Source::Sonic{..} => "sonic" }})
+        serde_json::json!({"kind":self.kind,"title":self.title,"source":match self.source { Source::Station{..} => "station", Source::Sonic{..} => "sonic", Source::Mix{..} => "mix" }})
     }
 }
 

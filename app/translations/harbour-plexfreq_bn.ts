@@ -184,12 +184,12 @@
       <translation>রেডিও রিফ্রেশ করা যায়নি। ডাউনলোড করা ট্র্যাক পুনরাবৃত্তি হতে পারে।</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex HTTP %1 ফেরত দিয়েছে</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>সার্ভার HTTP %1 ফেরত দিয়েছে</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>অপ্রত্যাশিত Plex প্রতিক্রিয়া (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>অপ্রত্যাশিত সার্ভার প্রতিক্রিয়া (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>অডিও স্ট্রিমিং ব্যর্থ হয়েছে</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>অনুমোদন ব্যর্থ; আবার সাইন ইন করুন বা সার্ভার টোকেন দেখুন</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>ডাউনলোডের জন্য সর্বোচ্চ 1000টি বৈধ ট্র্যাক বেছে নিন</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>প্রথমে একটি Plex সার্ভারে সংযোগ করুন</translation>
+      <source>Connect to a server first</source>
+      <translation>প্রথমে একটি সার্ভারে সংযোগ করুন</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>অন্য অরিজিনের Plex পাথ প্রত্যাখ্যাত</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>অন্য অরিজিনের পাথ প্রত্যাখ্যাত</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>একটি সংখ্যাসূচক Plex শনাক্তকারী প্রত্যাশিত ছিল</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>সার্ভার-আপেক্ষিক Plex পাথ প্রত্যাশিত ছিল</translation>
+      <source>Expected a server identifier</source>
+      <translation>সার্ভারের শনাক্তকারী প্রত্যাশিত</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>সার্ভার-আপেক্ষিক পাথ প্রত্যাশিত ছিল</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>অনলাইনে যান</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Plex প্লেলিস্ট সম্পাদনা করতে অনলাইনে যান</translation>
+      <source>Go online to edit playlists</source>
+      <translation>প্লেলিস্ট সম্পাদনা করতে অনলাইনে যান</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>অবৈধ সার্ভার সূচক</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 বা তার পরবর্তী সংস্করণ প্রয়োজন</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>আরও প্লে রেকর্ড করার আগে শোনার ইতিহাস সিঙ্ক করা প্রয়োজন</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>শুধু-পঠন পরিদর্শনে প্লেলিস্ট সম্পাদনা বন্ধ</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex অনুমোদন ব্যর্থ; আবার সাইন ইন করুন বা সার্ভার টোকেন দেখুন</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex এই শিল্পীর জন্য কোনো শিল্পী রেডিও স্টেশন দেয় না</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>কিউয়ের জন্য ট্র্যাক এবং একটি বৈধ শুরুর সূচক প্রয়োজন</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>এই সার্ভারে Quick Connect চালু নেই</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>সংরক্ষিত কিউ অবৈধ</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>সার্ভার URL একটি HTTP(S) ঠিকানা হতে হবে, ঐচ্ছিকভাবে /jellyfin-এর মতো একটি পাথসহ</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>সার্ভার URL একটি HTTP(S) অরিজিন হতে হবে, যেমন http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>আগে লগইন শুরু করুন</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>প্লেলিস্টের এন্ট্রিটি পাওয়া যায়নি</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>সার্ভার প্লেলিস্টের এন্ট্রিটি সরায়নি</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>এই অ্যালবামে কোনো চালানোযোগ্য ট্র্যাক নেই</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>এই শিল্পী বা অ্যালবাম অফলাইনে সংরক্ষিত হয়নি</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>এটি একটি Jellyfin সার্ভার নয়</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>এই লাইব্রেরি পৃষ্ঠা এখনো অফলাইনে সংরক্ষিত হয়নি</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>এই সার্ভার এই বৈশিষ্ট্যটি সমর্থন করে না</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>এই ট্র্যাকটি ডাউনলোড হয়নি</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>এই ট্র্যাকটি প্লেলিস্টে একাধিকবার আছে এবং সার্ভার কপিগুলো আলাদা করতে পারে না</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>ট্র্যাকে কোনো ডাউনলোডযোগ্য মিডিয়া অংশ নেই</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>অপ্রত্যাশিত Plex প্রতিক্রিয়া</translation>
+      <source>Unexpected server response</source>
+      <translation>অপ্রত্যাশিত সার্ভার প্রতিক্রিয়া</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>সম্প্রতি যোগ করা</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>সম্প্রতি চালানো</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>প্রিয়</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>সবচেয়ে বেশি চালানো</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>কোনো গান পাওয়া যায়নি</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex-এ সংযোগ করুন</translation>
+      <source>Connect to a server</source>
+      <translation>সার্ভারে সংযুক্ত হন</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>কোনো গান পাওয়া যায়নি।</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>শোনা শুরু করতে আপনার মিউজিক সার্ভারে সংযোগ করুন।</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>শোনা শুরু করতে আপনার Plex মিউজিক সার্ভারে সংযোগ করুন।</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>পুনরাবৃত্তি বন্ধ</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex-এ সংযোগ করুন</translation>
+      <source>Connect to a server</source>
+      <translation>সার্ভারে সংযুক্ত হন</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>সার্ভারের ধরন</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>সরাসরি সংযোগ করুন</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>সার্ভার URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>ব্যবহারকারীর নাম</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>পাসওয়ার্ড</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin-এ সাইন ইন করুন</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect ব্যবহার করুন</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin-এর Quick Connect-এ এই কোডটি দিন, তারপর এখানে অপেক্ষা করুন।</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>বাতিল</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>শোনার ইনসাইটস</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>প্রিয়</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>সোনিকভাবে একই রকম</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>প্রিয়</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>প্রিয় · 5 তারা</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex-এ সংযোগ করুন</translation>
+      <source>Connect to a server</source>
+      <translation>সার্ভারে সংযুক্ত হন</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>সার্ভারের ধরন</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>সংযোগ করুন</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>ব্যবহারকারীর নাম</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>পাসওয়ার্ড</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin-এ সাইন ইন করুন</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect ব্যবহার করুন</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin-এর Quick Connect-এ এই কোডটি দিন, তারপর এখানে অপেক্ষা করুন।</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>বাতিল</translation>
     </message>
     <message>
       <source>Sign out</source>

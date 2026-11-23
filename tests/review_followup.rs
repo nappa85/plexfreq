@@ -224,6 +224,7 @@ fn offline_detail_fallback_respects_pagination_start() {
     let page = core
         .execute(Command::Detail {
             key: "10".into(),
+            kind: None,
             start: 100,
         })
         .unwrap();

@@ -6,6 +6,7 @@ mod stall;
 use crate::{
     audio::{self, Engine, Event, Source},
     plex::Probe,
+    server::MediaServer,
     Command, Core, Error, PlaybackSource, Prepared, Result, Skip,
 };
 use serde_json::{json, Value};
@@ -66,6 +67,16 @@ pub(crate) struct Checkpoint {
     snapshot: audio::Snapshot,
     reset: bool,
     seq: u64,
+}
+
+/// The request as echoed back across the FFI: Qt reads `op` and the request's
+/// non-secret arguments, never a password or token.
+fn without_secrets(mut echo: Value) -> Value {
+    if let Some(fields) = echo.as_object_mut() {
+        fields.remove("password");
+        fields.remove("token");
+    }
+    echo
 }
 
 /// Wire-level routing flags QML may attach to a request.
@@ -359,7 +370,7 @@ impl Shared {
         }
         let request = Request {
             command,
-            echo,
+            echo: without_secrets(echo),
             view: class.view_bound.then_some(view),
             foreground,
             page,
@@ -620,7 +631,7 @@ fn correlation(command: &Command) -> Correlation {
 fn update(data: Value) -> Value {
     json!({"request":{"op":"_update"},"response":{"ok":true,"data":data}})
 }
-fn source(id: u64, plan: &Value) -> Result<Source> {
+fn source(id: u64, plan: &Value, policy: crate::server::StreamPolicy) -> Result<Source> {
     let url = plan["stream"]
         .as_str()
         .ok_or(Error::Input("Invalid audio source"))?
@@ -652,6 +663,7 @@ fn source(id: u64, plan: &Value) -> Result<Source> {
         album_gain,
         album_normalization: plan["albumNormalization"] == true,
         album: track["parentRatingKey"].as_str().unwrap_or("").into(),
+        policy,
     })
 }
 /// Typed source of the presented track (None before any plan).
@@ -1072,7 +1084,7 @@ fn worker(
                         listened,
                         position,
                     } => {
-                        if core.station_radio_active() {
+                        if core.reports_stop_on_transition() {
                             let _ = core.execute(Command::Timeline {
                                 state: "stopped".into(),
                                 position,
@@ -1129,6 +1141,7 @@ fn worker(
                                     &mut serial,
                                     &mut current,
                                     false,
+                                    core.stream_policy(),
                                 ) {
                                     let _ = events.send(json!({"request":{"op":"next"},"response":{"ok":false,"error":error.to_string()}}).into());
                                     continue;
@@ -1416,7 +1429,7 @@ fn worker(
                     // A view-bound command's Plex requests abort as soon as navigation
                     // makes its reply stale, instead of finishing a discarded transfer.
                     if let Some(view) = view {
-                        core.plex
+                        core.backend
                             .bind_view(Some((shared.navigation.subscribe(), view)));
                     }
                     let result = if let Command::AudioConfig { config } = command {
@@ -1449,8 +1462,8 @@ fn worker(
                             }
                         }
                     };
-                    let cancelled = core.plex.cancelled();
-                    core.plex.bind_view(None);
+                    let cancelled = core.backend.cancelled();
+                    core.backend.bind_view(None);
                     // Navigation stepped over gone items to a natural end.
                     let gone_notice = core.take_gone_notice();
                     if cancelled {
@@ -1474,7 +1487,7 @@ fn worker(
                             if shared.stale(view) {
                                 data = json!({"_discarded":true});
                             } else {
-                                if class.resets_session {
+                                if class.resets_session || data["sessionReset"] == true {
                                     let _ = engine.handle.stop();
                                     failures.clear();
                                     current = 0;
@@ -1502,6 +1515,7 @@ fn worker(
                                         &mut serial,
                                         &mut current,
                                         paused,
+                                        core.stream_policy(),
                                     );
                                     if let Err(error) = started {
                                         audio_failure = Some(error);
@@ -2144,7 +2158,7 @@ impl Playback<'_> {
         let (resolution, new) = match &kind {
             PendingKind::Same(data) | PendingKind::Replace { data, .. } => {
                 *self.serial += 1;
-                match source(*self.serial, data) {
+                match source(*self.serial, data, self.core.stream_policy()) {
                     Ok(input) => {
                         crate::mutex_lock(&self.shared.presented)
                             .plans
@@ -2491,13 +2505,14 @@ fn start_plan(
     serial: &mut u64,
     current: &mut u64,
     paused: bool,
+    policy: crate::server::StreamPolicy,
 ) -> Result<()> {
     if data["stream"].as_str().unwrap_or("").is_empty() {
         engine.handle.stop()?;
         return Ok(());
     };
     *serial += 1;
-    let input = source(*serial, data)?;
+    let input = source(*serial, data, policy)?;
     // Hold the presentation lock across the load: `poll` must not see the new
     // occurrence audible before it is recorded as shown, or the caller's
     // update would be published twice.
@@ -2532,7 +2547,7 @@ fn prepare(
     }
     if let Ok(Some(next)) = core.prepare_next() {
         *serial += 1;
-        if let Ok(source) = source(*serial, &next.plan) {
+        if let Ok(source) = source(*serial, &next.plan, core.stream_policy()) {
             if let Err(error) = engine.handle.prepare(Some(source)) {
                 crate::diagnostics::event(format_args!("successor admission failed: {error}"));
                 return false;
@@ -2871,15 +2886,25 @@ mod tests {
                 "Media": [{"Part": [{"Stream": [{"albumGain": 10.0}, {"gain": 1.0}]}]}]
             }
         });
-        let source = source(7, &plan).unwrap();
+        let source = source(7, &plan, Default::default()).unwrap();
         assert_eq!(
             source.gain, 1.0,
             "track gain (1.0) must win over album gain (10.0) from another stream"
         );
         let mut album_plan = plan.clone();
         album_plan["normalizationMode"] = json!("album");
-        assert_eq!(super::source(8, &album_plan).unwrap().album_gain, Some(10.));
+        assert_eq!(
+            super::source(8, &album_plan, Default::default())
+                .unwrap()
+                .album_gain,
+            Some(10.)
+        );
         album_plan["track"]["Media"][0]["Part"][0]["Stream"][0]["albumGain"] = json!(1e300);
-        assert_eq!(super::source(9, &album_plan).unwrap().album_gain, None);
+        assert_eq!(
+            super::source(9, &album_plan, Default::default())
+                .unwrap()
+                .album_gain,
+            None
+        );
     }
 }

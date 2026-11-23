@@ -184,12 +184,12 @@
       <translation>A rádió nem frissíthető. A letöltött számok ismétlődhetnek.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>A Plex HTTP %1 kódot adott vissza</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>A szerver HTTP %1 kódot adott vissza</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>Váratlan Plex-válasz (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>Váratlan szerverválasz (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>A hang streamelése sikertelen</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>Hitelesítés sikertelen; jelentkezz be újra, vagy ellenőrizd a szerver tokenjét</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>Legfeljebb 1000 érvényes számot válassz letöltésre</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>Előbb csatlakozz egy Plex-szerverhez</translation>
+      <source>Connect to a server first</source>
+      <translation>Előbb csatlakozz egy szerverhez</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>Más eredetű Plex-útvonal elutasítva</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>Más eredetű útvonal elutasítva</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>Numerikus Plex-azonosító szükséges</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>Szerverhez viszonyított Plex-útvonal szükséges</translation>
+      <source>Expected a server identifier</source>
+      <translation>Kiszolgálóazonosítót vártunk</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>Szerverhez viszonyított útvonal szükséges</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>Váltás online módra</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>A Plex lejátszási listák szerkesztéséhez válts online módra</translation>
+      <source>Go online to edit playlists</source>
+      <translation>A lejátszási listák szerkesztéséhez válts online módra</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>Érvénytelen szerverindex</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 vagy újabb szükséges</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>További lejátszások rögzítése előtt szinkronizálni kell a hallgatási előzményeket</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>Írásvédett vizsgálati módban a lejátszási listák nem szerkeszthetők</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex-hitelesítés sikertelen; jelentkezz be újra, vagy ellenőrizd a szerver tokenjét</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>A Plex nem kínál rádióállomást ehhez az előadóhoz</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>A lejátszási sorhoz számok és érvényes kezdőindex szükséges</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>A Quick Connect nincs bekapcsolva ezen a kiszolgálón</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>A mentett lejátszási sor érvénytelen</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>A szerver URL-jének HTTP(S)-címnek kell lennie, opcionálisan útvonallal, például /jellyfin</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>A szerver URL-jének HTTP(S)-eredetnek kell lennie, pl. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>Előbb indítsd el a bejelentkezést</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>A lejátszási lista bejegyzése nem található</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>A kiszolgáló nem helyezte át a lejátszási lista elemét</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>Ez az album nem tartalmaz lejátszható számot</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>Ez az előadó vagy album nincs offline mentve</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>Ez nem Jellyfin-kiszolgáló</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>Ez a könyvtároldal még nincs offline mentve</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>Ez a szerver nem támogatja ezt a funkciót</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>Ez a szám nincs letöltve</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>Ez a szám többször szerepel a lejátszási listán, és a szerver nem tudja megkülönböztetni a példányokat</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>A számnak nincs letölthető médiarésze</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>Váratlan Plex-válasz</translation>
+      <source>Unexpected server response</source>
+      <translation>Váratlan szerverválasz</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>Nemrég hozzáadott</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>Nemrég játszott</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Kedvencek</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>Legtöbbet játszott</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>Nem található zene</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Csatlakozás a Plexhez</translation>
+      <source>Connect to a server</source>
+      <translation>Csatlakozás szerverhez</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>Nem található zene.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>A zenehallgatáshoz csatlakozz a zeneszerveredhez.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>A zenehallgatáshoz csatlakozz a Plex-zeneszerveredhez.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>Ismétlés ki</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Csatlakozás a Plexhez</translation>
+      <source>Connect to a server</source>
+      <translation>Csatlakozás szerverhez</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Szerver típusa</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>Közvetlen csatlakozás</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>Szerver URL-je</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Felhasználónév</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Jelszó</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Bejelentkezés a Jellyfinbe</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect használata</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Írd be ezt a kódot a Jellyfinben a Quick Connect alatt, majd várj itt.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Mégse</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>Hallgatási statisztikák</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>Kedvencek</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>Hangzásban hasonló</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>Kedvencek</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>Kedvencek · 5 csillag</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Csatlakozás a Plexhez</translation>
+      <source>Connect to a server</source>
+      <translation>Csatlakozás szerverhez</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>Szerver típusa</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>Csatlakozás</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>Felhasználónév</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>Jelszó</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Bejelentkezés a Jellyfinbe</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect használata</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Írd be ezt a kódot a Jellyfinben a Quick Connect alatt, majd várj itt.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>Mégse</translation>
     </message>
     <message>
       <source>Sign out</source>

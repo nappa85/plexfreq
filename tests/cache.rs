@@ -1,3 +1,4 @@
+mod support;
 use plexfreq_core::{
     cache::{namespace, Cache, Config},
     model::{Item, Media, Part},
@@ -11,6 +12,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use support::{plex_schedule, plex_schedule_at};
 
 fn item(id: &str) -> Item {
     Item {
@@ -115,9 +117,7 @@ fn completed_files_survive_restart_are_private_and_scoped_to_credentials() {
     let ns = namespace(&url, "fixture-secret");
     let song = item("1");
     let cache = Cache::new(dir.path().into(), Config::default(), "fixture-client").unwrap();
-    cache
-        .schedule(&url, "fixture-secret", vec![song.clone()])
-        .unwrap();
+    plex_schedule(&cache, &url, "fixture-secret", vec![song.clone()]).unwrap();
     wait(|| cache.lookup(&ns, &song, false).is_some());
     let (path, _) = cache.lookup(&ns, &song, true).unwrap();
     assert_eq!(std::fs::read(&path).unwrap(), b"abcdefghij");
@@ -154,7 +154,7 @@ fn current_http_representation_can_differ_from_persistent_plex_part_size() {
     let ns = namespace(&url, "token");
     let mut song = item("1");
     song.media[0].parts[0].size = Some(12);
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| cache.lookup(&ns, &song, false).is_some());
     let (path, metadata) = cache.lookup(&ns, &song, false).unwrap();
     assert_eq!(std::fs::read(path).unwrap(), b"abcdefghij");
@@ -182,10 +182,10 @@ fn interrupted_audio_resumes_with_validated_range_instead_of_playing_partial_dat
     let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
     let song = item("1");
     let ns = namespace(&url, "token");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| !cache.status(&ns)["error"].as_str().unwrap().is_empty());
     assert!(cache.lookup(&ns, &song, false).is_none());
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| cache.lookup(&ns, &song, false).is_some());
     assert_eq!(
         std::fs::read(cache.lookup(&ns, &song, false).unwrap().0).unwrap(),
@@ -214,9 +214,9 @@ fn a_server_ignoring_range_restarts_the_file_without_appending_duplicate_bytes()
     let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
     let song = item("1");
     let ns = namespace(&url, "token");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| !cache.status(&ns)["error"].as_str().unwrap().is_empty());
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| cache.lookup(&ns, &song, false).is_some());
     assert_eq!(
         std::fs::read(cache.lookup(&ns, &song, false).unwrap().0).unwrap(),
@@ -235,7 +235,7 @@ fn malformed_resume_and_non_audio_responses_never_become_ready() {
         let listener=TcpListener::bind("127.0.0.1:0").unwrap(); let url=origin(&listener); let bytes=response.to_vec();
         let server=thread::spawn(move || { let (mut socket,_)=listener.accept().unwrap(); request(&mut socket); socket.write_all(&bytes).unwrap(); });
         let dir=tempfile::tempdir().unwrap(); let cache=Cache::new(dir.path().into(),Config{enabled:true,limit_mb:64,ahead:5},"fixture").unwrap(); let ns=namespace(&url,"token"); let song=item("1");
-        cache.schedule(&url,"token",vec![song.clone()]).unwrap(); wait(||!cache.status(&ns)["error"].as_str().unwrap().is_empty());
+        plex_schedule(&cache, &url,"token",vec![song.clone()]).unwrap(); wait(||!cache.status(&ns)["error"].as_str().unwrap().is_empty());
         assert!(cache.lookup(&ns,&song,false).is_none()); assert_eq!(cache.status(&ns)["tracks"],0); cache.cancel(); server.join().unwrap();
     }
 }
@@ -402,7 +402,7 @@ fn clearing_cache_cancels_an_inflight_transfer_without_republishing_it() {
     let cache = Cache::new(dir.path().into(), Config::default(), "fixture").unwrap();
     let ns = namespace(&url, "token");
     let song = item("1");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| cache.status(&ns)["received"] == 4);
     cache.clear().unwrap();
     release.send(()).unwrap();
@@ -433,7 +433,7 @@ fn shared_network_hint_cancels_inflight_audio_without_the_core_command_queue() {
     control.network(true);
     let ns = namespace(&url, "token");
     let song = item("1");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| cache.status(&ns)["received"] == 4);
     thread::spawn(move || control.network(false))
         .join()
@@ -489,7 +489,7 @@ fn a_held_original_download_yields_and_resumes_by_range() {
     let control = cache.control(Default::default());
     let song = item("1");
     let ns = namespace(&url, "token");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
     request(&mut first);
     first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
@@ -526,9 +526,7 @@ fn a_held_download_that_cannot_resume_finishes_its_item_then_waits() {
     let control = cache.control(Default::default());
     let (one, two) = (item("1"), item("2"));
     let ns = namespace(&url, "token");
-    cache
-        .schedule(&url, "token", vec![one.clone(), two.clone()])
-        .unwrap();
+    plex_schedule(&cache, &url, "token", vec![one.clone(), two.clone()]).unwrap();
     let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
     request(&mut first);
     first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
@@ -560,7 +558,7 @@ fn a_hold_does_not_interrupt_a_download_whose_range_was_ignored() {
     let control = cache.control(Default::default());
     let song = item("1");
     let ns = namespace(&url, "token");
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     let mut first = accept_within(&listener, Duration::from_secs(5)).unwrap();
     request(&mut first);
     first.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: 20\r\nETag: \"one\"\r\nConnection: close\r\n\r\nabcdefghij").unwrap();
@@ -596,7 +594,7 @@ fn a_cancel_ends_a_held_wait() {
     let control = cache.control(Default::default());
     let ns = namespace(&url, "token");
     control.hold(true);
-    cache.schedule(&url, "token", vec![item("1")]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![item("1")]).unwrap();
     wait(|| cache.status(&ns)["activeKey"] == "1");
     cache.cancel();
     wait(|| cache.status(&ns)["activeKey"] == "");
@@ -636,25 +634,23 @@ fn refused_downloads_cool_down_until_the_user_asks_again() {
             .as_str()
             .is_some_and(|error| !error.is_empty())
     };
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| refused(&cache) && count() == 1);
     for _ in 0..2 {
-        cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+        plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
         wait(|| refused(&cache));
     }
     thread::sleep(Duration::from_millis(300));
     assert_eq!(count(), 1, "a cooled-down download was requested again");
     cache.forget_failures();
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| count() == 2 && refused(&cache));
     // Refused again and cooled down at the original quality: still skipped.
-    cache.schedule(&url, "token", vec![song.clone()]).unwrap();
+    plex_schedule(&cache, &url, "token", vec![song.clone()]).unwrap();
     wait(|| refused(&cache));
     thread::sleep(Duration::from_millis(300));
     assert_eq!(count(), 2);
-    cache
-        .schedule_with_quality(&url, "token", vec![song.clone()], 320)
-        .unwrap();
+    plex_schedule_at(&cache, &url, "token", vec![song.clone()], 320).unwrap();
     // A transcode request plus its session stop.
     wait(|| count() >= 3);
 }

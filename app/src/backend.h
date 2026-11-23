@@ -73,7 +73,7 @@ public:
     bool seekable() const {return m_playback.value("seekable").toBool();}
     qint64 position() const {return m_playback.value("position").toLongLong();}
     qint64 duration() const {return m_playback.value("duration").toLongLong();}
-    Q_INVOKABLE void command(const QString &op,const QVariantMap &args=QVariantMap());
+    Q_INVOKABLE bool command(const QString &op,const QVariantMap &args=QVariantMap());
     Q_INVOKABLE void play(){command("audio_play");}
     Q_INVOKABLE void pause(){command("audio_pause");}
     Q_INVOKABLE void stop(){command("audio_stop");}

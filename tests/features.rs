@@ -311,8 +311,9 @@ fn playlist_edit(
         },
         title: "Fixture & mix".into(),
         items,
-        item_id: id,
-        after,
+        item_id: id.map(Into::into),
+        after: after.map(Into::into),
+        index: None,
     }
 }
 
@@ -768,6 +769,7 @@ fn saved_artist_album_pages_and_private_artwork_are_available_without_server() {
         .unwrap();
     core.execute(Command::Detail {
         key: "1".into(),
+        kind: None,
         start: 0,
     })
     .unwrap();
@@ -802,6 +804,7 @@ fn saved_artist_album_pages_and_private_artwork_are_available_without_server() {
     let detail = core
         .execute(Command::Detail {
             key: "1".into(),
+            kind: None,
             start: 0,
         })
         .unwrap();

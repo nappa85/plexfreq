@@ -73,6 +73,10 @@ pub(crate) fn redact(text: &str) -> String {
             "accounttoken",
             "accesstoken",
             "authtoken",
+            "password",
+            "pw",
+            "apikey",
+            "api_key",
             "token",
             "clientid",
             "code",
@@ -451,6 +455,25 @@ mod tests {
         );
         assert_eq!(redact("X-Plex-Token = \"secret\""), "[redacted]");
         assert_eq!(redact("Authorization: Bearer secret"), "[redacted]");
+    }
+    #[test]
+    fn passwords_and_api_keys_are_redacted_but_ordinary_words_are_not() {
+        for line in [
+            "password=hunter2",
+            "Password: hunter2",
+            "{\"Pw\":\"hunter2\"}",
+            "login failed pw=hunter2",
+            "api_key=hunter2",
+            "ApiKey: hunter2",
+        ] {
+            let redacted = redact(line);
+            assert!(!redacted.contains("hunter2"), "{line} -> {redacted}");
+            assert!(redacted.contains("[redacted]"), "{line} -> {redacted}");
+        }
+        // Words that merely contain the key, or carry no assignment, stay.
+        assert_eq!(redact("passwords are fine"), "passwords are fine");
+        assert_eq!(redact("rpw=1"), "rpw=1");
+        assert_eq!(redact("the pw field"), "the pw field");
     }
     #[test]
     fn size_rollover_and_date_retention_are_bounded() {

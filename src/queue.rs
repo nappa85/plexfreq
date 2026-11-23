@@ -299,7 +299,7 @@ impl Queue {
         };
         self.order = (0..self.items.len()).collect();
         if self.shuffled {
-            self.order.shuffle(&mut rand::thread_rng());
+            self.order.shuffle(&mut rand::rng());
             if let Some(current) = self.current {
                 if let Some(p) = self.order.iter().position(|i| *i == current) {
                     self.order.swap(0, p);

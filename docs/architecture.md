@@ -1,7 +1,7 @@
 # Architecture
 
-PlexFreq is a Plex music player for Sailfish OS (Qt 5.6 + Silica) and desktop
-Linux (Qt 6 + Controls 2). This document describes how it works today, and lists
+PlexFreq is a music player for Plex Media Server and Jellyfin servers on Sailfish
+OS (Qt 5.6 + Silica) and desktop Linux (Qt 6 + Controls 2). This document describes how it works today, and lists
 the external facts it depends on with their sources. The code is authoritative
 wherever this document disagrees with it.
 
@@ -13,21 +13,25 @@ Silica (Qt5.6) / Controls2 (Qt6) QML            presentation, navigation (Sessio
 C++ adapter (app/src)                            Backend QObject, EntryModel, ArtworkProvider,
   │  C ABI: pf_runtime_submit / pf_runtime_poll  translations, window activation
 Rust runtime (src/runtime.rs)                    admission, Core worker, events
-  ├─ Core (src/lib.rs + domain modules)          Plex HTTP, queue/radio, cache, offline, store
+  ├─ Core (src/lib.rs + domain modules)          queue/radio, cache, offline, store
+  │    └─ MediaServer (src/server.rs)            Plex | Jellyfin HTTP behind one boundary
   ├─ audio engine (src/audio)                    Symphonia decode → rubato → DSP → libpulse
   └─ platform (src/runtime/platform.rs, pulse/)  MPRIS, BlueZ, ConnMan/NM, recording hold
 ```
 
-**Rust** owns everything with policy or I/O. That covers Plex and media HTTP,
+**Rust** owns everything with policy or I/O. That covers server and media HTTP,
 credential persistence and use, models, queue and radio policy, worker
 lifetime, audio decoding, DSP and transport, the cache, offline snapshots,
-MPRIS, Bluetooth and network facts, persistence and diagnostics.
+MPRIS, Bluetooth and network facts, persistence and diagnostics. Plex and Jellyfin
+are two backends of one `MediaServer` boundary (§3): Core states what it needs
+semantically and only the backend knows paths, parameters and headers.
 
 **C++** is a thin adapter. It turns Rust JSON into Qt properties, keeps two list
 models, translates messages, serves images through a provider (the bytes come
-from Rust) and raises the window. It has no Plex endpoint, queue order or media
-API (no QMediaPlayer, no QThread). The only credential it handles is the token
-the user types for a manual connection, which it forwards to Rust (§11).
+from Rust) and raises the window. It has no server endpoint, queue order or media
+API (no QMediaPlayer, no QThread). The only credentials it handles are what the
+user types (a Plex token for a manual connection, a Jellyfin password), which it
+forwards to Rust (§11).
 
 **QML** handles presentation and navigation only. `app/qml/shared` holds
 QtQuick 2.6-compatible code used by both shells. `app/qml/pages` is Silica and
@@ -81,7 +85,8 @@ synchronous: it drives Plex requests with `rt::block_on` on its own thread, so
 JSON decoding never runs on the I/O thread. A current-thread runtime needs its
 own thread inside `Runtime::block_on` for that to work (tokio
 `Handle::block_on` docs). Dropping a `Task` aborts it. zbus uses its `tokio`
-feature, so its internal tasks run on the shared runtime.
+feature (plus `proxy` and `service`, no default runtime), so its internal tasks run
+on the shared runtime.
 
 ### Source map
 
@@ -89,7 +94,9 @@ feature, so its internal tasks run on the shared runtime.
 |---|---|
 | `src/runtime.rs`, `src/runtime/` | Admission, worker loop, held-failure resolution, download yield; MPRIS, BlueZ and network observers, heartbeat, health probes, libpulse introspection and recording subscription. |
 | `src/lib.rs`, `src/command.rs` | `Core`: typed commands and routing, playback planning, gone navigation, cache scheduling. |
-| `src/plex.rs`, `src/quality.rs` | HTTP client, sign-in, bounded bodies, URL confinement, probes; bitrate policy and transcode URLs. |
+| `src/server.rs` | The media-server boundary: `MediaServer` trait, `Backend` enum, `Caps`, semantic `Query`/`Action`, `BrowseSpec`, `StreamPolicy`; the Plex implementation of the trait and, behind the `mock-backend` feature, the in-memory test backend. |
+| `src/plex.rs`, `src/quality.rs` | Plex HTTP client and sign-in, plus the shared HTTP helpers (bounded bodies, URL confinement, probes, base-path URLs); bitrate policy and the codec fallback table. |
+| `src/jellyfin.rs`, `src/jellyfin/dto.rs` | Jellyfin backend: requests, sign-in (password, Quick Connect), stream rules, reporting, playlists; wire DTOs and their mapping to the neutral model. |
 | `src/queue.rs`, `src/radio.rs`, `src/health.rs`, `src/history.rs` | Queue and occurrences, radio windows, gone marks, listen qualification. |
 | `src/cache.rs`, `src/offline.rs`, `src/artwork.rs` | Audio cache and downloads; metadata snapshots, lyrics and artwork store; `image://plexfreq` ids. |
 | `src/daily.rs`, `features.rs`, `discovery.rs`, `filters.rs`, `catalogue.rs`, `refresh.rs` | Discovery, download plans, playlists, mixes, filters, insights. |
@@ -167,11 +174,104 @@ answers every queued request with an error, applies queued checkpoints, records
 a final position, stops the engine, clears the artwork credentials and releases
 the download hold.
 
-## 3. Plex integration
+## 3. Server backends
 
-### HTTP
+### Backend boundary
 
-One pooled `reqwest` client (rustls) is shared by Core, plan refresh and
+`src/server.rs` is the only place Core meets a media server. Core states what it
+needs as semantic values and the backend turns them into requests:
+
+- `Query` (reads: sections, item, children, similar, nearest, browse, hubs,
+  search, playlists, radio windows, advertised keys) with a `BrowseSpec` (item
+  kind, `Sort`, the user's `Music` filter, favourites/played flags, title
+  search, limit) and a `Page` window.
+- `Action` (writes: rate, scrobble, timeline report, playlist rename, delete,
+  add, remove, move).
+- `MediaServer`, the trait every backend implements: identifier validation,
+  `advertised_key` (server-handed keys must be server-relative and may not carry
+  the backend's credential parameters), `parse_url`, `namespace`, `fetch`,
+  `act`, playlist and radio creation, lyrics, `stream_url`, transcode and probe
+  calls, `capabilities`, and the hooks listed below.
+- `Backend`, an enum (`Plex`, `Jellyfin`, plus `Mock` in test builds) that
+  implements `MediaServer` by forwarding. Enum dispatch keeps `Core` a plain
+  struct that worker threads can clone, where generics or trait objects would
+  spread through every module.
+
+Hooks with a neutral default that a backend overrides when it differs:
+`children_query`/`children_need_kind` (Plex lists children by id alone; Jellyfin
+by the parent's kind), `filter_schema`/`filter_fields`/`filter_choices` (Plex
+learns filter fields from the section schema; Jellyfin lists genres),
+`smart_source`, `reports_start` (the server counts a play when it starts) and
+`mix_query` (a server-side instant mix for a client-side radio).
+
+Plex sign-in and discovery (PIN, resources) is the separate `Account` trait that
+only the Plex backend provides; `Backend::account` refuses it for Jellyfin.
+While a Jellyfin session is active, an account command is served by a temporary
+Plex client, so a Plex account can be signed in without leaving the session.
+
+**Capabilities.** `Caps` lists what a server may lack: sonic similarity, Sonic
+Adventure, server stations, smart playlists, server hubs, the alphabet index,
+star ratings and the mood, style and minimum-rating filters. Plex offers all of
+it. Jellyfin offers only server hubs, which it synthesises from ordinary
+queries. The status JSON and the session replies (libraries, sign-in, sign-out)
+publish `capabilities` with `serverKind`, so a server switch updates them, and
+`Session.qml` `can(name)` hides the matching actions (a flag the server did not publish counts as
+available). Core independently refuses every command that needs a missing
+capability (`Command::requires`), so a stale or hand-sent command cannot reach
+an endpoint the server lacks.
+
+**StreamPolicy.** The audio engine, the downloaders and the artwork loader do
+not hold a backend. They hold a `StreamPolicy`: the credential as HTTP headers
+(never a URL parameter) plus the backend's `StreamRules` (identifier rule,
+progressive transcode URL, whether a URL is a transcode, how to seek one, which
+request tears its session down, download, artwork and metadata URLs). A policy
+attaches its headers only to a URL on its own origin and under its base path
+(`StreamPolicy::headers_for`), so a stale, foreign or untrusted URL never
+receives the credential. A transcode cannot seek by byte, so a seek on one asks
+the rules for a restarted URL and a stop asks for the teardown request; both go
+through the policy. The default policy is Plex with no credential and no base
+(tests, local files).
+
+**Namespaces.** Everything stored per server (audio cache, offline snapshots,
+artwork ids, download pins, play history) is scoped by the backend's
+`namespace(conn)`: for Plex SHA-256 of the server URL and token; for Jellyfin
+SHA-256 of `jellyfin`, the server id and the user id. Jellyfin's scope contains
+neither the address nor the token, so signing in again, or reaching the same
+server at another address, keeps downloads and history. Signing in to another
+scope drops pins, downloads and the queue.
+
+**Base paths.** A Plex server URL is a bare origin. A Jellyfin URL may carry a
+path (`https://host/jellyfin`), since Jellyfin is often served at a prefix behind
+a reverse proxy. `server_url_with_base_path` normalizes it to end in one `/` and
+rejects empty, dot and encoded-separator segments; `server_path` joins every
+request path below the prefix on the same origin, and `StreamPolicy::covers`
+requires it too.
+
+**Test backend.** `Backend::Mock(MockServer)` is an in-memory `MediaServer` that
+records every `Action` and answers scripted `Query` values, for tests that drive
+`Core` without HTTP. It exists only under `cfg(any(test, feature =
+"mock-backend"))`. The `mock-backend` feature is off by default and none of the
+scripts that build a release (RPM, desktop archive) enables it; `tools/check.sh`
+and CI pass `--all-features` to compile and test it.
+
+### Plex integration
+
+#### HTTP
+
+Every HTTP client is built by `plex::client_builder`: rustls with the `ring`
+crypto provider, TLS 1.2 and 1.3, ALPN `http/1.1`, and the Mozilla root
+certificates compiled in from `webpki-roots`, not the system trust store.
+reqwest 0.13's `rustls` feature selects `aws-lc-rs` (a C library) and verifies
+against the platform trust store; the app enables `rustls-no-provider` instead
+and hands reqwest a prebuilt `rustls::ClientConfig`
+(`ClientBuilder::tls_backend_preconfigured`, which uses the config as given;
+reqwest 0.13 source, `async_impl/client.rs`). That feature still compiles in
+reqwest's platform verifier, but no client uses it. No client falls back to
+a default client, which would lose the roots and the redirect policy: the
+shared client panics if it fails to build, the cache worker and the session
+closer stay inactive, and a stream reports the error.
+
+One pooled `reqwest` client is shared by Core, plan refresh and
 artwork: 15 s total timeout, 5 s connect timeout, redirects disabled. The Plex
 token always travels in an `X-Plex-Token` request header; an open redirect could
 send that header to another origin, so a 3xx surfaces as a failure instead.
@@ -183,7 +283,7 @@ session).
 JSON bodies are bounded to 8 MiB before deserialization, lyrics to 512 KiB and
 artwork to 4 MiB. 401/403 map to Unauthorized, other non-2xx to an HTTP error,
 transport errors to Network. Reqwest's per-read timeout resets after every
-successful read, unlike the whole-request timeout (docs.rs reqwest 0.12
+successful read, unlike the whole-request timeout (docs.rs reqwest 0.13
 `ClientBuilder::read_timeout`).
 
 Plex Media Server passes tag bytes through unchanged, so a file tagged in
@@ -199,7 +299,7 @@ control characters, and literal or encoded separators/escapes
 Advertised keys (station, hub and artwork keys) may carry queries, but never an
 `X-Plex-*` parameter.
 
-### Authentication and servers
+#### Authentication and servers
 
 - **PIN sign-in.** `POST https://plex.tv/api/v2/pins`, then poll
   `api/v2/pins/{id}` while the user authorizes in a browser.
@@ -216,7 +316,7 @@ Advertised keys (station, hub and artwork keys) may carry queries, but never an
 - **Persistence.** Account and server tokens persist only in the private session
   (§10). Server summaries sent to the UI never include tokens.
 
-### PMS endpoints used
+#### PMS endpoints used
 
 Music types are artist=8, album=9 and track=10. Pages use
 `X-Plex-Container-Start` and `X-Plex-Container-Size`, normally 100 items.
@@ -227,7 +327,7 @@ reference pages.
 
 | Purpose | Endpoint and behaviour |
 |---|---|
-| Browse | `/library/sections/N/all?type=…&sort=titleSort:asc[&title=…]`. Sort is `field:asc/desc`. |
+| Browse | `/library/sections/N/all`, pairs in this order: filters (`{kind}.genre`/`mood`/`style` ids, `title`, `{kind}.year>=`/`<=`, `{kind}.userRating>=`, `{kind}.viewCount=0`), `type`, `userRating=10` (favourites), `sort`, `title` (search), `viewCount>>=0` (played), `limit` (smart playlists). Sort is `field:asc/desc` or `random`. Filter field scopes come from the section's schema (`all?type&includeMeta=1&includeAdvanced=1`, `Meta.Type[].Field[].key`, e.g. `album.genre` for tracks), which also advertises the genre/mood/style choice keys. |
 | Alphabet | `/library/sections/N/firstCharacter` (artist type, titleSort). Returns Directory groups with key/size/title; summed sizes give page offsets. |
 | Detail / children | `/library/metadata/N`, `/children`. Durations are in ms. Year and index values may be null and are parsed as signed. |
 | Similar artists | `/library/metadata/N/similar`. 400/404 mean unavailable. Capped at 12 numeric library artists. |
@@ -244,7 +344,7 @@ reference pages.
 The parsers tolerate `gain`/`albumGain` as numeric strings (unusable values
 are omitted without invalidating the item) and radio flags given as `"1"`.
 
-### Missing items
+#### Missing items
 
 After a music section is re-created, old ratingKeys and Part URLs answer 404.
 The track comes back under a new ratingKey with the same `guid=plex://track/…`.
@@ -259,6 +359,216 @@ counts as Gone; 401/403 is Auth; everything else is Unknown.
 An emptied station answers 200 with zero items for any `center`. A healthy queue
 answers zero items for a center it no longer holds. Zero items therefore does
 not prove a station is dead.
+
+### Jellyfin integration
+
+Sources: the jellyfin/jellyfin controllers on `release-10.11.z` and `12.z`, the
+stable OpenAPI spec at https://api.jellyfin.org (12.4), jellyfin-web
+`playbackmanager.js`, and the Finamp and Feishin clients as other implementations.
+Where behaviour is not documented, the client is defensive instead of assuming it;
+those places are named below.
+
+#### HTTP and authentication
+
+Jellyfin shares the pooled `reqwest` client, timeouts, no-redirect rule and body
+bounds (8 MiB JSON, 512 KiB lyrics) of the Plex backend, with two differences in
+status mapping: 401 is Unauthorized, and a refused write (403) is reported as a
+permission of the account (HTTP 403), not as a stale sign-in. Requests ask for
+`Accept: application/json` and carry the user id as a `userId` query parameter
+once signed in.
+
+The credential is one header on every request, including audio, transcode,
+artwork and metadata requests (through `StreamPolicy`):
+
+`Authorization: MediaBrowser Client="PlexFreq", Device="<host>", DeviceId="<client id>", Version="<app version>", Token="<access token>"`
+
+The server URL-decodes the values, so the client keeps them ASCII (anything else
+becomes `_`) and percent-encodes `%`, `+`, `"` and `,`. `DeviceId` is the
+persistent client identifier. The legacy `api_key` query form is not used.
+
+- **Server check.** `GET /System/Info/Public` (anonymous) must answer
+  `ProductName` "Jellyfin Server" and a `Version` of at least 10.9. The client
+  relies on the Quick Connect `POST /QuickConnect/Initiate`, the track
+  `NormalizationGain` and `HasLyrics` fields and the `/Audio/{id}/Lyrics`
+  endpoint, which are present in the jellyfin/jellyfin `release-10.9.z` branch
+  and absent from `release-10.8.z` (`Jellyfin.Api/Controllers/QuickConnectController.cs`,
+  `LyricsController.cs`, `MediaBrowser.Model/Dto/BaseItemDto.cs`). The album
+  gain `AlbumNormalizationGain` exists only in 12.x; on an older server it is
+  absent and album gain is not available. `Id` is the server id of the
+  namespace.
+- **Password.** `POST /Users/AuthenticateByName` with `{Username, Pw}` answers
+  `{AccessToken, ServerId, User.Id}`. The password exists only in that request
+  body: it is not stored, logged or kept.
+- **Quick Connect.** `GET /QuickConnect/Enabled` must be true;
+  `POST /QuickConnect/Initiate` answers `{Secret, Code}`. The UI shows the code,
+  which the user enters in an already signed-in Jellyfin client.
+  `GET /QuickConnect/Connect?secret=` is polled every 2 s until `Authenticated`,
+  then `POST /Users/AuthenticateWithQuickConnect {Secret}` returns the session.
+  Core gives up after 9 minutes, and an unknown or expired secret (404) ends the
+  attempt with a "Login expired; start again" notice. The UI polls in the
+  background, one request at a time, and stops as soon as the user cancels; a poll
+  that arrives with no login pending is answered with `quickConnect: null`, not an
+  error. The secret stays in Rust.
+- **Persistence.** The access token, user id, server id and server kind persist
+  in the private session (§10). Sign-out calls `POST /Sessions/Logout`, best
+  effort with a 3 s bound, then clears the session as for Plex.
+
+#### Jellyfin endpoints used
+
+Item ids are 32 lowercase hex digits; dashed or uppercase GUIDs are normalized and
+anything else is not an id. Pages use `StartIndex` and `Limit`; the reply is
+`{Items, TotalRecordCount, StartIndex}`. Listings ask for `Fields=MediaSources,
+Genres,DateCreated,ChildCount,PrimaryImageAspectRatio`.
+
+| Purpose | Endpoint and behaviour |
+|---|---|
+| Libraries | `/UserViews`, keeping `CollectionType` `music`; each becomes an artist section. |
+| Browse | Artists `/Artists/AlbumArtists` (the spec marks it deprecated, the source does not; a 404 falls back to `/Items?IncludeItemTypes=MusicArtist&Recursive=true`); albums `/Items?IncludeItemTypes=MusicAlbum`; tracks `Audio`. `ParentId` is the library; `SortBy`/`SortOrder` map the sorts (SortName, DateCreated, `ProductionYear,SortName`, DatePlayed, PlayCount, Random); `Filters` carries `IsFavorite`, `IsPlayed`, `IsUnplayed`; `GenreIds`; `Years` is the comma list of the year range (at most 200 years); `SearchTerm` is the title condition. |
+| Children | Album tracks `/Items?ParentId=album&IncludeItemTypes=Audio`, ordered by disc and track number; artist albums `/Items?AlbumArtistIds=artist&IncludeItemTypes=MusicAlbum`; playlist items `/Playlists/{id}/Items`; all tracks of an artist `ArtistIds=`. An artist is not a folder parent of its albums, so the parent's kind selects the query and is read from the item when the UI did not supply it. |
+| Detail | `/Items?Ids=id` with `Overview` added. |
+| Similar | `/Items/{id}/Similar` (genre and tag overlap, not audio analysis). |
+| Hubs | Four synthesised hubs per library, each its own query: recently added (`/Items/Latest`, whose reply is a bare array, 12 albums), recently played (`DatePlayed`, `IsPlayed`), favourites (`IsFavorite`) and most played (`PlayCount`, `IsPlayed`). Identifiers are `music.recent.added.<library>`, `music.recent.played.`, `music.favorites.`, `music.most.played.`; keys are `/hubs/jellyfin/<library>/<name>`. Empty hubs are omitted. Core titles are English; the C++ adapter translates them for Jellyfin sessions only (Plex keeps its server titles). |
+| Search | Three queries so one type cannot crowd out the others: `/Artists?SearchTerm`, `/Items?searchTerm&IncludeItemTypes=MusicAlbum` and `Audio`, each with the limit. |
+| Genres | `/Genres?ParentId=library`, for the genre filter. |
+| Instant mix | `/Items/{id}/InstantMix?Limit=` (clamped to 1..200) for every seed kind, with each of `Fields`, and `EnableImageTypes` (`Primary`, `Backdrop`) as its own repeated parameter plus `EnableImages=true` and `EnableUserData=true`: the AudioMuse-AI action binds plain arrays, which do not split a comma list, and leaves images and user data out unless asked, while stock Jellyfin's `CommaDelimitedArrayModelBinder` accepts repeated values (jellyfin/jellyfin `CommaDelimitedArrayModelBinder.cs`). Stock Jellyfin serves this route and the per-kind ones from `GetInstantMixFromItem`, which draws the batch randomly from tracks sharing a genre with the seed, so each call differs (`InstantMixController.cs`, `MusicManager.cs`). InstantMix plugins order the batch by audio similarity. AudioMuse-AI (github.com/NeptuneHub/audiomuse-ai-plugin, `Controller/InstantMixController.cs`) and BetterMix (github.com/StergiosBinopoulos/jellyfin-plugin-bettermix, `Filters/ItemInstantMixFilter.cs`, `BetterMixPlugin.cs`) replace only this route; Harmonie (github.com/mxschll/jellyfin-harmonie, `Services/HarmonieMusicManager.cs`) replaces the server's music manager, so every route. AudioMuse-AI returns the seed and its nearest neighbours for a song seed, so the same song gives nearly the same batch; artist and album seeds pick random seed songs, and a short batch is filled from the stock mix. A mix radio therefore rotates seeds: when a refill's reply holds no playable track that is not queued yet, the same refill asks again with queued tracks as seeds (newest first, skipping the radio's seed, the seeds already used and tracks known to be gone), at most three requests in all. A fallback seed whose request is refused (for example 404) counts as used; a connection or 5xx failure stops the rotation without using the seed; an authorization failure fails the refill; otherwise only a failure of the radio's own seed fails it. The asked seeds are kept in `Source::Mix.used` (at most 64, oldest dropped; serde default, so older queue files load) and a refill that still finds nothing fails with "Radio returned no playable tracks". A refill that brings new tracks asks only the radio's own seed. With a plugin whose song mixes are stable, a refill usually takes two requests (the radio's own seed, then a queued track); they run off the runtime thread, on the radio or core thread. |
+| Favourites | `POST` / `DELETE /UserFavoriteItems/{id}`: a rating above 0 favourites, 0 removes. |
+| Reporting | `POST /Sessions/Playing`, `/Sessions/Playing/Progress`, `/Sessions/Playing/Stopped`; see Play reporting. |
+| Offline plays | `POST /UserPlayedItems/{id}?datePlayed=<ISO 8601 UTC>`. |
+| Playlist list | `/Items?IncludeItemTypes=Playlist&Recursive=true&SortBy=SortName`. |
+| Playlists | See Playlists. |
+| Lyrics | `GET /Audio/{id}/Lyrics` answers `{Metadata, Lyrics:[{Text, Start}]}`; 404 means none. |
+| Artwork | `/Items/{id}/Images/Primary?tag=&maxWidth=1000&quality=90` (backdrops `Backdrop/0`), requested with the credential header like every other request. |
+| Gone probe | Status-only `GET /Items/{id}`. |
+
+Every id put into a path is validated, and server-handed keys are validated as for
+Plex, additionally rejecting `api_key`, `ApiKey`, `Token`, `X-Emby-Token`,
+`X-MediaBrowser-Token` and `Authorization` parameters.
+
+#### Model mapping
+
+The wire DTOs (`src/jellyfin/dto.rs`) default every missing or null field and skip
+a malformed item instead of failing its page; a playlist with a non-audio
+`MediaType` is skipped, and a playlist without `MediaType` is kept.
+
+- **Identity.** `Id` is the rating key and `/Items/{id}` the key. `MusicArtist`,
+  `MusicAlbum`, `Audio` and `Playlist` map to the neutral kinds. A track's parent
+  is its album (`AlbumId`) and its grandparent its first album artist
+  (`AlbumArtists`, else `ArtistItems`); an album's parent is its artist. Track
+  artists that differ from the album artist fill `originalTitle`.
+- **Time.** `RunTimeTicks` are 100 ns ticks: milliseconds are ticks / 10 000, and
+  report positions and seeks are milliseconds * 10 000. Index, disc and year
+  numbers may arrive as fractional numbers and are truncated.
+- **Images.** `ImageTags.Primary` gives the item's image; a track without one
+  shows its album's (`AlbumId` with `AlbumPrimaryImageTag`). The tag and the size
+  are part of the stored path, so the path is the whole image identity.
+- **Media.** The first `MediaSources` entry gives the container (an ffprobe family
+  such as `mov,mp4,m4a,3gp,3g2,mj2` is reduced to the first name PlexFreq decodes,
+  else the first), the codec of the first audio stream, the bitrate (bits/s to
+  kbps) and the size. The part key is `/Audio/{id}/stream?static=true`: the
+  original bytes, with range support.
+- **Gains.** `NormalizationGain` (track) and `AlbumNormalizationGain` fill the
+  gain fields Plex's loudness data fills. A server that omits them plays without
+  leveling.
+- **Lyrics.** `HasLyrics` adds a lyric stream with key `/Audio/{id}/Lyrics`.
+  `Start` is in ticks and absent for unsynchronised lyrics. The document's
+  `Metadata.Offset` is not applied: whether `Start` already includes it is not
+  documented, and applying it to a value that has it would shift every line twice.
+- **Favourites.** `UserData.IsFavorite` maps to the user rating 10 (else 0), so
+  the favourite toggle and the Favorites listing work unchanged. There are no star
+  ratings.
+- **Entry ids.** `PlaylistItemId` is the playlist entry id (opaque, at most 64
+  characters of letters, digits and `-`). Jellyfin does not document it as unique
+  per occurrence of a track, so the client assumes defensively that a track listed
+  twice may share one id and never sends an id that occurs more than once (see
+  Playlists).
+
+#### Streaming, transcoding and stopping
+
+An original plays from `/Audio/{id}/stream?static=true` with the credential
+header, byte ranges and resume as in §5.2. A transcode is a progressive MP3:
+
+`/Audio/{id}/stream.mp3?audioCodec=mp3&audioBitRate=<bps>&startTimeTicks=<ticks>&deviceId=<client id>&playSessionId=<uuid>&static=false`
+
+The bitrate must be one of PlexFreq's quality steps and the session a UUID. A
+progressive transcode answers `Accept-Ranges: none`, so it cannot seek: a seek or
+restart rewrites the URL with a new `startTimeTicks` (milliseconds * 10 000) and a
+fresh `playSessionId`. The fresh id matters because a late stop for the old
+session must not kill the restarted job; one `playSessionId` never covers two
+requests.
+
+The stop request is `DELETE /Videos/ActiveEncodings?deviceId=&playSessionId=`
+(present in the 10.11 sources, absent from the 12.4 spec). It is best effort; the
+server also ends a progressive job shortly after its last request. Downloads and
+the transcode probe use the same rules, and the probe stops its throwaway session
+the same way.
+
+#### Play reporting
+
+Jellyfin increments a play count when playback starts, not at the end. Core
+therefore reports `Sessions/Playing` once per playback occurrence (the first
+`playing` state), persisted in the session (`playback.start_reported`) so a
+restart that restores the queue does not count the track again. Later states go to
+`/Sessions/Playing/Progress` and the end to `/Sessions/Playing/Stopped`. Each body
+carries `ItemId`, `MediaSourceId`, `PlaySessionId` (the occurrence id),
+`PositionTicks`, `PlayMethod` (`DirectPlay` or `Transcode`), `IsPaused` and
+`CanSeek`. The next track starts without a command, so a transition also reports
+the stop of the previous one.
+
+A qualified listen whose start was reported is already counted: its history entry
+is marked delivered and never scrobbled. A listen whose start was never reported
+(offline, or not yet sent) is replayed by the history sync through
+`POST /UserPlayedItems/{id}?datePlayed=`, oldest first, so the server records when
+the play happened. Plex's scrobble cannot.
+
+#### Playlists
+
+A playlist is created with `POST /Playlists {Name, Ids, UserId, MediaType:
+"Audio"}` (the reply's `Id` is the new playlist). Tracks are appended with
+`POST /Playlists/{id}/Items?ids=` in requests of at most 100 ids, removed with
+`DELETE /Playlists/{id}/Items?entryIds=<PlaylistItemId>` (after the pre-read
+below), renamed with
+`POST /Playlists/{id} {Name}` and deleted with `DELETE /Items/{id}`. Entries
+are read from `/Playlists/{id}/Items` in pages of 500 (at most 100 000).
+
+Before every remove and every move, whatever its arguments (including an explicit
+index), the list is read as the server has it now. An entry (or `after` entry)
+that is not in it is refused with "The playlist entry was not found"; one that
+occurs more than once is refused with "This track is in the playlist more than
+once and the server cannot tell the copies apart". Both are refused before any
+write, because a delete by a shared id could remove any or all of its copies.
+
+A move is `POST /Playlists/{id}/Items/{PlaylistItemId}/Move/{newIndex}`, 0-based.
+The UI names the entry to go after, so the index is derived from the pre-read
+list: the moved entry is taken out and the index is one past the `after` entry (0
+when there is none; an explicit index is used as given). The server answers 204
+even for an entry it does not know, so the list is read back and the move counts
+only if the entry now sits right after `after` (or at the target index when it
+went to the top); otherwise it is reported as not moved ("The server did not move
+the playlist entry"). Smart playlists do not exist.
+
+#### Radio
+
+Jellyfin has no stations. Artist, album and track radio use `Source::Mix` (§4.4):
+a client-side radio that asks the InstantMix of the seed for a batch and, on each
+refill, appends the tracks not queued yet. A track radio starts with its seed.
+
+#### Gone detection
+
+A deleted item answers 404 to `GET /Items/{id}`, and so does an item the user may
+not see. Only a 404 carrying the server's `X-Response-Time-ms` header counts as
+Gone, because a proxy's 404 does not carry it. That header is the mark of the
+server's response-time middleware, not a documented contract, so when it is
+absent the result is inconclusive, never a false Gone. 401 and 403 are Auth;
+everything else is Unknown.
+
+#### Not available on Jellyfin
+
+Sonic similarity, Sonic Adventure, server stations and station downloads, smart
+playlists, the alphabet jump, the mood, style and minimum-rating filters and star
+ratings (favourites only) have no Jellyfin counterpart. Core refuses their commands
+and the UI hides them (§3, Capabilities). The nearest, filter-schema,
+first-character, compute-path and play-queue reads answer "This server does not
+support this feature".
 
 ## 4. Playback and queue
 
@@ -277,7 +587,7 @@ list.
 Each start of a track creates a playback occurrence, which rejects stale
 checkpoints. The engine works in occurrences, not rating keys: station queues
 repeat songs under distinct `playQueueItemID`s, and playlists use
-`playlistItemID`. List row identity likewise includes these ids.
+`playlistItemID` (Jellyfin: `PlaylistItemId`). List row identity likewise includes these ids.
 
 ### 4.2 Plans, sources and quality
 
@@ -305,8 +615,12 @@ on and the original's (container, codec) pair is not decodable:
 | Vorbis | ogg |
 | PCM s16/24/32le | wav |
 
-Plex reports these as lowercase identifiers. Anything else, including empty
-values, is transcoded.
+Plex reports these as lowercase identifiers; for Jellyfin the container is
+reduced to the first name PlexFreq decodes and the codec is that of the first
+audio stream, lowercased. Anything else, including empty values, is transcoded.
+
+The transcode URL, its seek and its teardown come from the backend's
+`StreamRules` (§3). Jellyfin's are in §3 (Jellyfin integration). Plex's:
 
 **Progressive transcode** (`quality::transcode_url`):
 - `/music/:/transcode/universal/start.m3u8?path=/library/metadata/K&protocol=http`
@@ -341,6 +655,10 @@ committed only when the engine reports that it became audible.
   `continuing=1` is reported before the refill.
 - **Sonic track radio** chooses nearest tracks and remembers up to 200 recent
   seeds.
+- **Mix radio** (Jellyfin: artist, album and track radio) is client-side: each
+  refill asks the server's instant mix of the seed again and appends the tracks
+  not already queued. A track radio starts with its seed. It is not recorded as a
+  station, so no station timeline is sent.
 - **Album radio** expands whole next albums and may exceed the window.
 - Unsupported seeds and failed continuations keep the previous queue
   (transactional).
@@ -392,7 +710,8 @@ continuation policy is unaffected.
 Checks start only after a failure: a cache-ahead download answered 404 (or 400
 for a transcode), a gapless successor failed to pre-load, the current stream
 failed after the cache and transcode fallbacks, or a metadata fetch answered
-404. The check is a status-only `GET /library/metadata/{key}` (5 s, token in a
+404. The check is the backend's status-only existence probe (Plex
+`GET /library/metadata/{key}`, Jellyfin `GET /Items/{id}`; 5 s, credential in a
 header). At most 10 probes run per rolling minute and 2 at a time, with part of
 that budget reserved for current-track failures. A key is not probed again for 60 s after
 an inconclusive result, and an Auth result suspends probing. Results from before
@@ -458,15 +777,19 @@ most 10 000, for insights) and in the `history` outbox (at most 2 000).
 Delivered entries are evicted first; when the outbox is full of undelivered
 plays, recording fails until a sync.
 
-History sync scrobbles up to 20 undelivered plays per pass. It runs every 30 s
-while online, and when the user asks. The scrobble endpoint cannot restore the
-original listen time, and an acknowledgement lost in transit can cause a
-duplicate.
+History sync delivers up to 20 undelivered plays per pass, oldest first. It runs
+every 30 s while online, and when the user asks. Plex's scrobble endpoint cannot
+restore the original listen time, and an acknowledgement lost in transit can
+cause a duplicate. A backend that counts a play when it starts (Jellyfin) hears the
+start once per occurrence, persisted so a restart does not repeat it; a listen
+whose start was reported is marked delivered without a scrobble, and one whose
+start was not is delivered with its original time (§3, Jellyfin integration).
 
 While a track is loaded and playing, a `playing` timeline is sent about every
 5 s, within the "normally every 10 s" guidance at https://developer.plex.tv/pms/.
 Timelines are not sent for cached playback, in explicit offline mode, or on a
-known-offline network.
+known-offline network. Jellyfin receives the same states as session reports
+(§3, Jellyfin integration).
 
 ## 5. Audio engine
 
@@ -492,8 +815,9 @@ sample-rate-matching claim.
 
 An async reader appends response bytes to a bounded window: 4 MiB for the
 current track and 1 MiB for a successor until promotion. It has a 5 s connect
-timeout and a 10 s read timeout, with redirects disabled. The token is sent as
-a header; the decoder never sees a URL. A read outside the window, or more than
+timeout and a 10 s read timeout, with redirects disabled. The credential
+headers of the track's `StreamPolicy` are sent, and only to a URL the policy covers
+(§3); the decoder never sees a URL. A read outside the window, or more than
 64 KiB ahead of it, starts a new request at that offset, and bytes of a
 superseded request are never used.
 
@@ -646,16 +970,17 @@ range".
 
 The cache lives in `<state-dir>/audio-cache` (directory 0700, files 0600, one
 process-exclusive writer). The default budget is 512 MiB with 5 tracks of
-look-ahead. Entries are namespaced by SHA-256(server origin ‖ token), so
-different servers or accounts never share them, and keyed by ratingKey, Part
+look-ahead. Entries are namespaced by the backend's namespace (§3: Plex SHA-256(server URL ‖
+token), Jellyfin SHA-256 of `jellyfin`, the server id and the user id), so different servers or accounts
+never share them, and keyed by ratingKey, Part
 path and quality, so original and transcoded media never share a key. The
 index stores no token or authenticated URL.
 
 Each download batch is the queue's actual upcoming order plus explicit
 downloads; a new schedule replaces it. Validators, ranges and `Content-Range`
 follow the same rules as streaming, and responses must be identity-encoded
-audio. PMS `Part.size` is only a hint: the served byte count can differ, so the
-received size is what is committed. Completion is an atomic rename plus index
+audio. The advertised part size is only a hint (PMS `Part.size`): the served byte
+count can differ, so the received size is what is committed. Completion is an atomic rename plus index
 commit, and partial files are never handed to a decoder.
 
 A transcoded partial restarts rather than byte-resumes. Originals that cannot be
@@ -720,7 +1045,7 @@ own policy.
 
 ### 6.2 Download plans and groups (`src/daily.rs`)
 
-Pinned groups are albums, playlists, single tracks, Plex stations, and artist,
+Pinned groups are albums, playlists, single tracks, server stations (Plex), and artist,
 album and track radio plans. Each keeps its membership and track plans in the
 session. Plan refresh runs transactionally on its own thread, never replaces the
 playback queue, and honours the network gates. Automatic refresh attempts for a
@@ -742,7 +1067,7 @@ On network or 5xx failures, saved pages may be used and the reply is flagged
 offline; a search with no saved page searches the offline library instead. Such
 a fallback never enters explicit offline mode, so the next request tries the
 server again. Authorization failures never fall back silently. Explicit offline mode
-bypasses Plex and cancels plan refresh, audio downloads and artwork downloads.
+bypasses the server and cancels plan refresh, audio downloads and artwork downloads.
 Offline browsing merges saved metadata with the completed-audio catalogue, 100
 items per page, sorted by lowercase title then ratingKey so pages agree on one
 order. Details use saved pages or known parent-child relationships; unvisited
@@ -776,8 +1101,8 @@ One store (`src/artwork.rs`) serves the image provider and the offline prefetch:
   use. A prefetch of an image already browsed moves the file instead of
   downloading it again.
 - **Loading.** A cached file is read first. Otherwise one download serves every
-  concurrent load of the same image (4 downloads at once): the token goes in a
-  header, with a 5 s timeout, `image/*` only, at most 4 MiB, and redirects
+  concurrent load of the same image (4 downloads at once): the credential goes in
+  headers (from the `StreamPolicy`, only to a covered URL), with a 5 s timeout, `image/*` only, at most 4 MiB, and redirects
   disabled. A load whose requesters all cancelled before its download started
   downloads nothing. A follower whose leader ends without an answer starts
   over.
@@ -1003,7 +1328,13 @@ a map that also holds rows costs as much as the rows. So:
 `playQueueItemID`, `playlistItemID`), so existing rows survive updates.
 
 **Session.qml** owns routes, history, paging, search debounce, alphabet rail
-offsets, sign-in polling and shared presentation helpers. `Navigation.qml` is
+offsets, sign-in polling (Plex PIN, Jellyfin Quick Connect every 2 s) and shared
+presentation helpers. It reads the status `serverKind` and `capabilities`; the
+sign-in form has a server type choice (Plex, Jellyfin) and, for Jellyfin, a URL
+with optional base path, user name, password and a Quick Connect button that shows
+the code. Actions and filters the server lacks are hidden through `can(...)`, and
+the favourites destination is labelled "Favorites" on Jellyfin and "Favorites · 5
+stars" on Plex. `Navigation.qml` is
 the shared destination/action catalogue.
 
 **Translations** (`app/src/i18n.cpp`). The locale is taken from
@@ -1013,7 +1344,7 @@ variable is set, for example in an SSH launch) `LC_MESSAGES` or `LANG` from
 with codeset and modifier suffixes stripped. The base-language catalogue is
 installed before the territory one, with English as the fallback. Rust error
 strings are translated in the `Core` context, including parameterized forms
-("Plex returned HTTP %1").
+("Server returned HTTP %1").
 
 ## 10. Persistence and diagnostics
 
@@ -1021,7 +1352,7 @@ strings are translated in the `Core` context, including parameterized forms
 
 | File | Content |
 |---|---|
-| `session.json` | Settings and the playback checkpoint, including the client id and account/server tokens. Rewritten atomically only when its bytes change. |
+| `session.json` | Settings and the playback checkpoint, including the client id, the server kind, id and user id and the account/server tokens (Jellyfin: the access token), and the occurrence whose start was reported. Rewritten atomically only when its bytes change. |
 | `queue.json` | Queue and radio. Rewritten only when they change. A queue revision mirrored in `session.json` ensures a saved position is never applied to another queue. |
 | `listens.jsonl`, `history.jsonl` | Append-only, with the same caps as in memory. Damaged lines are skipped, and the files are compacted atomically when damaged or too large. |
 
@@ -1054,19 +1385,30 @@ files are not treated as redacted and should be checked before sharing.
 
 ## 11. Security and credential handling
 
-- **Where tokens live.** Rust owns credential persistence and use; tokens are
-  stored only in the 0600 session files. Published models and replies omit
+- **Where tokens live.** Rust owns credential persistence and use; tokens (the
+  Plex tokens, the Jellyfin access token) are stored only in the 0600 session
+  files. Published models and replies omit
   credentials: stream URLs are stripped from plans, server summaries omit
   tokens, and artwork uses `image://plexfreq` ids resolved in Rust. The one
-  exception is the manual "connect directly" form, where QML collects the token
-  the user types and the C++ adapter forwards it to Rust in the connect request
-  (`app/qml/pages/SettingsPage.qml`, `app/qml/desktop/Main.qml`,
-  `app/src/backend.cpp`).
-- **How tokens travel.** In `X-Plex-Token` headers, on clients with redirects
-  disabled, to origin-confined paths. Advertised keys may not inject `X-Plex-*`
-  parameters.
+  exceptions are the manual "connect directly" form and the Jellyfin sign-in form,
+  where QML collects the token or password the user types and the C++ adapter
+  forwards it to Rust in the command (`app/qml/pages/SettingsPage.qml`,
+  `app/qml/desktop/Main.qml`, `app/src/backend.cpp`). A Jellyfin password is used
+  once, in the sign-in request body, and is neither stored nor logged; the forms
+  clear their password field right after submitting. A reply echoes the request
+  back to the adapter without its `password` and `token` fields
+  (`without_secrets` in `src/runtime.rs`), so neither comes back across the FFI.
+- **How tokens travel.** In headers (Plex `X-Plex-Token`, Jellyfin
+  `Authorization: MediaBrowser ...`), never in a URL, on clients with redirects
+  disabled, to origin-confined paths. The audio reader, transcode stop,
+  downloader and artwork loader attach the credential headers of their
+  `StreamPolicy` only to a URL with the policy's origin and under its base path
+  (`StreamPolicy::headers_for` in `src/server.rs`). Server-advertised keys
+  (hub, filter-choice and station keys) are validated by the backend
+  (`MediaServer::advertised_key`): they must be server-relative and may not
+  carry the backend's credential parameters (Plex: `X-Plex-*`).
 - **Isolation.** Response bodies are size-bounded (§3), and cache, offline
-  snapshots and artwork are namespaced per credential (§6).
+  snapshots and artwork are namespaced per server scope (§3, §6).
 - **Read-only platform access.** No root, privileged helper or system-service
   modification. Platform access is read-only (ConnMan/NM, BlueZ, libpulse
   introspection) except the app's own playback stream and its MPRIS name.

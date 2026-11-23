@@ -106,6 +106,7 @@ fn numeric_rejects_unbounded_ids_before_network() {
     let err = core
         .execute(Command::Detail {
             key: long,
+            kind: None,
             start: 0,
         })
         .unwrap_err()

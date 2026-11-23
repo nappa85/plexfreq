@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(PlexFreq VERSION 0.1.11 LANGUAGES CXX)
+project(PlexFreq VERSION 0.2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -22,8 +22,18 @@ add_custom_target(translations ALL COMMAND bash "${CMAKE_SOURCE_DIR}/tools/build
 # Explicit resources: the generated rules depend on every listed file, so an
 # edited QML or translation file is rebuilt into the binaries (AUTORCC did not
 # track them in incremental builds).
-qt6_add_resources(PLEXFREQ_RESOURCES app/desktop.qrc app/translations.qrc app/icons.qrc)
+# The translation resource is shared by the app and the Qt test, so a single
+# target owns its rcc rule. A custom command output listed in two targets runs
+# once per target in parallel Makefile builds (CMake add_custom_command docs),
+# and rcc truncates its output before compressing the catalogues: the other
+# target could compile the still empty file into an object without resources.
+qt6_add_resources(PLEXFREQ_TRANSLATION_RESOURCES app/translations.qrc)
+add_library(plexfreq_translations OBJECT ${PLEXFREQ_TRANSLATION_RESOURCES})
+target_link_libraries(plexfreq_translations PRIVATE Qt6::Core)
+add_dependencies(plexfreq_translations translations)
+qt6_add_resources(PLEXFREQ_RESOURCES app/desktop.qrc app/icons.qrc)
 add_executable(plexfreq app/src/main.cpp app/src/backend.cpp app/src/backend.h app/src/i18n.cpp app/src/i18n.h app/src/artwork.cpp app/src/artwork.h ${PLEXFREQ_RESOURCES})
+target_link_libraries(plexfreq PRIVATE plexfreq_translations)
 add_dependencies(plexfreq translations)
 target_compile_definitions(plexfreq PRIVATE PLEXFREQ_VERSION="${PROJECT_VERSION}")
 add_dependencies(plexfreq rust_core)
@@ -37,8 +47,9 @@ install(FILES packaging/README-desktop.md DESTINATION ${CMAKE_INSTALL_DATADIR}/d
 include(CTest)
 if(BUILD_TESTING)
 find_package(Qt6 REQUIRED COMPONENTS Test Network DBus)
-qt6_add_resources(QT_BACKEND_TEST_RESOURCES tests/qt-backend-test.qrc app/translations.qrc)
+qt6_add_resources(QT_BACKEND_TEST_RESOURCES tests/qt-backend-test.qrc)
 add_executable(qt_backend_test tests/qt_backend.cpp app/src/backend.cpp app/src/backend.h app/src/i18n.cpp app/src/i18n.h app/src/artwork.cpp app/src/artwork.h ${QT_BACKEND_TEST_RESOURCES})
+target_link_libraries(qt_backend_test PRIVATE plexfreq_translations)
 add_dependencies(qt_backend_test translations)
 add_dependencies(qt_backend_test rust_core)
 target_include_directories(qt_backend_test PRIVATE app/src)

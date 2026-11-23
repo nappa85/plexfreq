@@ -3,9 +3,10 @@
 //! so a new operation cannot be added without deciding how the worker treats it.
 use crate::daily::{DownloadKind, GroupId, INVALID_GROUP};
 use crate::queue::Repeat;
+use crate::server::Capability;
 use crate::{
     audio, filters,
-    model::{Item, ItemKind},
+    model::{EntryId, Item, ItemKind},
     quality, Error, RadioKind, Result,
 };
 use serde::{Deserialize, Serialize};
@@ -233,10 +234,16 @@ pub enum Command {
         title: String,
         #[serde(default)]
         items: Vec<Item>,
+        /// The playlist occurrence (a number from Plex, a string from other
+        /// servers; both are accepted).
         #[serde(default)]
-        item_id: Option<u64>,
+        item_id: Option<EntryId>,
         #[serde(default)]
-        after: Option<u64>,
+        after: Option<EntryId>,
+        /// The 0-based target position of a move, for servers that move by
+        /// index instead of by predecessor.
+        #[serde(default)]
+        index: Option<usize>,
     },
     PlaylistItems {
         key: String,
@@ -326,6 +333,21 @@ pub enum Command {
     SelectServer {
         index: usize,
     },
+    /// Sign in to a Jellyfin server with a user name and password (the
+    /// password is used for this request only).
+    JellyfinLogin {
+        url: String,
+        username: String,
+        password: String,
+    },
+    /// Ask a Jellyfin server for a Quick Connect code to approve elsewhere.
+    JellyfinQuickConnect {
+        url: String,
+    },
+    /// Whether the pending Quick Connect request was approved; signs in when
+    /// it was.
+    JellyfinQuickConnectPoll,
+    JellyfinQuickConnectCancel,
     Libraries,
     Browse {
         section: String,
@@ -344,11 +366,20 @@ pub enum Command {
     },
     Children {
         key: String,
+        /// The kind of the item whose children are listed, when the UI knows
+        /// it (servers that need it cannot derive it from the key).
+        #[serde(default)]
+        kind: Option<ItemKind>,
         #[serde(default)]
         start: usize,
     },
     Detail {
         key: String,
+        /// The kind of the artist/album, when the UI knows it. Optional: Core
+        /// uses the fetched item's kind on the first page and the kind it
+        /// remembered for `key` on later pages.
+        #[serde(default)]
+        kind: Option<ItemKind>,
         #[serde(default)]
         start: usize,
     },
@@ -545,10 +576,12 @@ impl Command {
                 reprepare: true,
                 ..Class::TRANSPORT
             },
-            C::Connect { .. } | C::SelectServer { .. } | C::Logout => Class {
-                resets_session: true,
-                ..Class::TRANSPORT
-            },
+            C::Connect { .. } | C::SelectServer { .. } | C::JellyfinLogin { .. } | C::Logout => {
+                Class {
+                    resets_session: true,
+                    ..Class::TRANSPORT
+                }
+            }
             C::Enqueue { .. }
             | C::EnqueueAlbum { .. }
             | C::QueueMove { .. }
@@ -584,11 +617,36 @@ impl Command {
             | C::Login
             | C::PollLogin
             | C::Servers
+            // The poll resets the session itself (`sessionReset` in its reply)
+            // when it signs in, not on every pending answer.
+            | C::JellyfinQuickConnect { .. }
+            | C::JellyfinQuickConnectPoll
+            | C::JellyfinQuickConnectCancel
             | C::Libraries
             | C::Resume
             | C::CacheConfig { .. }
             | C::CacheTracks { .. }
             | C::CachedPlayback => Class::PLAIN,
+        }
+    }
+
+    /// The server capability this command needs, if any. Core refuses the
+    /// command with a clear error when the backend lacks it, whatever the UI
+    /// hid or showed.
+    pub(crate) fn requires(&self) -> Option<Capability> {
+        use Command as C;
+        match self {
+            C::SonicNeighbors { .. } => Some(Capability::Sonic),
+            C::SonicAdventure { .. } | C::SonicJourney { .. } => Some(Capability::SonicAdventure),
+            C::Station { .. } | C::DownloadStation { .. } => Some(Capability::ServerStations),
+            C::DownloadPlan {
+                kind: DownloadKind::Station,
+                ..
+            } => Some(Capability::ServerStations),
+            C::SmartPlaylist { .. } | C::SmartRules { .. } => Some(Capability::SmartPlaylists),
+            C::HubItems { .. } => Some(Capability::ServerHubs),
+            C::Alphabet { .. } | C::JumpArtist { .. } => Some(Capability::FirstCharacter),
+            _ => None,
         }
     }
 

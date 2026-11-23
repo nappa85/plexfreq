@@ -12,7 +12,7 @@ use std::{
     thread,
     time::Duration,
 };
-use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+use zbus::{OwnedObjectPath, OwnedVariant as OwnedValue};
 
 /// Deadline for any single D-Bus connect, subscribe or method call.
 const DEADLINE: Duration = Duration::from_secs(2);
@@ -68,9 +68,9 @@ struct Bus {
     connection: zbus::Connection,
 }
 impl Bus {
-    async fn connect(builder: zbus::Result<zbus::connection::Builder<'_>>) -> zbus::Result<Self> {
+    async fn connect(builder: zbus::connection::Builder<'_>) -> zbus::Result<Self> {
         Ok(Self {
-            connection: builder?.build().await?,
+            connection: builder.build().await?,
         })
     }
     async fn system() -> zbus::Result<Self> {
@@ -371,17 +371,18 @@ fn property_delta<'a>(
 /// a track change.
 async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: Arc<AtomicU64>) {
     let path = "/org/mpris/MediaPlayer2";
+    // zbus 6 requests names with ALLOW_REPLACEMENT by default; keep the name
+    // exclusive so another process cannot silently take the media controls.
     let builder = zbus::connection::Builder::session()
-        .and_then(|b| b.name("org.mpris.MediaPlayer2.plexfreq"))
-        .and_then(|b| b.serve_at(path, Root { events }))
-        .and_then(|b| {
-            b.serve_at(
-                path,
-                Player {
-                    shared: bus.clone(),
-                },
-            )
-        });
+        .allow_name_replacements(false)
+        .name("org.mpris.MediaPlayer2.plexfreq")
+        .serve_at(path, Root { events })
+        .serve_at(
+            path,
+            Player {
+                shared: bus.clone(),
+            },
+        );
     let connection = tokio::select! {
         _ = halt.wait() => return,
         connection = Bus::connect(builder) => connection,
@@ -490,6 +491,8 @@ async fn mpris(bus: Shared, events: mpsc::Sender<Outgoing>, halt: Halt, wakes: A
     }
 }
 type Objects = HashMap<OwnedObjectPath, HashMap<String, HashMap<String, OwnedValue>>>;
+/// Per-stream signal queue bound (zbus requires a non-zero size).
+const SIGNAL_QUEUE: Option<std::num::NonZeroUsize> = std::num::NonZeroUsize::new(64);
 /// Bounded D-Bus observer shared by the BlueZ and network tasks. Every
 /// connect/subscribe/query has a deadline and every wait also selects on
 /// `halt`, so neither a silent service nor a signal flood can delay shutdown.
@@ -518,7 +521,7 @@ where
     for rule in rules {
         match tokio::time::timeout(
             DEADLINE,
-            zbus::MessageStream::for_match_rule(rule, &connection, Some(64)),
+            zbus::MessageStream::for_match_rule(rule, &connection, SIGNAL_QUEUE),
         )
         .await
         {
@@ -537,7 +540,7 @@ where
     let mut signals = futures_util::stream::select_all(streams);
     if result.is_ok() {
         result = async {
-            // Always drain signals concurrently with RPCs. zbus 4's socket reader
+            // Always drain signals concurrently with RPCs. zbus's socket reader
             // otherwise blocks on a full signal queue before delivering the reply.
             while !halt.halted() {
                 let reply = tokio::time::timeout(deadline, query(connection.clone()));
@@ -581,16 +584,15 @@ where
 }
 fn signal_rule<'a>(
     sender: &'a str,
-    narrow: impl FnOnce(zbus::MatchRuleBuilder<'a>) -> zbus::Result<zbus::MatchRuleBuilder<'a>>,
+    narrow: impl FnOnce(zbus::match_rule::Builder<'a>) -> zbus::match_rule::Builder<'a>,
 ) -> Option<zbus::MatchRule<'a>> {
     let builder = zbus::MatchRule::builder()
         .msg_type(zbus::message::Type::Signal)
-        .sender(sender)
-        .ok()?;
-    narrow(builder).ok().map(zbus::MatchRuleBuilder::build)
+        .sender(sender);
+    narrow(builder).build().ok()
 }
 fn bluetooth_rules() -> Vec<zbus::MatchRule<'static>> {
-    signal_rule("org.bluez", Ok).into_iter().collect()
+    signal_rule("org.bluez", |b| b).into_iter().collect()
 }
 fn network_rules() -> Vec<zbus::MatchRule<'static>> {
     // ConnMan reports default-route/state changes on its Manager (ServicesChanged,
@@ -598,7 +600,7 @@ fn network_rules() -> Vec<zbus::MatchRule<'static>> {
     [
         signal_rule("net.connman", |b| b.interface("net.connman.Manager")),
         signal_rule("org.freedesktop.NetworkManager", |b| {
-            b.path("/org/freedesktop/NetworkManager")?
+            b.path("/org/freedesktop/NetworkManager")
                 .interface("org.freedesktop.DBus.Properties")
         }),
     ]
@@ -613,9 +615,9 @@ async fn proxy<'a>(
     interface: &'a str,
 ) -> zbus::Result<zbus::Proxy<'a>> {
     zbus::proxy::Builder::new(connection)
-        .destination(destination)?
-        .path(path)?
-        .interface(interface)?
+        .destination(destination)
+        .path(path)
+        .interface(interface)
         .cache_properties(zbus::proxy::CacheProperties::No)
         .build()
         .await
@@ -727,9 +729,11 @@ impl Drop for IsolatedPulse {
     }
 }
 #[cfg(test)]
-/// zbus (tokio feature) runs its blocking API on a private current-thread
-/// runtime that only progresses while some thread blocks on it, so blocking
-/// fixture services would never answer between calls. Keep it driven.
+/// Test fixtures build their connections inside `zbus::block_on` on test
+/// threads, so they run on zbus's own runtime rather than `plexfreq-rt`, apart
+/// from the code under test. That runtime only progresses while some thread is
+/// inside `zbus::block_on`, so fixture services would never answer between
+/// calls. Keep it driven.
 pub(crate) fn drive_blocking_zbus() {
     static DRIVER: std::sync::Once = std::sync::Once::new();
     DRIVER.call_once(|| {
@@ -767,7 +771,7 @@ mod bluetooth_tests {
                 ),
                 (
                     "UUIDs".into(),
-                    OwnedValue::try_from(zbus::zvariant::Value::from(vec![
+                    OwnedValue::try_from(zbus::Variant::from(vec![
                         "0000110b-0000-1000-8000-00805f9b34fb".to_string(),
                     ]))
                     .unwrap(),
@@ -785,7 +789,7 @@ mod bluetooth_tests {
                         HashMap::from([
                             (
                                 "Device".into(),
-                                OwnedValue::try_from(zbus::zvariant::Value::from(
+                                OwnedValue::try_from(zbus::Variant::from(
                                     OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture")
                                         .unwrap(),
                                 ))
@@ -793,7 +797,7 @@ mod bluetooth_tests {
                             ),
                             (
                                 "State".into(),
-                                OwnedValue::try_from(zbus::zvariant::Value::from("idle")).unwrap(),
+                                OwnedValue::try_from(zbus::Variant::from("idle")).unwrap(),
                             ),
                         ]),
                     )]),
@@ -851,23 +855,22 @@ mod bluetooth_tests {
         let transport = Arc::new(AtomicBool::new(true));
         let stalled = Arc::new(AtomicBool::new(false));
         let reads = Arc::new(AtomicUsize::new(0));
-        crate::runtime::platform::drive_blocking_zbus();
-        let service = zbus::blocking::ConnectionBuilder::address(address)
-            .unwrap()
-            .name("org.bluez")
-            .unwrap()
-            .serve_at(
-                "/",
-                Manager {
-                    connected: connected.clone(),
-                    transport: transport.clone(),
-                    stalled: stalled.clone(),
-                    reads: reads.clone(),
-                },
-            )
-            .unwrap()
-            .build()
-            .unwrap();
+        drive_blocking_zbus();
+        let service = zbus::block_on(
+            zbus::connection::Builder::address(address)
+                .name("org.bluez")
+                .serve_at(
+                    "/",
+                    Manager {
+                        connected: connected.clone(),
+                        transport: transport.clone(),
+                        stalled: stalled.clone(),
+                        reads: reads.clone(),
+                    },
+                )
+                .build(),
+        )
+        .unwrap();
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("fixture.wav");
         let frames = 480000u32;
@@ -919,35 +922,33 @@ mod bluetooth_tests {
         // queue on the connection has to be drained, or zbus's socket reader
         // stops delivering query replies and disconnects are never seen.
         for rssi in 0..200i16 {
-            service
-                .emit_signal(
-                    None::<&str>,
-                    "/org/bluez/hci0/dev_fixture",
-                    "org.freedesktop.DBus.Properties",
-                    "PropertiesChanged",
-                    &(
-                        "org.bluez.Device1",
-                        HashMap::from([("RSSI", -rssi)]),
-                        Vec::<String>::new(),
-                    ),
-                )
-                .unwrap();
+            zbus::block_on(service.emit_signal(
+                None::<&str>,
+                "/org/bluez/hci0/dev_fixture",
+                "org.freedesktop.DBus.Properties",
+                "PropertiesChanged",
+                &(
+                    "org.bluez.Device1",
+                    HashMap::from([("RSSI", -rssi)]),
+                    Vec::<String>::new(),
+                ),
+            ))
+            .unwrap();
         }
         thread::sleep(Duration::from_millis(300));
         // Profile removal must pause even while Device1 remains connected.
         transport.store(false, Ordering::SeqCst);
-        service
-            .emit_signal(
-                None::<&str>,
-                "/",
-                "org.freedesktop.DBus.ObjectManager",
-                "InterfacesRemoved",
-                &(
-                    OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture/fd0").unwrap(),
-                    vec!["org.bluez.MediaTransport1"],
-                ),
-            )
-            .unwrap();
+        zbus::block_on(service.emit_signal(
+            None::<&str>,
+            "/",
+            "org.freedesktop.DBus.ObjectManager",
+            "InterfacesRemoved",
+            &(
+                OwnedObjectPath::try_from("/org/bluez/hci0/dev_fixture/fd0").unwrap(),
+                vec!["org.bluez.MediaTransport1"],
+            ),
+        ))
+        .unwrap();
         let end = Instant::now() + Duration::from_secs(3);
         while !engine.handle.snapshot().paused {
             assert!(
@@ -959,19 +960,18 @@ mod bluetooth_tests {
         assert!(connected.load(Ordering::SeqCst));
         // Restore the profile and explicitly resume for the separate full-device test.
         transport.store(true, Ordering::SeqCst);
-        service
-            .emit_signal(
-                None::<&str>,
-                "/org/bluez/hci0/dev_fixture",
-                "org.freedesktop.DBus.Properties",
-                "PropertiesChanged",
-                &(
-                    "org.bluez.Device1",
-                    HashMap::from([("Connected", true)]),
-                    Vec::<String>::new(),
-                ),
-            )
-            .unwrap();
+        zbus::block_on(service.emit_signal(
+            None::<&str>,
+            "/org/bluez/hci0/dev_fixture",
+            "org.freedesktop.DBus.Properties",
+            "PropertiesChanged",
+            &(
+                "org.bluez.Device1",
+                HashMap::from([("Connected", true)]),
+                Vec::<String>::new(),
+            ),
+        ))
+        .unwrap();
         thread::sleep(Duration::from_millis(100));
         assert!(engine.handle.snapshot().paused);
         engine.handle.play().unwrap();
@@ -981,19 +981,18 @@ mod bluetooth_tests {
             thread::sleep(Duration::from_millis(10));
         }
         connected.store(false, Ordering::SeqCst);
-        service
-            .emit_signal(
-                None::<&str>,
-                "/org/bluez/hci0/dev_fixture",
-                "org.freedesktop.DBus.Properties",
-                "PropertiesChanged",
-                &(
-                    "org.bluez.Device1",
-                    HashMap::from([("Connected", false)]),
-                    Vec::<String>::new(),
-                ),
-            )
-            .unwrap();
+        zbus::block_on(service.emit_signal(
+            None::<&str>,
+            "/org/bluez/hci0/dev_fixture",
+            "org.freedesktop.DBus.Properties",
+            "PropertiesChanged",
+            &(
+                "org.bluez.Device1",
+                HashMap::from([("Connected", false)]),
+                Vec::<String>::new(),
+            ),
+        ))
+        .unwrap();
         let end = Instant::now() + Duration::from_secs(3);
         while !engine.handle.snapshot().paused {
             assert!(
@@ -1008,8 +1007,25 @@ mod bluetooth_tests {
         // used to block the socket reader and then shutdown's RemoveMatch reply.
         stalled.store(true, Ordering::SeqCst);
         let before = reads.load(Ordering::SeqCst);
-        service
-            .emit_signal(
+        zbus::block_on(service.emit_signal(
+            None::<&str>,
+            "/org/bluez/hci0/dev_fixture",
+            "org.freedesktop.DBus.Properties",
+            "PropertiesChanged",
+            &(
+                "org.bluez.Device1",
+                HashMap::from([("Connected", false)]),
+                Vec::<String>::new(),
+            ),
+        ))
+        .unwrap();
+        let end = Instant::now() + Duration::from_secs(3);
+        while reads.load(Ordering::SeqCst) == before {
+            assert!(Instant::now() < end);
+            thread::sleep(Duration::from_millis(10));
+        }
+        for _ in 0..512 {
+            zbus::block_on(service.emit_signal(
                 None::<&str>,
                 "/org/bluez/hci0/dev_fixture",
                 "org.freedesktop.DBus.Properties",
@@ -1019,27 +1035,8 @@ mod bluetooth_tests {
                     HashMap::from([("Connected", false)]),
                     Vec::<String>::new(),
                 ),
-            )
+            ))
             .unwrap();
-        let end = Instant::now() + Duration::from_secs(3);
-        while reads.load(Ordering::SeqCst) == before {
-            assert!(Instant::now() < end);
-            thread::sleep(Duration::from_millis(10));
-        }
-        for _ in 0..512 {
-            service
-                .emit_signal(
-                    None::<&str>,
-                    "/org/bluez/hci0/dev_fixture",
-                    "org.freedesktop.DBus.Properties",
-                    "PropertiesChanged",
-                    &(
-                        "org.bluez.Device1",
-                        HashMap::from([("Connected", false)]),
-                        Vec::<String>::new(),
-                    ),
-                )
-                .unwrap();
         }
         let end = Instant::now() + Duration::from_secs(3);
         while reads.load(Ordering::SeqCst) <= before + 1 {
@@ -1204,7 +1201,7 @@ impl Player {
         if !track.is_object() {
             return data;
         }
-        if let Some(id) = Self::owned(zbus::zvariant::Value::from(Self::occurrence_path(id))) {
+        if let Some(id) = Self::owned(zbus::Variant::from(Self::occurrence_path(id))) {
             data.insert("mpris:trackid".into(), id);
         }
         data.insert(
@@ -1212,7 +1209,7 @@ impl Player {
             OwnedValue::from(track["duration"].as_i64().unwrap_or(0) * 1000),
         );
         for (property, key) in [("xesam:title", "title"), ("xesam:album", "parentTitle")] {
-            if let Some(value) = Self::owned(zbus::zvariant::Value::from(
+            if let Some(value) = Self::owned(zbus::Variant::from(
                 track[key].as_str().unwrap_or("").to_string(),
             )) {
                 data.insert(property.into(), value);
@@ -1223,17 +1220,17 @@ impl Player {
             .filter(|s| !s.is_empty())
             .or_else(|| track["grandparentTitle"].as_str())
             .unwrap_or("");
-        if let Some(artists) = Self::owned(zbus::zvariant::Value::from(vec![artist.to_string()])) {
+        if let Some(artists) = Self::owned(zbus::Variant::from(vec![artist.to_string()])) {
             data.insert("xesam:artist".into(), artists);
         }
         if let Some(art) = track["artwork"].as_str().filter(|s| s.starts_with("file:")) {
-            if let Some(url) = Self::owned(zbus::zvariant::Value::from(art.to_string())) {
+            if let Some(url) = Self::owned(zbus::Variant::from(art.to_string())) {
                 data.insert("mpris:artUrl".into(), url);
             }
         }
         data
     }
-    fn owned(value: zbus::zvariant::Value<'_>) -> Option<OwnedValue> {
+    fn owned(value: zbus::Variant<'_>) -> Option<OwnedValue> {
         OwnedValue::try_from(value).ok()
     }
     /// The full PropertiesChanged candidate set for `state` (Position is never
@@ -1317,7 +1314,10 @@ impl Player {
     }
     fn open_uri(&self, _uri: &str) {}
     #[zbus(signal)]
-    async fn seeked(context: &zbus::SignalContext<'_>, position: i64) -> zbus::Result<()>;
+    async fn seeked(
+        context: &zbus::object_server::SignalEmitter<'_>,
+        position: i64,
+    ) -> zbus::Result<()>;
     #[zbus(property)]
     fn playback_status(&self) -> String {
         let state = self.shared.playback();
@@ -1483,11 +1483,11 @@ mod delta_tests {
         let map: HashMap<String, OwnedValue> = entries
             .iter()
             .map(|(key, value)| {
-                let value = zbus::zvariant::Value::from(value.to_string());
+                let value = zbus::Variant::from(value.to_string());
                 (key.to_string(), OwnedValue::try_from(value).unwrap())
             })
             .collect();
-        OwnedValue::try_from(zbus::zvariant::Value::from(map)).unwrap()
+        OwnedValue::try_from(zbus::Variant::from(map)).unwrap()
     }
 
     /// Only changed properties are re-sent; Metadata built in a different
@@ -1585,25 +1585,26 @@ mod mpris_tests {
             std::env::set_var(key, &address);
         }
         // Client side: collect PropertiesChanged from the player object.
-        crate::runtime::platform::drive_blocking_zbus();
-        let client = zbus::blocking::ConnectionBuilder::address(address.as_str())
-            .unwrap()
-            .build()
-            .unwrap();
+        drive_blocking_zbus();
+        let client =
+            zbus::block_on(zbus::connection::Builder::address(address.as_str()).build()).unwrap();
         let rule = zbus::MatchRule::builder()
             .msg_type(zbus::message::Type::Signal)
             .interface("org.freedesktop.DBus.Properties")
-            .unwrap()
             .member("PropertiesChanged")
-            .unwrap()
             .path("/org/mpris/MediaPlayer2")
-            .unwrap()
-            .build();
-        let iterator =
-            zbus::blocking::MessageIterator::for_match_rule(rule, &client, None).unwrap();
+            .build()
+            .unwrap();
+        let mut stream = zbus::block_on(zbus::MessageStream::for_match_rule(
+            rule,
+            &client,
+            SIGNAL_QUEUE,
+        ))
+        .unwrap();
         let (signals, received) = mpsc::channel();
         thread::spawn(move || {
-            for message in iterator.flatten() {
+            while let Some(message) = zbus::block_on(stream.next()) {
+                let Ok(message) = message else { continue };
                 if let Ok(body) = message.body().deserialize::<Changed>() {
                     if signals.send((Instant::now(), body.1)).is_err() {
                         break;
@@ -1614,17 +1615,20 @@ mod mpris_tests {
         let rule = zbus::MatchRule::builder()
             .msg_type(zbus::message::Type::Signal)
             .interface("org.mpris.MediaPlayer2.Player")
-            .unwrap()
             .member("Seeked")
-            .unwrap()
             .path("/org/mpris/MediaPlayer2")
-            .unwrap()
-            .build();
-        let iterator =
-            zbus::blocking::MessageIterator::for_match_rule(rule, &client, None).unwrap();
+            .build()
+            .unwrap();
+        let mut stream = zbus::block_on(zbus::MessageStream::for_match_rule(
+            rule,
+            &client,
+            SIGNAL_QUEUE,
+        ))
+        .unwrap();
         let (seeks, seeked) = mpsc::channel();
         thread::spawn(move || {
-            for message in iterator.flatten() {
+            while let Some(message) = zbus::block_on(stream.next()) {
+                let Ok(message) = message else { continue };
                 if let Ok(position) = message.body().deserialize::<i64>() {
                     if seeks.send(position).is_err() {
                         break;
@@ -1641,11 +1645,12 @@ mod mpris_tests {
         *crate::mutex_lock(&shared.audio) = Some(engine.handle.clone());
         let (events, _events) = mpsc::channel();
         let platform = start(shared.clone(), events);
-        let dbus = zbus::blocking::fdo::DBusProxy::new(&client).unwrap();
+        let dbus = zbus::block_on(zbus::fdo::DBusProxy::new(&client)).unwrap();
         let end = Instant::now() + Duration::from_secs(5);
-        while !dbus
-            .name_has_owner("org.mpris.MediaPlayer2.plexfreq".try_into().unwrap())
-            .unwrap()
+        while !zbus::block_on(
+            dbus.name_has_owner("org.mpris.MediaPlayer2.plexfreq".try_into().unwrap()),
+        )
+        .unwrap()
         {
             assert!(Instant::now() < end, "MPRIS name was not acquired");
             thread::sleep(Duration::from_millis(10));
@@ -1844,7 +1849,7 @@ mod network_tests {
     use super::*;
 
     fn service(kind: &str, state: &str) -> (OwnedObjectPath, HashMap<String, OwnedValue>) {
-        let text = |value: &str| OwnedValue::try_from(zbus::zvariant::Value::from(value)).unwrap();
+        let text = |value: &str| OwnedValue::try_from(zbus::Variant::from(value)).unwrap();
         (
             OwnedObjectPath::try_from(format!("/net/connman/service/{kind}")).unwrap(),
             HashMap::from([("Type".into(), text(kind)), ("State".into(), text(state))]),

@@ -46,7 +46,7 @@ fn audio_mime_type(mime: &str) -> Option<String> {
     .then_some(mime)
 }
 
-fn status(code: u16) -> Result<()> {
+pub(crate) fn status(code: u16) -> Result<()> {
     match code {
         200..=299 => Ok(()),
         401 | 403 => Err(Error::Unauthorized),
@@ -74,7 +74,7 @@ pub(crate) async fn bounded_body(
 
 /// Server-side health of one queued item, from a status-only metadata probe.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Probe {
+pub enum Probe {
     /// The server itself reports the item missing.
     Gone,
     /// The credential was refused; further probes would fail the same way.
@@ -83,7 +83,7 @@ pub(crate) enum Probe {
     Unknown,
 }
 
-const PROBE_TIMEOUT: Duration = Duration::from_secs(5);
+pub(crate) const PROBE_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Classify a metadata probe. PMS answers a missing item with 404 plus its
 /// `X-Plex-Protocol` header (HTML body, no MediaContainer: measured
@@ -122,18 +122,41 @@ fn plex_text(bytes: &[u8]) -> std::borrow::Cow<'_, str> {
     text.into()
 }
 
-fn plex_json<T: DeserializeOwned>(bytes: &[u8], context: &'static str) -> Result<T> {
+pub(crate) fn plex_json<T: DeserializeOwned>(bytes: &[u8], context: &'static str) -> Result<T> {
     serde_json::from_str(&plex_text(bytes)).map_err(|_| Error::ProtocolAt(context))
 }
 
-pub(crate) async fn bounded_json<T: DeserializeOwned>(
-    mut response: reqwest::Response,
-    context: &'static str,
-) -> Result<T> {
-    let bytes = bounded_body(&mut response, JSON_LIMIT)
-        .await
-        .map_err(|error| error.unwrap_or(Error::ProtocolAt(context)))?;
-    plex_json(&bytes, context)
+/// Builder for every HTTP client in the process. TLS is rustls with the
+/// `ring` provider and the Mozilla roots compiled in (`webpki-roots`): no
+/// system trust store and no C crypto library to cross-compile for Sailfish.
+/// The config is handed to reqwest prebuilt, so it must come from the same
+/// `rustls` version reqwest uses (otherwise `build()` fails).
+pub(crate) fn client_builder() -> reqwest::ClientBuilder {
+    Client::builder().tls_backend_preconfigured(tls_config().clone())
+}
+
+/// The Mozilla root certificates bundled by `webpki-roots`.
+fn compiled_in_roots() -> rustls::RootCertStore {
+    rustls::RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
+    }
+}
+
+fn tls_config() -> &'static rustls::ClientConfig {
+    static CONFIG: OnceLock<rustls::ClientConfig> = OnceLock::new();
+    CONFIG.get_or_init(|| {
+        let mut config = rustls::ClientConfig::builder_with_provider(std::sync::Arc::new(
+            rustls::crypto::ring::default_provider(),
+        ))
+        .with_safe_default_protocol_versions()
+        .expect("ring supports the default TLS versions")
+        .with_root_certificates(compiled_in_roots())
+        .with_no_client_auth();
+        // reqwest leaves a preconfigured ALPN untouched; offer HTTP/1.1 as
+        // reqwest's own rustls setup does without the `http2` feature.
+        config.alpn_protocols = vec![b"http/1.1".to_vec()];
+        config
+    })
 }
 
 /// One pooled async client for every Plex API caller in the process (Core,
@@ -145,65 +168,42 @@ pub(crate) fn client() -> &'static Client {
         // so a stalled timeline/library call cannot block the worker beyond
         // 15s. `connect_timeout` fails fast on unreachable hosts. Redirects
         // stay disabled: credentials travel in headers.
-        Client::builder()
+        client_builder()
             .timeout(Duration::from_secs(15))
             .connect_timeout(Duration::from_secs(5))
             .redirect(reqwest::redirect::Policy::none())
             .build()
-            .unwrap_or_default()
+            // Static configuration, covered by a unit test. A default client
+            // would lose the redirect policy and the compiled-in roots.
+            .expect("HTTP client configuration")
     })
 }
 
 /// Navigation generation a view-bound request belongs to.
 type Scope = (watch::Receiver<u64>, u64);
 
-pub struct Plex {
-    client: Client,
-    headers: HeaderMap,
-    pub account_url: Url,
+/// The view-cancellation scope of one client (see [`Plex::bind_view`]),
+/// shared by every backend that drives requests from the synchronous Core.
+#[derive(Default)]
+pub(crate) struct ViewScope {
     scope: Mutex<Option<Scope>>,
     cancelled: AtomicBool,
 }
 
-impl Plex {
-    pub fn new(identifier: &str, account_url: Url) -> Result<Self> {
-        let mut headers = HeaderMap::new();
-        for (name, value) in [
-            ("accept", "application/json"),
-            ("x-plex-product", "PlexFreq"),
-            ("x-plex-version", env!("CARGO_PKG_VERSION")),
-            ("x-plex-platform", "Linux"),
-            ("x-plex-client-identifier", identifier),
-        ] {
-            headers.insert(
-                name,
-                HeaderValue::from_str(value)
-                    .map_err(|_| Error::Input("Invalid client identifier"))?,
-            );
-        }
-        Ok(Self {
-            client: client().clone(),
-            headers,
-            account_url,
-            scope: Mutex::new(None),
-            cancelled: AtomicBool::new(false),
-        })
-    }
-
+impl ViewScope {
     /// Bind following requests to a navigation generation: once `navigation`
     /// moves past `view`, in-flight and later requests end with [`CANCELLED`].
-    /// `None` unbinds. Used by the runtime around view-bound commands.
-    pub(crate) fn bind_view(&self, scope: Option<Scope>) {
+    /// `None` unbinds.
+    pub(crate) fn bind(&self, scope: Option<Scope>) {
         *crate::mutex_lock(&self.scope) = scope;
         self.cancelled.store(false, Ordering::SeqCst);
     }
-    /// Whether a request was cancelled by navigation since `bind_view`.
+    /// Whether a request was cancelled by navigation since [`bind`](Self::bind).
     pub(crate) fn cancelled(&self) -> bool {
         self.cancelled.load(Ordering::SeqCst)
     }
-
     /// Drive one request on the shared runtime from the synchronous Core.
-    fn run<T: Send>(&self, step: impl Future<Output = Result<T>> + Send) -> Result<T> {
+    pub(crate) fn run<T: Send>(&self, step: impl Future<Output = Result<T>> + Send) -> Result<T> {
         let scope = crate::mutex_lock(&self.scope).clone();
         let Some((mut navigation, view)) = scope else {
             return crate::rt::block_on(step);
@@ -229,6 +229,68 @@ impl Plex {
             self.cancelled.store(true, Ordering::SeqCst);
         }
         result
+    }
+}
+
+pub struct Plex {
+    client: Client,
+    headers: HeaderMap,
+    pub account_url: Url,
+    view: ViewScope,
+}
+
+/// A clone is an independent client for another thread (the radio refill
+/// worker): same pooled connections, headers and account URL, but a fresh,
+/// unbound view scope and a cleared cancellation flag. Sharing the scope would
+/// let a navigation abort the refill, or `bind_view(None)` on Core unbind it.
+impl Clone for Plex {
+    fn clone(&self) -> Self {
+        Self {
+            client: self.client.clone(),
+            headers: self.headers.clone(),
+            account_url: self.account_url.clone(),
+            view: ViewScope::default(),
+        }
+    }
+}
+
+impl Plex {
+    pub fn new(identifier: &str, account_url: Url) -> Result<Self> {
+        let mut headers = HeaderMap::new();
+        for (name, value) in [
+            ("accept", "application/json"),
+            ("x-plex-product", "PlexFreq"),
+            ("x-plex-version", env!("CARGO_PKG_VERSION")),
+            ("x-plex-platform", "Linux"),
+            ("x-plex-client-identifier", identifier),
+        ] {
+            headers.insert(
+                name,
+                HeaderValue::from_str(value)
+                    .map_err(|_| Error::Input("Invalid client identifier"))?,
+            );
+        }
+        Ok(Self {
+            client: client().clone(),
+            headers,
+            account_url,
+            view: ViewScope::default(),
+        })
+    }
+
+    /// Bind following requests to a navigation generation (see
+    /// [`ViewScope::bind`]). Used by the runtime around view-bound commands.
+    pub(crate) fn bind_view(&self, scope: Option<Scope>) {
+        self.view.bind(scope);
+    }
+    /// Whether a request was cancelled by navigation since `bind_view`.
+    pub(crate) fn cancelled(&self) -> bool {
+        self.view.cancelled()
+    }
+
+    /// Drive one request on the shared runtime from the synchronous Core.
+    fn run<T: Send>(&self, step: impl Future<Output = Result<T>> + Send) -> Result<T> {
+        self.view.run(step)
     }
 
     /// Every server/account request goes through here so the credential
@@ -413,7 +475,7 @@ impl Plex {
         token: &str,
         key: &str,
     ) -> Result<impl Future<Output = Probe> + Send + 'static> {
-        crate::numeric(key)?;
+        valid_id(key)?;
         let url = server_path(base, &format!("/library/metadata/{key}"))?;
         let request = self.builder(Method::GET, url, token);
         Ok(async move {
@@ -438,38 +500,53 @@ impl Plex {
                     HeaderValue::from_static("identity"),
                 ),
             ]));
-        self.run(async move {
-            let mut response = request.send().await.map_err(|_| Error::Network)?;
-            if !response.status().is_success() {
-                return Err(Error::Http(response.status().as_u16()));
-            }
-            let mime = audio_mime_type(
-                response
-                    .headers()
-                    .get("Content-Type")
-                    .and_then(|v| v.to_str().ok())
-                    .unwrap_or(""),
-            )
-            .ok_or(Error::Input(
-                "Server returned non-audio content for this track",
-            ))?;
-            // A bounded prefix proves the media is readable; the rest of the
-            // body is abandoned with the response.
-            let mut read = 0usize;
-            while read < 256 * 1024 {
-                match response.chunk().await {
-                    Ok(Some(chunk)) => read += chunk.len(),
-                    Ok(None) => break,
-                    Err(error) => return Err(std::io::Error::other(error).into()),
-                }
-            }
-            if read == 0 {
-                return Err(Error::Input(
-                    "Audio download is incomplete; waiting to resume",
-                ));
-            }
-            Ok((read.min(256 * 1024), mime))
-        })
+        self.run(read_audio_probe(request))
+    }
+}
+
+/// Send `request` and read a bounded prefix of its audio body: proves the
+/// media is readable. Returns (bytes read, normalized MIME essence).
+pub(crate) async fn read_audio_probe(request: RequestBuilder) -> Result<(usize, String)> {
+    let mut response = request.send().await.map_err(|_| Error::Network)?;
+    if !response.status().is_success() {
+        return Err(Error::Http(response.status().as_u16()));
+    }
+    let mime = audio_mime_type(
+        response
+            .headers()
+            .get("Content-Type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or(""),
+    )
+    .ok_or(Error::Input(
+        "Server returned non-audio content for this track",
+    ))?;
+    // A bounded prefix proves the media is readable; the rest of the
+    // body is abandoned with the response.
+    let mut read = 0usize;
+    while read < 256 * 1024 {
+        match response.chunk().await {
+            Ok(Some(chunk)) => read += chunk.len(),
+            Ok(None) => break,
+            Err(error) => return Err(std::io::Error::other(error).into()),
+        }
+    }
+    if read == 0 {
+        return Err(Error::Input(
+            "Audio download is incomplete; waiting to resume",
+        ));
+    }
+    Ok((read.min(256 * 1024), mime))
+}
+
+/// Plex identifier rule: 1-20 ASCII digits (they fit a `u64`). Rejects
+/// unbounded digit strings before they become huge URL paths or overflow
+/// parsers. Core reaches this through `MediaServer::valid_id`.
+pub(crate) fn valid_id(value: &str) -> Result<&str> {
+    if value.is_empty() || value.len() > 20 || !value.bytes().all(|c| c.is_ascii_digit()) {
+        Err(Error::Input("Expected a numeric Plex identifier"))
+    } else {
+        Ok(value)
     }
 }
 
@@ -490,6 +567,52 @@ pub fn server_url(value: &str) -> Result<Url> {
     Ok(url)
 }
 
+/// Like [`server_url`] but the URL may carry a path prefix (a server behind a
+/// reverse proxy at `/jellyfin`). The result is normalised to end in exactly
+/// one `/`; the prefix has no empty, dot or encoded-separator segments, so
+/// [`server_path`] can keep every request under it. Plex servers are always
+/// origin-only and use [`server_url`].
+pub fn server_url_with_base_path(value: &str) -> Result<Url> {
+    let invalid = || {
+        Error::Input(
+            "Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin",
+        )
+    };
+    let mut url = Url::parse(value).map_err(|_| invalid())?;
+    if !matches!(url.scheme(), "http" | "https")
+        || url.host_str().is_none()
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
+        return Err(invalid());
+    }
+    let path = url.path().to_owned();
+    let lower = path.to_ascii_lowercase();
+    let trimmed = path.trim_matches('/');
+    if path.contains('\\')
+        || path.chars().any(char::is_control)
+        || ["%2e", "%2f", "%5c", "%25", "%3f", "%23", "%00"]
+            .iter()
+            .any(|escape| lower.contains(escape))
+        || trimmed
+            .split('/')
+            .any(|segment| !trimmed.is_empty() && matches!(segment, "" | "." | ".."))
+    {
+        return Err(invalid());
+    }
+    url.set_path(&if trimmed.is_empty() {
+        "/".to_owned()
+    } else {
+        format!("/{trimmed}/")
+    });
+    Ok(url)
+}
+
+/// Join a server-relative `path` to `base`. An origin-only base (every Plex
+/// server) maps `/x` to `/x`. A base with a path prefix maps it to
+/// `<prefix>/x` and the result must stay below the prefix on the same origin.
 pub fn server_path(base: &Url, path: &str) -> Result<Url> {
     if !path.starts_with('/')
         || path.starts_with("//")
@@ -497,7 +620,7 @@ pub fn server_path(base: &Url, path: &str) -> Result<Url> {
         || path.contains(['?', '#'])
         || path.chars().any(char::is_control)
     {
-        return Err(Error::Input("Expected a server-relative Plex path"));
+        return Err(Error::Input("Expected a server-relative path"));
     }
     // Block dot segments before Url::join normalizes them away: /a/../b would
     // otherwise silently become /b under the same origin.
@@ -511,42 +634,78 @@ pub fn server_path(base: &Url, path: &str) -> Result<Url> {
             .split('/')
             .any(|segment| segment == ".." || segment == ".")
     {
-        return Err(Error::Input("Expected a server-relative Plex path"));
+        return Err(Error::Input("Expected a server-relative path"));
     }
-    let url = base.join(path)?;
+    let prefix = base.path().trim_end_matches('/');
+    let url = if prefix.is_empty() {
+        base.join(path)?
+    } else {
+        // `join` of an absolute path would replace the prefix.
+        let mut url = base.clone();
+        url.set_query(None);
+        url.set_fragment(None);
+        url.set_path(&format!("{prefix}{path}"));
+        if !url.path().starts_with(&format!("{prefix}/")) {
+            return Err(Error::Input("Cross-origin path rejected"));
+        }
+        url
+    };
     if url.origin() != base.origin() {
-        return Err(Error::Input("Cross-origin Plex path rejected"));
+        return Err(Error::Input("Cross-origin path rejected"));
     }
     Ok(url)
-}
-
-pub fn authenticated_url(base: &Url, path: &str, token: &str) -> Result<String> {
-    let mut url = advertised_path(base, path)?;
-    url.query_pairs_mut().append_pair("X-Plex-Token", token);
-    Ok(url.into())
 }
 
 /// Station and artwork keys may advertise queries. Keep credential/header
 /// parameters out of that input and validate the pathname before joining.
 pub(crate) fn advertised_path(base: &Url, key: &str) -> Result<Url> {
+    advertised_url(base, key, is_plex_credential)
+}
+
+/// A Plex credential or client-identity query parameter (`X-Plex-*`), which a
+/// server-handed key must never smuggle into a request.
+pub(crate) fn is_plex_credential(name: &str) -> bool {
+    name.to_ascii_lowercase().starts_with("x-plex-")
+}
+
+/// [`advertised_path`] with the backend's own credential-parameter filter.
+pub(crate) fn advertised_url(
+    base: &Url,
+    key: &str,
+    credential: impl Fn(&str) -> bool,
+) -> Result<Url> {
     let (path, query) = key
         .split_once('?')
         .map_or((key, None), |(p, q)| (p, Some(q)));
     let mut url = server_path(base, path)?;
     if let Some(query) = query {
         if query.contains('#') || query.chars().any(char::is_control) {
-            return Err(Error::Input("Expected a server-relative Plex path"));
+            return Err(Error::Input("Expected a server-relative path"));
         }
         for (name, value) in url::form_urlencoded::parse(query.as_bytes()) {
-            if name.to_ascii_lowercase().starts_with("x-plex-")
-                || name.chars().chain(value.chars()).any(char::is_control)
-            {
-                return Err(Error::Input("Expected a server-relative Plex path"));
+            if credential(&name) || name.chars().chain(value.chars()).any(char::is_control) {
+                return Err(Error::Input("Expected a server-relative path"));
             }
         }
         url.set_query(Some(query));
     }
     Ok(url)
+}
+
+/// A server-advertised key (hub, filter-choice, station key) validated by
+/// [`advertised_url`] and split into its server-relative path and decoded
+/// query pairs, independent of the server's base path.
+pub(crate) fn advertised_parts(
+    key: &str,
+    credential: impl Fn(&str) -> bool,
+) -> Result<(String, Vec<(String, String)>)> {
+    let origin = Url::parse("http://server.invalid/")?;
+    let url = advertised_url(&origin, key, credential)?;
+    let params = url
+        .query_pairs()
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect();
+    Ok((url.path().to_owned(), params))
 }
 
 #[cfg(test)]
@@ -557,6 +716,29 @@ mod tests {
         net::TcpListener,
         thread,
     };
+
+    #[test]
+    fn clients_get_ring_tls_with_compiled_in_roots() {
+        let config = tls_config();
+        let suites = |p: &rustls::crypto::CryptoProvider| {
+            p.cipher_suites
+                .iter()
+                .map(|s| s.suite())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            suites(config.crypto_provider()),
+            suites(&rustls::crypto::ring::default_provider())
+        );
+        assert!(!webpki_roots::TLS_SERVER_ROOTS.is_empty());
+        assert_eq!(
+            compiled_in_roots().len(),
+            webpki_roots::TLS_SERVER_ROOTS.len()
+        );
+        assert_eq!(config.alpn_protocols, vec![b"http/1.1".to_vec()]);
+        assert!(client_builder().build().is_ok());
+        let _ = client();
+    }
 
     #[test]
     fn latin1_tag_bytes_decode_instead_of_rejecting_the_page() {
@@ -676,5 +858,107 @@ mod tests {
         ] {
             assert!(advertised_path(&base, &format!("/photo/:/transcode?{query}")).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod clone_tests {
+    use super::*;
+
+    #[test]
+    fn a_clone_does_not_share_the_view_scope_or_cancellation() {
+        let plex = Plex::new("fixture", Url::parse("https://plex.tv/").unwrap()).unwrap();
+        let (_tx, rx) = watch::channel(0u64);
+        plex.bind_view(Some((rx, 0)));
+        plex.view.cancelled.store(true, Ordering::SeqCst);
+        let clone = plex.clone();
+        assert!(clone.view.scope.lock().unwrap().is_none());
+        assert!(!clone.cancelled());
+        // Unbinding the original (as Core does after each command) leaves a
+        // clone bound later on its own.
+        let (_tx2, rx2) = watch::channel(0u64);
+        clone.bind_view(Some((rx2, 0)));
+        plex.bind_view(None);
+        assert!(clone.view.scope.lock().unwrap().is_some());
+    }
+}
+
+#[cfg(test)]
+mod base_path_tests {
+    use super::*;
+
+    fn joined(base: &str, path: &str) -> Result<String> {
+        server_path(&server_url_with_base_path(base)?, path).map(String::from)
+    }
+
+    #[test]
+    fn a_base_path_is_normalised_and_prefixes_every_request() {
+        for base in [
+            "https://media.example/jellyfin",
+            "https://media.example/jellyfin/",
+        ] {
+            assert_eq!(
+                server_url_with_base_path(base).unwrap().as_str(),
+                "https://media.example/jellyfin/"
+            );
+            assert_eq!(
+                joined(base, "/Items/abc").unwrap(),
+                "https://media.example/jellyfin/Items/abc"
+            );
+        }
+        assert_eq!(
+            joined("http://127.0.0.1:8096/a/b", "/Audio/1/stream").unwrap(),
+            "http://127.0.0.1:8096/a/b/Audio/1/stream"
+        );
+        // An origin-only address behaves exactly like a Plex origin.
+        assert_eq!(
+            joined("http://127.0.0.1:8096", "/System/Info").unwrap(),
+            "http://127.0.0.1:8096/System/Info"
+        );
+    }
+
+    #[test]
+    fn requests_cannot_leave_the_prefix_or_the_origin() {
+        let base = "https://media.example/jellyfin/";
+        for path in [
+            "/../admin",
+            "/Items/../../admin",
+            "/%2e%2e/admin",
+            "/Items/%2E%2e/x",
+            "/a%2fb",
+            "/a%5cb",
+            "//evil.example/x",
+            "/Items\\..\\x",
+            "Items/relative",
+            "/Items?api_key=1",
+            "/Items#frag",
+            "/Items/\u{7}x",
+        ] {
+            assert!(joined(base, path).is_err(), "{path}");
+        }
+    }
+
+    #[test]
+    fn a_malformed_base_path_is_refused() {
+        for base in [
+            "https://media.example/jelly//fin",
+            "https://media.example/%252e%252e/",
+            "https://media.example/a%2fb/",
+            "https://media.example/a%5Cb/",
+            "https://media.example/jellyfin?x=1",
+            "https://media.example/jellyfin#x",
+            "https://user:pw@media.example/jellyfin",
+            "ftp://media.example/jellyfin",
+            "not a url",
+        ] {
+            assert!(server_url_with_base_path(base).is_err(), "{base}");
+        }
+    }
+
+    #[test]
+    fn plex_stays_origin_only() {
+        assert!(server_url("https://plex.example:32400/").is_ok());
+        assert!(server_url("https://plex.example:32400/jellyfin/").is_err());
+        assert!(server_url("https://plex.example:32400/jellyfin").is_err());
     }
 }

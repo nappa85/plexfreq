@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::sync::watch;
-use zbus::{zvariant::Value, Connection, MessageStream};
+use zbus::{Connection, MessageStream, Variant as Value};
 
 const SERVICE: &str = "org.freedesktop.Notifications";
 const PATH: &str = "/org/freedesktop/Notifications";
@@ -177,6 +177,9 @@ struct Bus {
     desktop: &'static str,
 }
 
+/// Per-stream signal queue bound (zbus requires a non-zero size).
+const SIGNAL_QUEUE: Option<std::num::NonZeroUsize> = std::num::NonZeroUsize::new(64);
+
 impl Bus {
     async fn new(connection: Connection) -> zbus::Result<Self> {
         // Sailjail Notifications.permission grants TALK/broadcast access to
@@ -185,22 +188,22 @@ impl Bus {
         // The unique sender is also checked before accepting a close signal.
         let closed = zbus::MatchRule::builder()
             .msg_type(zbus::message::Type::Signal)
-            .sender(SERVICE)?
-            .path(PATH)?
-            .interface(SERVICE)?
-            .member("NotificationClosed")?
-            .build();
+            .sender(SERVICE)
+            .path(PATH)
+            .interface(SERVICE)
+            .member("NotificationClosed")
+            .build()?;
         let owners = zbus::MatchRule::builder()
             .msg_type(zbus::message::Type::Signal)
-            .sender("org.freedesktop.DBus")?
-            .path("/org/freedesktop/DBus")?
-            .interface("org.freedesktop.DBus")?
-            .member("NameOwnerChanged")?
-            .arg(0, SERVICE)?
-            .build();
+            .sender("org.freedesktop.DBus")
+            .path("/org/freedesktop/DBus")
+            .interface("org.freedesktop.DBus")
+            .member("NameOwnerChanged")
+            .arg(0, SERVICE)
+            .build()?;
         let signals = futures_util::stream::select(
-            MessageStream::for_match_rule(owners, &connection, Some(64)).await?,
-            MessageStream::for_match_rule(closed, &connection, Some(64)).await?,
+            MessageStream::for_match_rule(owners, &connection, SIGNAL_QUEUE).await?,
+            MessageStream::for_match_rule(closed, &connection, SIGNAL_QUEUE).await?,
         );
         let sailfish = rt::unblock(|| {
             std::fs::read_to_string("/etc/os-release")

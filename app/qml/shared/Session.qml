@@ -30,7 +30,7 @@ Item {
     property var filterValues:({genre:"",mood:"",style:"",title:"",yearFrom:null,yearTo:null,minRating:null,unplayed:false})
     property var filterChoices:({genre:[],mood:[],style:[]})
     property var journeyTracks:[]
-    function requestFilterChoices() {filterChoices={genre:[],mood:[],style:[]};if(filterKind==="artist"){filterValue("yearFrom",null);filterValue("yearTo",null)}if(filterSection)for(var i=0;i<3;i++)backend.command("filter_options",{section:filterSection,kind:filterKind,field:["genre","mood","style"][i]})}
+    function requestFilterChoices() {filterChoices={genre:[],mood:[],style:[]};if(filterKind==="artist"){filterValue("yearFrom",null);filterValue("yearTo",null)}if(filterSection){var fields=["genre","mood","style"],gates=[null,"moodFilter","styleFilter"];for(var i=0;i<3;i++)if(!gates[i] || can(gates[i]))backend.command("filter_options",{section:filterSection,kind:filterKind,field:fields[i]})}}
     function filterSortText(value) {return value==="title" ? qsTr("Title") : value==="newest" ? qsTr("Recently added") : value==="year" ? qsTr("Year") : value==="played" ? qsTr("Recently played") : value==="popular" ? qsTr("Most played") : qsTr("Shuffle")}
     function editFilters(action,item) {
         filterAction=action;filterKey=item ? item.ratingKey : "";filterSection=section;filterKind=action==="browse" ? browseKind : "track";filterName=item ? item.title : "";filterSort="title";filterLimit=100;filterEditable=true;filterLoading=action==="update"
@@ -66,8 +66,8 @@ Item {
         for(var i=index;i<entries.length && entries[i].hubIdentifier===identifier;i++)result.push({entry:entries[i],sourceIndex:i})
         return result
     }
-    function addJourneyTrack(item) {if(item && item.type==="track" && journeyTracks.length<8)journeyTracks=journeyTracks.concat([item])}
-    function journey() {if(journeyTracks.length>=2)load("sonic_journey",{section:section,keys:journeyTracks.map(function(i){return i.ratingKey})},qsTr("Sonic Adventure"),true)}
+    function addJourneyTrack(item) {if(can("sonicAdventure") && item && item.type==="track" && journeyTracks.length<8)journeyTracks=journeyTracks.concat([item])}
+    function journey() {if(can("sonicAdventure") && journeyTracks.length>=2)load("sonic_journey",{section:section,keys:journeyTracks.map(function(i){return i.ratingKey})},qsTr("Sonic Adventure"),true)}
     property int downloadMinutes:60
     property var adventureStart:null
     property bool homeView:!showQueue && route && route.op==="discovery_home"
@@ -84,8 +84,8 @@ Item {
         if(item && item.station)backend.command("download_station",{key:item.key,title:item.title,minutes:downloadMinutes})
         else if(item && canRadio(item))backend.command("download_plan",{kind:item.type+"_radio",key:item.ratingKey,minutes:downloadMinutes})
     }
-    function sonicNeighbors(item) {if(item)load("sonic_neighbors",{key:item.ratingKey,kind:item.type},qsTr("Sonically similar"),true)}
-    function sonicAdventure(item) {if(adventureStart && item && section)load("sonic_adventure",{section:section,start_key:adventureStart.ratingKey,end_key:item.ratingKey},qsTr("Sonic Adventure"),true)}
+    function sonicNeighbors(item) {if(item && can("sonic"))load("sonic_neighbors",{key:item.ratingKey,kind:item.type},qsTr("Sonically similar"),true)}
+    function sonicAdventure(item) {if(can("sonicAdventure") && adventureStart && item && section)load("sonic_adventure",{section:section,start_key:adventureStart.ratingKey,end_key:item.ratingKey},qsTr("Sonic Adventure"),true)}
     function audioSetting(name,value) {
         if (["crossfadeMs","normalization","eq","normalizationMode","headroomDb"].indexOf(name)<0) return
         var old=backend.state.audioConfig || ({crossfadeMs:0,normalization:false,eq:[0,0,0,0,0,0,0,0,0,0]})
@@ -137,7 +137,7 @@ Item {
     function requestLyrics() {if(trackKey){lyricsState="loading";backend.command("lyrics",{key:trackKey})}}
     function lyricIndex() {var found=-1;for(var i=0;i<lyrics.length;i++)if(lyrics[i].time!==null && lyrics[i].time<=backend.position)found=i;return found}
     function favorite(item) {if (!item || !item.ratingKey || backend.busy) return;backend.command("favorite",{key:item.ratingKey,enabled:!(item.userRating>=10)})}
-    function discovery(view) {if (backend.busy || !section) return;query="";load("collection",{section:section,view:view,start:0},view==="favorites" ? qsTr("Favorites · 5 stars") : view==="added" ? qsTr("Recently added") : qsTr("Recently played"),true)}
+    function discovery(view) {if (backend.busy || !section) return;query="";load("collection",{section:section,view:view,start:0},view==="favorites" ? (jellyfin ? qsTr("Favorites") : qsTr("Favorites · 5 stars")) : view==="added" ? qsTr("Recently added") : qsTr("Recently played"),true)}
     property var similarArtists: detail && detail.type === "artist" && detail.ratingKey === similarKey ? similarData : []
     property var items: (showQueue ? backend.queueItems : backend.items) || []
     property bool canGoBack: history.length > 0
@@ -147,7 +147,39 @@ Item {
     property var rows: showQueue ? backend.queueModel : backend.itemsModel
     property bool artistBrowse: !showQueue && route && route.op === "browse" && browseKind==="artist" && browseSort==="title"
     property bool gridBrowse: artistBrowse || (!showQueue && route && route.op === "collection" && (route.args.view === "added" || route.args.view === "played"))
-    property var alphabet: artistBrowse && query.length === 0 && backend.state.alphabetSection === section ? backend.state.alphabet || [] : []
+    property var alphabet: can("firstCharacter") && artistBrowse && query.length === 0 && backend.state.alphabetSection === section ? backend.state.alphabet || [] : []
+    // What the connected server can do (status "capabilities"). A server that publishes
+    // none, or has not reported yet, is assumed able: Core refuses what it cannot do.
+    property var serverCaps: backend.state.capabilities || ({})
+    function can(capability) {return serverCaps[capability]!==false}
+    property bool jellyfin: backend.state.serverKind==="jellyfin"
+    // Server type chosen on the sign-in form; empty follows the saved session.
+    property string signInChoice: ""
+    property string signInKind: signInChoice || (jellyfin ? "jellyfin" : "plex")
+    property bool quickConnectPending: !!backend.state.quickConnect
+    property string quickConnectCode: backend.state.quickConnect ? backend.state.quickConnect.code || "" : ""
+    property bool quickConnectPolling: false
+    // Set by a cancel until the core reports no pending login: stops polling at once.
+    property bool quickConnectCancelling: false
+    onQuickConnectPendingChanged: quickConnectCancelling = false
+    // The caller clears its password field right after this returns, whatever the outcome.
+    function jellyfinSignIn(url, username, password) {
+        if (backend.busy || !url || !username) return false
+        backend.command("jellyfin_login", {url:url, username:username, password:password})
+        return true
+    }
+    function startQuickConnect(url) {
+        if (backend.busy || !url) return false
+        quickConnectCancelling = false
+        backend.command("jellyfin_quick_connect", {url:url})
+        return true
+    }
+    function cancelQuickConnect() {
+        quickConnectCancelling = true
+        quickConnectPolling = false
+        if (backend.command("jellyfin_quick_connect_cancel", {_background:true}) === false)
+            quickConnectCancelling = false
+    }
     signal navigate(string kind, string key)
     signal resetView()
     signal artistJumped(int index)
@@ -197,12 +229,12 @@ Item {
         query = value; searchPending = true; searchTimer.interval = 1; searchTimer.restart()
     }
     function jump(letter) {
-        if (backend.busy || !section) return
+        if (backend.busy || !section || !can("firstCharacter")) return
         for(var i=0;i<alphabet.length;i++)if(alphabet[i].letter===letter){artistJumped(alphabet[i].offset || 0);return}
     }
     function activate(item, index) {
         if (!item || backend.busy || searchPending) return
-        if(item.station) {if(item.key)backend.command("station",{key:item.key,title:item.title || ""});return}
+        if(item.station) {if(item.key && can("serverStations"))backend.command("station",{key:item.key,title:item.title || ""});return}
         if (showQueue) backend.command("select_track", { index: index })
         else if (item.type === "track") {
             var tracks = []; var selected = 0
@@ -292,6 +324,16 @@ Item {
         }
     }
     Timer {
+        interval: 2000; repeat: true; running: session.quickConnectPending && !session.quickConnectCancelling
+        // One poll at a time: a slow network must not queue a second poll behind an approval.
+        // A poll the runtime did not accept never completes, so it must not keep the flag set.
+        onTriggered: if (!session.quickConnectPolling) {
+            session.quickConnectPolling = true
+            if (backend.command("jellyfin_quick_connect_poll", {_background:true}) === false) session.quickConnectPolling = false
+        }
+        onRunningChanged: session.quickConnectPolling = false
+    }
+    Timer {
         interval: 2000; repeat: true; running: session.polling
         onTriggered: if (!backend.busy) backend.command("poll_login")
     }
@@ -301,6 +343,7 @@ Item {
     Connections {
         target: backend
         onCompleted: {
+            if (op === "jellyfin_quick_connect_poll") quickConnectPolling = false
             if (data._discarded) return
             if(op==="filter_options" && data.filterSection===filterSection && data.filterKind===filterKind) {var choices={genre:filterChoices.genre,mood:filterChoices.mood,style:filterChoices.style};choices[data.filterField]=ok ? data.filterChoices || [] : [];filterChoices=choices;return}
             if(op==="smart_rules" && filterAction==="update" && data.smartKey===filterKey) {filterLoading=false;filterEditable=ok && !!data.smartEditable;if(filterEditable){filterSection=data.smartSection;filterKind="track";filterValues=data.smartFilters;filterSort=data.smartSort;filterLimit=data.smartLimit;requestFilterChoices()}return}
@@ -323,7 +366,7 @@ Item {
                 }
                 if (ok && (data.start === 0 || data.replaceItems)) resetView()
                 if (ok && op === "jump_artist") artistJumped(data.selectedIndex || 0)
-                if (ok && op === "browse" && query.length === 0 && indexedSection !== section) {
+                if (ok && op === "browse" && query.length === 0 && indexedSection !== section && can("firstCharacter")) {
                     indexedSection = section; backend.command("alphabet", {section:section})
                 }
                 if(ok && op==="browse" && artistBrowse && query.length===0 && backend.state.hasMore)moreLater.restart()
@@ -355,7 +398,7 @@ Item {
                 session.catalogCount = data.itemCount
             } else if (op === "cache_status" && ok && !session.showQueue && session.route && session.route.op === "cached_tracks" && session.catalogCount !== backend.cache.tracks) {
                 backend.command("cached_tracks", {_background:true, _refresh:true})
-            } else if ((op === "connect" || op === "select_server" || op === "libraries") && ok) {
+            } else if ((op === "connect" || op === "select_server" || op === "libraries" || op === "jellyfin_login" || (op === "jellyfin_quick_connect_poll" && data.signedIn)) && ok) {
                 session.polling = false
                 session.reset()
                 if (data.libraries && data.libraries.length > 0) { session.section = data.libraries[0].key; session.home() }

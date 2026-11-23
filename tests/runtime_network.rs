@@ -9,7 +9,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use zbus::zvariant::{OwnedObjectPath, OwnedValue};
+use zbus::{OwnedObjectPath, OwnedVariant as OwnedValue};
 
 struct Bus {
     child: std::process::Child,
@@ -48,12 +48,11 @@ impl Connman {
         let properties = HashMap::from([
             (
                 "State".to_string(),
-                OwnedValue::try_from(zbus::zvariant::Value::from(*self.state.lock().unwrap()))
-                    .unwrap(),
+                OwnedValue::try_from(zbus::Variant::from(*self.state.lock().unwrap())).unwrap(),
             ),
             (
                 "Type".to_string(),
-                OwnedValue::try_from(zbus::zvariant::Value::from("wifi")).unwrap(),
+                OwnedValue::try_from(zbus::Variant::from("wifi")).unwrap(),
             ),
         ]);
         vec![(
@@ -86,19 +85,18 @@ fn connman_change_signal_updates_network_state_promptly() {
     let bus = private_bus();
     let state = Arc::new(Mutex::new("online"));
     drive_blocking_zbus();
-    let service = zbus::blocking::ConnectionBuilder::address(bus.address.as_str())
-        .unwrap()
-        .name("net.connman")
-        .unwrap()
-        .serve_at(
-            "/",
-            Connman {
-                state: state.clone(),
-            },
-        )
-        .unwrap()
-        .build()
-        .unwrap();
+    let service = zbus::block_on(
+        zbus::connection::Builder::address(bus.address.as_str())
+            .name("net.connman")
+            .serve_at(
+                "/",
+                Connman {
+                    state: state.clone(),
+                },
+            )
+            .build(),
+    )
+    .unwrap();
     let dir = tempfile::tempdir().unwrap();
     let runtime = Runtime::new(dir.path().into()).unwrap();
     let online = network_state(&runtime, true, Duration::from_secs(10))
@@ -107,15 +105,14 @@ fn connman_change_signal_updates_network_state_promptly() {
     // Let the observer settle into waiting for signals before the change.
     thread::sleep(Duration::from_millis(500));
     *state.lock().unwrap() = "idle";
-    service
-        .emit_signal(
-            None::<&str>,
-            "/",
-            "net.connman.Manager",
-            "ServicesChanged",
-            &(Services::new(), Vec::<OwnedObjectPath>::new()),
-        )
-        .unwrap();
+    zbus::block_on(service.emit_signal(
+        None::<&str>,
+        "/",
+        "net.connman.Manager",
+        "ServicesChanged",
+        &(Services::new(), Vec::<OwnedObjectPath>::new()),
+    ))
+    .unwrap();
     let offline = network_state(&runtime, false, Duration::from_secs(4))
         .expect("ConnMan ServicesChanged did not refresh network facts");
     assert_eq!(offline["request"]["wifi"], false);
@@ -125,9 +122,10 @@ fn connman_change_signal_updates_network_state_promptly() {
     drop(service);
 }
 
-/// zbus (tokio feature) runs its blocking API on a private current-thread
-/// runtime that only progresses while some thread blocks on it, so blocking
-/// fixture services would never answer between calls. Keep it driven.
+/// With zbus's `tokio` feature, `zbus::block_on` runs its connections on a
+/// private current-thread runtime that only progresses while some thread is
+/// inside `block_on`, so fixture services would never answer between calls.
+/// Keep it driven.
 fn drive_blocking_zbus() {
     static DRIVER: std::sync::Once = std::sync::Once::new();
     DRIVER.call_once(|| {

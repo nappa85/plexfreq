@@ -8,4 +8,5 @@ QString translationLocale(const QString &overrideLocale, const QString &systemLo
 QString translatedError(const QVariantMap &response);
 QString translatedMessage(const QString &source);
 void translateErrorFields(QVariantMap &data);
+void translateHubTitles(QVariantMap &data,const QString &serverKind);
 #endif

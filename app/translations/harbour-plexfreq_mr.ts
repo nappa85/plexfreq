@@ -184,12 +184,12 @@
       <translation>रेडिओ रिफ्रेश होऊ शकला नाही. डाउनलोड केलेले ट्रॅक पुन्हा वाजू शकतात.</translation>
     </message>
     <message>
-      <source>Plex returned HTTP %1</source>
-      <translation>Plex ने HTTP %1 परत केले</translation>
+      <source>Server returned HTTP %1</source>
+      <translation>सर्व्हरने HTTP %1 परत केले</translation>
     </message>
     <message>
-      <source>Unexpected Plex response (%1)</source>
-      <translation>अनपेक्षित Plex प्रतिसाद (%1)</translation>
+      <source>Unexpected server response (%1)</source>
+      <translation>अनपेक्षित सर्व्हर प्रतिसाद (%1)</translation>
     </message>
     <message>
       <source>Add tracks or albums to a playlist</source>
@@ -266,6 +266,10 @@
     <message>
       <source>Audio streaming failed</source>
       <translation>ऑडिओ स्ट्रीमिंग अयशस्वी</translation>
+    </message>
+    <message>
+      <source>Authorization failed; sign in again or check server token</source>
+      <translation>प्राधिकरण अयशस्वी; पुन्हा साइन इन करा किंवा सर्व्हर टोकन तपासा</translation>
     </message>
     <message>
       <source>Backend command queue is unavailable</source>
@@ -360,12 +364,12 @@
       <translation>डाउनलोडसाठी जास्तीत जास्त 1000 वैध ट्रॅक निवडा</translation>
     </message>
     <message>
-      <source>Connect to a Plex server first</source>
-      <translation>आधी Plex सर्व्हरशी कनेक्ट करा</translation>
+      <source>Connect to a server first</source>
+      <translation>आधी सर्व्हरशी कनेक्ट करा</translation>
     </message>
     <message>
-      <source>Cross-origin Plex path rejected</source>
-      <translation>दुसऱ्या ओरिजिनचा Plex पाथ नाकारला</translation>
+      <source>Cross-origin path rejected</source>
+      <translation>दुसऱ्या ओरिजिनचा पाथ नाकारला</translation>
     </message>
     <message>
       <source>Download group no longer exists</source>
@@ -400,16 +404,20 @@
       <translation>संख्यात्मक Plex ओळखकर्ता अपेक्षित होता</translation>
     </message>
     <message>
-      <source>Expected a server-relative Plex path</source>
-      <translation>सर्व्हर-सापेक्ष Plex पाथ अपेक्षित होता</translation>
+      <source>Expected a server identifier</source>
+      <translation>सर्व्हर अभिज्ञापक अपेक्षित होता</translation>
+    </message>
+    <message>
+      <source>Expected a server-relative path</source>
+      <translation>सर्व्हर-सापेक्ष पाथ अपेक्षित होता</translation>
     </message>
     <message>
       <source>Go online</source>
       <translation>ऑनलाइन जा</translation>
     </message>
     <message>
-      <source>Go online to edit Plex playlists</source>
-      <translation>Plex प्लेलिस्ट संपादित करण्यासाठी ऑनलाइन जा</translation>
+      <source>Go online to edit playlists</source>
+      <translation>प्लेलिस्ट संपादित करण्यासाठी ऑनलाइन जा</translation>
     </message>
     <message>
       <source>Go online to refresh downloads</source>
@@ -480,6 +488,10 @@
       <translation>अवैध सर्व्हर निर्देशांक</translation>
     </message>
     <message>
+      <source>Jellyfin 10.9 or newer is required</source>
+      <translation>Jellyfin 10.9 किंवा नवीन आवश्यक आहे</translation>
+    </message>
+    <message>
       <source>Listening history sync is needed before recording more plays</source>
       <translation>आणखी प्ले नोंदवण्यापूर्वी ऐकण्याचा इतिहास सिंक करणे आवश्यक आहे</translation>
     </message>
@@ -540,10 +552,6 @@
       <translation>फक्त-वाचन तपासणीत प्लेलिस्ट संपादन बंद आहे</translation>
     </message>
     <message>
-      <source>Plex authorization failed; sign in again or check server token</source>
-      <translation>Plex प्राधिकरण अयशस्वी; पुन्हा साइन इन करा किंवा सर्व्हर टोकन तपासा</translation>
-    </message>
-    <message>
       <source>Plex does not expose an artist radio station for this artist</source>
       <translation>Plex या कलाकारासाठी कलाकार रेडिओ स्टेशन देत नाही</translation>
     </message>
@@ -558,6 +566,10 @@
     <message>
       <source>Queue requires tracks and a valid start index</source>
       <translation>रांगेसाठी ट्रॅक आणि वैध सुरुवातीचा निर्देशांक आवश्यक आहे</translation>
+    </message>
+    <message>
+      <source>Quick Connect is not enabled on this server</source>
+      <translation>या सर्व्हरवर Quick Connect चालू नाही</translation>
     </message>
     <message>
       <source>Radio continues automatically; stop radio to repeat</source>
@@ -596,6 +608,10 @@
       <translation>जतन केलेली रांग अवैध आहे</translation>
     </message>
     <message>
+      <source>Server URL must be an HTTP(S) address, optionally with a path such as /jellyfin</source>
+      <translation>सर्व्हर URL हा HTTP(S) पत्ता असावा, हवे असल्यास /jellyfin सारख्या पाथसह</translation>
+    </message>
+    <message>
       <source>Server URL must be an HTTP(S) origin, e.g. http://192.168.1.10:32400</source>
       <translation>सर्व्हर URL हा HTTP(S) ओरिजिन असावा, उदा. http://192.168.1.10:32400</translation>
     </message>
@@ -620,6 +636,14 @@
       <translation>आधी लॉगिन सुरू करा</translation>
     </message>
     <message>
+      <source>The playlist entry was not found</source>
+      <translation>प्लेलिस्टमधील नोंद सापडली नाही</translation>
+    </message>
+    <message>
+      <source>The server did not move the playlist entry</source>
+      <translation>सर्व्हरने प्लेलिस्टमधील नोंद हलवली नाही</translation>
+    </message>
+    <message>
       <source>This album contains no playable tracks</source>
       <translation>या अल्बममध्ये वाजवता येणारे ट्रॅक नाहीत</translation>
     </message>
@@ -628,8 +652,16 @@
       <translation>हा कलाकार किंवा अल्बम ऑफलाइन जतन केलेला नाही</translation>
     </message>
     <message>
+      <source>This is not a Jellyfin server</source>
+      <translation>हा Jellyfin सर्व्हर नाही</translation>
+    </message>
+    <message>
       <source>This library page has not been saved offline yet</source>
       <translation>हे लायब्ररी पेज अजून ऑफलाइन जतन केलेले नाही</translation>
+    </message>
+    <message>
+      <source>This server does not support this feature</source>
+      <translation>हा सर्व्हर या वैशिष्ट्याला समर्थन देत नाही</translation>
     </message>
     <message>
       <source>This track has no playable media part</source>
@@ -638,6 +670,10 @@
     <message>
       <source>This track has not been downloaded</source>
       <translation>हा ट्रॅक डाउनलोड केलेला नाही</translation>
+    </message>
+    <message>
+      <source>This track is in the playlist more than once and the server cannot tell the copies apart</source>
+      <translation>हा ट्रॅक प्लेलिस्टमध्ये एकापेक्षा जास्त वेळा आहे आणि सर्व्हर प्रतींमध्ये फरक करू शकत नाही</translation>
     </message>
     <message>
       <source>This track is no longer on the server</source>
@@ -656,8 +692,8 @@
       <translation>ट्रॅकमध्ये डाउनलोड करता येणारा मीडिया भाग नाही</translation>
     </message>
     <message>
-      <source>Unexpected Plex response</source>
-      <translation>अनपेक्षित Plex प्रतिसाद</translation>
+      <source>Unexpected server response</source>
+      <translation>अनपेक्षित सर्व्हर प्रतिसाद</translation>
     </message>
     <message>
       <source>Unknown audio command</source>
@@ -1222,6 +1258,25 @@
     </message>
   </context>
   <context>
+    <name>Hub</name>
+    <message>
+      <source>Recently added</source>
+      <translation>अलीकडे जोडलेले</translation>
+    </message>
+    <message>
+      <source>Recently played</source>
+      <translation>अलीकडे वाजवलेले</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>आवडते</translation>
+    </message>
+    <message>
+      <source>Most played</source>
+      <translation>सर्वाधिक वाजवलेले</translation>
+    </message>
+  </context>
+  <context>
     <name>Insights</name>
     <message>
       <source>Listening insights</source>
@@ -1505,8 +1560,8 @@
       <translation>संगीत सापडले नाही</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex शी कनेक्ट करा</translation>
+      <source>Connect to a server</source>
+      <translation>सर्व्हरशी कनेक्ट करा</translation>
     </message>
     <message>
       <source>Use the pull-up menu for connection settings</source>
@@ -1608,6 +1663,10 @@
       <translation>संगीत सापडले नाही.</translation>
     </message>
     <message>
+      <source>Connect to your music server to start listening.</source>
+      <translation>ऐकायला सुरुवात करण्यासाठी तुमच्या संगीत सर्व्हरशी कनेक्ट करा.</translation>
+    </message>
+    <message>
       <source>Connect to your Plex music server to start listening.</source>
       <translation>ऐकायला सुरुवात करण्यासाठी तुमच्या Plex संगीत सर्व्हरशी कनेक्ट करा.</translation>
     </message>
@@ -1636,8 +1695,12 @@
       <translation>पुनरावृत्ती बंद</translation>
     </message>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex शी कनेक्ट करा</translation>
+      <source>Connect to a server</source>
+      <translation>सर्व्हरशी कनेक्ट करा</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>सर्व्हरचा प्रकार</translation>
     </message>
     <message>
       <source>Sign in with Plex in browser</source>
@@ -1686,6 +1749,34 @@
     <message>
       <source>Connect directly</source>
       <translation>थेट कनेक्ट करा</translation>
+    </message>
+    <message>
+      <source>Server URL</source>
+      <translation>सर्व्हर URL</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>वापरकर्तानाव</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>पासवर्ड</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin मध्ये साइन इन करा</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect वापरा</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin मध्ये Quick Connect अंतर्गत हा कोड टाका, मग येथे थांबा.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>रद्द करा</translation>
     </message>
     <message>
       <source>Sign out and clear saved tokens</source>
@@ -1801,6 +1892,10 @@
     <message>
       <source>Listening insights</source>
       <translation>ऐकण्याच्या इनसाइट्स</translation>
+    </message>
+    <message>
+      <source>Favorites</source>
+      <translation>आवडते</translation>
     </message>
     <message>
       <source>Favorites · 5 stars</source>
@@ -2037,6 +2132,10 @@
       <translation>सोनिकदृष्ट्या समान</translation>
     </message>
     <message>
+      <source>Favorites</source>
+      <translation>आवडते</translation>
+    </message>
+    <message>
       <source>Favorites · 5 stars</source>
       <translation>आवडते · 5 स्टार</translation>
     </message>
@@ -2096,8 +2195,12 @@
   <context>
     <name>SettingsPage</name>
     <message>
-      <source>Connect to Plex</source>
-      <translation>Plex शी कनेक्ट करा</translation>
+      <source>Connect to a server</source>
+      <translation>सर्व्हरशी कनेक्ट करा</translation>
+    </message>
+    <message>
+      <source>Server type</source>
+      <translation>सर्व्हरचा प्रकार</translation>
     </message>
     <message>
       <source>Sign in with Plex</source>
@@ -2146,6 +2249,30 @@
     <message>
       <source>Connect</source>
       <translation>कनेक्ट करा</translation>
+    </message>
+    <message>
+      <source>Username</source>
+      <translation>वापरकर्तानाव</translation>
+    </message>
+    <message>
+      <source>Password</source>
+      <translation>पासवर्ड</translation>
+    </message>
+    <message>
+      <source>Sign in to Jellyfin</source>
+      <translation>Jellyfin मध्ये साइन इन करा</translation>
+    </message>
+    <message>
+      <source>Use Quick Connect</source>
+      <translation>Quick Connect वापरा</translation>
+    </message>
+    <message>
+      <source>Enter this code in Jellyfin under Quick Connect, then wait here.</source>
+      <translation>Jellyfin मध्ये Quick Connect अंतर्गत हा कोड टाका, मग येथे थांबा.</translation>
+    </message>
+    <message>
+      <source>Cancel</source>
+      <translation>रद्द करा</translation>
     </message>
     <message>
       <source>Sign out</source>

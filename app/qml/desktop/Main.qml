@@ -37,6 +37,7 @@ ApplicationWindow {
     Connections {target:session;onOpenAudioSettings:audioSettings.open()}
     Connections {target:session;onEditPlaylistRequested:playlistEditor.open();onOpenDownloads:downloadManager.open()}
     Connections {target:session;onOpenPlayer:nowPlaying.open()}
+    Connections {target:backend;onCompleted:if(ok && (op==="jellyfin_login" || (op==="jellyfin_quick_connect_poll" && data.signedIn)))settings.close()}
     Connections { target:session; onResetView:list.positionViewAtBeginning() }
     ItemActions {id:itemActions;music:session}
     GridPosition {id:gridPosition;listView:list;artistBrowse:session.artistBrowse;alphabet:session.alphabet;hasMore:!!backend.state.hasMore}
@@ -215,7 +216,7 @@ ApplicationWindow {
             }
             Label {
                 anchors.centerIn: parent; visible: (session.gridBrowse ? (!list.footerItem || list.footerItem.gridCount===0) : list.count===0) && !backend.busy
-                text: backend.state.serverUrl ? qsTr("No music found.") : qsTr("Connect to your Plex music server to start listening.")
+                text: backend.state.serverUrl ? qsTr("No music found.") : (session.jellyfin || session.signInKind === "jellyfin" ? qsTr("Connect to your music server to start listening.") : qsTr("Connect to your Plex music server to start listening."))
                 color: "#9eaabd"; width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap
             }
         }
@@ -246,9 +247,17 @@ ApplicationWindow {
         }
     }
     Dialog {
-        id: settings; title: qsTr("Connect to Plex"); modal: true
+        id: settings; objectName: "connectionDialog"; title: qsTr("Connect to a server"); modal: true
         anchors.centerIn: parent; width: Math.min(window.width - 40, 500)
         standardButtons: Dialog.Close
+        // Empty fields are prefilled with the saved server on opening. Not a
+        // binding on `text`: that would replace what the user is typing
+        // whenever the status changes.
+        onAboutToShow: {
+            if (!address.text && !session.jellyfin) address.text = backend.state.serverUrl || ""
+            if (!jellyfinUrl.text && session.jellyfin) jellyfinUrl.text = backend.state.serverUrl || ""
+        }
+        onClosed: jellyfinPassword.clear()
         contentItem: ScrollView {
             id: connectionScroll
             implicitHeight: Math.min(window.height - 140, connectionColumn.implicitHeight)
@@ -256,54 +265,82 @@ ApplicationWindow {
             ColumnLayout {
             id: connectionColumn; width: connectionScroll.availableWidth
             spacing: 12
-            Button { text: qsTr("Sign in with Plex in browser"); enabled: !backend.busy; onClicked: backend.command("login") }
-            Label { text: qsTr("Waiting for browser authorization…"); visible: session.polling; wrapMode: Text.Wrap; Layout.fillWidth: true }
-            Button { text: qsTr("Open sign-in again"); visible: session.polling; onClicked: Qt.openUrlExternally(session.loginUrl) }
-            Label {
-                visible: !!backend.state.signedIn || backend.state.servers.length > 0
-                text: qsTr("Choose a Plex server"); font.pixelSize: 21; font.bold: true
-                color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap
+            Label { objectName: "settingsError"; text: backend.error; visible: text.length > 0; color: "#ff998b"; wrapMode: Text.Wrap; Layout.fillWidth: true }
+            ComboBox {
+                id: serverType; objectName: "serverType"; Layout.fillWidth: true; model: ["Plex", "Jellyfin"]; currentIndex: session.signInKind === "jellyfin" ? 1 : 0
+                enabled: !backend.busy && !session.quickConnectPending; displayText: qsTr("Server type") + ": " + currentText
+                onActivated: session.signInChoice = currentIndex === 1 ? "jellyfin" : "plex"
             }
-            Label {
-                visible: !!backend.state.signedIn || backend.state.servers.length > 0
-                text: backend.state.servers.length > 0 ? qsTr("Select a server to open its music libraries.") : qsTr("Refresh the list to find your Plex servers.")
-                color: "#9eaabd"; Layout.fillWidth: true; wrapMode: Text.Wrap
-            }
-            Button { text: qsTr("Refresh servers"); visible: !!backend.state.signedIn; enabled: !backend.busy; onClicked: backend.command("servers") }
-            Frame {
-                visible: backend.state.servers.length > 0
-                Layout.fillWidth: true; Layout.preferredHeight: Math.min(240, serverList.contentHeight) + 2 * padding
-                background: Rectangle { color: "#1c2430"; border.color: "#ebad3d"; radius: 8 }
-                ListView {
-                    id: serverList; anchors.fill: parent; clip: true; spacing: 6
-                    model: backend.state.servers
-                    ScrollBar.vertical: ScrollBar {}
-                    delegate: ItemDelegate {
-                        width: serverList.width; height: Math.max(76, serverInfo.implicitHeight + 24)
-                        enabled: !backend.busy
-                        onClicked: { backend.command("select_server", {index:index}); settings.close() }
-                        contentItem: RowLayout {
-                            Rectangle {
-                                Layout.preferredWidth: 40; Layout.preferredHeight: 40
-                                radius: 8; color: "#ebad3d"
-                                Label { anchors.centerIn: parent; text: "P"; color: "#11151c"; font.pixelSize: 23; font.bold: true }
+            ColumnLayout {
+                objectName: "plexSignIn"; Layout.fillWidth: true; spacing: 12; visible: session.signInKind === "plex"
+                Button { text: qsTr("Sign in with Plex in browser"); enabled: !backend.busy; onClicked: backend.command("login") }
+                Label { text: qsTr("Waiting for browser authorization…"); visible: session.polling; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                Button { text: qsTr("Open sign-in again"); visible: session.polling; onClicked: Qt.openUrlExternally(session.loginUrl) }
+                Label {
+                    visible: (!!backend.state.signedIn && !session.jellyfin) || backend.state.servers.length > 0
+                    text: qsTr("Choose a Plex server"); font.pixelSize: 21; font.bold: true
+                    color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap
+                }
+                Label {
+                    visible: (!!backend.state.signedIn && !session.jellyfin) || backend.state.servers.length > 0
+                    text: backend.state.servers.length > 0 ? qsTr("Select a server to open its music libraries.") : qsTr("Refresh the list to find your Plex servers.")
+                    color: "#9eaabd"; Layout.fillWidth: true; wrapMode: Text.Wrap
+                }
+                Button { text: qsTr("Refresh servers"); visible: !!backend.state.signedIn && !session.jellyfin; enabled: !backend.busy; onClicked: backend.command("servers") }
+                Frame {
+                    visible: backend.state.servers.length > 0
+                    Layout.fillWidth: true; Layout.preferredHeight: Math.min(240, serverList.contentHeight) + 2 * padding
+                    background: Rectangle { color: "#1c2430"; border.color: "#ebad3d"; radius: 8 }
+                    ListView {
+                        id: serverList; anchors.fill: parent; clip: true; spacing: 6
+                        model: backend.state.servers
+                        ScrollBar.vertical: ScrollBar {}
+                        delegate: ItemDelegate {
+                            width: serverList.width; height: Math.max(76, serverInfo.implicitHeight + 24)
+                            enabled: !backend.busy
+                            onClicked: { backend.command("select_server", {index:index}); settings.close() }
+                            contentItem: RowLayout {
+                                Rectangle {
+                                    Layout.preferredWidth: 40; Layout.preferredHeight: 40
+                                    radius: 8; color: "#ebad3d"
+                                    Label { anchors.centerIn: parent; text: "P"; color: "#11151c"; font.pixelSize: 23; font.bold: true }
+                                }
+                                ColumnLayout {
+                                    id: serverInfo; Layout.fillWidth: true
+                                    Label { text: modelData.name; font.pixelSize: 19; font.bold: true; color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                                    Label { text: qsTr("Connect to music libraries"); color: "#9eaabd"; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                                }
+                                Label { text: "›"; color: "#ebad3d"; font.pixelSize: 26 }
                             }
-                            ColumnLayout {
-                                id: serverInfo; Layout.fillWidth: true
-                                Label { text: modelData.name; font.pixelSize: 19; font.bold: true; color: "#ebad3d"; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                                Label { text: qsTr("Connect to music libraries"); color: "#9eaabd"; Layout.fillWidth: true; wrapMode: Text.Wrap }
-                            }
-                            Label { text: "›"; color: "#ebad3d"; font.pixelSize: 26 }
                         }
                     }
                 }
+                Label { text: qsTr("Direct connection"); font.bold: true; Layout.fillWidth: true }
+                Label { text: qsTr("Or connect directly using a server URL and Plex token:"); wrapMode: Text.Wrap; Layout.fillWidth: true }
+                TextField { id: address; objectName: "plexAddress"; Layout.fillWidth: true; placeholderText: "http://192.168.1.10:32400" }
+                TextField { id: token; Layout.fillWidth: true; placeholderText: qsTr("X-Plex-Token"); echoMode: TextInput.Password }
+                Button { text: qsTr("Connect directly"); enabled: !backend.busy && address.text.length > 0; onClicked: { backend.command("connect", {url:address.text, token:token.text}); token.clear(); settings.close() } }
             }
-            Label { text: qsTr("Direct connection"); font.bold: true; Layout.fillWidth: true }
-            Label { text: qsTr("Or connect directly using a server URL and Plex token:"); wrapMode: Text.Wrap; Layout.fillWidth: true }
-            TextField { id: address; Layout.fillWidth: true; placeholderText: "http://192.168.1.10:32400"; text: backend.state.serverUrl || "" }
-            TextField { id: token; Layout.fillWidth: true; placeholderText: qsTr("X-Plex-Token"); echoMode: TextInput.Password }
-            Button { text: qsTr("Connect directly"); enabled: !backend.busy && address.text.length > 0; onClicked: { backend.command("connect", {url:address.text, token:token.text}); token.clear(); settings.close() } }
-            Button { text: qsTr("Sign out and clear saved tokens"); enabled: !backend.busy; onClicked: { backend.command("logout"); token.clear() } }
+            ColumnLayout {
+                objectName: "jellyfinSignIn"; Layout.fillWidth: true; spacing: 12; visible: session.signInKind === "jellyfin"
+                TextField { id: jellyfinUrl; objectName: "jellyfinUrl"; Layout.fillWidth: true; placeholderText: qsTr("Server URL") + " (https://host/jellyfin)"; enabled: !session.quickConnectPending }
+                TextField { id: jellyfinUser; objectName: "jellyfinUser"; Layout.fillWidth: true; placeholderText: qsTr("Username"); enabled: !session.quickConnectPending }
+                TextField { id: jellyfinPassword; objectName: "jellyfinPassword"; Layout.fillWidth: true; placeholderText: qsTr("Password"); echoMode: TextInput.Password; enabled: !session.quickConnectPending; onAccepted: if (jellyfinSignIn.enabled) jellyfinSignIn.clicked() }
+                Button {
+                    id: jellyfinSignIn; objectName: "jellyfinSignInButton"; text: qsTr("Sign in to Jellyfin")
+                    enabled: !backend.busy && !session.quickConnectPending && jellyfinUrl.text.length > 0 && jellyfinUser.text.length > 0
+                    onClicked: { session.jellyfinSignIn(jellyfinUrl.text, jellyfinUser.text, jellyfinPassword.text); jellyfinPassword.clear() }
+                }
+                Button {
+                    objectName: "jellyfinQuickConnectButton"; text: qsTr("Use Quick Connect")
+                    visible: !session.quickConnectPending; enabled: !backend.busy && jellyfinUrl.text.length > 0
+                    onClicked: { session.startQuickConnect(jellyfinUrl.text); jellyfinPassword.clear() }
+                }
+                Label { visible: session.quickConnectPending; text: qsTr("Enter this code in Jellyfin under Quick Connect, then wait here."); wrapMode: Text.Wrap; Layout.fillWidth: true }
+                Label { objectName: "quickConnectCode"; visible: session.quickConnectPending; text: session.quickConnectCode; font.pixelSize: 32; font.bold: true; color: "#ebad3d"; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
+                Button { objectName: "quickConnectCancel"; text: qsTr("Cancel"); visible: session.quickConnectPending; onClicked: session.cancelQuickConnect() }
+            }
+            Button { text: qsTr("Sign out and clear saved tokens"); enabled: !backend.busy; onClicked: { backend.command("logout"); token.clear(); jellyfinPassword.clear() } }
             Label { text:qsTr("Offline audio cache"); font.bold:true; Layout.fillWidth:true }
             Button {text:qsTr("Audio settings");onClicked:session.openAudioSettings()}
             Switch {text:qsTr("Autoplay related music at queue end");checked:!!backend.state.autoplay;enabled:!backend.busy;onClicked:backend.command("autoplay",{enabled:checked})}

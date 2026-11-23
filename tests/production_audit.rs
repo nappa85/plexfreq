@@ -271,7 +271,11 @@ fn artwork_accepts_case_insensitive_image_mime() {
     let artwork = plexfreq_core::offline::Artwork::new(dir.path().into(), true).unwrap();
     let server = format!("http://{addr}/");
     // Valid Plex image path under the mock origin.
-    artwork.schedule(&server, "token", "/photo/:/transcode?url=test");
+    artwork.schedule_with(
+        &plexfreq_core::cache::namespace(&server, "token"),
+        &plexfreq_core::server::StreamPolicy::plex(&url::Url::parse(&server).unwrap(), "token"),
+        "/photo/:/transcode?url=test",
+    );
     let namespace = plexfreq_core::cache::namespace(&server, "token");
     let until = Instant::now() + Duration::from_secs(5);
     let mut found = None;
